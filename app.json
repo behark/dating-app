@@ -24,8 +24,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro",
-      "output": "static"
+      "bundler": "metro"
     },
     "extra": {
       "firebaseApiKey": "your_api_key_here",
