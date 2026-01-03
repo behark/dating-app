@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  ScrollView,
-  Alert,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { useAuth } from '../context/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { useEffect, useState } from 'react';
+import {
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import { db, storage } from '../config/firebase';
+import { useAuth } from '../context/AuthContext';
 
 const ProfileScreen = () => {
   const { currentUser, logout } = useAuth();
@@ -290,6 +290,15 @@ const ProfileScreen = () => {
 
             <TouchableOpacity
               style={styles.secondaryButton}
+              onPress={() => navigation.navigate('NotificationPreferences')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="notifications" size={20} color="#FFA500" style={{ marginRight: 8 }} />
+              <Text style={styles.secondaryButtonText}>Notifications</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
               onPress={() => navigation.navigate('Verification')}
               activeOpacity={0.8}
             >
@@ -304,6 +313,15 @@ const ProfileScreen = () => {
             >
               <Ionicons name="images" size={20} color="#FF6B6B" style={{ marginRight: 8 }} />
               <Text style={styles.secondaryButtonText}>Photo Gallery</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('SafetyTips')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="shield-checkmark-outline" size={20} color="#FF9800" style={{ marginRight: 8 }} />
+              <Text style={styles.secondaryButtonText}>Safety Tips</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

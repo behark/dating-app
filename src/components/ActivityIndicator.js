@@ -1,0 +1,111 @@
+import { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import { ActivityService } from '../services/ActivityService';
+
+const ActivityIndicatorComponent = ({ userId, showLabel = true }) => {
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchStatus();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchStatus, 30000);
+    return () => clearInterval(interval);
+  }, [userId]);
+
+  const fetchStatus = async () => {
+    try {
+      const activityStatus = await ActivityService.getOnlineStatus(userId);
+      setStatus(activityStatus);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching activity status:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchStatus();
+  };
+
+  if (loading) {
+    return <ActivityIndicator size="small" color="#007AFF" />;
+  }
+
+  if (error) {
+    return null;
+  }
+
+  const getStatusColor = () => {
+    if (!status) return '#999';
+    if (status.status === 'online') return '#34C759';
+    if (status.status === 'active_now') return '#34C759';
+    if (status.status.includes('active')) return '#FFA500';
+    return '#999';
+  };
+
+  const getStatusText = () => {
+    if (!status) return 'Unknown';
+    const s = status.status;
+    if (s === 'online') return 'Online';
+    if (s === 'active_now') return 'Active now';
+    if (s.startsWith('active_')) {
+      const match = s.match(/active_(\d+)([mh])_ago/);
+      if (match) {
+        const time = match[1];
+        const unit = match[2] === 'm' ? 'min' : 'hr';
+        return `Active ${time}${unit} ago`;
+      }
+    }
+    return 'Offline';
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.container}
+      onPress={handleRefresh}
+      disabled={refreshing}
+    >
+      <View style={[styles.statusDot, { backgroundColor: getStatusColor() }]} />
+      {showLabel && (
+        <Text style={styles.statusText}>{getStatusText()}</Text>
+      )}
+      {refreshing && <ActivityIndicator size="small" color="#007AFF" style={styles.spinner} />}
+    </TouchableOpacity>
+  );
+};
+
+export default ActivityIndicatorComponent;
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4
+  },
+  statusText: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500'
+  },
+  spinner: {
+    marginLeft: 4
+  }
+});

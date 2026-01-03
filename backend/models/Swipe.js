@@ -108,4 +108,35 @@ swipeSchema.statics.getMatches = function(userId) {
   ]);
 };
 
+// Static method to get swipe count for today
+swipeSchema.statics.getSwipeCountToday = async function(swiperId) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  return this.countDocuments({
+    swiperId: swiperId,
+    createdAt: { $gte: today, $lt: tomorrow }
+  });
+};
+
+// Static method to check if user can swipe (freemium limit check)
+swipeSchema.statics.canSwipe = async function(swiperId, isPremium = false) {
+  if (isPremium) {
+    return { canSwipe: true, remaining: -1 };
+  }
+
+  const DAILY_SWIPE_LIMIT = 50;
+  const swipeCount = await this.getSwipeCountToday(swiperId);
+  const remaining = Math.max(0, DAILY_SWIPE_LIMIT - swipeCount);
+
+  return {
+    canSwipe: swipeCount < DAILY_SWIPE_LIMIT,
+    remaining: remaining,
+    used: swipeCount
+  };
+};
+
 module.exports = mongoose.model('Swipe', swipeSchema);

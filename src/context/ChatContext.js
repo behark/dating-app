@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
-import { io } from 'socket.io-client';
 import Constants from 'expo-constants';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 
 const ChatContext = createContext();
@@ -92,7 +92,8 @@ export const ChatProvider = ({ children }) => {
                   content: message.content,
                   type: message.type,
                   createdAt: message.createdAt,
-                  senderId: message.senderId
+                  senderId: message.senderId,
+                  imageUrl: message.imageUrl
                 },
                 unreadCount: conv.matchId === currentMatchIdRef.current ? 0 : conv.unreadCount + 1
               };
@@ -103,6 +104,20 @@ export const ChatProvider = ({ children }) => {
 
         // Update total unread count
         setUnreadCount(prev => prev + 1);
+      });
+
+      // Read receipt events
+      newSocket.on('message_read_receipt', (data) => {
+        const { messageId, readBy, readAt } = data;
+
+        // Update message with read receipt
+        setMessages(prevMessages =>
+          prevMessages.map(msg =>
+            msg._id === messageId
+              ? { ...msg, isRead: true, readAt, readBy }
+              : msg
+          )
+        );
       });
 
       // Typing events
@@ -242,6 +257,51 @@ export const ChatProvider = ({ children }) => {
     }
   }, [socket, isConnected, currentMatchId]);
 
+  // Send read receipt for a specific message
+  const sendReadReceipt = useCallback((messageId) => {
+    if (socket && isConnected && currentMatchId) {
+      socket.emit('message_read', {
+        messageId,
+        matchId: currentMatchId
+      });
+    }
+  }, [socket, isConnected, currentMatchId]);
+
+  // Send image message
+  const sendImageMessage = useCallback((matchId, imageUri, imageData = {}) => {
+    if (socket && isConnected && imageUri) {
+      socket.emit('send_message', {
+        matchId,
+        content: imageData.caption || '',
+        type: 'image',
+        imageUrl: imageUri,
+        imageMetadata: {
+          width: imageData.width,
+          height: imageData.height,
+          size: imageData.size,
+          mimeType: imageData.mimeType || 'image/jpeg'
+        }
+      });
+    }
+  }, [socket, isConnected]);
+
+  // Send GIF message
+  const sendGifMessage = useCallback((matchId, gifUrl, gifData = {}) => {
+    if (socket && isConnected && gifUrl) {
+      socket.emit('send_message', {
+        matchId,
+        content: gifData.caption || '',
+        type: 'gif',
+        imageUrl: gifUrl,
+        imageMetadata: {
+          width: gifData.width,
+          height: gifData.height,
+          mimeType: 'image/gif'
+        }
+      });
+    }
+  }, [socket, isConnected]);
+
   const stopTyping = useCallback(() => {
     if (socket && isConnected && currentMatchId) {
       socket.emit('typing_stop', currentMatchId);
@@ -270,7 +330,10 @@ export const ChatProvider = ({ children }) => {
     loadMessages,
     joinRoom,
     sendMessage,
+    sendImageMessage,
+    sendGifMessage,
     markAsRead,
+    sendReadReceipt,
     startTyping,
     stopTyping,
     clearCurrentConversation

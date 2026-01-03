@@ -1,6 +1,6 @@
-import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import * as Notifications from 'expo-notifications';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 Notifications.setNotificationHandler({
@@ -100,6 +100,15 @@ export class NotificationService {
     );
   }
 
+  static async sendLikeNotification(likedUserId, likerName) {
+    await this.sendNotification(
+      likedUserId,
+      '💗 New Like!',
+      `${likerName} liked your profile!`,
+      { type: 'like', likerName }
+    );
+  }
+
   static async sendMessageNotification(toUserId, fromName, message) {
     await this.sendNotification(
       toUserId,
@@ -107,6 +116,26 @@ export class NotificationService {
       message.length > 50 ? `${message.substring(0, 50)}...` : message,
       { type: 'message', fromName, message }
     );
+  }
+
+  static async sendSystemNotification(toUserId, title, message, data = {}) {
+    await this.sendNotification(
+      toUserId,
+      title,
+      message,
+      { type: 'system', ...data }
+    );
+  }
+
+  static async sendBulkNotification(userIds, title, body, data = {}) {
+    try {
+      for (const userId of userIds) {
+        await this.sendNotification(userId, title, body, data);
+      }
+      console.log(`Bulk notification sent to ${userIds.length} users`);
+    } catch (error) {
+      console.error('Error sending bulk notification:', error);
+    }
   }
 
   static async disableNotifications(userId) {
@@ -126,6 +155,71 @@ export class NotificationService {
       });
     } catch (error) {
       console.error('Error enabling notifications:', error);
+    }
+  }
+
+  static async updateNotificationPreferences(userId, preferences) {
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        preferences: {
+          matchNotifications: preferences.matchNotifications !== false,
+          messageNotifications: preferences.messageNotifications !== false,
+          likeNotifications: preferences.likeNotifications !== false,
+          systemNotifications: preferences.systemNotifications !== false,
+          notificationFrequency: preferences.notificationFrequency || 'instant', // 'instant', 'daily', 'weekly'
+          quietHours: preferences.quietHours || { enabled: false, start: '22:00', end: '08:00' },
+        },
+      });
+      console.log('Notification preferences updated');
+    } catch (error) {
+      console.error('Error updating notification preferences:', error);
+    }
+  }
+
+  static async getNotificationPreferences(userId) {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      const userData = userDoc.data();
+
+      return {
+        matchNotifications: userData?.preferences?.matchNotifications !== false,
+        messageNotifications: userData?.preferences?.messageNotifications !== false,
+        likeNotifications: userData?.preferences?.likeNotifications !== false,
+        systemNotifications: userData?.preferences?.systemNotifications !== false,
+        notificationFrequency: userData?.preferences?.notificationFrequency || 'instant',
+        quietHours: userData?.preferences?.quietHours || { enabled: false, start: '22:00', end: '08:00' },
+      };
+    } catch (error) {
+      console.error('Error getting notification preferences:', error);
+      return {
+        matchNotifications: true,
+        messageNotifications: true,
+        likeNotifications: true,
+        systemNotifications: true,
+        notificationFrequency: 'instant',
+        quietHours: { enabled: false, start: '22:00', end: '08:00' },
+      };
+    }
+  }
+
+  static isWithinQuietHours(quietHours) {
+    if (!quietHours?.enabled) return false;
+
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    const [startHour, startMin] = quietHours.start.split(':').map(Number);
+    const [endHour, endMin] = quietHours.end.split(':').map(Number);
+    const [currentHour, currentMin] = currentTime.split(':').map(Number);
+
+    const startTotalMin = startHour * 60 + startMin;
+    const endTotalMin = endHour * 60 + endMin;
+    const currentTotalMin = currentHour * 60 + currentMin;
+
+    if (startTotalMin <= endTotalMin) {
+      return currentTotalMin >= startTotalMin && currentTotalMin < endTotalMin;
+    } else {
+      return currentTotalMin >= startTotalMin || currentTotalMin < endTotalMin;
     }
   }
 }

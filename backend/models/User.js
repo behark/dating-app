@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   // Basic user information
@@ -16,13 +17,11 @@ const userSchema = new mongoose.Schema({
   },
   age: {
     type: Number,
-    required: true,
     min: 18,
     max: 100
   },
   gender: {
     type: String,
-    required: true,
     enum: ['male', 'female', 'other']
   },
   bio: {
@@ -30,13 +29,127 @@ const userSchema = new mongoose.Schema({
     maxlength: 500
   },
   photos: [{
-    type: String, // URLs to photos
-    required: true
+    _id: mongoose.Schema.Types.ObjectId,
+    url: String,
+    order: Number,
+    moderationStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    }
   }],
   interests: [{
     type: String,
     trim: true
   }],
+
+  // Enhanced Profile Fields (Tier 2)
+  videos: [{
+    _id: mongoose.Schema.Types.ObjectId,
+    url: String,
+    thumbnailUrl: String,
+    duration: Number, // in seconds (6-15)
+    order: Number,
+    moderationStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+
+  profilePrompts: [{
+    promptId: String,
+    answer: String
+  }],
+
+  education: {
+    school: String,
+    degree: String,
+    fieldOfStudy: String,
+    graduationYear: Number
+  },
+
+  occupation: {
+    jobTitle: String,
+    company: String,
+    industry: String
+  },
+
+  height: {
+    value: Number, // in cm
+    unit: {
+      type: String,
+      enum: ['cm', 'ft'],
+      default: 'cm'
+    }
+  },
+
+  ethnicity: [{
+    type: String,
+    trim: true
+  }],
+
+  // Social Media Integration
+  socialMedia: {
+    spotify: {
+      id: String,
+      username: String,
+      profileUrl: String,
+      isVerified: { type: Boolean, default: false }
+    },
+    instagram: {
+      id: String,
+      username: String,
+      profileUrl: String,
+      isVerified: { type: Boolean, default: false }
+    }
+  },
+  password: {
+    type: String,
+    minlength: 8
+  },
+  passwordResetToken: String,
+  passwordResetTokenExpiry: Date,
+
+  // Phone verification
+  phoneNumber: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true
+  },
+  isPhoneVerified: {
+    type: Boolean,
+    default: false
+  },
+  phoneVerificationCode: String,
+  phoneVerificationCodeExpiry: Date,
+
+  // OAuth providers
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  facebookId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  appleId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  oauthProviders: [String], // Array of provider names: ['google', 'facebook', 'apple']
 
   // Location field with 2dsphere index for geospatial queries
   location: {
@@ -77,6 +190,26 @@ const userSchema = new mongoose.Schema({
       max: 100
     }
   },
+  preferredDistance: {
+    type: Number,
+    default: 50, // kilometers
+    min: 1,
+    max: 50000
+  },
+
+  // Location and privacy settings
+  locationPrivacy: {
+    type: String,
+    enum: ['hidden', 'visible_to_matches', 'visible_to_all'],
+    default: 'visible_to_matches'
+  },
+  lastLocationUpdate: {
+    type: Date
+  },
+  locationHistoryEnabled: {
+    type: Boolean,
+    default: false
+  },
 
   // Account status
   isActive: {
@@ -87,15 +220,86 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationToken: String,
+  emailVerificationTokenExpiry: Date,
 
-  // Timestamps
+  // Activity & Engagement (Tier 2)
+  isOnline: {
+    type: Boolean,
+    default: false
+  },
   lastActive: {
     type: Date,
     default: Date.now
-  }
+  },
+  lastOnlineAt: {
+    type: Date
+  },
+  profileViewCount: {
+    type: Number,
+    default: 0
+  },
+  profileViewedBy: [{
+    userId: mongoose.Schema.Types.ObjectId,
+    viewedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  isPremium: {
+    type: Boolean,
+    default: false
+  },
+  premiumExpiresAt: Date,
+
+  // Timestamps
 }, {
   timestamps: true
 });
+
+// Hash password before saving
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) return next();
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Method to compare passwords
+userSchema.methods.matchPassword = async function(enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Method to generate JWT token
+userSchema.methods.generateAuthToken = function() {
+  const jwt = require('jsonwebtoken');
+  const token = jwt.sign(
+    { userId: this._id, email: this.email },
+    process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+    { expiresIn: '7d' }
+  );
+  return token;
+};
+
+// Method to generate refresh token
+userSchema.methods.generateRefreshToken = function() {
+  const jwt = require('jsonwebtoken');
+  const token = jwt.sign(
+    { userId: this._id },
+    process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key-change-in-production',
+    { expiresIn: '30d' }
+  );
+  return token;
+};
 
 // Create 2dsphere index on location for geospatial queries
 userSchema.index({ location: '2dsphere' });

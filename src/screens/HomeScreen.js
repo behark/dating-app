@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, Alert, Text, Dimensions, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { collection, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
+import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, Dimensions, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import SwipeCard from '../components/Card/SwipeCard';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
-import { useFocusEffect } from '@react-navigation/native';
-import SwipeCard from '../components/Card/SwipeCard';
+import { LocationService } from '../services/LocationService';
 import { PreferencesService } from '../services/PreferencesService';
-import { NotificationService } from '../services/NotificationService';
 import { PremiumService } from '../services/PremiumService';
 import { SwipeController } from '../services/SwipeController';
 
@@ -28,13 +28,41 @@ const HomeScreen = ({ navigation }) => {
   const [superLikesUsed, setSuperLikesUsed] = useState(0);
   const [isPremium, setIsPremium] = useState(false);
   const [premiumFeatures, setPremiumFeatures] = useState({});
+  const [swipesUsedToday, setSwipesUsedToday] = useState(0);
+  const [swipesRemaining, setSwipesRemaining] = useState(50);
+  const [userLocation, setUserLocation] = useState(null);
+  const [discoveryRadius, setDiscoveryRadius] = useState(50); // km
+  const [locationUpdating, setLocationUpdating] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       loadCards();
       loadPremiumStatus();
+      initializeLocation();
     }, [])
   );
+
+  const initializeLocation = async () => {
+    try {
+      setLocationUpdating(true);
+      
+      // Get current location
+      const location = await LocationService.getCurrentLocation();
+      if (location) {
+        setUserLocation(location);
+        
+        // Update user location in database
+        await LocationService.updateUserLocation(currentUser.uid, location);
+        
+        // Start periodic location updates (every 5 minutes)
+        LocationService.startPeriodicLocationUpdates(currentUser.uid);
+      }
+    } catch (error) {
+      console.error('Error initializing location:', error);
+    } finally {
+      setLocationUpdating(false);
+    }
+  };
 
   const loadPremiumStatus = async () => {
     try {
@@ -44,6 +72,17 @@ const HomeScreen = ({ navigation }) => {
 
       const superLikesCount = await PremiumService.getSuperLikesUsedToday(currentUser.uid);
       setSuperLikesUsed(superLikesCount);
+
+      // Load swipe count for the day
+      const swipesCount = await SwipeController.getSwipesCountToday(currentUser.uid);
+      setSwipesUsedToday(swipesCount);
+      
+      // Calculate remaining swipes (50 for free, unlimited for premium)
+      if (premiumStatus.isPremium) {
+        setSwipesRemaining(-1); // -1 indicates unlimited
+      } else {
+        setSwipesRemaining(Math.max(0, 50 - swipesCount));
+      }
     } catch (error) {
       console.error('Error loading premium status:', error);
     }
@@ -145,14 +184,45 @@ const HomeScreen = ({ navigation }) => {
 
   const handleSwipeRight = async (card) => {
     try {
-      setLastSwipedCard({ card, direction: 'right' });
+      // Check swipe limit
+      const limitCheck = await SwipeController.checkSwipeLimit(currentUser.uid, isPremium);
+      if (!limitCheck.canSwipe) {
+        Alert.alert(
+          'Daily Limit Reached',
+          `You've reached your daily swipe limit (50). Upgrade to Premium for unlimited swipes!`,
+          [
+            { text: 'Keep Going', style: 'cancel' },
+            { text: 'Upgrade', onPress: () => navigation.navigate('Premium') }
+          ]
+        );
+        return;
+      }
+
+      setLastSwipedCard({ card, direction: 'right', swipeId: null });
       
       // Use SwipeController to save the swipe and check for matches
-      const result = await SwipeController.saveSwipe(currentUser.uid, card.id, 'like');
+      const result = await SwipeController.saveSwipe(currentUser.uid, card.id, 'like', isPremium);
 
       if (!result.success) {
-        Alert.alert('Error', result.error || 'Failed to save swipe');
+        if (result.limitExceeded) {
+          Alert.alert(
+            'Daily Limit Reached',
+            `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
+          );
+        } else {
+          Alert.alert('Error', result.error || 'Failed to save swipe');
+        }
         return;
+      }
+
+      // Update lastSwipedCard with swipeId for undo functionality
+      setLastSwipedCard({ card, direction: 'right', swipeId: result.swipeId });
+
+      // Update swipe counter display
+      const newCount = swipesUsedToday + 1;
+      setSwipesUsedToday(newCount);
+      if (!isPremium) {
+        setSwipesRemaining(Math.max(0, 50 - newCount));
       }
 
       // If it's a match, show the match alert
@@ -181,14 +251,45 @@ const HomeScreen = ({ navigation }) => {
 
   const handleSwipeLeft = async (card) => {
     try {
-      setLastSwipedCard({ card, direction: 'left' });
+      // Check swipe limit
+      const limitCheck = await SwipeController.checkSwipeLimit(currentUser.uid, isPremium);
+      if (!limitCheck.canSwipe) {
+        Alert.alert(
+          'Daily Limit Reached',
+          `You've reached your daily swipe limit (50). Upgrade to Premium for unlimited swipes!`,
+          [
+            { text: 'Keep Going', style: 'cancel' },
+            { text: 'Upgrade', onPress: () => navigation.navigate('Premium') }
+          ]
+        );
+        return;
+      }
+
+      setLastSwipedCard({ card, direction: 'left', swipeId: null });
       
       // Use SwipeController to save the dislike
-      const result = await SwipeController.saveSwipe(currentUser.uid, card.id, 'dislike');
+      const result = await SwipeController.saveSwipe(currentUser.uid, card.id, 'dislike', isPremium);
 
       if (!result.success) {
-        console.error('Error saving swipe:', result.error);
+        if (result.limitExceeded) {
+          Alert.alert(
+            'Daily Limit Reached',
+            `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
+          );
+        } else {
+          console.error('Error saving swipe:', result.error);
+        }
         // Continue anyway to update UI
+      }
+
+      // Update lastSwipedCard with swipeId for undo functionality
+      setLastSwipedCard({ card, direction: 'left', swipeId: result.swipeId });
+
+      // Update swipe counter display
+      const newCount = swipesUsedToday + 1;
+      setSwipesUsedToday(newCount);
+      if (!isPremium) {
+        setSwipesRemaining(Math.max(0, 50 - newCount));
       }
 
       setCurrentIndex(currentIndex + 1);
@@ -247,22 +348,52 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const undoLastSwipe = async () => {
-    if (lastSwipedCard && currentIndex > 0) {
+    if (lastSwipedCard) {
       try {
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userDoc = await getDoc(userRef);
-        const swipedUsers = userDoc.data()?.swipedUsers || [];
-        const filtered = swipedUsers.filter(id => id !== lastSwipedCard.card.id);
-        
-        await setDoc(userRef, {
-          swipedUsers: filtered,
-        }, { merge: true });
+        // If we have a swipeId, use the new undo method
+        if (lastSwipedCard.swipeId) {
+          const result = await SwipeController.undoSwipe(currentUser.uid, lastSwipedCard.swipeId);
+          
+          if (!result.success) {
+            Alert.alert('Error', result.error || 'Failed to undo swipe');
+            return;
+          }
+        } else {
+          // Fallback to old method for backward compatibility
+          const userRef = doc(db, 'users', currentUser.uid);
+          const userDoc = await getDoc(userRef);
+          const swipedUsers = userDoc.data()?.swipedUsers || [];
+          const filtered = swipedUsers.filter(id => id !== lastSwipedCard.card.id);
+          
+          await setDoc(userRef, {
+            swipedUsers: filtered,
+          }, { merge: true });
+        }
 
-        setCurrentIndex(currentIndex - 1);
+        // Restore the card by going back one index
+        if (currentIndex > 0) {
+          setCurrentIndex(currentIndex - 1);
+        }
+        
         setLastSwipedCard(null);
-        Alert.alert('Undone', 'Last swipe has been undone');
+        Alert.alert('Success', 'Last swipe has been undone');
       } catch (error) {
         console.error('Error undoing swipe:', error);
+        Alert.alert('Error', 'Failed to undo swipe');
+      }
+    } else {
+      Alert.alert('No Swipe to Undo', 'Undo the current card first');
+    }
+  };
+
+  // Update swipe counter when undoing
+  const undoLastSwipeWithCounter = async () => {
+    if (lastSwipedCard) {
+      const prevCount = swipesUsedToday > 0 ? swipesUsedToday - 1 : 0;
+      await undoLastSwipe();
+      setSwipesUsedToday(prevCount);
+      if (!isPremium) {
+        setSwipesRemaining(Math.max(0, 50 - prevCount));
       }
     }
   };
@@ -332,26 +463,45 @@ const HomeScreen = ({ navigation }) => {
     <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
       {/* Premium Status Header */}
       <View style={styles.premiumHeader}>
-        {isPremium ? (
-          <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.premiumBadge}>
-            <Ionicons name="diamond" size={16} color="#fff" />
-            <Text style={styles.premiumText}>PREMIUM</Text>
-          </LinearGradient>
-        ) : (
-          <TouchableOpacity
-            style={styles.upgradePrompt}
+        <View style={styles.headerLeftSection}>
+          {isPremium ? (
+            <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.premiumBadge}>
+              <Ionicons name="diamond" size={16} color="#fff" />
+              <Text style={styles.premiumText}>PREMIUM</Text>
+            </LinearGradient>
+          ) : (
+            <TouchableOpacity
+              style={styles.upgradePrompt}
               onPress={() => navigation.navigate('Premium')}
-          >
-            <Ionicons name="diamond-outline" size={16} color="#FFD700" />
-            <Text style={styles.upgradeText}>Upgrade to Premium</Text>
-          </TouchableOpacity>
-        )}
+            >
+              <Ionicons name="diamond-outline" size={16} color="#FFD700" />
+              <Text style={styles.upgradeText}>Upgrade</Text>
+            </TouchableOpacity>
+          )}
 
-        <View style={styles.superLikeCounter}>
-          <Ionicons name="star" size={16} color="#4ECDC4" />
-          <Text style={styles.counterText}>
-            {Math.max(0, (premiumFeatures.superLikesPerDay || 1) - superLikesUsed)} left
-          </Text>
+          {!isPremium && (
+            <View style={styles.swipeLimitBadge}>
+              <Ionicons name="flame" size={14} color="#FF6B6B" />
+              <Text style={styles.swipeLimitText}>{swipesRemaining}/50</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.headerRightSection}>
+          {userLocation && (
+            <View style={styles.locationBadge}>
+              <Ionicons name="location" size={14} color="#FF6B6B" />
+              <Text style={styles.locationText}>
+                {userLocation.latitude.toFixed(2)}°
+              </Text>
+            </View>
+          )}
+          <View style={styles.superLikeCounter}>
+            <Ionicons name="star" size={16} color="#4ECDC4" />
+            <Text style={styles.counterText}>
+              {Math.max(0, (premiumFeatures.superLikesPerDay || 1) - superLikesUsed)} left
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -436,7 +586,7 @@ const HomeScreen = ({ navigation }) => {
           {lastSwipedCard && (
             <TouchableOpacity
               style={styles.undoButton}
-              onPress={undoLastSwipe}
+              onPress={undoLastSwipeWithCounter}
               activeOpacity={0.8}
             >
               <Ionicons name="arrow-undo" size={24} color="#667eea" />
@@ -542,6 +692,27 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginLeft: 4,
   },
+  headerLeftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  swipeLimitBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FF6B6B',
+  },
+  swipeLimitText: {
+    color: '#FF6B6B',
+    fontSize: 12,
+    fontWeight: '700',
+    marginLeft: 4,
+  },
   upgradePrompt: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -557,6 +728,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginLeft: 4,
+  },
+  locationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginRight: 8,
+  },
+  locationText: {
+    color: '#FF6B6B',
+    fontSize: 11,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  headerRightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   superLikeCounter: {
     flexDirection: 'row',

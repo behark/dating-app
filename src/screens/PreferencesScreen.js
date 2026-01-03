@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Switch,
-  Alert,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { PreferencesService } from '../services/PreferencesService';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import RangeSlider from '../components/Slider/RangeSlider';
+import SingleSlider from '../components/Slider/SingleSlider';
 import { useAuth } from '../context/AuthContext';
+import { PreferencesService } from '../services/PreferencesService';
+import { LocationService } from '../services/LocationService';
 
 const PreferencesScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
@@ -66,76 +69,33 @@ const PreferencesScreen = ({ navigation }) => {
 
   const renderAgePreference = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Age Preferences</Text>
-      <View style={styles.row}>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Minimum Age</Text>
-          <View style={styles.numberInput}>
-            <TouchableOpacity
-              onPress={() => updatePreference('minAge', Math.max(18, preferences.minAge - 1))}
-              style={styles.adjustButton}
-            >
-              <Ionicons name="remove" size={20} color="#667eea" />
-            </TouchableOpacity>
-            <Text style={styles.numberText}>{preferences.minAge}</Text>
-            <TouchableOpacity
-              onPress={() => updatePreference('minAge', Math.min(preferences.maxAge - 1, preferences.minAge + 1))}
-              style={styles.adjustButton}
-            >
-              <Ionicons name="add" size={20} color="#667eea" />
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Maximum Age</Text>
-          <View style={styles.numberInput}>
-            <TouchableOpacity
-              onPress={() => updatePreference('maxAge', Math.max(preferences.minAge + 1, preferences.maxAge - 1))}
-              style={styles.adjustButton}
-            >
-              <Ionicons name="remove" size={20} color="#667eea" />
-            </TouchableOpacity>
-            <Text style={styles.numberText}>{preferences.maxAge}</Text>
-            <TouchableOpacity
-              onPress={() => updatePreference('maxAge', Math.min(100, preferences.maxAge + 1))}
-              style={styles.adjustButton}
-            >
-              <Ionicons name="add" size={20} color="#667eea" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
+      <Text style={styles.sectionTitle}>Age Range</Text>
+      <RangeSlider
+        min={18}
+        max={100}
+        step={1}
+        minValue={preferences.minAge}
+        maxValue={preferences.maxAge}
+        onChangeMin={(value) => updatePreference('minAge', value)}
+        onChangeMax={(value) => updatePreference('maxAge', value)}
+        color="#FF6B6B"
+      />
     </View>
   );
 
   const renderDistancePreference = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Distance Preferences</Text>
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Maximum Distance: {preferences.maxDistance} km</Text>
-        <View style={styles.sliderContainer}>
-          <TouchableOpacity
-            onPress={() => updatePreference('maxDistance', Math.max(1, preferences.maxDistance - 5))}
-            style={styles.sliderButton}
-          >
-            <Ionicons name="remove" size={24} color="#667eea" />
-          </TouchableOpacity>
-          <View style={styles.sliderTrack}>
-            <View
-              style={[
-                styles.sliderFill,
-                { width: `${(preferences.maxDistance / 100) * 100}%` }
-              ]}
-            />
-          </View>
-          <TouchableOpacity
-            onPress={() => updatePreference('maxDistance', Math.min(100, preferences.maxDistance + 5))}
-            style={styles.sliderButton}
-          >
-            <Ionicons name="add" size={24} color="#667eea" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <Text style={styles.sectionTitle}>Discovery Range</Text>
+      <SingleSlider
+        min={1}
+        max={500}
+        step={5}
+        value={preferences.maxDistance}
+        onChange={(value) => updatePreference('maxDistance', value)}
+        label="Maximum Distance"
+        unit=" km"
+        color="#4ECDC4"
+      />
     </View>
   );
 
@@ -165,6 +125,43 @@ const PreferencesScreen = ({ navigation }) => {
               style={[
                 styles.optionText,
                 preferences.interestedIn === option.key && styles.optionTextSelected,
+              ]}
+            >
+              {option.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+
+  const renderLookingForPreference = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Looking For</Text>
+      <View style={styles.optionGrid}>
+        {[
+          { key: 'casual', label: '😎 Casual', icon: 'sparkles' },
+          { key: 'serious', label: '💑 Serious', icon: 'heart' },
+          { key: 'marriage', label: '💍 Marriage', icon: 'ribbon' },
+          { key: 'any', label: '🤔 Not Sure', icon: 'help-circle' },
+        ].map(option => (
+          <TouchableOpacity
+            key={option.key}
+            style={[
+              styles.optionCard,
+              preferences.lookingFor === option.key && styles.optionCardSelected,
+            ]}
+            onPress={() => updatePreference('lookingFor', option.key)}
+          >
+            <Ionicons
+              name={option.icon}
+              size={28}
+              color={preferences.lookingFor === option.key ? '#fff' : '#667eea'}
+            />
+            <Text
+              style={[
+                styles.optionCardText,
+                preferences.lookingFor === option.key && styles.optionCardTextSelected,
               ]}
             >
               {option.label}
@@ -251,6 +248,79 @@ const PreferencesScreen = ({ navigation }) => {
         </View>
         <View style={styles.switchRow}>
           <View style={styles.switchInfo}>
+            <Ionicons name="chatbubble" size={24} color="#4ECDC4" />
+            <View style={styles.switchText}>
+              <Text style={styles.switchTitle}>Message Notifications</Text>
+              <Text style={styles.switchSubtitle}>Get notified of new messages</Text>
+            </View>
+          </View>
+          <Switch
+            value={preferences.messageNotifications}
+            onValueChange={(value) => updatePreference('messageNotifications', value)}
+            trackColor={{ false: '#ccc', true: '#4ECDC4' }}
+            thumbColor="#fff"
+            disabled={!preferences.notificationsEnabled}
+          />
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderLocationPrivacyPreference = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Location Privacy</Text>
+      <View style={styles.optionGroup}>
+        {[
+          { 
+            key: 'hidden', 
+            label: 'Hidden', 
+            icon: 'eye-off',
+            description: 'Your location is not visible'
+          },
+          { 
+            key: 'visible_to_matches', 
+            label: 'Matches Only', 
+            icon: 'eye',
+            description: 'Only visible to your matches'
+          },
+          { 
+            key: 'visible_to_all', 
+            label: 'Everyone', 
+            icon: 'globe',
+            description: 'Visible to all users'
+          },
+        ].map(option => (
+          <TouchableOpacity
+            key={option.key}
+            style={[
+              styles.optionButton,
+              preferences.locationPrivacy === option.key && styles.optionButtonSelected,
+            ]}
+            onPress={() => updatePreference('locationPrivacy', option.key)}
+          >
+            <Ionicons
+              name={option.icon}
+              size={24}
+              color={preferences.locationPrivacy === option.key ? '#fff' : '#667eea'}
+            />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text
+                style={[
+                  styles.optionText,
+                  preferences.locationPrivacy === option.key && styles.optionTextSelected,
+                ]}
+              >
+                {option.label}
+              </Text>
+              <Text style={[styles.optionSubtext, preferences.locationPrivacy === option.key && styles.optionSubtextSelected]}>
+                {option.description}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
             <Ionicons name="calendar" size={24} color="#FF6B6B" />
             <View style={styles.switchText}>
               <Text style={styles.switchTitle}>Show Age</Text>
@@ -306,8 +376,10 @@ const PreferencesScreen = ({ navigation }) => {
           {renderAgePreference()}
           {renderDistancePreference()}
           {renderGenderPreference()}
+          {renderLookingForPreference()}
           {renderNotificationPreferences()}
           {renderPrivacyPreferences()}
+          {renderLocationPrivacyPreference()}
 
           <TouchableOpacity
             style={styles.saveButtonLarge}
@@ -481,6 +553,43 @@ const styles = StyleSheet.create({
   },
   optionTextSelected: {
     color: '#fff',
+  },
+  optionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  optionCard: {
+    width: '48%',
+    alignItems: 'center',
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#e9ecef',
+    backgroundColor: '#f8f9fa',
+  },
+  optionCardSelected: {
+    borderColor: '#667eea',
+    backgroundColor: '#667eea',
+  },
+  optionCardText: {
+    marginTop: 8,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#667eea',
+    textAlign: 'center',
+  },
+  optionCardTextSelected: {
+    color: '#fff',
+  },
+  optionSubtext: {
+    fontSize: 11,
+    color: '#999',
+    marginTop: 2,
+  },
+  optionSubtextSelected: {
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   switchGroup: {
     gap: 15,

@@ -1,27 +1,30 @@
-import React, { useRef } from 'react';
-import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { PanGestureHandler } from 'react-native-gesture-handler';
 import Animated, {
-  useAnimatedGestureHandler,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  runOnJS,
+    Easing,
+    runOnJS,
+    useAnimatedGestureHandler,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+    withTiming
 } from 'react-native-reanimated';
-import { VerificationService } from '../../services/VerificationService';
 import { LocationService } from '../../services/LocationService';
+import { VerificationService } from '../../services/VerificationService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
 const CARD_HEIGHT = SCREEN_HEIGHT * 0.75;
+const CARD_SPACING = 15;
 
 const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
+  const rotation = useSharedValue(0);
 
   const gestureHandler = useAnimatedGestureHandler({
     onStart: (_, ctx) => {
@@ -32,36 +35,61 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) =>
       translateX.value = ctx.startX + event.translationX;
       translateY.value = ctx.startY + event.translationY;
       
-      const rotation = translateX.value / 20;
-      scale.value = 1 - Math.abs(translateX.value) / 1000;
+      rotation.value = translateX.value / 20;
+      // Smoother scale effect
+      const absTranslateX = Math.abs(translateX.value);
+      scale.value = Math.max(0.8, 1 - absTranslateX / 2000);
     },
     onEnd: (event) => {
       const shouldSwipeLeft = translateX.value < -SWIPE_THRESHOLD;
       const shouldSwipeRight = translateX.value > SWIPE_THRESHOLD;
 
       if (shouldSwipeLeft) {
-        translateX.value = withSpring(-SCREEN_WIDTH * 1.5);
-        opacity.value = withSpring(0);
+        // Smooth exit animation to the left
+        translateX.value = withSpring(
+          -SCREEN_WIDTH * 1.5,
+          { damping: 10, mass: 1, overshootClamping: true }
+        );
+        rotation.value = withTiming(-45, {
+          duration: 400,
+          easing: Easing.inOut(Easing.ease),
+        });
+        opacity.value = withTiming(0, {
+          duration: 300,
+          easing: Easing.inOut(Easing.ease),
+        });
         runOnJS(onSwipeLeft)(card);
       } else if (shouldSwipeRight) {
-        translateX.value = withSpring(SCREEN_WIDTH * 1.5);
-        opacity.value = withSpring(0);
+        // Smooth exit animation to the right
+        translateX.value = withSpring(
+          SCREEN_WIDTH * 1.5,
+          { damping: 10, mass: 1, overshootClamping: true }
+        );
+        rotation.value = withTiming(45, {
+          duration: 400,
+          easing: Easing.inOut(Easing.ease),
+        });
+        opacity.value = withTiming(0, {
+          duration: 300,
+          easing: Easing.inOut(Easing.ease),
+        });
         runOnJS(onSwipeRight)(card);
       } else {
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
-        scale.value = withSpring(1);
+        // Spring back to center
+        translateX.value = withSpring(0, { damping: 15, mass: 1 });
+        translateY.value = withSpring(0, { damping: 15, mass: 1 });
+        rotation.value = withSpring(0, { damping: 15, mass: 1 });
+        scale.value = withSpring(1, { damping: 15, mass: 1 });
       }
     },
   });
 
   const cardStyle = useAnimatedStyle(() => {
-    const rotation = translateX.value / 20;
     return {
       transform: [
         { translateX: translateX.value },
         { translateY: translateY.value },
-        { rotate: `${rotation}deg` },
+        { rotate: `${rotation.value}deg` },
         { scale: scale.value },
       ],
       opacity: opacity.value,

@@ -1,4 +1,4 @@
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 export class PreferencesService {
@@ -18,10 +18,15 @@ export class PreferencesService {
         // Gender preferences
         interestedIn: userData?.preferences?.interestedIn || 'both', // 'men', 'women', 'both'
 
+        // Relationship type preferences
+        lookingFor: userData?.preferences?.lookingFor || 'any', // 'casual', 'serious', 'marriage', 'any'
+
         // Notification preferences
         notificationsEnabled: userData?.notificationsEnabled !== false,
         matchNotifications: userData?.preferences?.matchNotifications !== false,
         messageNotifications: userData?.preferences?.messageNotifications !== false,
+        likeNotifications: userData?.preferences?.likeNotifications !== false,
+        systemNotifications: userData?.preferences?.systemNotifications !== false,
 
         // Privacy preferences
         showDistance: userData?.preferences?.showDistance !== false,
@@ -44,9 +49,12 @@ export class PreferencesService {
       maxAge: 100,
       maxDistance: 50,
       interestedIn: 'both',
+      lookingFor: 'any',
       notificationsEnabled: true,
       matchNotifications: true,
       messageNotifications: true,
+      likeNotifications: true,
+      systemNotifications: true,
       showDistance: true,
       showAge: true,
       discoveryEnabled: true,
@@ -160,6 +168,10 @@ export class PreferencesService {
 
     if (!['men', 'women', 'both'].includes(preferences.interestedIn)) {
       errors.push('Invalid gender preference');
+    }
+
+    if (!['casual', 'serious', 'marriage', 'any'].includes(preferences.lookingFor)) {
+      errors.push('Invalid relationship type preference');
     }
 
     return {

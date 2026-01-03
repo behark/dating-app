@@ -1,8 +1,12 @@
 import * as Location from 'expo-location';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
+const LOCATION_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
 export class LocationService {
+  static locationUpdateTimer = null;
+
   static async requestLocationPermission() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -13,6 +17,20 @@ export class LocationService {
       return true;
     } catch (error) {
       console.error('Error requesting location permission:', error);
+      return false;
+    }
+  }
+
+  static async requestBackgroundLocationPermission() {
+    try {
+      const { status } = await Location.requestBackgroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Background location permission denied');
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Error requesting background location permission:', error);
       return false;
     }
   }
@@ -57,6 +75,59 @@ export class LocationService {
       console.log('User location updated successfully');
     } catch (error) {
       console.error('Error updating user location:', error);
+    }
+  }
+
+  static async updateLocationPrivacy(userId, privacyLevel) {
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        locationPrivacy: privacyLevel, // 'hidden', 'visible_to_matches', 'visible_to_all'
+      });
+    } catch (error) {
+      console.error('Error updating location privacy:', error);
+    }
+  }
+
+  static async getLocationPrivacy(userId) {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      if (userDoc.exists()) {
+        return userDoc.data().locationPrivacy || 'visible_to_matches';
+      }
+      return 'visible_to_matches';
+    } catch (error) {
+      console.error('Error getting location privacy:', error);
+      return 'visible_to_matches';
+    }
+  }
+
+  static async startPeriodicLocationUpdates(userId, interval = LOCATION_UPDATE_INTERVAL) {
+    try {
+      // Initial update
+      const location = await this.getCurrentLocation();
+      if (location) {
+        await this.updateUserLocation(userId, location);
+      }
+
+      // Set up periodic updates
+      this.locationUpdateTimer = setInterval(async () => {
+        const currentLocation = await this.getCurrentLocation();
+        if (currentLocation) {
+          await this.updateUserLocation(userId, currentLocation);
+        }
+      }, interval);
+
+      console.log('Periodic location updates started');
+    } catch (error) {
+      console.error('Error starting periodic location updates:', error);
+    }
+  }
+
+  static stopPeriodicLocationUpdates() {
+    if (this.locationUpdateTimer) {
+      clearInterval(this.locationUpdateTimer);
+      this.locationUpdateTimer = null;
+      console.log('Periodic location updates stopped');
     }
   }
 

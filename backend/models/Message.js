@@ -33,14 +33,34 @@ const messageSchema = new mongoose.Schema({
   // Message type (text, image, etc.)
   type: {
     type: String,
-    enum: ['text', 'image', 'system'],
+    enum: ['text', 'image', 'gif', 'system'],
     default: 'text'
+  },
+
+  // Image/GIF URL (for image and gif types)
+  imageUrl: {
+    type: String,
+    default: null
+  },
+
+  // Image metadata
+  imageMetadata: {
+    width: Number,
+    height: Number,
+    size: Number,
+    mimeType: String
   },
 
   // Read status
   isRead: {
     type: Boolean,
     default: false
+  },
+
+  // Timestamp when message was read
+  readAt: {
+    type: Date,
+    default: null
   },
 
   // Timestamp
@@ -67,8 +87,9 @@ messageSchema.virtual('age').get(function() {
 });
 
 // Method to mark message as read
-messageSchema.methods.markAsRead = function() {
+messageSchema.methods.markAsRead = function(timestamp = new Date()) {
   this.isRead = true;
+  this.readAt = timestamp;
   return this.save();
 };
 

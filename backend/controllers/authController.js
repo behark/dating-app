@@ -1,0 +1,669 @@
+const User = require('../models/User');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+
+// Initialize email service
+const emailService = {
+  transporter: null,
+
+  init: function() {
+    if (!this.transporter) {
+      this.transporter = nodemailer.createTransport({
+        service: process.env.EMAIL_SERVICE || 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD
+        }
+      });
+    }
+  },
+
+  sendEmail: async function(to, subject, html) {
+    this.init();
+    try {
+      await this.transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to,
+        subject,
+        html
+      });
+      return true;
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      return false;
+    }
+  }
+};
+
+// @route   POST /api/auth/register
+// @desc    Register a new user with email and password
+// @access  Public
+exports.register = async (req, res) => {
+  try {
+    const { email, password, name, age, gender } = req.body;
+
+    // Validate required fields
+    if (!email || !password || !name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email, password, and name are required'
+      });
+    }
+
+    // Validate password length
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long'
+      });
+    }
+
+    // Check if user already exists
+    let user = await User.findOne({ email: email.toLowerCase() });
+    if (user) {
+      return res.status(400).json({
+        success: false,
+        message: 'User with this email already exists'
+      });
+    }
+
+    // Create new user
+    user = new User({
+      email: email.toLowerCase(),
+      password,
+      name,
+      age,
+      gender,
+      photos: [],
+      interests: []
+    });
+
+    await user.save();
+
+    // Generate email verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    user.emailVerificationToken = crypto
+      .createHash('sha256')
+      .update(verificationToken)
+      .digest('hex');
+    user.emailVerificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    await user.save();
+
+    // Send verification email
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+    await emailService.sendEmail(
+      user.email,
+      'Email Verification',
+      `<p>Click <a href="${verificationUrl}">here</a> to verify your email. This link expires in 24 hours.</p>`
+    );
+
+    // Generate tokens
+    const authToken = user.generateAuthToken();
+    const refreshToken = user.generateRefreshToken();
+
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully. Please verify your email.',
+      data: {
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          age: user.age,
+          gender: user.gender
+        },
+        authToken,
+        refreshToken
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error during registration',
+      error: error.message
+    });
+  }
+};
+
+// @route   POST /api/auth/login
+// @desc    Login user with email and password
+// @access  Public
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required'
+      });
+    }
+
+    // Find user
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Check if user has password (not OAuth only)
+    if (!user.password) {
+      return res.status(401).json({
+        success: false,
+        message: 'This account uses OAuth. Please login with your OAuth provider.'
+      });
+    }
+
+    // Check password
+    const isPasswordMatch = await user.matchPassword(password);
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    // Generate tokens
+    const authToken = user.generateAuthToken();
+    const refreshToken = user.generateRefreshToken();
+
+    // Update last active
+    user.lastActive = new Date();
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          age: user.age,
+          gender: user.gender,
+          isEmailVerified: user.isEmailVerified
+        },
+        authToken,
+        refreshToken
+      }
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error during login',
+      error: error.message
+    });
+  }
+};
+
+// @route   POST /api/auth/verify-email
+// @desc    Verify user email with token
+// @access  Public
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token is required'
+      });
+    }
+
+    // Hash token and find user
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    const user = await User.findOne({
+      emailVerificationToken: hashedToken,
+      emailVerificationTokenExpiry: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification token'
+      });
+    }
+
+    // Mark email as verified
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationTokenExpiry = undefined;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully'
+    });
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error verifying email',
+      error: error.message
+    });
+  }
+};
+
+// @route   POST /api/auth/forgot-password
+// @desc    Send password reset email
+// @access  Public
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      // Don't reveal if email exists for security
+      return res.json({
+        success: true,
+        message: 'If email exists, a password reset link has been sent'
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.passwordResetToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+    user.passwordResetTokenExpiry = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
+    await user.save();
+
+    // Send reset email
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    await emailService.sendEmail(
+      user.email,
+      'Password Reset',
+      `<p>Click <a href="${resetUrl}">here</a> to reset your password. This link expires in 1 hour.</p>`
+    );
+
+    res.json({
+      success: true,
+      message: 'If email exists, a password reset link has been sent'
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error processing password reset',
+      error: error.message
+    });
+  }
+};
+
+// @route   POST /api/auth/reset-password
+// @desc    Reset password with token
+// @access  Public
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token and new password are required'
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long'
+      });
+    }
+
+    // Hash token and find user
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetTokenExpiry: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired reset token'
+      });
+    }
+
+    // Update password
+    user.password = newPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetTokenExpiry = undefined;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully'
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error resetting password',
+      error: error.message
+    });
+  }
+};
+
+// @route   DELETE /api/auth/delete-account
+// @desc    Delete user account
+// @access  Private
+exports.deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password is required to delete account'
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Verify password
+    if (user.password) {
+      const isPasswordMatch = await user.matchPassword(password);
+      if (!isPasswordMatch) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid password'
+        });
+      }
+    }
+
+    // Delete user
+    await User.findByIdAndDelete(userId);
+
+    // TODO: Clean up user data from other collections (messages, swipes, etc.)
+
+    res.json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting account',
+      error: error.message
+    });
+  }
+};
+
+// @route   POST /api/auth/refresh-token
+// @desc    Get new access token using refresh token
+// @access  Public
+exports.refreshToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Refresh token is required'
+      });
+    }
+
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key-change-in-production'
+    );
+
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const newAuthToken = user.generateAuthToken();
+
+    res.json({
+      success: true,
+      data: {
+        authToken: newAuthToken
+      }
+    });
+  } catch (error) {
+    console.error('Refresh token error:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Invalid refresh token',
+      error: error.message
+    });
+  }
+};
+
+// @route   POST /api/auth/google
+// @desc    Google OAuth login/register
+// @access  Public
+exports.googleAuth = async (req, res) => {
+  try {
+    const { googleId, email, name, photoUrl } = req.body;
+
+    if (!googleId || !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Google ID and email are required'
+      });
+    }
+
+    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+    if (!user) {
+      // Create new user
+      user = new User({
+        googleId,
+        email: email.toLowerCase(),
+        name: name || email.split('@')[0],
+        oauthProviders: ['google'],
+        isEmailVerified: true,
+        photos: photoUrl ? [{
+          url: photoUrl,
+          order: 0,
+          moderationStatus: 'approved'
+        }] : []
+      });
+      await user.save();
+    } else if (!user.googleId) {
+      // Link Google to existing account
+      user.googleId = googleId;
+      if (!user.oauthProviders) user.oauthProviders = [];
+      if (!user.oauthProviders.includes('google')) {
+        user.oauthProviders.push('google');
+      }
+      await user.save();
+    }
+
+    const authToken = user.generateAuthToken();
+    const refreshToken = user.generateRefreshToken();
+
+    user.lastActive = new Date();
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Google authentication successful',
+      data: {
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          age: user.age,
+          gender: user.gender,
+          isEmailVerified: user.isEmailVerified
+        },
+        authToken,
+        refreshToken
+      }
+    });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error with Google authentication',
+      error: error.message
+    });
+  }
+};
+
+// @route   POST /api/auth/facebook
+// @desc    Facebook OAuth login/register
+// @access  Public
+exports.facebookAuth = async (req, res) => {
+  try {
+    const { facebookId, email, name, photoUrl } = req.body;
+
+    if (!facebookId || !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Facebook ID and email are required'
+      });
+    }
+
+    let user = await User.findOne({ $or: [{ facebookId }, { email }] });
+
+    if (!user) {
+      user = new User({
+        facebookId,
+        email: email.toLowerCase(),
+        name: name || email.split('@')[0],
+        oauthProviders: ['facebook'],
+        isEmailVerified: true,
+        photos: photoUrl ? [{
+          url: photoUrl,
+          order: 0,
+          moderationStatus: 'approved'
+        }] : []
+      });
+      await user.save();
+    } else if (!user.facebookId) {
+      user.facebookId = facebookId;
+      if (!user.oauthProviders) user.oauthProviders = [];
+      if (!user.oauthProviders.includes('facebook')) {
+        user.oauthProviders.push('facebook');
+      }
+      await user.save();
+    }
+
+    const authToken = user.generateAuthToken();
+    const refreshToken = user.generateRefreshToken();
+
+    user.lastActive = new Date();
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Facebook authentication successful',
+      data: {
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          age: user.age,
+          gender: user.gender,
+          isEmailVerified: user.isEmailVerified
+        },
+        authToken,
+        refreshToken
+      }
+    });
+  } catch (error) {
+    console.error('Facebook auth error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error with Facebook authentication',
+      error: error.message
+    });
+  }
+};
+
+// @route   POST /api/auth/apple
+// @desc    Apple OAuth login/register
+// @access  Public
+exports.appleAuth = async (req, res) => {
+  try {
+    const { appleId, email, name } = req.body;
+
+    if (!appleId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Apple ID is required'
+      });
+    }
+
+    let user = await User.findOne({ appleId });
+
+    if (!user) {
+      user = new User({
+        appleId,
+        email: email?.toLowerCase() || `${appleId}@appleid.apple.com`,
+        name: name || 'Apple User',
+        oauthProviders: ['apple'],
+        isEmailVerified: !!email
+      });
+      await user.save();
+    }
+
+    const authToken = user.generateAuthToken();
+    const refreshToken = user.generateRefreshToken();
+
+    user.lastActive = new Date();
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Apple authentication successful',
+      data: {
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          age: user.age,
+          gender: user.gender,
+          isEmailVerified: user.isEmailVerified
+        },
+        authToken,
+        refreshToken
+      }
+    });
+  } catch (error) {
+    console.error('Apple auth error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error with Apple authentication',
+      error: error.message
+    });
+  }
+};

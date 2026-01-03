@@ -285,10 +285,108 @@ const deleteMessage = async (req, res) => {
   }
 };
 
+// Mark a specific message as read with timestamp
+const markMessageAsRead = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    if (!messageId || !require('mongoose').Types.ObjectId.isValid(messageId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid message ID'
+      });
+    }
+
+    const message = await Message.findOne({
+      _id: messageId,
+      receiverId: userId
+    });
+
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: 'Message not found or access denied'
+      });
+    }
+
+    // Mark as read with timestamp
+    const readTimestamp = new Date();
+    await message.markAsRead(readTimestamp);
+
+    res.json({
+      success: true,
+      data: {
+        messageId: message._id,
+        isRead: message.isRead,
+        readAt: message.readAt
+      }
+    });
+
+  } catch (error) {
+    console.error('Mark message as read error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Get read receipts for messages in a conversation
+const getReadReceipts = async (req, res) => {
+  try {
+    const { matchId } = req.params;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    if (!matchId || !require('mongoose').Types.ObjectId.isValid(matchId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid match ID'
+      });
+    }
+
+    // Get all messages in the conversation with read status
+    const messages = await Message.find({ matchId })
+      .select('_id senderId receiverId isRead readAt createdAt')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({
+      success: true,
+      data: {
+        messages
+      }
+    });
+
+  } catch (error) {
+    console.error('Get read receipts error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   getMessages,
   getConversations,
   markAsRead,
   getUnreadCount,
-  deleteMessage
+  deleteMessage,
+  markMessageAsRead,
+  getReadReceipts
 };

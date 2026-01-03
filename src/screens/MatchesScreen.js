@@ -1,18 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-  Image,
-  RefreshControl,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useCallback, useState } from 'react';
+import {
+    Alert,
+    FlatList,
+    Image,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
-import { useFocusEffect } from '@react-navigation/native';
+import { SwipeController } from '../services/SwipeController';
 
 const MatchesScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
@@ -91,22 +93,58 @@ const MatchesScreen = ({ navigation }) => {
           )}
         </View>
       </View>
-      <TouchableOpacity
-        onPress={() => navigation.navigate('Chat', {
-          matchId: item.matchId,
-          otherUser: item.otherUser
-        })}
-        activeOpacity={0.8}
-      >
-        <LinearGradient
-          colors={['#667eea', '#764ba2']}
-          style={styles.chatButton}
+      <View style={styles.actionButtons}>
+        <TouchableOpacity
+          onPress={() => handleUnmatch(item.otherUser._id, item.otherUser.name)}
+          activeOpacity={0.8}
+          style={styles.unmatchButton}
         >
-          <Ionicons name="chatbubble" size={20} color="#fff" />
-        </LinearGradient>
-      </TouchableOpacity>
+          <Ionicons name="close-circle" size={24} color="#FF6B6B" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Chat', {
+            matchId: item.matchId,
+            otherUser: item.otherUser
+          })}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={['#667eea', '#764ba2']}
+            style={styles.chatButton}
+          >
+            <Ionicons name="chatbubble" size={20} color="#fff" />
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     </TouchableOpacity>
   );
+
+  const handleUnmatch = (userId, userName) => {
+    Alert.alert(
+      'Unmatch Confirmation',
+      `Are you sure you want to unmatch with ${userName}? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Unmatch',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const result = await SwipeController.unmatch(currentUser.uid, userId);
+              if (result.success) {
+                Alert.alert('Success', 'You have unmatched');
+                onRefresh();
+              } else {
+                Alert.alert('Error', result.error || 'Failed to unmatch');
+              }
+            } catch (error) {
+              Alert.alert('Error', 'Failed to unmatch');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   if (loading) {
     return (
@@ -347,6 +385,14 @@ const styles = StyleSheet.create({
     borderRadius: 35,
     borderWidth: 3,
     borderColor: '#667eea',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  unmatchButton: {
+    padding: 8,
   },
   chatButton: {
     width: 45,

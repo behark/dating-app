@@ -16,6 +16,14 @@ const Swipe = require('./models/Swipe');
 const discoveryRoutes = require('./routes/discovery');
 const chatRoutes = require('./routes/chat');
 const aiRoutes = require('./routes/ai');
+const authRoutes = require('./routes/auth');
+const profileRoutes = require('./routes/profile');
+const swipeRoutes = require('./routes/swipe');
+const notificationRoutes = require('./routes/notifications');
+const enhancedProfileRoutes = require('./routes/enhancedProfile');
+const activityRoutes = require('./routes/activity');
+const socialMediaRoutes = require('./routes/socialMedia');
+const safetyRoutes = require('./routes/safety');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,9 +56,17 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/profile/enhanced', enhancedProfileRoutes);
+app.use('/api/activity', activityRoutes);
+app.use('/api/social-media', socialMediaRoutes);
 app.use('/api', discoveryRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/swipes', swipeRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/safety', safetyRoutes);
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {
@@ -244,6 +260,19 @@ io.on('connection', (socket) => {
       await message.populate('senderId', 'name photos');
       await message.populate('receiverId', 'name photos');
 
+      // Send notification to receiver if they have message notifications enabled
+      try {
+        const receiverUser = await User.findById(receiverId);
+        if (receiverUser?.notificationPreferences?.messageNotifications !== false) {
+          const senderName = message.senderId?.name || 'Someone';
+          const messagePreview = content.length > 50 ? `${content.substring(0, 50)}...` : content;
+          console.log(`[NOTIFICATION] Message from ${senderName} to ${receiverId}: ${messagePreview}`);
+          // In production, send via Expo push notification service
+        }
+      } catch (notifError) {
+        console.error('Error sending message notification:', notifError);
+      }
+
       // Emit to all users in the room (both sender and receiver)
       io.to(matchId).emit('new_message', {
         message: {
@@ -283,6 +312,39 @@ io.on('connection', (socket) => {
       userId: socket.userId,
       isTyping: false
     });
+  });
+
+  // Handle read receipts
+  socket.on('message_read', async (data) => {
+    try {
+      const { messageId, matchId } = data;
+      const userId = socket.userId;
+
+      // Update message as read in database
+      const message = await Message.findOneAndUpdate(
+        {
+          _id: messageId,
+          receiverId: userId
+        },
+        {
+          isRead: true,
+          readAt: new Date()
+        },
+        { new: true }
+      );
+
+      if (message) {
+        // Emit read receipt to the sender
+        io.to(matchId).emit('message_read_receipt', {
+          messageId: message._id,
+          readBy: userId,
+          readAt: message.readAt
+        });
+      }
+    } catch (error) {
+      console.error('Error handling message_read:', error);
+      socket.emit('error', { message: 'Failed to mark message as read' });
+    }
   });
 
   // Handle disconnect

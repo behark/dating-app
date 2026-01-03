@@ -1,20 +1,22 @@
-import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
-import LoginScreen from '../screens/LoginScreen';
-import HomeScreen from '../screens/HomeScreen';
-import MatchesScreen from '../screens/MatchesScreen';
-import ProfileScreen from '../screens/ProfileScreen';
 import ChatScreen from '../screens/ChatScreen';
-import ViewProfileScreen from '../screens/ViewProfileScreen';
-import PreferencesScreen from '../screens/PreferencesScreen';
-import VerificationScreen from '../screens/VerificationScreen';
-import PremiumScreen from '../screens/PremiumScreen';
+import HomeScreen from '../screens/HomeScreen';
+import LoginScreen from '../screens/LoginScreen';
+import MatchesScreen from '../screens/MatchesScreen';
+import NotificationPreferencesScreen from '../screens/NotificationPreferencesScreen';
 import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
+import PreferencesScreen from '../screens/PreferencesScreen';
+import PremiumScreen from '../screens/PremiumScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+import ReportUserScreen from '../screens/ReportUserScreen';
+import SafetyTipsScreen from '../screens/SafetyTipsScreen';
+import VerificationScreen from '../screens/VerificationScreen';
+import ViewProfileScreen from '../screens/ViewProfileScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -113,6 +115,14 @@ const AppNavigator = () => {
               }}
             />
             <Stack.Screen
+              name="NotificationPreferences"
+              component={NotificationPreferencesScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
               name="Verification"
               component={VerificationScreen}
               options={{
@@ -131,6 +141,22 @@ const AppNavigator = () => {
             <Stack.Screen
               name="PhotoGallery"
               component={PhotoGalleryScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="ReportUser"
+              component={ReportUserScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="SafetyTips"
+              component={SafetyTipsScreen}
               options={{
                 headerShown: false,
                 presentation: 'card',

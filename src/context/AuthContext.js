@@ -1,15 +1,16 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
 import Constants from 'expo-constants';
-import { NotificationService } from '../services/NotificationService';
+import * as WebBrowser from 'expo-web-browser';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { LocationService } from '../services/LocationService';
+import { NotificationService } from '../services/NotificationService';
 
 WebBrowser.maybeCompleteAuthSession();
 
 const AuthContext = createContext({});
+
+const API_URL = Constants.expoConfig?.extra?.backendUrl || 'http://localhost:3000/api';
 
 export const useAuth = () => {
   return useContext(AuthContext);
@@ -18,68 +19,320 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authToken, setAuthToken] = useState(null);
+  const [refreshToken, setRefreshToken] = useState(null);
 
   // Google Sign-In
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId: Constants.expoConfig?.extra?.googleIosClientId,
     androidClientId: Constants.expoConfig?.extra?.googleAndroidClientId,
-    webClientId: Constants.expoConfig?.extra?.googleWebClientId || Constants.expoConfig?.extra?.firebaseAuthDomain,
+    webClientId: Constants.expoConfig?.extra?.googleWebClientId,
   });
 
+  // Load user data from async storage on app start
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
+    const loadUser = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem('currentUser');
+        const storedAuthToken = await AsyncStorage.getItem('authToken');
+        const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
 
-      if (user) {
-        // Register for push notifications
-        await NotificationService.registerForPushNotifications(user.uid);
-
-        // Update user location
-        await LocationService.updateLocationOnLogin(user.uid);
+        if (storedUser && storedAuthToken) {
+          setCurrentUser(JSON.parse(storedUser));
+          setAuthToken(storedAuthToken);
+          setRefreshToken(storedRefreshToken);
+        }
+      } catch (error) {
+        console.error('Error loading user from storage:', error);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      setLoading(false);
-    });
-
-    return unsubscribe;
+    loadUser();
   }, []);
 
+  // Handle Google OAuth response
   useEffect(() => {
     if (response?.type === 'success') {
       const { id_token } = response.params;
-      const credential = GoogleAuthProvider.credential(id_token);
-      signInWithCredential(auth, credential);
+      signInWithGoogle(id_token);
     }
   }, [response]);
 
-  const signup = async (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+  const signup = async (email, password, name, age, gender) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          age,
+          gender
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      const { user, authToken: token, refreshToken: refToken } = data.data;
+      
+      await saveUserSession(user, token, refToken);
+      
+      return { user, authToken: token };
+    } catch (error) {
+      throw error;
+    }
   };
 
   const login = async (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      const { user, authToken: token, refreshToken: refToken } = data.data;
+      
+      await saveUserSession(user, token, refToken);
+      
+      return { user, authToken: token };
+    } catch (error) {
+      throw error;
+    }
   };
 
   const logout = async () => {
-    return signOut(auth);
+    try {
+      setCurrentUser(null);
+      setAuthToken(null);
+      setRefreshToken(null);
+      await AsyncStorage.removeItem('currentUser');
+      await AsyncStorage.removeItem('authToken');
+      await AsyncStorage.removeItem('refreshToken');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (idToken) => {
+    try {
+      // You'll need to get user info from Google
+      const response = await fetch(`${API_URL}/auth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          googleId: idToken,
+          email: 'user@google.com', // You'll get this from Google's user info endpoint
+          name: 'Google User'
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Google sign in failed');
+      }
+
+      const { user, authToken: token, refreshToken: refToken } = data.data;
+      
+      await saveUserSession(user, token, refToken);
+      
+      return { user, authToken: token };
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const saveUserSession = async (user, token, refToken) => {
+    setCurrentUser(user);
+    setAuthToken(token);
+    setRefreshToken(refToken);
+    
+    await AsyncStorage.setItem('currentUser', JSON.stringify(user));
+    await AsyncStorage.setItem('authToken', token);
+    if (refToken) {
+      await AsyncStorage.setItem('refreshToken', refToken);
+    }
+
+    // Register for notifications and update location
+    if (user._id) {
+      try {
+        await NotificationService.registerForPushNotifications(user._id);
+        await LocationService.updateLocationOnLogin(user._id);
+      } catch (error) {
+        console.error('Error during post-login setup:', error);
+      }
+    }
+  };
+
+  const verifyEmail = async (token) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/verify-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const sendPhoneVerification = async (phoneNumber) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/send-phone-verification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ phoneNumber })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const verifyPhone = async (code) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/verify-phone`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ code })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const forgotPassword = async (email) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const resetPassword = async (token, newPassword) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token, newPassword })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const deleteAccount = async (password) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/delete-account`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ password })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+
+      await logout();
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const promptGoogleSignIn = async () => {
     await promptAsync();
   };
 
   const value = {
     currentUser,
+    authToken,
+    refreshToken,
     signup,
     login,
     logout,
-    signInWithGoogle,
+    verifyEmail,
+    sendPhoneVerification,
+    verifyPhone,
+    forgotPassword,
+    resetPassword,
+    deleteAccount,
+    signInWithGoogle: promptGoogleSignIn,
     loading
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

@@ -66,7 +66,8 @@ const discoverUsers = async (req, res) => {
       excludeIds: excludedUserIds,
       minAge: currentUser?.preferredAgeRange?.min || 18,
       maxAge: currentUser?.preferredAgeRange?.max || 100,
-      preferredGender: currentUser?.preferredGender || 'any'
+      preferredGender: currentUser?.preferredGender || 'any',
+      preferredDistance: currentUser?.preferredDistance || 50 // km
     };
 
     // Find users within the specified radius
@@ -76,11 +77,11 @@ const discoverUsers = async (req, res) => {
       searchRadius,
       discoveryOptions
     )
-    .select('name age gender bio photos interests location profileCompleteness lastActive')
+    .select('name age gender bio photos interests location profileCompleteness lastActive locationPrivacy')
     .limit(50) // Limit results for performance
     .sort({ profileCompleteness: -1, lastActive: -1 }); // Sort by profile completeness and recent activity
 
-    // Transform the response to include distance calculation
+    // Transform the response to include distance calculation and privacy filtering
     const usersWithDistance = nearbyUsers.map(user => {
       const userObj = user.toObject();
 
@@ -92,10 +93,21 @@ const discoverUsers = async (req, res) => {
         user.location.coordinates[0]  // longitude
       );
 
+      // Apply privacy controls
+      let locationVisible = true;
+      if (user.locationPrivacy === 'hidden') {
+        locationVisible = false;
+      } else if (user.locationPrivacy === 'visible_to_matches') {
+        // Only show location if they've matched with current user
+        // For now, we'll assume distance is always shown but exact location is hidden
+        locationVisible = true;
+      }
+
       return {
         ...userObj,
         distance: Math.round(distance * 10) / 10, // Round to 1 decimal place
-        location: undefined // Remove detailed location data for privacy
+        locationPrivacy: user.locationPrivacy,
+        location: locationVisible ? undefined : undefined // Remove detailed location data for privacy
       };
     });
 
@@ -225,8 +237,130 @@ const updateLocation = async (req, res) => {
   }
 };
 
+// Update location privacy settings
+const updateLocationPrivacy = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { privacyLevel } = req.body; // 'hidden', 'visible_to_matches', 'visible_to_all'
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    // Validate privacy level
+    const validLevels = ['hidden', 'visible_to_matches', 'visible_to_all'];
+    if (!privacyLevel || !validLevels.includes(privacyLevel)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid privacy level. Must be one of: ${validLevels.join(', ')}`
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { locationPrivacy: privacyLevel },
+      { new: true }
+    ).select('locationPrivacy');
+
+    res.json({
+      success: true,
+      message: 'Location privacy updated successfully',
+      data: {
+        locationPrivacy: user.locationPrivacy
+      }
+    });
+
+  } catch (error) {
+    console.error('Update location privacy error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Get location privacy settings
+const getLocationPrivacy = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    const user = await User.findById(userId).select('locationPrivacy locationHistoryEnabled');
+
+    res.json({
+      success: true,
+      data: {
+        locationPrivacy: user.locationPrivacy || 'visible_to_matches',
+        locationHistoryEnabled: user.locationHistoryEnabled || false
+      }
+    });
+
+  } catch (error) {
+    console.error('Get location privacy error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
+// Update preferred distance for discovery
+const updatePreferredDistance = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { preferredDistance } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    if (typeof preferredDistance !== 'number' || preferredDistance < 1 || preferredDistance > 50000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid preferred distance. Must be between 1 and 50000 km'
+      });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { preferredDistance },
+      { new: true }
+    ).select('preferredDistance');
+
+    res.json({
+      success: true,
+      message: 'Preferred distance updated successfully',
+      data: {
+        preferredDistance: user.preferredDistance
+      }
+    });
+
+  } catch (error) {
+    console.error('Update preferred distance error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   discoverUsers,
   getDiscoverySettings,
-  updateLocation
+  updateLocation,
+  updateLocationPrivacy,
+  getLocationPrivacy,
+  updatePreferredDistance
 };

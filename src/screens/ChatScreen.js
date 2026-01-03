@@ -1,18 +1,20 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TextInput,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 
@@ -22,10 +24,13 @@ const ChatScreen = ({ route, navigation }) => {
   const {
     messages,
     sendMessage: chatSendMessage,
+    sendImageMessage,
+    sendGifMessage,
     loadMessages: chatLoadMessages,
     joinRoom,
     startTyping,
     stopTyping,
+    sendReadReceipt,
     otherUserTyping,
     isConnected
   } = useChat();
@@ -100,6 +105,88 @@ const ChatScreen = ({ route, navigation }) => {
     stopTyping();
   };
 
+  const handlePickImage = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (permissionResult.granted === false) {
+        Alert.alert('Permission required', 'Please allow access to your photo library');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const imageUri = result.assets[0].uri;
+        sendImageMessage(matchId, imageUri, {
+          caption: 'Shared an image',
+          width: result.assets[0].width,
+          height: result.assets[0].height
+        });
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
+
+  const handleTakePicture = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      if (permissionResult.granted === false) {
+        Alert.alert('Permission required', 'Please allow access to your camera');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const imageUri = result.assets[0].uri;
+        sendImageMessage(matchId, imageUri, {
+          caption: 'Shared a photo',
+          width: result.assets[0].width,
+          height: result.assets[0].height
+        });
+      }
+    } catch (error) {
+      console.error('Error taking picture:', error);
+      Alert.alert('Error', 'Failed to take picture');
+    }
+  };
+
+  const handleShowMediaOptions = () => {
+    Alert.alert(
+      'Share Media',
+      'Choose how to share',
+      [
+        {
+          text: 'Take Photo',
+          onPress: handleTakePicture,
+          style: 'default',
+        },
+        {
+          text: 'Choose from Library',
+          onPress: handlePickImage,
+          style: 'default',
+        },
+        {
+          text: 'Cancel',
+          onPress: () => {},
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   const handleTextChange = (text) => {
     setMessageText(text);
 
@@ -133,6 +220,16 @@ const ChatScreen = ({ route, navigation }) => {
       minute: '2-digit'
     });
 
+    // Send read receipt when message is rendered for non-sender
+    useEffect(() => {
+      if (!isMe && !item.isRead && matchId) {
+        const timer = setTimeout(() => {
+          sendReadReceipt(item._id);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }, [item._id, item.isRead, isMe, matchId, sendReadReceipt]);
+
     return (
       <View
         style={[
@@ -140,19 +237,51 @@ const ChatScreen = ({ route, navigation }) => {
           isMe ? styles.myMessageWrapper : styles.theirMessageWrapper,
         ]}
       >
-        {isMe ? (
-          <LinearGradient
-            colors={['#667eea', '#764ba2']}
-            style={styles.myMessage}
-          >
-            <Text style={styles.myMessageText}>{item.content}</Text>
-            <Text style={styles.myTimestamp}>{time}</Text>
-          </LinearGradient>
-        ) : (
-          <View style={styles.theirMessage}>
-            <Text style={styles.theirMessageText}>{item.content}</Text>
-            <Text style={styles.theirTimestamp}>{time}</Text>
+        {item.type === 'image' || item.type === 'gif' ? (
+          <View style={styles.imageMessageWrapper}>
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={styles.messageImage}
+              resizeMode="cover"
+            />
+            {item.content && (
+              <Text style={isMe ? styles.myMessageText : styles.theirMessageText}>
+                {item.content}
+              </Text>
+            )}
+            <Text style={isMe ? styles.myTimestamp : styles.theirTimestamp}>{time}</Text>
+            {isMe && (
+              <View style={styles.readReceiptContainer}>
+                {item.isRead ? (
+                  <Ionicons name="checkmark-done" size={12} color="rgba(255, 255, 255, 0.8)" />
+                ) : (
+                  <Ionicons name="checkmark" size={12} color="rgba(255, 255, 255, 0.6)" />
+                )}
+              </View>
+            )}
           </View>
+        ) : (
+          isMe ? (
+            <LinearGradient
+              colors={['#667eea', '#764ba2']}
+              style={styles.myMessage}
+            >
+              <Text style={styles.myMessageText}>{item.content}</Text>
+              <View style={styles.messageFooter}>
+                <Text style={styles.myTimestamp}>{time}</Text>
+                {item.isRead ? (
+                  <Ionicons name="checkmark-done" size={12} color="rgba(255, 255, 255, 0.8)" style={{ marginLeft: 5 }} />
+                ) : (
+                  <Ionicons name="checkmark" size={12} color="rgba(255, 255, 255, 0.6)" style={{ marginLeft: 5 }} />
+                )}
+              </View>
+            </LinearGradient>
+          ) : (
+            <View style={styles.theirMessage}>
+              <Text style={styles.theirMessageText}>{item.content}</Text>
+              <Text style={styles.theirTimestamp}>{time}</Text>
+            </View>
+          )
         )}
       </View>
     );
@@ -214,6 +343,13 @@ const ChatScreen = ({ route, navigation }) => {
         )}
 
         <View style={styles.inputContainer}>
+          <TouchableOpacity
+            style={styles.mediaButton}
+            onPress={handleShowMediaOptions}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="image" size={24} color="#667eea" />
+          </TouchableOpacity>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
@@ -344,6 +480,28 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 4,
   },
+  messageFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  messageImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  imageMessageWrapper: {
+    padding: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 16,
+    maxWidth: '100%',
+  },
+  readReceiptContainer: {
+    marginTop: 4,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
   myTimestamp: {
     fontSize: 11,
     color: 'rgba(255, 255, 255, 0.8)',
@@ -383,6 +541,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderTopWidth: 1,
     borderTopColor: 'rgba(0, 0, 0, 0.05)',
+    alignItems: 'flex-end',
+  },
+  mediaButton: {
+    paddingRight: 10,
+    paddingVertical: 8,
   },
   inputWrapper: {
     flex: 1,

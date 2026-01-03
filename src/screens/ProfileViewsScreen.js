@@ -1,0 +1,294 @@
+import { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import { ActivityService } from '../services/ActivityService';
+
+export default function ProfileViewsScreen() {
+  const [viewData, setViewData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchProfileViews();
+  }, []);
+
+  const fetchProfileViews = async () => {
+    try {
+      setLoading(true);
+      const data = await ActivityService.getProfileViews();
+      setViewData(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching profile views:', err);
+      setError(err.message);
+      Alert.alert('Error', err.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchProfileViews();
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString();
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorText}>Error: {error}</Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={handleRefresh}
+        >
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const totalViews = viewData?.totalViews || 0;
+  const viewers = viewData?.viewers || [];
+
+  return (
+    <View style={styles.container}>
+      {/* Header Stats */}
+      <View style={styles.headerStats}>
+        <View style={styles.statCard}>
+          <Text style={styles.statNumber}>{totalViews}</Text>
+          <Text style={styles.statLabel}>Total Profile Views</Text>
+        </View>
+      </View>
+
+      {/* Viewers Section */}
+      <View style={styles.viewersSection}>
+        <View style={styles.viewersHeader}>
+          <Text style={styles.viewersTitle}>
+            {viewers.length > 0 ? 'Recent Viewers' : 'No views yet'}
+          </Text>
+          {viewers.length > 0 && (
+            <TouchableOpacity onPress={handleRefresh} disabled={refreshing}>
+              <Text style={styles.refreshText}>
+                {refreshing ? 'Refreshing...' : 'Refresh'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {viewers.length > 0 ? (
+          <FlatList
+            scrollEnabled={false}
+            data={viewers}
+            keyExtractor={(item) => item.userId}
+            renderItem={({ item }) => (
+              <View style={styles.viewerCard}>
+                <View style={styles.viewerInfo}>
+                  <Text style={styles.viewerName}>{item.userName || 'Unknown User'}</Text>
+                  <Text style={styles.viewerTime}>
+                    Viewed {formatDate(item.viewedAt)}
+                  </Text>
+                </View>
+                <TouchableOpacity style={styles.viewButton}>
+                  <Text style={styles.viewButtonText}>View Profile</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No one has viewed your profile yet</Text>
+              </View>
+            }
+          />
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Start matching and getting noticed!</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Premium Notice */}
+      {!viewData?.isPremium && viewers.length === 0 && (
+        <View style={styles.premiumNotice}>
+          <Text style={styles.premiumText}>
+            👑 Upgrade to Premium to see who viewed your profile
+          </Text>
+          <TouchableOpacity style={styles.premiumButton}>
+            <Text style={styles.premiumButtonText}>Upgrade Now</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5'
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  headerStats: {
+    padding: 16,
+    backgroundColor: '#fff',
+    borderBottomColor: '#eee',
+    borderBottomWidth: 1
+  },
+  statCard: {
+    alignItems: 'center',
+    paddingVertical: 8
+  },
+  statNumber: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#007AFF'
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4
+  },
+  viewersSection: {
+    flex: 1,
+    backgroundColor: '#fff',
+    marginTop: 8
+  },
+  viewersHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomColor: '#eee',
+    borderBottomWidth: 1
+  },
+  viewersTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000'
+  },
+  refreshText: {
+    fontSize: 13,
+    color: '#007AFF',
+    fontWeight: '600'
+  },
+  viewerCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomColor: '#f0f0f0',
+    borderBottomWidth: 1
+  },
+  viewerInfo: {
+    flex: 1
+  },
+  viewerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4
+  },
+  viewerTime: {
+    fontSize: 13,
+    color: '#999'
+  },
+  viewButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#007AFF',
+    borderRadius: 6
+  },
+  viewButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 13
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#999',
+    textAlign: 'center'
+  },
+  premiumNotice: {
+    backgroundColor: '#FFF3CD',
+    padding: 16,
+    margin: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    gap: 12
+  },
+  premiumText: {
+    fontSize: 14,
+    color: '#856404',
+    fontWeight: '600',
+    textAlign: 'center'
+  },
+  premiumButton: {
+    backgroundColor: '#FFD700',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6
+  },
+  premiumButtonText: {
+    color: '#000',
+    fontWeight: '600',
+    fontSize: 14
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#d32f2f',
+    textAlign: 'center',
+    marginBottom: 16
+  },
+  retryButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontWeight: '600'
+  }
+});
