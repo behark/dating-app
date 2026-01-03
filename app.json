@@ -27,13 +27,13 @@
       "bundler": "metro"
     },
     "extra": {
-      "firebaseApiKey": "your_api_key_here",
-      "firebaseAuthDomain": "your_project_id.firebaseapp.com",
-      "firebaseProjectId": "your_project_id",
-      "firebaseStorageBucket": "your_project_id.appspot.com",
-      "firebaseMessagingSenderId": "your_sender_id",
-      "firebaseAppId": "your_app_id",
-      "googleWebClientId": "your_google_web_client_id"
+      "firebaseApiKey": "AIzaSyBlk0u4pYjlfcumY3-eCrTZi1LWoTbtfO4",
+      "firebaseAuthDomain": "my-project-de65d.firebaseapp.com",
+      "firebaseProjectId": "my-project-de65d",
+      "firebaseStorageBucket": "my-project-de65d.firebasestorage.app",
+      "firebaseMessagingSenderId": "466295464562",
+      "firebaseAppId": "1:466295464562:web:0edad1169197f22b3758eb",
+      "googleWebClientId": "466295464562-xxxxxxxxxxxxx.apps.googleusercontent.com"
     }
   }
 }
