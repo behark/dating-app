@@ -1,0 +1,29 @@
+# Render Blueprint - Dating App Backend
+# Deploy by clicking "New" -> "Blueprint" in Render Dashboard
+# Then connect this repository
+
+services:
+  - type: web
+    name: dating-app-backend
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false  # Set manually in dashboard for security
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: FIREBASE_PROJECT_ID
+        value: my-project-de65d
+      - key: CORS_ORIGIN
+        value: https://dating-app-beharks-projects.vercel.app

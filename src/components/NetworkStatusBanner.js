@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
 import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useOffline } from '../../hooks/useOffline';
+import { useOffline } from '../hooks/useOffline';
 
 /**
  * NetworkStatusBanner - Shows offline/online status notification
