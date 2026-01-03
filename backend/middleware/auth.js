@@ -64,5 +64,24 @@ exports.optionalAuth = async (req, res, next) => {
   next();
 };
 
+// Middleware to verify admin role (must be used after authenticate)
+exports.isAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required'
+    });
+  }
+
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      message: 'Admin access required'
+    });
+  }
+
+  next();
+};
+
 // Alias for backwards compatibility
 exports.authenticateToken = exports.authenticate;
