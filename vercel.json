@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm run web:build",
-  "outputDirectory": "dist",
+  "buildCommand": "npm run vercel-build",
+  "outputDirectory": "web-build",
   "devCommand": "npm start",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": null,
@@ -9,6 +9,21 @@
     {
       "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        }
+      ]
     }
   ]
 }
