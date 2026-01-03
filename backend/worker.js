@@ -15,10 +15,11 @@ let isShuttingDown = false;
  * Connect to MongoDB
  */
 const connectDB = async () => {
-  const mongoURI = process.env.MONGODB_URI;
+  // Support both MONGODB_URI and MONGODB_URL for compatibility
+  const mongoURI = process.env.MONGODB_URI || process.env.MONGODB_URL;
   
   if (!mongoURI) {
-    throw new Error('MONGODB_URI is required');
+    throw new Error('MONGODB_URI or MONGODB_URL is required');
   }
 
   await mongoose.connect(mongoURI, {

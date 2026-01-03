@@ -30,10 +30,11 @@ const connectDB = async () => {
     return mongoose.connection;
   }
 
-  const mongoURI = process.env.MONGODB_URI;
+  // Support both MONGODB_URI and MONGODB_URL for compatibility
+  const mongoURI = process.env.MONGODB_URI || process.env.MONGODB_URL;
   
   if (!mongoURI) {
-    console.warn('MONGODB_URI not set - database features will be unavailable');
+    console.warn('MONGODB_URI or MONGODB_URL not set - database features will be unavailable');
     return null;
   }
 

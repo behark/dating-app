@@ -33,8 +33,10 @@ const responseTimeMiddleware = (req, res, next) => {
       durationMs
     );
 
-    // Add timing header for debugging
-    res.setHeader('X-Response-Time', `${durationMs.toFixed(2)}ms`);
+    // Add timing header for debugging (only if headers haven't been sent)
+    if (!res.headersSent) {
+      res.setHeader('X-Response-Time', `${durationMs.toFixed(2)}ms`);
+    }
 
     // Log slow requests (> 1000ms)
     if (durationMs > 1000) {
