@@ -14,16 +14,31 @@ const paymentConfig = require('../config/payment');
 const Subscription = require('../models/Subscription');
 const PaymentTransaction = require('../models/PaymentTransaction');
 
-// Initialize Stripe with secret key
-const stripe = new Stripe(paymentConfig.stripe.secretKey, {
-  apiVersion: '2023-10-16',
-});
+// Initialize Stripe with secret key (only if configured)
+let stripe = null;
+if (paymentConfig.stripe.secretKey) {
+  stripe = new Stripe(paymentConfig.stripe.secretKey, {
+    apiVersion: '2023-10-16',
+  });
+} else {
+  console.warn('Stripe not configured - payment features disabled');
+}
 
 class StripeService {
+  /**
+   * Check if Stripe is configured
+   */
+  static isConfigured() {
+    return stripe !== null;
+  }
+
   /**
    * Create or retrieve a Stripe customer for a user
    */
   static async getOrCreateCustomer(user) {
+    if (!stripe) {
+      throw new Error('Stripe is not configured');
+    }
     try {
       // Check if user already has a Stripe customer ID
       if (user.stripeCustomerId) {
