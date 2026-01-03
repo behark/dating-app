@@ -7,15 +7,15 @@ const express = require('express');
 const router = express.Router();
 const privacyController = require('../controllers/privacyController');
 const { authenticate } = require('../middleware/auth');
-const { apiLimiter } = require('../middleware/rateLimiter');
+const { createRateLimiter } = require('../middleware/rateLimiter');
 
 // Apply authentication to all privacy routes
 router.use(authenticate);
 
 // Apply stricter rate limiting to privacy endpoints
-const privacyLimiter = apiLimiter({
+const privacyLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10 // Max 10 requests per window
+  maxRequests: 10 // Max 10 requests per window
 });
 
 /**
