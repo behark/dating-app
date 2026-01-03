@@ -235,11 +235,16 @@ if (process.env.SENTRY_DSN) {
   app.use(monitoringService.getErrorHandler());
 }
 
-// Analytics error rate tracking middleware
-app.use(errorRateMiddleware);
-
 // Global error handler
 app.use((error, req, res, next) => {
+  // Don't send response if headers already sent
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  // Call errorRateMiddleware first (it's an error handler, just tracks metrics)
+  errorRateMiddleware(error, req, res, () => {
+    // Continue to main error handler
   // Don't send response if headers already sent
   if (res.headersSent) {
     return next(error);
@@ -280,9 +285,12 @@ app.use((error, req, res, next) => {
   }
 
   // Default server error
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error'
+  if (!res.headersSent) {
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
   });
 });
 
