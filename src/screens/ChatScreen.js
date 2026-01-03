@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,30 +14,33 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  addDoc,
-  serverTimestamp,
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
-import { NotificationService } from '../services/NotificationService';
+import { useChat } from '../context/ChatContext';
 
 const ChatScreen = ({ route, navigation }) => {
-  const { userId, userName } = route.params;
+  const { matchId, otherUser } = route.params;
   const { currentUser } = useAuth();
-  const [messages, setMessages] = useState([]);
+  const {
+    messages,
+    sendMessage: chatSendMessage,
+    loadMessages: chatLoadMessages,
+    joinRoom,
+    startTyping,
+    stopTyping,
+    otherUserTyping,
+    isConnected
+  } = useChat();
+
   const [messageText, setMessageText] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [page, setPage] = useState(1);
   const flatListRef = useRef();
-  const lastMessageRef = useRef();
+  const typingTimeoutRef = useRef();
 
-  const loadMessages = async (loadMore = false) => {
-    if (loading || (loadMore && !hasMoreMessages)) return;
+  // Load messages for this match
+  const loadMessages = useCallback(async (loadMore = false) => {
+    if (!matchId) return;
 
     try {
       if (loadMore) {
@@ -46,29 +49,16 @@ const ChatScreen = ({ route, navigation }) => {
         setLoading(true);
       }
 
-      const chatId = [currentUser.uid, userId].sort().join('_');
-      const messagesRef = collection(db, 'chats', chatId, 'messages');
-
-      let q = query(messagesRef, orderBy('createdAt', 'desc'), limit(20));
-
-      if (loadMore && messages.length > 0) {
-        const lastMessage = messages[0];
-        q = query(messagesRef, orderBy('createdAt', 'desc'),
-                 startAfter(lastMessage.createdAt), limit(20));
-      }
-
-      const snapshot = await getDocs(q);
-      const newMessages = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })).reverse(); // Reverse to show oldest first
+      const currentPage = loadMore ? page + 1 : 1;
+      const newMessages = await chatLoadMessages(matchId, currentPage);
 
       if (loadMore) {
-        setMessages(prevMessages => [...newMessages, ...prevMessages]);
-        setHasMoreMessages(newMessages.length === 20);
+        setPage(currentPage);
+        setHasMoreMessages(newMessages && newMessages.length === 50); // Assuming 50 is the limit
       } else {
-        setMessages(newMessages);
-        setHasMoreMessages(snapshot.docs.length === 20);
+        setPage(1);
+        setHasMoreMessages(newMessages && newMessages.length === 50);
+        // Scroll to bottom after initial load
         setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
       }
     } catch (error) {
@@ -77,56 +67,57 @@ const ChatScreen = ({ route, navigation }) => {
       setLoading(false);
       setLoadingMore(false);
     }
+  }, [matchId, page, chatLoadMessages]);
+
+  // Initialize chat room and load messages
+  useEffect(() => {
+    if (matchId) {
+      joinRoom(matchId);
+      loadMessages();
+    }
+  }, [matchId, joinRoom]);
+
+  // Auto-scroll when new messages arrive
+  useEffect(() => {
+    if (messages.length > 0 && !loading) {
+      const timeoutId = setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [messages, loading]);
+
+  const handleSendMessage = () => {
+    if (messageText.trim() === '' || !matchId) return;
+
+    chatSendMessage(matchId, messageText.trim());
+    setMessageText('');
+
+    // Stop typing indicator
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    stopTyping();
   };
 
-  useEffect(() => {
-    loadMessages();
-  }, [userId]);
+  const handleTextChange = (text) => {
+    setMessageText(text);
 
-  // Real-time listener for new messages
-  useEffect(() => {
-    const chatId = [currentUser.uid, userId].sort().join('_');
-    const messagesRef = collection(db, 'chats', chatId, 'messages');
-    const q = query(messagesRef, orderBy('createdAt', 'asc'));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const latestMessages = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      // Only update if we have new messages
-      if (latestMessages.length > messages.length) {
-        setMessages(latestMessages);
-        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 100);
-      }
-    });
-
-    return unsubscribe;
-  }, [userId, messages.length]);
-
-  const sendMessage = async () => {
-    if (messageText.trim() === '') return;
-
-    try {
-      const chatId = [currentUser.uid, userId].sort().join('_');
-      const messagesRef = collection(db, 'chats', chatId, 'messages');
-
-      await addDoc(messagesRef, {
-        text: messageText.trim(),
-        senderId: currentUser.uid,
-        receiverId: userId,
-        createdAt: serverTimestamp(),
-      });
-
-      // Send message notification to the recipient
-      await NotificationService.sendMessageNotification(userId, currentUser.displayName || currentUser.email, messageText.trim());
-
-      setMessageText('');
-    } catch (error) {
-      console.error('Error sending message:', error);
-      Alert.alert('Error', 'Failed to send message. Please try again.');
+    // Handle typing indicator
+    if (text.trim() && !typingTimeoutRef.current) {
+      startTyping();
     }
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing indicator
+    typingTimeoutRef.current = setTimeout(() => {
+      stopTyping();
+      typingTimeoutRef.current = null;
+    }, 1000);
   };
 
   const loadMoreMessages = () => {
@@ -137,11 +128,11 @@ const ChatScreen = ({ route, navigation }) => {
 
   const renderMessage = ({ item }) => {
     const isMe = item.senderId === currentUser.uid;
-    const time = item.createdAt?.toDate?.().toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    }) || 'Just now';
-    
+    const time = new Date(item.createdAt).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
     return (
       <View
         style={[
@@ -154,12 +145,12 @@ const ChatScreen = ({ route, navigation }) => {
             colors={['#667eea', '#764ba2']}
             style={styles.myMessage}
           >
-            <Text style={styles.myMessageText}>{item.text}</Text>
+            <Text style={styles.myMessageText}>{item.content}</Text>
             <Text style={styles.myTimestamp}>{time}</Text>
           </LinearGradient>
         ) : (
           <View style={styles.theirMessage}>
-            <Text style={styles.theirMessageText}>{item.text}</Text>
+            <Text style={styles.theirMessageText}>{item.content}</Text>
             <Text style={styles.theirTimestamp}>{time}</Text>
           </View>
         )}
@@ -185,8 +176,13 @@ const ChatScreen = ({ route, navigation }) => {
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <View style={styles.headerIndicator} />
-            <Text style={styles.headerTitle}>{userName}</Text>
+            <View style={[styles.headerIndicator, { backgroundColor: isConnected ? '#4ECDC4' : '#FF6B6B' }]} />
+            <View>
+              <Text style={styles.headerTitle}>{otherUser?.name || 'Chat'}</Text>
+              {otherUserTyping && (
+                <Text style={styles.typingIndicator}>typing...</Text>
+              )}
+            </View>
           </View>
           <Ionicons name="heart" size={24} color="#fff" style={{ opacity: 0 }} />
         </LinearGradient>
@@ -201,9 +197,8 @@ const ChatScreen = ({ route, navigation }) => {
             ref={flatListRef}
             data={messages}
             renderItem={renderMessage}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id}
             contentContainerStyle={styles.messagesList}
-            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
             showsVerticalScrollIndicator={false}
             onEndReached={loadMoreMessages}
             onEndReachedThreshold={0.1}
@@ -215,7 +210,6 @@ const ChatScreen = ({ route, navigation }) => {
                 </View>
               ) : null
             }
-            inverted={false} // Keep normal order, we'll handle scrolling
           />
         )}
 
@@ -224,7 +218,7 @@ const ChatScreen = ({ route, navigation }) => {
             <TextInput
               style={styles.input}
               value={messageText}
-              onChangeText={setMessageText}
+              onChangeText={handleTextChange}
               placeholder="Type a message..."
               placeholderTextColor="#999"
               multiline
@@ -233,12 +227,12 @@ const ChatScreen = ({ route, navigation }) => {
           </View>
           <TouchableOpacity
             style={styles.sendButton}
-            onPress={sendMessage}
-            disabled={!messageText.trim()}
+            onPress={handleSendMessage}
+            disabled={!messageText.trim() || !isConnected}
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={messageText.trim() ? ['#667eea', '#764ba2'] : ['#ccc', '#bbb']}
+              colors={messageText.trim() && isConnected ? ['#667eea', '#764ba2'] : ['#ccc', '#bbb']}
               style={styles.sendButtonGradient}
             >
               <Ionicons name="send" size={20} color="#fff" />
@@ -291,6 +285,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#fff',
+  },
+  typingIndicator: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontStyle: 'italic',
   },
   messagesList: {
     padding: 15,

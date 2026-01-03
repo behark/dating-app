@@ -10,6 +10,7 @@ import SwipeCard from '../components/Card/SwipeCard';
 import { PreferencesService } from '../services/PreferencesService';
 import { NotificationService } from '../services/NotificationService';
 import { PremiumService } from '../services/PremiumService';
+import { SwipeController } from '../services/SwipeController';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -145,34 +146,17 @@ const HomeScreen = ({ navigation }) => {
   const handleSwipeRight = async (card) => {
     try {
       setLastSwipedCard({ card, direction: 'right' });
-      const userRef = doc(db, 'users', currentUser.uid);
-      const userDoc = await getDoc(userRef);
-      const swipedUsers = userDoc.data()?.swipedUsers || [];
       
-      await setDoc(userRef, {
-        swipedUsers: [...swipedUsers, card.id],
-      }, { merge: true });
+      // Use SwipeController to save the swipe and check for matches
+      const result = await SwipeController.saveSwipe(currentUser.uid, card.id, 'like');
 
-      const otherUserRef = doc(db, 'users', card.id);
-      const otherUserDoc = await getDoc(otherUserRef);
-      const otherUserSwiped = otherUserDoc.data()?.swipedUsers || [];
+      if (!result.success) {
+        Alert.alert('Error', result.error || 'Failed to save swipe');
+        return;
+      }
 
-      if (otherUserSwiped.includes(currentUser.uid)) {
-        const matches = userDoc.data()?.matches || [];
-        const otherMatches = otherUserDoc.data()?.matches || [];
-
-        await setDoc(userRef, {
-          matches: [...matches, card.id],
-        }, { merge: true });
-
-        await setDoc(otherUserRef, {
-          matches: [...otherMatches, currentUser.uid],
-        }, { merge: true });
-
-        // Send match notification to the other user
-        await NotificationService.sendMatchNotification(card.id, userData.name);
-
-        // Navigate to matches on match
+      // If it's a match, show the match alert
+      if (result.match && result.matchId) {
         setTimeout(() => {
           Alert.alert(
             '🎉 It\'s a Match!',
@@ -191,19 +175,21 @@ const HomeScreen = ({ navigation }) => {
       setCurrentIndex(currentIndex + 1);
     } catch (error) {
       console.error('Error handling swipe:', error);
+      Alert.alert('Error', 'Failed to process swipe');
     }
   };
 
   const handleSwipeLeft = async (card) => {
     try {
       setLastSwipedCard({ card, direction: 'left' });
-      const userRef = doc(db, 'users', currentUser.uid);
-      const userDoc = await getDoc(userRef);
-      const swipedUsers = userDoc.data()?.swipedUsers || [];
+      
+      // Use SwipeController to save the dislike
+      const result = await SwipeController.saveSwipe(currentUser.uid, card.id, 'dislike');
 
-      await setDoc(userRef, {
-        swipedUsers: [...swipedUsers, card.id],
-      }, { merge: true });
+      if (!result.success) {
+        console.error('Error saving swipe:', result.error);
+        // Continue anyway to update UI
+      }
 
       setCurrentIndex(currentIndex + 1);
     } catch (error) {

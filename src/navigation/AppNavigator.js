@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { useChat } from '../context/ChatContext';
 import LoginScreen from '../screens/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
 import MatchesScreen from '../screens/MatchesScreen';
@@ -19,6 +20,8 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const MainTabs = () => {
+  const { unreadCount } = useChat();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -60,7 +63,7 @@ const MainTabs = () => {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="heart" size={size || 26} color={color} />
           ),
-          tabBarBadge: null,
+          tabBarBadge: unreadCount > 0 ? unreadCount : null,
         }}
       />
       <Tab.Screen

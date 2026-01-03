@@ -27,5 +27,21 @@ service cloud.firestore {
       allow read, create: if request.auth != null &&
         chatId.split('_').hasAny([request.auth.uid]);
     }
+
+    // Swipes collection - users can create swipes and read their own swipes
+    match /swipes/{swipeId} {
+      allow create: if request.auth != null &&
+        request.resource.data.swiper == request.auth.uid;
+      allow read: if request.auth != null &&
+        (resource.data.swiper == request.auth.uid || resource.data.target == request.auth.uid);
+    }
+
+    // Matches collection - users can read matches they're part of
+    match /matches/{matchId} {
+      allow read: if request.auth != null &&
+        (resource.data.user1 == request.auth.uid || resource.data.user2 == request.auth.uid);
+      allow create: if request.auth != null &&
+        (request.resource.data.user1 == request.auth.uid || request.resource.data.user2 == request.auth.uid);
+    }
   }
 }

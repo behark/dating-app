@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from './src/context/AuthContext';
+import { ChatProvider } from './src/context/ChatContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { AnalyticsService } from './src/services/AnalyticsService';
@@ -16,8 +17,10 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <AppNavigator />
-        <StatusBar style="auto" />
+        <ChatProvider>
+          <AppNavigator />
+          <StatusBar style="auto" />
+        </ChatProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

@@ -11,14 +11,12 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { useChat } from '../context/ChatContext';
 import { useFocusEffect } from '@react-navigation/native';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
-import { PremiumService } from '../services/PremiumService';
 
 const MatchesScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
-  const [matches, setMatches] = useState([]);
+  const { conversations, loadConversations, unreadCount } = useChat();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
@@ -27,45 +25,21 @@ const MatchesScreen = ({ navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
-      loadMatches();
+      loadConversationsList();
     }, [])
   );
 
-  const loadMatches = async () => {
+  const loadConversationsList = async () => {
     try {
-      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-      const matchIds = userDoc.data()?.matches || [];
-
-      // Load premium status
-      const premiumStatus = await PremiumService.checkPremiumStatus(currentUser.uid);
-      setIsPremium(premiumStatus.isPremium);
-
-      // Load received likes for premium users
-      if (premiumStatus.features.seeWhoLikedYou) {
-        const likes = await PremiumService.getReceivedSuperLikes(currentUser.uid);
-        setReceivedLikes(likes);
-      }
-
-      if (matchIds.length === 0) {
-        setMatches([]);
-        setLoading(false);
-        setRefreshing(false);
-        return;
-      }
-
-      const matchesData = [];
-      for (const matchId of matchIds) {
-        const matchDoc = await getDoc(doc(db, 'users', matchId));
-        if (matchDoc.exists()) {
-          matchesData.push({ id: matchDoc.id, ...matchDoc.data() });
-        }
-      }
-
-      setMatches(matchesData);
+      setLoading(true);
+      await loadConversations();
+      // TODO: Load premium features when implemented
+      // const premiumStatus = await PremiumService.checkPremiumStatus(currentUser.uid);
+      // setIsPremium(premiumStatus.isPremium);
       setLoading(false);
       setRefreshing(false);
     } catch (error) {
-      console.error('Error loading matches:', error);
+      console.error('Error loading conversations:', error);
       setLoading(false);
       setRefreshing(false);
     }
@@ -73,41 +47,55 @@ const MatchesScreen = ({ navigation }) => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadMatches();
+    await loadConversationsList();
   };
 
-  const renderMatch = ({ item }) => (
+  const renderConversation = ({ item }) => (
     <TouchableOpacity
       style={styles.matchCard}
-      onPress={() => navigation.navigate('Chat', { userId: item.id, userName: item.name })}
+      onPress={() => navigation.navigate('Chat', {
+        matchId: item.matchId,
+        otherUser: item.otherUser
+      })}
       activeOpacity={0.8}
     >
       <TouchableOpacity
         style={styles.profileButton}
-        onPress={() => navigation.navigate('ViewProfile', { userId: item.id })}
+        onPress={() => navigation.navigate('ViewProfile', { userId: item.otherUser._id })}
         activeOpacity={0.8}
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: item.photoURL || 'https://via.placeholder.com/100' }}
+            source={{ uri: item.otherUser.photos?.[0] || 'https://via.placeholder.com/100' }}
             style={styles.matchImage}
           />
           <View style={styles.onlineIndicator} />
         </View>
       </TouchableOpacity>
       <View style={styles.matchInfo}>
-        <Text style={styles.matchName}>{item.name}</Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.matchName}>{item.otherUser.name}</Text>
+          {item.unreadCount > 0 && (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadText}>{item.unreadCount}</Text>
+            </View>
+          )}
+        </View>
         <View style={styles.matchDetails}>
-          {item.age && <Text style={styles.matchAge}>{item.age} years old</Text>}
-          {item.bio && (
-            <Text style={styles.matchBio} numberOfLines={1}>
-              {item.bio}
+          {item.latestMessage ? (
+            <Text style={styles.lastMessage} numberOfLines={1}>
+              {item.latestMessage.content}
             </Text>
+          ) : (
+            <Text style={styles.noMessages}>No messages yet</Text>
           )}
         </View>
       </View>
       <TouchableOpacity
-        onPress={() => navigation.navigate('Chat', { userId: item.id, userName: item.name })}
+        onPress={() => navigation.navigate('Chat', {
+          matchId: item.matchId,
+          otherUser: item.otherUser
+        })}
         activeOpacity={0.8}
       >
         <LinearGradient
@@ -134,9 +122,9 @@ const MatchesScreen = ({ navigation }) => {
   return (
     <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{showLikes ? 'People Who Liked You' : 'Your Matches'}</Text>
+        <Text style={styles.title}>{showLikes ? 'People Who Liked You' : 'Your Conversations'}</Text>
         <Text style={styles.subtitle}>
-          {showLikes ? `${receivedLikes.length} likes` : `${matches.length} ${matches.length === 1 ? 'match' : 'matches'}`}
+          {showLikes ? `${receivedLikes.length} likes` : `${conversations.length} ${conversations.length === 1 ? 'conversation' : 'conversations'}`}
         </Text>
 
         {isPremium && (
@@ -242,18 +230,18 @@ const MatchesScreen = ({ navigation }) => {
             style={styles.emptyCard}
           >
             <Ionicons name="heart-outline" size={80} color="#fff" />
-            <Text style={styles.emptyTitle}>No matches yet</Text>
+            <Text style={styles.emptyTitle}>No conversations yet</Text>
             <Text style={styles.emptyText}>
-              Keep swiping to find your perfect match!{'\n'}
-              When you both like each other, you'll see them here.
+              Start chatting with your matches!{'\n'}
+              When you both like each other, you can start a conversation here.
             </Text>
           </LinearGradient>
         </View>
       ) : (
         <FlatList
-          data={matches}
-          renderItem={renderMatch}
-          keyExtractor={(item) => item.id}
+          data={conversations}
+          renderItem={renderConversation}
+          keyExtractor={(item) => item.matchId}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -425,6 +413,31 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     flex: 1,
+  },
+  lastMessage: {
+    fontSize: 14,
+    color: '#666',
+    flex: 1,
+  },
+  noMessages: {
+    fontSize: 14,
+    color: '#999',
+    fontStyle: 'italic',
+  },
+  unreadBadge: {
+    backgroundColor: '#FF6B6B',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+    paddingHorizontal: 6,
+  },
+  unreadText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
   },
   emptyContainer: {
     flex: 1,
