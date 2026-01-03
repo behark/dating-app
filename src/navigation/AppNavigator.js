@@ -1,8 +1,8 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import LoginScreen from '../screens/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -17,17 +17,34 @@ const MainTabs = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#FF6B6B',
+        tabBarActiveTintColor: '#667eea',
         tabBarInactiveTintColor: '#999',
         headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          borderTopWidth: 1,
+          borderTopColor: '#e9ecef',
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 10,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
       }}
     >
       <Tab.Screen
         name="Discover"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24, color }}>🔥</Text>
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="flame" size={size || 26} color={color} />
           ),
         }}
       />
@@ -35,17 +52,18 @@ const MainTabs = () => {
         name="Matches"
         component={MatchesScreen}
         options={{
-          tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24, color }}>💬</Text>
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="heart" size={size || 26} color={color} />
           ),
+          tabBarBadge: null,
         }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 24, color }}>👤</Text>
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size || 26} color={color} />
           ),
         }}
       />
@@ -65,7 +83,10 @@ const AppNavigator = () => {
             <Stack.Screen
               name="Chat"
               component={ChatScreen}
-              options={{ headerShown: true, title: 'Chat' }}
+              options={{ 
+                headerShown: false,
+                presentation: 'card',
+              }}
             />
           </>
         ) : (

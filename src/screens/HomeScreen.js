@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, Text } from 'react-native';
+import { View, StyleSheet, Alert, Text, Dimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { collection, query, where, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
 import SwipeCard from '../components/Card/SwipeCard';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 const HomeScreen = () => {
   const { currentUser } = useAuth();
   const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadCards();
@@ -16,40 +21,39 @@ const HomeScreen = () => {
 
   const loadCards = async () => {
     try {
-      // Get current user's profile to filter out already swiped users
+      setLoading(true);
       const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
       const userData = userDoc.data();
       const swipedUsers = userData?.swipedUsers || [];
       const matches = userData?.matches || [];
 
-      // Get all users
       const usersRef = collection(db, 'users');
       const querySnapshot = await getDocs(usersRef);
 
       const availableUsers = [];
       querySnapshot.forEach((doc) => {
         const user = { id: doc.id, ...doc.data() };
-        // Filter out current user, already swiped users, and matches
         if (
           user.id !== currentUser.uid &&
           !swipedUsers.includes(user.id) &&
           !matches.includes(user.id) &&
-          user.photoURL // Only show users with photos
+          user.photoURL
         ) {
           availableUsers.push(user);
         }
       });
 
       setCards(availableUsers);
+      setLoading(false);
     } catch (error) {
       console.error('Error loading cards:', error);
       Alert.alert('Error', 'Failed to load profiles');
+      setLoading(false);
     }
   };
 
   const handleSwipeRight = async (card) => {
     try {
-      // Add to swiped users
       const userRef = doc(db, 'users', currentUser.uid);
       const userDoc = await getDoc(userRef);
       const swipedUsers = userDoc.data()?.swipedUsers || [];
@@ -58,13 +62,11 @@ const HomeScreen = () => {
         swipedUsers: [...swipedUsers, card.id],
       }, { merge: true });
 
-      // Check if it's a match
       const otherUserRef = doc(db, 'users', card.id);
       const otherUserDoc = await getDoc(otherUserRef);
       const otherUserSwiped = otherUserDoc.data()?.swipedUsers || [];
 
       if (otherUserSwiped.includes(currentUser.uid)) {
-        // It's a match!
         const matches = userDoc.data()?.matches || [];
         const otherMatches = otherUserDoc.data()?.matches || [];
 
@@ -79,7 +81,6 @@ const HomeScreen = () => {
         Alert.alert('🎉 It\'s a Match!', `You and ${card.name} liked each other!`);
       }
 
-      // Move to next card
       setCurrentIndex(currentIndex + 1);
     } catch (error) {
       console.error('Error handling swipe:', error);
@@ -88,7 +89,6 @@ const HomeScreen = () => {
 
   const handleSwipeLeft = async (card) => {
     try {
-      // Add to swiped users
       const userRef = doc(db, 'users', currentUser.uid);
       const userDoc = await getDoc(userRef);
       const swipedUsers = userDoc.data()?.swipedUsers || [];
@@ -97,16 +97,26 @@ const HomeScreen = () => {
         swipedUsers: [...swipedUsers, card.id],
       }, { merge: true });
 
-      // Move to next card
       setCurrentIndex(currentIndex + 1);
     } catch (error) {
       console.error('Error handling swipe:', error);
     }
   };
 
+  if (loading) {
+    return (
+      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Ionicons name="heart" size={60} color="#fff" />
+          <Text style={styles.loadingText}>Finding your matches...</Text>
+        </View>
+      </LinearGradient>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      {cards.slice(currentIndex, currentIndex + 3).map((card, index) => (
+    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
+      {cards.length > 0 && cards.slice(currentIndex, currentIndex + 3).map((card, index) => (
         <SwipeCard
           key={card.id}
           card={card}
@@ -115,12 +125,37 @@ const HomeScreen = () => {
           onSwipeRight={handleSwipeRight}
         />
       ))}
-      {currentIndex >= cards.length && (
+      {currentIndex >= cards.length && cards.length > 0 && (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No more profiles!</Text>
+          <LinearGradient
+            colors={['#667eea', '#764ba2']}
+            style={styles.emptyCard}
+          >
+            <Ionicons name="checkmark-circle" size={80} color="#fff" />
+            <Text style={styles.emptyTitle}>You're all caught up!</Text>
+            <Text style={styles.emptyText}>
+              You've seen all available profiles.{'\n'}
+              Check back later for new matches.
+            </Text>
+          </LinearGradient>
         </View>
       )}
-    </View>
+      {cards.length === 0 && !loading && (
+        <View style={styles.emptyContainer}>
+          <LinearGradient
+            colors={['#667eea', '#764ba2']}
+            style={styles.emptyCard}
+          >
+            <Ionicons name="people-outline" size={80} color="#fff" />
+            <Text style={styles.emptyTitle}>No profiles yet</Text>
+            <Text style={styles.emptyText}>
+              Be the first to create a profile!{'\n'}
+              Tell your friends to join too.
+            </Text>
+          </LinearGradient>
+        </View>
+      )}
+    </LinearGradient>
   );
 };
 
@@ -129,17 +164,49 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
     paddingTop: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 20,
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
+  },
+  emptyCard: {
+    width: SCREEN_WIDTH - 40,
+    borderRadius: 30,
+    padding: 40,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 15,
+  },
+  emptyTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#fff',
+    marginTop: 20,
+    marginBottom: 15,
+    textAlign: 'center',
   },
   emptyText: {
-    fontSize: 24,
-    color: '#999',
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });
 
