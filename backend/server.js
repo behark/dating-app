@@ -58,6 +58,7 @@ const gamificationRoutes = require('./routes/gamification');
 const socialFeaturesRoutes = require('./routes/socialFeatures');
 const privacyRoutes = require('./routes/privacy');
 const metricsRoutes = require('./routes/metrics');
+const usersRoutes = require('./routes/users');
 
 // Analytics metrics middleware
 const {
@@ -216,6 +217,7 @@ app.use('/api/gamification', gamificationRoutes);
 app.use('/api/social', socialFeaturesRoutes);
 app.use('/api/privacy', privacyRoutes);
 app.use('/api/metrics', metricsRoutes);
+app.use('/api/users', usersRoutes);
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {
