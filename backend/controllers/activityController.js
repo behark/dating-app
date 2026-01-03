@@ -63,9 +63,10 @@ exports.getOnlineStatus = async (req, res) => {
   try {
     const { userId } = req.params;
 
+    // TD-004: Added .lean() for read-only query optimization
     const user = await User.findById(userId).select(
       'isOnline lastActive lastOnlineAt'
-    );
+    ).lean();
 
     if (!user) {
       return res.status(404).json({

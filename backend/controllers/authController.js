@@ -1,11 +1,25 @@
+/**
+ * Authentication Controller
+ * Handles user registration, login, password reset, and email verification
+ * @module controllers/authController
+ */
+
 const User = require('../models/User');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
-// Initialize email service
+/**
+ * Email service for sending verification and password reset emails
+ * @namespace emailService
+ */
 const emailService = {
+  /** @type {nodemailer.Transporter|null} */
   transporter: null,
 
+  /**
+   * Initialize the email transporter
+   * @memberof emailService
+   */
   init: function() {
     if (!this.transporter) {
       this.transporter = nodemailer.createTransport({
@@ -18,6 +32,14 @@ const emailService = {
     }
   },
 
+  /**
+   * Send an email
+   * @memberof emailService
+   * @param {string} to - Recipient email address
+   * @param {string} subject - Email subject
+   * @param {string} html - Email HTML content
+   * @returns {Promise<boolean>} Success status
+   */
   sendEmail: async function(to, subject, html) {
     this.init();
     try {
@@ -35,9 +57,19 @@ const emailService = {
   }
 };
 
-// @route   POST /api/auth/register
-// @desc    Register a new user with email and password
-// @access  Public
+/**
+ * Register a new user with email and password
+ * @route POST /api/auth/register
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.email - User's email address
+ * @param {string} req.body.password - User's password (min 8 characters)
+ * @param {string} req.body.name - User's display name
+ * @param {number} [req.body.age] - User's age
+ * @param {string} [req.body.gender] - User's gender
+ * @param {Object} res - Express response object
+ * @returns {Object} JSON response with user data and token
+ */
 exports.register = async (req, res) => {
   try {
     const { email, password, name, age, gender } = req.body;

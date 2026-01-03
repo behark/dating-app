@@ -12,6 +12,7 @@ import {
     View
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { validateEmail } from '../utils/validators';
 
 export const RegisterScreen = ({ navigation }) => {
   const { signup } = useAuth();
@@ -24,11 +25,6 @@ export const RegisterScreen = ({ navigation }) => {
   const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
 
   const handleRegister = async () => {
     try {

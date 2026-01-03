@@ -11,6 +11,7 @@ import {
     View
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { validateEmail } from '../utils/validators';
 
 export const ForgotPasswordScreen = ({ navigation }) => {
   const { forgotPassword } = useAuth();
@@ -18,11 +19,6 @@ export const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
 
   const handleSendReset = async () => {
     try {

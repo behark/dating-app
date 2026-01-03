@@ -1,3 +1,10 @@
+/**
+ * ValidationService - Validation utilities for forms and user input
+ * 
+ * Note: For new code, prefer importing directly from '../utils/validators.js'
+ * which provides standalone functions that are easier to test and tree-shake.
+ * This service is maintained for backward compatibility.
+ */
 export class ValidationService {
   static validateEmail(email) {
     if (!email || typeof email !== 'string') return false;

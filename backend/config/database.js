@@ -122,8 +122,58 @@ const getConnectionStatus = () => ({
 });
 
 /**
+ * Enable MongoDB slow query profiling
+ * Logs queries taking longer than the threshold
+ * TD-004: Added for performance monitoring
+ */
+const enableSlowQueryProfiling = async (thresholdMs = 100) => {
+  try {
+    if (!mongoose.connection.db) {
+      console.warn('Database not connected, skipping profiling setup');
+      return;
+    }
+
+    // Set profiling level: 1 = log slow queries only
+    // slowms: threshold in milliseconds
+    await mongoose.connection.db.command({
+      profile: 1,
+      slowms: thresholdMs
+    });
+
+    console.log(`✅ MongoDB slow query profiling enabled (threshold: ${thresholdMs}ms)`);
+
+    // Optional: Set up periodic slow query log reader
+    if (process.env.NODE_ENV !== 'test') {
+      setInterval(async () => {
+        try {
+          const slowQueries = await mongoose.connection.db
+            .collection('system.profile')
+            .find({ millis: { $gt: thresholdMs } })
+            .sort({ ts: -1 })
+            .limit(10)
+            .toArray();
+
+          if (slowQueries.length > 0) {
+            console.warn(`[SLOW QUERIES] Found ${slowQueries.length} slow queries in last check:`);
+            slowQueries.forEach(q => {
+              console.warn(`  - ${q.op} on ${q.ns}: ${q.millis}ms`, 
+                q.command ? JSON.stringify(q.command).substring(0, 200) : '');
+            });
+          }
+        } catch (err) {
+          // Silently ignore profiling read errors
+        }
+      }, 60000); // Check every minute
+    }
+  } catch (error) {
+    console.warn('Could not enable slow query profiling:', error.message);
+  }
+};
+
+/**
  * Create indexes for all models
  * Call this after initial connection
+ * TD-004: Added optimized indexes for slow query fixes
  */
 const createIndexes = async () => {
   try {
@@ -137,21 +187,32 @@ const createIndexes = async () => {
       { key: { lastActive: -1 } },
       { key: { createdAt: -1 } },
       { key: { isActive: 1, isVerified: 1 } },
+      // TD-004: Compound index for discovery queries
+      { key: { isActive: 1, gender: 1, age: 1, location: '2dsphere' } },
     ]);
 
     // Swipes indexes for match queries
+    // TD-004: Added optimized indexes for match detection and "who liked me"
     await mongoose.connection.db.collection('swipes').createIndexes([
       { key: { swiperId: 1, swipedId: 1 }, unique: true },
       { key: { swiperId: 1, action: 1, createdAt: -1 } },
       { key: { swipedId: 1, action: 1, createdAt: -1 } },
       { key: { isMatch: 1, createdAt: -1 } },
+      // TD-004: Reverse match lookup for efficient match detection
+      { key: { swipedId: 1, swiperId: 1, action: 1 }, name: 'reverse_match_lookup' },
+      // TD-004: Covering index for conversation queries
+      { key: { swiperId: 1, action: 1 }, name: 'swiper_action_conv' },
+      { key: { swipedId: 1, action: 1 }, name: 'swiped_action_conv' },
     ]);
 
     // Messages indexes
+    // TD-004: Added composite index for unread count queries
     await mongoose.connection.db.collection('messages').createIndexes([
       { key: { matchId: 1, createdAt: -1 } },
       { key: { senderId: 1, receiverId: 1 } },
       { key: { receiverId: 1, isRead: 1 } },
+      // TD-004: Composite index for unread messages in conversations
+      { key: { matchId: 1, receiverId: 1, isRead: 1 }, name: 'match_receiver_unread' },
     ]);
 
     // Reports and blocks
@@ -164,7 +225,18 @@ const createIndexes = async () => {
       { key: { blockerId: 1, blockedId: 1 }, unique: true },
     ]);
 
-    console.log('Database indexes created successfully');
+    // UserActivity indexes for analytics
+    // TD-004: Optimized for DAU/retention queries
+    await mongoose.connection.db.collection('useractivities').createIndexes([
+      { key: { userId: 1, createdAt: -1 } },
+      { key: { createdAt: -1, userId: 1 }, name: 'createdAt_userId_dau' },
+      { key: { userId: 1, createdAt: 1 }, name: 'userId_createdAt_retention' },
+    ]);
+
+    console.log('✅ Database indexes created successfully');
+
+    // Enable slow query profiling after indexes are created
+    await enableSlowQueryProfiling(100);
   } catch (error) {
     console.error('Error creating indexes:', error);
   }
@@ -175,5 +247,6 @@ module.exports = {
   gracefulShutdown,
   getConnectionStatus,
   createIndexes,
+  enableSlowQueryProfiling,
   mongoose,
 };

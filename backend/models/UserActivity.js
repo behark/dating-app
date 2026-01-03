@@ -47,6 +47,12 @@ userActivitySchema.index({ userId: 1, createdAt: -1 });
 userActivitySchema.index({ activityType: 1, createdAt: -1 });
 userActivitySchema.index({ userId: 1, activityType: 1, createdAt: -1 });
 
+// TD-003: Additional indexes for retention queries
+// Optimized for DAU/WAU/MAU distinct queries
+userActivitySchema.index({ createdAt: -1, userId: 1 }, { name: 'createdAt_userId_dau' });
+// Optimized for retention cohort queries (userId $in with createdAt range)
+userActivitySchema.index({ userId: 1, createdAt: 1 }, { name: 'userId_createdAt_retention' });
+
 // Static method to get recently active users
 userActivitySchema.statics.getRecentlyActiveUsers = async function(
   lookbackHours = 24,

@@ -550,6 +550,12 @@ userSchema.index({
   isVerified: 1
 });
 
+// TD-003: Indexes for retention queries
+// Index for cohort registration date queries
+userSchema.index({ createdAt: -1 }, { name: 'createdAt_desc' });
+// Compound index for retention eligible users query
+userSchema.index({ createdAt: 1, _id: 1 }, { name: 'createdAt_id_retention' });
+
 // Virtual for profile completeness score
 userSchema.virtual('profileCompleteness').get(function() {
   let score = 0;

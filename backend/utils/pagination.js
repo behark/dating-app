@@ -2,9 +2,18 @@
  * Pagination Helper
  * Utilities for cursor-based and offset pagination
  * Optimized for infinite scroll and high-performance queries
+ * @module utils/pagination
  */
 
-// Pagination configuration
+/**
+ * Pagination configuration limits
+ * @constant {Object}
+ * @property {number} defaultLimit - Default items per page (20)
+ * @property {number} maxLimit - Maximum items per page (100)
+ * @property {number} discoveryLimit - Limit for discovery queries (15)
+ * @property {number} messagesLimit - Limit for message queries (50)
+ * @property {number} matchesLimit - Limit for match queries (30)
+ */
 const PAGINATION_LIMITS = {
   defaultLimit: 20,
   maxLimit: 100,
@@ -14,7 +23,12 @@ const PAGINATION_LIMITS = {
 };
 
 /**
- * Encode cursor from document for cursor-based pagination
+ * Encode a MongoDB document into a cursor string for pagination
+ * @param {Object} doc - The MongoDB document to encode
+ * @param {string[]} [sortFields=['_id']] - Fields to include in cursor
+ * @returns {string} Base64-encoded cursor string
+ * @example
+ * const cursor = encodeCursor(lastDoc, ['createdAt', '_id']);
  */
 const encodeCursor = (doc, sortFields = ['_id']) => {
   const cursorData = {};
@@ -28,7 +42,11 @@ const encodeCursor = (doc, sortFields = ['_id']) => {
 };
 
 /**
- * Decode cursor to query parameters
+ * Decode a cursor string back to query parameters
+ * @param {string} cursor - Base64-encoded cursor string
+ * @returns {Object|null} Decoded cursor data or null if invalid
+ * @example
+ * const cursorData = decodeCursor('eyJjcmVhdGVkQXQiOiIyMDI0LTAxLTAxIn0=');
  */
 const decodeCursor = (cursor) => {
   try {
@@ -49,7 +67,10 @@ const decodeCursor = (cursor) => {
 };
 
 /**
- * Build cursor-based query condition for efficient seeking
+ * Build a MongoDB query condition from a cursor for efficient seeking
+ * @param {string} cursor - The cursor string to decode
+ * @param {number} [sortDirection=-1] - Sort direction (-1 for desc, 1 for asc)
+ * @returns {Object} MongoDB query condition
  */
 const buildCursorQuery = (cursor, sortDirection = -1) => {
   if (!cursor) return {};
@@ -79,7 +100,17 @@ const buildCursorQuery = (cursor, sortDirection = -1) => {
 };
 
 /**
- * Parse pagination parameters from request
+ * Parse pagination parameters from an Express request object
+ * @param {Object} req - Express request object
+ * @param {Object} [defaults={}] - Default values for pagination params
+ * @param {number} [defaults.page=1] - Default page number
+ * @param {number} [defaults.limit=20] - Default items per page
+ * @param {string} [defaults.sortBy='createdAt'] - Default sort field
+ * @param {string} [defaults.sortOrder='desc'] - Default sort order
+ * @returns {Object} Parsed pagination parameters
+ * @example
+ * const params = parsePaginationParams(req, { limit: 15 });
+ * // Returns: { page, limit, cursor, skip, sortBy, sortOrder }
  */
 const parsePaginationParams = (req, defaults = {}) => {
   const {
@@ -104,7 +135,10 @@ const parsePaginationParams = (req, defaults = {}) => {
 };
 
 /**
- * Build MongoDB sort object
+ * Build a MongoDB sort object from field name and direction
+ * @param {string} sortBy - Field name to sort by
+ * @param {number} sortOrder - Sort direction (1 for asc, -1 for desc)
+ * @returns {Object} MongoDB sort object
  */
 const buildSortObject = (sortBy, sortOrder) => {
   const sort = {};
@@ -113,7 +147,14 @@ const buildSortObject = (sortBy, sortOrder) => {
 };
 
 /**
- * Create paginated response
+ * Create a standardized paginated response object
+ * @param {Array} items - Array of items for current page
+ * @param {number} total - Total number of items
+ * @param {Object} pagination - Pagination parameters
+ * @param {number} pagination.page - Current page number
+ * @param {number} pagination.limit - Items per page
+ * @param {number} pagination.skip - Items skipped
+ * @returns {Object} Paginated response with items and metadata
  */
 const createPaginatedResponse = (items, total, pagination) => {
   const { page, limit, skip } = pagination;
@@ -138,6 +179,24 @@ const createPaginatedResponse = (items, total, pagination) => {
 
 /**
  * Cursor-based pagination helper - optimized for infinite scroll
+ * Uses cursor-based pagination for efficient deep pagination
+ * @param {mongoose.Model} model - Mongoose model to query
+ * @param {Object} query - Base MongoDB query object
+ * @param {Object} [options={}] - Pagination options
+ * @param {string} [options.cursor] - Cursor for next page
+ * @param {number} [options.limit=20] - Items per page
+ * @param {string} [options.sortBy='createdAt'] - Sort field
+ * @param {number} [options.sortOrder=-1] - Sort direction
+ * @param {string} [options.select=''] - Fields to select
+ * @param {string} [options.populate=''] - Fields to populate
+ * @param {boolean} [options.lean=true] - Return plain objects
+ * @returns {Promise<Object>} Paginated result with items, hasMore, nextCursor
+ * @example
+ * const result = await cursorPaginate(User, { isActive: true }, {
+ *   limit: 20,
+ *   sortBy: 'lastActive',
+ *   populate: 'profile'
+ * });
  */
 const cursorPaginate = async (model, query, options = {}) => {
   const {
@@ -187,7 +246,13 @@ const cursorPaginate = async (model, query, options = {}) => {
 };
 
 /**
- * Aggregate pagination helper
+ * Aggregate pagination helper for complex queries
+ * @param {mongoose.Model} model - Mongoose model to query
+ * @param {Array} pipeline - MongoDB aggregation pipeline
+ * @param {Object} [options={}] - Pagination options
+ * @param {number} [options.page=1] - Page number
+ * @param {number} [options.limit=20] - Items per page
+ * @returns {Promise<Object>} Paginated aggregation result
  */
 const aggregatePaginate = async (model, pipeline, options = {}) => {
   const { page = 1, limit = 20 } = options;

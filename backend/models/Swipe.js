@@ -46,6 +46,18 @@ swipeSchema.index({ swiperId: 1, createdAt: -1 });
 // Index for finding who swiped on a user
 swipeSchema.index({ swipedId: 1, action: 1 });
 
+// TD-003: Indexes for match rate and analytics queries
+// Index for match rate queries by action and date
+swipeSchema.index({ action: 1, createdAt: -1 }, { name: 'action_createdAt_metrics' });
+// Compound index for mutual like lookup (match detection)
+swipeSchema.index({ swiperId: 1, swipedId: 1, action: 1 }, { name: 'swiper_swiped_action_match' });
+
+// TD-004: Optimized index for reverse match lookup (critical for match detection performance)
+// Covers queries like: { swipedId: X, swiperId: Y, action: 'like' }
+swipeSchema.index({ swipedId: 1, swiperId: 1, action: 1 }, { name: 'reverse_match_lookup' });
+// Index for "who liked me" queries with action filter
+swipeSchema.index({ swipedId: 1, action: 1, createdAt: -1 }, { name: 'who_liked_me' });
+
 // Prevent duplicate swipes between same users
 swipeSchema.pre('save', async function(next) {
   if (this.isNew) {

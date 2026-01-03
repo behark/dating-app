@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { calculateDistance as calcDist } from '../utils/distanceCalculator';
 
 const LOCATION_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -131,26 +132,18 @@ export class LocationService {
     }
   }
 
+  /**
+   * Calculate distance between two coordinates
+   * @deprecated Use calculateDistance from '../utils/distanceCalculator' directly
+   */
   static calculateDistance(coord1, coord2) {
     if (!coord1 || !coord2) return null;
-
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = this.toRadians(coord2.latitude - coord1.latitude);
-    const dLon = this.toRadians(coord2.longitude - coord1.longitude);
-
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRadians(coord1.latitude)) * Math.cos(this.toRadians(coord2.latitude)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c; // Distance in kilometers
-
-    return distance;
-  }
-
-  static toRadians(degrees) {
-    return degrees * (Math.PI / 180);
+    return calcDist(
+      coord1.latitude,
+      coord1.longitude,
+      coord2.latitude,
+      coord2.longitude
+    );
   }
 
   static async getNearbyUsers(currentUserId, maxDistanceKm = 50) {

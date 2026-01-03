@@ -4,7 +4,7 @@
   "description": "Find meaningful connections with people near you",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#667eea",
   "icons": [
@@ -29,6 +29,13 @@
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Home screen with profile cards"
+    },
+    {
+      "src": "/assets/screenshot-tablet.png",
+      "sizes": "1024x768",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Tablet view with enhanced layout"
     }
   ],
   "prefer_related_applications": false,

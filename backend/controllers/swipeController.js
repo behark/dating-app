@@ -114,11 +114,12 @@ const createSwipe = async (req, res) => {
     const swiperUser = await User.findById(swiperId);
 
     if (action === 'like' || action === 'superlike') {
+      // TD-004: Added .lean() for read-only reverse match lookup
       const reverseSwipe = await Swipe.findOne({
         swiperId: targetId,
         swipedId: swiperId,
         action: { $in: ['like', 'superlike'] }
-      });
+      }).lean();
 
       if (reverseSwipe) {
         isMatch = true;

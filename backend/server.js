@@ -57,6 +57,16 @@ const mediaMessagesRoutes = require('./routes/mediaMessages');
 const gamificationRoutes = require('./routes/gamification');
 const socialFeaturesRoutes = require('./routes/socialFeatures');
 const privacyRoutes = require('./routes/privacy');
+const metricsRoutes = require('./routes/metrics');
+
+// Analytics metrics middleware
+const {
+  responseTimeMiddleware: metricsResponseTimeMiddleware,
+  requestCountingMiddleware,
+  photoUploadMetricsMiddleware,
+  userActivityMiddleware,
+  errorRateMiddleware,
+} = require('./middleware/metricsMiddleware');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -85,6 +95,12 @@ if (process.env.SENTRY_DSN) {
 
 // Metrics collection middleware
 app.use(metricsCollector.getMiddleware());
+
+// Analytics metrics middleware
+app.use(metricsResponseTimeMiddleware);
+app.use(requestCountingMiddleware);
+app.use(userActivityMiddleware);
+app.use(photoUploadMetricsMiddleware);
 
 // Performance & Security Middleware (order matters!)
 app.use(requestIdMiddleware);        // Add request ID for tracing
@@ -194,6 +210,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/gamification', gamificationRoutes);
 app.use('/api/social', socialFeaturesRoutes);
 app.use('/api/privacy', privacyRoutes);
+app.use('/api/metrics', metricsRoutes);
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {
@@ -207,6 +224,9 @@ app.use('*', (req, res) => {
 if (process.env.SENTRY_DSN) {
   app.use(monitoringService.getErrorHandler());
 }
+
+// Analytics error rate tracking middleware
+app.use(errorRateMiddleware);
 
 // Global error handler
 app.use((error, req, res, next) => {

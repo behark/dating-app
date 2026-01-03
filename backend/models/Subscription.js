@@ -128,6 +128,12 @@ subscriptionSchema.index({ userId: 1 });
 subscriptionSchema.index({ status: 1 });
 subscriptionSchema.index({ endDate: 1 });
 
+// TD-003: Indexes for premium metrics queries
+// Index for premium conversion rate queries
+subscriptionSchema.index({ createdAt: -1, status: 1 }, { name: 'createdAt_status_premium' });
+// Index for churn rate queries (cancelled subscriptions)
+subscriptionSchema.index({ cancelledAt: -1, status: 1 }, { name: 'cancelledAt_status_churn', sparse: true });
+
 // Update timestamp before saving
 subscriptionSchema.pre('save', function(next) {
   this.updatedAt = new Date();

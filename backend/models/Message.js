@@ -126,6 +126,12 @@ messageSchema.index({ matchId: 1, createdAt: -1 }); // Get messages for a match,
 messageSchema.index({ senderId: 1, createdAt: -1 }); // Get messages sent by a user
 messageSchema.index({ receiverId: 1, isRead: 1 }); // Get unread messages for a user
 
+// TD-003: Indexes for messaging metrics and analytics queries
+// Index for message response rate aggregation queries
+messageSchema.index({ matchId: 1, createdAt: 1 }, { name: 'matchId_createdAt_asc_metrics' });
+// Index for date range queries on messages
+messageSchema.index({ createdAt: -1, matchId: 1 }, { name: 'createdAt_matchId_metrics' });
+
 // TTL index to automatically delete old messages after 1 year (optional)
 // messageSchema.index({ createdAt: 1 }, { expireAfterSeconds: 31536000 });
 

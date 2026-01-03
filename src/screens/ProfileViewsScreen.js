@@ -41,22 +41,6 @@ export default function ProfileViewsScreen() {
     await fetchProfileViews();
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    
-    return date.toLocaleDateString();
-  };
-
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -117,7 +101,7 @@ export default function ProfileViewsScreen() {
                 <View style={styles.viewerInfo}>
                   <Text style={styles.viewerName}>{item.userName || 'Unknown User'}</Text>
                   <Text style={styles.viewerTime}>
-                    Viewed {formatDate(item.viewedAt)}
+                    Viewed {formatRelativeTime(item.viewedAt)}
                   </Text>
                 </View>
                 <TouchableOpacity style={styles.viewButton}>

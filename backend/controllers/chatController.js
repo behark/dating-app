@@ -17,7 +17,7 @@ const getMessages = async (req, res) => {
       });
     }
 
-    // Verify user has access to this match
+    // Verify user has access to this match (TD-004: added .lean() for read-only query)
     if (userId) {
       const match = await Swipe.findOne({
         _id: matchId,
@@ -26,7 +26,7 @@ const getMessages = async (req, res) => {
           { swipedId: userId }
         ],
         action: 'like'
-      });
+      }).lean();
 
       if (!match) {
         return res.status(403).json({
@@ -103,9 +103,11 @@ const getMessages = async (req, res) => {
 };
 
 // Get all matches/conversations for a user
+// TD-004: Optimized with aggregation pipeline to eliminate N+1 query pattern
 const getConversations = async (req, res) => {
   try {
     const userId = req.user?.id;
+    const userObjectId = require('mongoose').Types.ObjectId.createFromHexString(userId);
 
     if (!userId) {
       return res.status(401).json({
@@ -114,55 +116,105 @@ const getConversations = async (req, res) => {
       });
     }
 
-    // Find all matches for this user
-    const matches = await Swipe.find({
-      $or: [
-        { swiperId: userId },
-        { swipedId: userId }
-      ],
-      action: 'like'
-    })
-    .populate('swiperId', 'name photos lastActive')
-    .populate('swipedId', 'name photos lastActive')
-    .sort({ createdAt: -1 });
-
-    // For each match, get the latest message and unread count
-    const conversations = await Promise.all(
-      matches.map(async (match) => {
-        const latestMessage = await Message.findOne({ matchId: match._id })
-          .populate('senderId', 'name photos')
-          .sort({ createdAt: -1 });
-
-        const unreadCount = await Message.countDocuments({
-          matchId: match._id,
-          receiverId: userId,
-          isRead: false
-        });
-
-        // Determine the other user in the conversation
-        const otherUser = match.swiperId._id.toString() === userId
-          ? match.swipedId
-          : match.swiperId;
-
-        return {
-          matchId: match._id,
-          otherUser: {
-            _id: otherUser._id,
-            name: otherUser.name,
-            photos: otherUser.photos,
-            lastActive: otherUser.lastActive
+    // Optimized: Single aggregation pipeline instead of N+1 queries
+    const conversations = await Swipe.aggregate([
+      // Stage 1: Find all matches for this user
+      {
+        $match: {
+          $or: [
+            { swiperId: userObjectId },
+            { swipedId: userObjectId }
+          ],
+          action: 'like'
+        }
+      },
+      // Stage 2: Sort by creation date
+      { $sort: { createdAt: -1 } },
+      // Stage 3: Lookup the other user's details
+      {
+        $lookup: {
+          from: 'users',
+          let: {
+            otherUserId: {
+              $cond: {
+                if: { $eq: ['$swiperId', userObjectId] },
+                then: '$swipedId',
+                else: '$swiperId'
+              }
+            }
           },
-          latestMessage: latestMessage ? {
-            content: latestMessage.content,
-            type: latestMessage.type,
-            createdAt: latestMessage.createdAt,
-            senderId: latestMessage.senderId
-          } : null,
-          unreadCount,
-          matchDate: match.createdAt
-        };
-      })
-    );
+          pipeline: [
+            { $match: { $expr: { $eq: ['$_id', '$$otherUserId'] } } },
+            { $project: { name: 1, photos: { $slice: ['$photos', 3] }, lastActive: 1 } }
+          ],
+          as: 'otherUserData'
+        }
+      },
+      { $unwind: '$otherUserData' },
+      // Stage 4: Lookup latest message for each match
+      {
+        $lookup: {
+          from: 'messages',
+          let: { matchId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$matchId', '$$matchId'] } } },
+            { $sort: { createdAt: -1 } },
+            { $limit: 1 },
+            { $project: { content: 1, type: 1, createdAt: 1, senderId: 1 } }
+          ],
+          as: 'latestMessageData'
+        }
+      },
+      // Stage 5: Lookup unread count
+      {
+        $lookup: {
+          from: 'messages',
+          let: { matchId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$matchId', '$$matchId'] },
+                    { $eq: ['$receiverId', userObjectId] },
+                    { $eq: ['$isRead', false] }
+                  ]
+                }
+              }
+            },
+            { $count: 'count' }
+          ],
+          as: 'unreadData'
+        }
+      },
+      // Stage 6: Project final shape
+      {
+        $project: {
+          matchId: '$_id',
+          otherUser: {
+            _id: '$otherUserData._id',
+            name: '$otherUserData.name',
+            photos: '$otherUserData.photos',
+            lastActive: '$otherUserData.lastActive'
+          },
+          latestMessage: {
+            $cond: {
+              if: { $gt: [{ $size: '$latestMessageData' }, 0] },
+              then: { $arrayElemAt: ['$latestMessageData', 0] },
+              else: null
+            }
+          },
+          unreadCount: {
+            $cond: {
+              if: { $gt: [{ $size: '$unreadData' }, 0] },
+              then: { $arrayElemAt: ['$unreadData.count', 0] },
+              else: 0
+            }
+          },
+          matchDate: '$createdAt'
+        }
+      }
+    ]);
 
     res.json({
       success: true,
@@ -202,7 +254,7 @@ const markAsRead = async (req, res) => {
       });
     }
 
-    // Verify user has access to this match
+    // Verify user has access to this match (use .lean() for read-only query)
     const match = await Swipe.findOne({
       _id: matchId,
       $or: [
@@ -210,7 +262,7 @@ const markAsRead = async (req, res) => {
         { swipedId: userId }
       ],
       action: 'like'
-    });
+    }).lean();
 
     if (!match) {
       return res.status(403).json({

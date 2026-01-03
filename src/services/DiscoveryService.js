@@ -1,12 +1,37 @@
 import { API_BASE_URL } from '../config/api';
 
+/**
+ * DiscoveryService - User discovery and exploration functionality
+ * 
+ * Provides methods for:
+ * - Exploring users based on location and filters
+ * - Getting top picks and recently active users
+ * - Fetching verified profiles
+ * - Calculating distance between users
+ */
 class DiscoveryService {
+  /**
+   * Create a new DiscoveryService instance
+   * @param {string} authToken - JWT authentication token
+   */
   constructor(authToken) {
     this.authToken = authToken;
   }
 
   /**
-   * Explore users with filters
+   * Explore users with filters and location-based search
+   * @param {number} lat - User's current latitude
+   * @param {number} lng - User's current longitude
+   * @param {Object} [options={}] - Search options
+   * @param {number} [options.radius=50000] - Search radius in meters
+   * @param {number} [options.minAge=18] - Minimum age filter
+   * @param {number} [options.maxAge=100] - Maximum age filter
+   * @param {string} [options.gender='any'] - Gender filter ('male', 'female', 'any')
+   * @param {string} [options.sortBy='recentActivity'] - Sort order
+   * @param {number} [options.limit=20] - Maximum results to return
+   * @param {number} [options.skip=0] - Results to skip for pagination
+   * @returns {Promise<Object>} Users matching criteria
+   * @throws {Error} If request fails
    */
   async exploreUsers(lat, lng, options = {}) {
     try {
@@ -51,7 +76,10 @@ class DiscoveryService {
   }
 
   /**
-   * Get top picks
+   * Get top picks - highly compatible users based on algorithm
+   * @param {number} [limit=10] - Maximum number of picks to return
+   * @returns {Promise<Object>} Top pick users
+   * @throws {Error} If request fails
    */
   async getTopPicks(limit = 10) {
     try {
@@ -77,6 +105,8 @@ class DiscoveryService {
 
   /**
    * Get recently active users
+   * @returns {Promise<Object>} Recently active users
+   * @throws {Error} If request fails
    */
   async getRecentlyActiveUsers(hoursBack = 24, limit = 20) {
     try {
