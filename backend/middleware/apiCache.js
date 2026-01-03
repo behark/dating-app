@@ -249,13 +249,20 @@ const staleWhileRevalidate = (type, fetchFn, staleTime = 60) => {
       res.json = async (data) => {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           const ttl = getTTLForType(type);
-          await Promise.all([
+          // Cache asynchronously to avoid blocking response
+          Promise.all([
             cache.set(cacheKey, data, ttl),
             cache.set(metaKey, { timestamp: Date.now() }, ttl),
-          ]);
+          ]).catch(err => console.error('Cache error:', err));
         }
         
-        res.set({ 'X-Cache': 'MISS' });
+        if (!res.headersSent) {
+          try {
+            res.set({ 'X-Cache': 'MISS' });
+          } catch (error) {
+            // Headers already sent, ignore
+          }
+        }
         return originalJson(data);
       };
 
