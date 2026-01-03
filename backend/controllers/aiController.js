@@ -848,8 +848,317 @@ const calculateCompletenessScore = (user) => {
   return Math.min(score, maxPoints);
 };
 
+/**
+ * Mock LLM function - generates match-based icebreakers without OpenAI
+ * Generates conversation starters based on BOTH users' profiles
+ */
+const generateMatchIcebreakersMock = (currentUser, matchUser) => {
+  const icebreakers = [];
+  const currentInterests = currentUser.interests || [];
+  const matchInterests = matchUser.interests || [];
+  const currentBio = currentUser.bio || '';
+  const matchBio = matchUser.bio || '';
+
+  // Find common interests
+  const commonInterests = currentInterests.filter(interest =>
+    matchInterests.some(mi => mi.toLowerCase() === interest.toLowerCase())
+  );
+
+  // Generate icebreakers based on common interests
+  if (commonInterests.length > 0) {
+    const sharedInterest = commonInterests[0];
+    icebreakers.push(
+      `I noticed we both love ${sharedInterest.toLowerCase()}! What got you into it?`,
+      `A fellow ${sharedInterest.toLowerCase()} enthusiast! What's your favorite thing about it?`
+    );
+  }
+
+  // Generate icebreaker based on match's unique interests
+  const uniqueMatchInterests = matchInterests.filter(interest =>
+    !currentInterests.some(ci => ci.toLowerCase() === interest.toLowerCase())
+  );
+  if (uniqueMatchInterests.length > 0) {
+    const uniqueInterest = uniqueMatchInterests[0];
+    icebreakers.push(
+      `I saw you're into ${uniqueInterest.toLowerCase()} - I've always been curious about that! Can you tell me more?`
+    );
+  }
+
+  // Generate icebreaker mentioning current user's interest
+  if (currentInterests.length > 0 && icebreakers.length < 3) {
+    const myInterest = currentInterests[0];
+    icebreakers.push(
+      `I'm really into ${myInterest.toLowerCase()} - have you ever tried it? Would love to share the experience!`
+    );
+  }
+
+  // If we have bio info, incorporate it
+  if (matchBio && matchBio.length > 0 && icebreakers.length < 3) {
+    const bioKeywords = matchBio.toLowerCase().match(/\b\w{4,}\b/g) || [];
+    if (bioKeywords.length > 0) {
+      const keyword = bioKeywords[Math.floor(Math.random() * bioKeywords.length)];
+      icebreakers.push(
+        `Your bio caught my attention - especially the part about "${keyword}". What's the story there?`
+      );
+    }
+  }
+
+  // Fill with engaging generic ones if needed
+  const genericIcebreakers = [
+    `Hey ${matchUser.name || 'there'}! Your profile really stood out to me. What's something you're passionate about right now?`,
+    `Hi! I'm curious - what's the most interesting thing that happened to you recently?`,
+    `Hey! If you could have dinner with anyone, who would it be and why?`
+  ];
+
+  while (icebreakers.length < 3) {
+    const generic = genericIcebreakers[icebreakers.length];
+    if (generic && !icebreakers.includes(generic)) {
+      icebreakers.push(generic);
+    }
+  }
+
+  return icebreakers.slice(0, 3);
+};
+
+/**
+ * OpenAI API function - generates match-based icebreakers using OpenAI
+ * Uses both users' profiles to create highly personalized conversation starters
+ */
+const generateMatchIcebreakersOpenAI = async (currentUser, matchUser) => {
+  let OpenAI;
+  try {
+    OpenAI = require('openai');
+  } catch (error) {
+    console.warn('OpenAI package not installed, falling back to mock');
+    return generateMatchIcebreakersMock(currentUser, matchUser);
+  }
+
+  if (!process.env.OPENAI_API_KEY) {
+    return generateMatchIcebreakersMock(currentUser, matchUser);
+  }
+
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
+  // Format user profiles for the prompt
+  const currentInterests = currentUser.interests?.length > 0
+    ? currentUser.interests.join(', ')
+    : 'Not specified';
+  const matchInterests = matchUser.interests?.length > 0
+    ? matchUser.interests.join(', ')
+    : 'Not specified';
+  
+  const currentBio = currentUser.bio || 'No bio provided';
+  const matchBio = matchUser.bio || 'No bio provided';
+
+  // Find common interests for the prompt
+  const commonInterests = (currentUser.interests || []).filter(interest =>
+    (matchUser.interests || []).some(mi => mi.toLowerCase() === interest.toLowerCase())
+  );
+
+  const prompt = `You are a dating app conversation coach. Generate 3 unique, engaging, and non-generic conversation starters (icebreakers) for a user to send to their match.
+
+YOUR USER'S PROFILE:
+- Name: ${currentUser.name || 'User'}
+- Interests: ${currentInterests}
+- Bio: ${currentBio}
+
+THEIR MATCH'S PROFILE:
+- Name: ${matchUser.name || 'Match'}
+- Interests: ${matchInterests}
+- Bio: ${matchBio}
+
+COMMON INTERESTS: ${commonInterests.length > 0 ? commonInterests.join(', ') : 'None identified'}
+
+REQUIREMENTS:
+1. Make each icebreaker unique and personalized - reference specific details from BOTH profiles
+2. If there are common interests, leverage them to create connection
+3. Be playful, witty, and show genuine curiosity
+4. Keep each message 1-2 sentences max
+5. Vary the style: one could be a question, one could be playful observation, one could reference shared interests
+6. Don't be creepy, overly forward, or generic
+7. Show personality and make the match want to respond
+
+Return your response as a JSON object with an "icebreakers" array containing exactly 3 strings.
+Example format: {"icebreakers": ["First icebreaker...", "Second icebreaker...", "Third icebreaker..."]}`;
+
+  try {
+    const completion = await openai.chat.completions.create({
+      model: process.env.OPENAI_MODEL || 'gpt-3.5-turbo',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a witty dating coach who helps people start engaging conversations. You create personalized, fun, and thoughtful conversation starters that make people want to respond. Always return valid JSON with an "icebreakers" array.'
+        },
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      temperature: 0.85,
+      max_tokens: 400,
+      response_format: { type: 'json_object' }
+    });
+
+    const response = completion.choices[0].message.content;
+
+    try {
+      const parsed = JSON.parse(response);
+      if (parsed.icebreakers && Array.isArray(parsed.icebreakers)) {
+        return parsed.icebreakers.slice(0, 3);
+      }
+      if (Array.isArray(parsed)) {
+        return parsed.slice(0, 3);
+      }
+    } catch (e) {
+      // Try to extract array from response if JSON parsing fails
+      const arrayMatch = response.match(/\[([\s\S]*?)\]/);
+      if (arrayMatch) {
+        try {
+          return JSON.parse(arrayMatch[0]).slice(0, 3);
+        } catch (e2) {
+          // Fall through to mock
+        }
+      }
+    }
+
+    return generateMatchIcebreakersMock(currentUser, matchUser);
+  } catch (error) {
+    console.error('OpenAI API error for match icebreakers:', error);
+    return generateMatchIcebreakersMock(currentUser, matchUser);
+  }
+};
+
+/**
+ * Generate icebreaker messages for a match (using both users' profiles)
+ * POST /api/ai/icebreaker (with matchId parameter)
+ * 
+ * This endpoint generates personalized conversation starters based on
+ * both users' interests and bios for more meaningful icebreakers.
+ * 
+ * @param {string} matchId - The user ID of the match (the other person)
+ * @returns {object} - Object containing array of 3 icebreakers and match info
+ */
+const generateMatchIcebreakers = async (req, res) => {
+  try {
+    const { matchId } = req.body;
+    const currentUserId = req.user?.id;
+
+    // Validate matchId
+    if (!matchId) {
+      return res.status(400).json({
+        success: false,
+        message: 'matchId is required'
+      });
+    }
+
+    // Validate matchId format (MongoDB ObjectId)
+    if (!require('mongoose').Types.ObjectId.isValid(matchId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid matchId format'
+      });
+    }
+
+    // Get current user if authenticated
+    let currentUser = null;
+    if (currentUserId && require('mongoose').Types.ObjectId.isValid(currentUserId)) {
+      currentUser = await User.findById(currentUserId).select('name interests bio matches');
+    }
+
+    // Get match user from database
+    const matchUser = await User.findById(matchId).select('name interests bio');
+
+    if (!matchUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Match user not found'
+      });
+    }
+
+    // Verify that these users are actually matched (if current user is authenticated)
+    if (currentUser && currentUser.matches) {
+      const isMatched = currentUser.matches.some(
+        m => m.toString() === matchId.toString()
+      );
+      if (!isMatched) {
+        return res.status(403).json({
+          success: false,
+          message: 'You are not matched with this user'
+        });
+      }
+    }
+
+    // Generate icebreakers
+    let icebreakers;
+
+    // Use OpenAI if available and both users have profiles
+    if (process.env.OPENAI_API_KEY && process.env.USE_OPENAI !== 'false') {
+      try {
+        if (currentUser) {
+          // Use both users' profiles for personalized icebreakers
+          icebreakers = await generateMatchIcebreakersOpenAI(currentUser, matchUser);
+        } else {
+          // Fallback to single-user icebreakers if no current user
+          icebreakers = await generateIcebreakersOpenAI(
+            matchUser.interests || [],
+            matchUser.bio || ''
+          );
+        }
+      } catch (error) {
+        console.error('OpenAI generation failed, falling back to mock:', error);
+        if (currentUser) {
+          icebreakers = generateMatchIcebreakersMock(currentUser, matchUser);
+        } else {
+          icebreakers = generateIcebreakersMock(matchUser.interests || [], matchUser.bio || '');
+        }
+      }
+    } else {
+      // Use mock LLM
+      if (currentUser) {
+        icebreakers = generateMatchIcebreakersMock(currentUser, matchUser);
+      } else {
+        icebreakers = generateIcebreakersMock(matchUser.interests || [], matchUser.bio || '');
+      }
+    }
+
+    // Ensure we have exactly 3 icebreakers
+    while (icebreakers.length < 3) {
+      icebreakers.push(
+        `Hey ${matchUser.name || 'there'}! I'd love to get to know you better. What's something interesting about you?`
+      );
+    }
+
+    // Find common interests for response
+    const commonInterests = currentUser?.interests?.filter(interest =>
+      matchUser.interests?.some(mi => mi.toLowerCase() === interest.toLowerCase())
+    ) || [];
+
+    return res.status(200).json({
+      success: true,
+      icebreakers: icebreakers.slice(0, 3),
+      matchInfo: {
+        matchId: matchId,
+        matchName: matchUser.name,
+        commonInterests: commonInterests,
+        hasCommonInterests: commonInterests.length > 0
+      }
+    });
+
+  } catch (error) {
+    console.error('Error generating match icebreakers:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to generate icebreakers',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   generateIcebreakers,
+  generateMatchIcebreakers,
   getSmartPhotoSelection,
   generateBioSuggestions,
   calculateCompatibilityScore,

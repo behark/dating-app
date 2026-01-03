@@ -1,7 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
-
-const API_URL = Constants.expoConfig?.extra?.backendUrl || 'http://localhost:3000/api';
+import { API_URL } from '../config/api';
 
 /**
  * ActivityService - Manages user activity tracking and online status

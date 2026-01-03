@@ -7,11 +7,9 @@
  * - Stripe/PayPal web payments
  */
 
-import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
-
-const API_BASE_URL = Constants.expoConfig?.extra?.backendUrl || process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+import { API_URL as API_BASE_URL } from '../config/api';
 
 export class PaymentService {
   // ==================== SUBSCRIPTION TIERS ====================

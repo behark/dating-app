@@ -1,6 +1,4 @@
-import Constants from 'expo-constants';
-
-const API_URL = Constants.expoConfig?.extra?.backendUrl || process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000/api';
+import { API_URL } from '../config/api';
 
 const api = {
   async request(method, endpoint, data = null) {

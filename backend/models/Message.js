@@ -5,7 +5,7 @@ const messageSchema = new mongoose.Schema({
   matchId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
-    ref: 'Swipe' // References the Swipe model that created the match
+    ref: 'Match' // References the Match model for the conversation
   },
 
   // The user who sent the message

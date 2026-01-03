@@ -70,7 +70,10 @@ export default {
       orientation: "any"
     },
     extra: {
-      backendUrl: process.env.EXPO_PUBLIC_API_URL || process.env.EXPO_PUBLIC_BACKEND_URL || "http://localhost:3000/api",
+      // Backend API URL - Uses Vercel env var or defaults to production Render URL
+      backendUrl: process.env.EXPO_PUBLIC_API_URL || process.env.EXPO_PUBLIC_BACKEND_URL || "https://dating-app-backend-x4yq.onrender.com/api",
+      // Also expose the raw URL for socket connections
+      apiUrl: (process.env.EXPO_PUBLIC_API_URL || process.env.EXPO_PUBLIC_BACKEND_URL || "https://dating-app-backend-x4yq.onrender.com/api").replace('/api', ''),
       firebaseApiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "your_firebase_api_key_here",
       firebaseAuthDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "your_project.firebaseapp.com",
       firebaseProjectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "your_project_id",

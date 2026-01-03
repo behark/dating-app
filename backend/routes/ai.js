@@ -1,6 +1,7 @@
 const express = require('express');
 const {
   generateIcebreakers,
+  generateMatchIcebreakers,
   getSmartPhotoSelection,
   generateBioSuggestions,
   calculateCompatibilityScore,
@@ -29,8 +30,17 @@ router.use(mockAuth);
 // AI/ML ENDPOINTS
 // ============================================================
 
-// POST /api/ai/icebreaker - Generate icebreaker messages for a target user
-router.post('/icebreaker', generateIcebreakers);
+// POST /api/ai/icebreaker - Generate icebreaker messages for a match
+// Accepts either:
+//   - { matchId } - Uses both users' profiles for personalized icebreakers (preferred)
+//   - { targetUserId } - Legacy: Uses only target user's profile
+router.post('/icebreaker', (req, res, next) => {
+  // Route to appropriate handler based on request body
+  if (req.body.matchId) {
+    return generateMatchIcebreakers(req, res, next);
+  }
+  return generateIcebreakers(req, res, next);
+});
 
 // GET /api/ai/smart-photos/:userId - Get smart photo selection recommendations
 router.get('/smart-photos/:userId', getSmartPhotoSelection);

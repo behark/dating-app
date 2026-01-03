@@ -6,7 +6,8 @@ const swipeController = require('../controllers/swipeController');
 /**
  * POST /api/swipes
  * Create a new swipe
- * Body: { targetId, action }
+ * Body: { targetId, action, isPriority? }
+ * Returns: { swipeId, action, isMatch, matchData?, remaining }
  */
 router.post('/', authenticate, swipeController.createSwipe);
 
@@ -34,5 +35,31 @@ router.get('/user', authenticate, swipeController.getUserSwipes);
  * Get received swipes (likes)
  */
 router.get('/received', authenticate, swipeController.getReceivedSwipes);
+
+/**
+ * GET /api/swipes/stats
+ * Get swipe statistics for the current user
+ */
+router.get('/stats', authenticate, swipeController.getSwipeStats);
+
+/**
+ * GET /api/swipes/pending-likes
+ * Get pending likes (who liked you but you haven't swiped on yet)
+ * Premium feature - free users only see count
+ */
+router.get('/pending-likes', authenticate, swipeController.getPendingLikes);
+
+/**
+ * GET /api/swipes/matches
+ * Get all matches for the current user
+ * Query: { status?, limit?, skip?, sortBy? }
+ */
+router.get('/matches', authenticate, swipeController.getMatches);
+
+/**
+ * DELETE /api/swipes/matches/:matchId
+ * Unmatch with a user
+ */
+router.delete('/matches/:matchId', authenticate, swipeController.unmatch);
 
 module.exports = router;
