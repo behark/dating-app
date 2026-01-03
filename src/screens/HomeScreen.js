@@ -1,28 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
-import { useCallback, useEffect, useState, startTransition } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Dimensions, InteractionManager, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import SwipeCard from '../components/Card/SwipeCard';
-import StreakCard from '../components/Gamification/StreakCard';
-import DailyRewardNotification from '../components/Gamification/DailyRewardNotification';
-import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
+import { getUserRepository } from '../repositories';
+import { GamificationService } from '../services/GamificationService';
 import { LocationService } from '../services/LocationService';
 import { PreferencesService } from '../services/PreferencesService';
 import { PremiumService } from '../services/PremiumService';
 import { SwipeController } from '../services/SwipeController';
-import { GamificationService } from '../services/GamificationService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Simple in-memory cache for user profiles
-const userCache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
 const HomeScreen = ({ navigation }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, authToken } = useAuth();
+  
+  // Get the user repository (API or Firebase based on config)
+  const userRepository = useMemo(() => getUserRepository(authToken), [authToken]);
+  
   const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -40,18 +37,24 @@ const HomeScreen = ({ navigation }) => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
 
+  // Get the user ID (supports both uid and _id)
+  const userId = currentUser?.uid || currentUser?._id;
+
   useFocusEffect(
     useCallback(() => {
-      loadCards();
-      loadPremiumStatus();
-      loadGamificationData();
-      initializeLocation();
-    }, [])
+      if (userId) {
+        loadCards();
+        loadPremiumStatus();
+        loadGamificationData();
+        initializeLocation();
+      }
+    }, [userId])
   );
 
   const loadGamificationData = async () => {
+    if (!userId) return;
     try {
-      const streakData = await GamificationService.getSwipeStreak(currentUser.uid);
+      const streakData = await GamificationService.getSwipeStreak(userId);
       if (streakData) {
         setCurrentStreak(streakData.currentStreak || 0);
         setLongestStreak(streakData.longestStreak || 0);
@@ -63,6 +66,7 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const initializeLocation = async () => {
+    if (!userId) return;
     try {
       setLocationUpdating(true);
       
@@ -72,10 +76,10 @@ const HomeScreen = ({ navigation }) => {
         setUserLocation(location);
         
         // Update user location in database
-        await LocationService.updateUserLocation(currentUser.uid, location);
+        await LocationService.updateUserLocation(userId, location);
         
         // Start periodic location updates (every 5 minutes)
-        LocationService.startPeriodicLocationUpdates(currentUser.uid);
+        LocationService.startPeriodicLocationUpdates(userId);
       }
     } catch (error) {
       console.error('Error initializing location:', error);
@@ -85,16 +89,17 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const loadPremiumStatus = async () => {
+    if (!userId) return;
     try {
-      const premiumStatus = await PremiumService.checkPremiumStatus(currentUser.uid);
+      const premiumStatus = await PremiumService.checkPremiumStatus(userId);
       setIsPremium(premiumStatus.isPremium);
       setPremiumFeatures(premiumStatus.features);
 
-      const superLikesCount = await PremiumService.getSuperLikesUsedToday(currentUser.uid);
+      const superLikesCount = await PremiumService.getSuperLikesUsedToday(userId);
       setSuperLikesUsed(superLikesCount);
 
       // Load swipe count for the day
-      const swipesCount = await SwipeController.getSwipesCountToday(currentUser.uid);
+      const swipesCount = await SwipeController.getSwipesCountToday(userId);
       setSwipesUsedToday(swipesCount);
       
       // Calculate remaining swipes (50 for free, unlimited for premium)
@@ -108,70 +113,40 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  // Periodic cache cleanup
+  // Cleanup repository cache on unmount
   useEffect(() => {
-    const cleanupInterval = setInterval(cleanupCache, CACHE_DURATION);
-    return () => clearInterval(cleanupInterval);
+    return () => {
+      // Repository handles its own cache cleanup
+    };
   }, []);
 
   const loadCards = async () => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
-      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
       
-      // Check if user has completed profile
-      const userData = userDoc.data();
-      if (!userData?.name || !userData?.photoURL) {
+      // Use repository to get discoverable users - returns empty array on error
+      const availableUsers = await userRepository.getDiscoverableUsers(userId, {
+        limit: 50,
+        lat: userLocation?.latitude,
+        lng: userLocation?.longitude,
+        radius: discoveryRadius * 1000 // Convert km to meters
+      });
+      
+      // If no users found, show empty state (no error alert)
+      if (availableUsers.length === 0) {
+        setCards([]);
+        setCurrentIndex(0);
         setLoading(false);
         return;
       }
 
-      const swipedUsers = userData?.swipedUsers || [];
-      const matches = userData?.matches || [];
-
-      const usersRef = collection(db, 'users');
-      const querySnapshot = await getDocs(usersRef);
-
-      const availableUsers = [];
-      querySnapshot.forEach((doc) => {
-        const userId = doc.id;
-        const cachedUser = userCache.get(userId);
-
-        // Check if user is in cache and not expired
-        if (cachedUser && (Date.now() - cachedUser.cachedAt) < CACHE_DURATION) {
-          const user = cachedUser.data;
-          if (
-            user.id !== currentUser.uid &&
-            !swipedUsers.includes(user.id) &&
-            !matches.includes(user.id) &&
-            user.photoURL &&
-            user.name
-          ) {
-            availableUsers.push(user);
-          }
-        } else {
-          // Cache the user data
-          const userData = doc.data();
-          userCache.set(userId, {
-            data: { id: userId, ...userData },
-            cachedAt: Date.now()
-          });
-
-          const user = { id: userId, ...userData };
-          if (
-            user.id !== currentUser.uid &&
-            !swipedUsers.includes(user.id) &&
-            !matches.includes(user.id) &&
-            user.photoURL &&
-            user.name
-          ) {
-            availableUsers.push(user);
-          }
-        }
-      });
-
       // Apply user preferences filtering
-      const filteredUsers = await PreferencesService.filterUsersForDiscovery(currentUser.uid, availableUsers);
+      const filteredUsers = await PreferencesService.filterUsersForDiscovery(userId, availableUsers);
 
       // Shuffle for variety
       const shuffled = filteredUsers.sort(() => Math.random() - 0.5);
@@ -180,26 +155,20 @@ const HomeScreen = ({ navigation }) => {
       setLoading(false);
     } catch (error) {
       console.error('Error loading cards:', error);
-      Alert.alert('Error', 'Failed to load profiles');
+      // Repository returns empty array on error, so this catch is for other errors
+      // Don't show alert - just show empty state
+      setCards([]);
+      setCurrentIndex(0);
       setLoading(false);
     }
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // Clear cache on refresh to get fresh data
-    userCache.clear();
+    // Clear repository cache on refresh to get fresh data
+    userRepository.clearCache();
     await loadCards();
     setRefreshing(false);
-  };
-
-  const cleanupCache = () => {
-    const now = Date.now();
-    for (const [userId, cachedData] of userCache.entries()) {
-      if (now - cachedData.cachedAt > CACHE_DURATION) {
-        userCache.delete(userId);
-      }
-    }
   };
 
   const handleSwipeRight = useCallback(async (card) => {
@@ -218,7 +187,7 @@ const HomeScreen = ({ navigation }) => {
     InteractionManager.runAfterInteractions(async () => {
       try {
         // Check swipe limit
-        const limitCheck = await SwipeController.checkSwipeLimit(currentUser.uid, isPremium);
+        const limitCheck = await SwipeController.checkSwipeLimit(userId, isPremium);
         if (!limitCheck.canSwipe) {
           setTimeout(() => {
             Alert.alert(
@@ -234,7 +203,7 @@ const HomeScreen = ({ navigation }) => {
         }
       
         // Use SwipeController to save the swipe and check for matches
-        const result = await SwipeController.saveSwipe(currentUser.uid, card.id, 'like', isPremium);
+        const result = await SwipeController.saveSwipe(userId, card.id, 'like', isPremium);
 
         if (!result.success) {
           if (result.limitExceeded) {
@@ -260,7 +229,7 @@ const HomeScreen = ({ navigation }) => {
         // Track swipe for gamification (deferred, non-critical)
         setTimeout(async () => {
           try {
-            const streakResult = await GamificationService.trackSwipe(currentUser.uid, 'like');
+            const streakResult = await GamificationService.trackSwipe(userId, 'like');
             if (streakResult) {
               startTransition(() => {
                 setCurrentStreak(streakResult.currentStreak || 0);
@@ -295,7 +264,7 @@ const HomeScreen = ({ navigation }) => {
         }, 0);
       }
     });
-  }, [currentUser.uid, isPremium, swipesUsedToday, navigation]);
+  }, [userId, isPremium, swipesUsedToday, navigation]);
 
   const handleSwipeLeft = useCallback(async (card) => {
     // Immediately update UI (non-blocking)
@@ -313,7 +282,7 @@ const HomeScreen = ({ navigation }) => {
     InteractionManager.runAfterInteractions(async () => {
       try {
         // Check swipe limit
-        const limitCheck = await SwipeController.checkSwipeLimit(currentUser.uid, isPremium);
+        const limitCheck = await SwipeController.checkSwipeLimit(userId, isPremium);
         if (!limitCheck.canSwipe) {
           setTimeout(() => {
             Alert.alert(
@@ -329,7 +298,7 @@ const HomeScreen = ({ navigation }) => {
         }
       
         // Use SwipeController to save the dislike
-        const result = await SwipeController.saveSwipe(currentUser.uid, card.id, 'dislike', isPremium);
+        const result = await SwipeController.saveSwipe(userId, card.id, 'dislike', isPremium);
 
         if (!result.success) {
           if (result.limitExceeded) {
@@ -353,7 +322,7 @@ const HomeScreen = ({ navigation }) => {
         console.error('Error handling swipe:', error);
       }
     });
-  }, [currentUser.uid, isPremium, swipesUsedToday, navigation]);
+  }, [userId, isPremium, swipesUsedToday, navigation]);
 
   const handleSuperLike = useCallback(async (card) => {
     // Immediately update UI
@@ -364,7 +333,7 @@ const HomeScreen = ({ navigation }) => {
     // Defer heavy async work
     InteractionManager.runAfterInteractions(async () => {
       try {
-        const result = await PremiumService.useSuperLike(currentUser.uid, card.id);
+        const result = await PremiumService.useSuperLike(userId, card.id);
 
         if (!result.success) {
           if (result.error === 'Daily super like limit reached') {
@@ -404,7 +373,7 @@ const HomeScreen = ({ navigation }) => {
         }, 0);
       }
     });
-  }, [currentUser.uid, premiumFeatures.superLikesPerDay, handleSwipeRight]);
+  }, [userId, premiumFeatures.superLikesPerDay, handleSwipeRight]);
 
   const handleButtonSwipe = useCallback((direction) => {
     if (cards.length > 0 && currentIndex < cards.length) {
@@ -420,24 +389,14 @@ const HomeScreen = ({ navigation }) => {
   const undoLastSwipe = async () => {
     if (lastSwipedCard) {
       try {
-        // If we have a swipeId, use the new undo method
+        // If we have a swipeId, use the undo method
         if (lastSwipedCard.swipeId) {
-          const result = await SwipeController.undoSwipe(currentUser.uid, lastSwipedCard.swipeId);
+          const result = await SwipeController.undoSwipe(userId, lastSwipedCard.swipeId);
           
           if (!result.success) {
             Alert.alert('Error', result.error || 'Failed to undo swipe');
             return;
           }
-        } else {
-          // Fallback to old method for backward compatibility
-          const userRef = doc(db, 'users', currentUser.uid);
-          const userDoc = await getDoc(userRef);
-          const swipedUsers = userDoc.data()?.swipedUsers || [];
-          const filtered = swipedUsers.filter(id => id !== lastSwipedCard.card.id);
-          
-          await setDoc(userRef, {
-            swipedUsers: filtered,
-          }, { merge: true });
         }
 
         // Restore the card by going back one index
@@ -483,16 +442,18 @@ const HomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     const checkProfile = async () => {
+      if (!userId) return;
       try {
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        const userData = userDoc.data();
+        // Use repository to get current user profile
+        const userData = await userRepository.getCurrentUser(userId);
         setNeedsProfile(!userData?.name || !userData?.photoURL);
       } catch (error) {
         console.error('Error checking profile:', error);
+        setNeedsProfile(false); // Don't block on error
       }
     };
     checkProfile();
-  }, []);
+  }, [userId, userRepository]);
 
   if (needsProfile) {
     return (

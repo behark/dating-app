@@ -162,21 +162,27 @@ export const AuthProvider = ({ children }) => {
   };
 
   const saveUserSession = async (user, token, refToken) => {
-    setCurrentUser(user);
+    // Normalize user object - add uid alias for _id (Firebase compatibility)
+    const normalizedUser = {
+      ...user,
+      uid: user._id || user.uid,  // Support both MongoDB _id and Firebase uid
+    };
+    
+    setCurrentUser(normalizedUser);
     setAuthToken(token);
     setRefreshToken(refToken);
     
-    await AsyncStorage.setItem('currentUser', JSON.stringify(user));
+    await AsyncStorage.setItem('currentUser', JSON.stringify(normalizedUser));
     await AsyncStorage.setItem('authToken', token);
     if (refToken) {
       await AsyncStorage.setItem('refreshToken', refToken);
     }
 
     // Register for notifications and update location
-    if (user._id) {
+    if (normalizedUser.uid) {
       try {
-        await NotificationService.registerForPushNotifications(user._id);
-        await LocationService.updateLocationOnLogin(user._id);
+        await NotificationService.registerForPushNotifications(normalizedUser.uid);
+        await LocationService.updateLocationOnLogin(normalizedUser.uid);
       } catch (error) {
         console.error('Error during post-login setup:', error);
       }
