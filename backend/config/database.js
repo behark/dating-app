@@ -5,6 +5,10 @@
 
 const mongoose = require('mongoose');
 
+// Enable bufferCommands globally to allow queuing before connection
+mongoose.set('bufferCommands', true);
+mongoose.set('bufferMaxEntries', 0);
+
 // Connection state
 let isConnected = false;
 let connectionRetries = 0;
@@ -46,6 +50,7 @@ const connectDB = async () => {
     isConnected = true;
     connectionRetries = 0;
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log(`MongoDB Database: ${conn.connection.name}`);
     
     // Setup event handlers
     setupConnectionHandlers();

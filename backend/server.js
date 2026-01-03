@@ -555,7 +555,14 @@ io.on('connection', (socket) => {
 // Start server (for local development)
 const startServer = async () => {
   try {
-    await connectDB();
+    const dbConnection = await connectDB();
+    
+    if (!dbConnection) {
+      console.warn('⚠️  MongoDB connection failed - server starting without database');
+      console.warn('⚠️  Some features may not work until MongoDB is connected');
+    } else {
+      console.log('✅ MongoDB connection established successfully');
+    }
 
     // Configure keep-alive for better HTTP/1.1 connection reuse
     configureKeepAlive(server);
