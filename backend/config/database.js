@@ -19,6 +19,8 @@ const mongoOptions = {
   family: 4, // Use IPv4
   retryWrites: true,
   w: 'majority',
+  bufferCommands: true, // Allow commands before connection is established
+  bufferMaxEntries: 0, // Disable mongoose buffering; throw error if not connected
 };
 
 /**
