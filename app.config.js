@@ -27,6 +27,7 @@ export default {
       bundler: "metro"
     },
     extra: {
+      backendUrl: process.env.EXPO_PUBLIC_API_URL || process.env.EXPO_PUBLIC_BACKEND_URL || "http://localhost:3000/api",
       firebaseApiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "your_firebase_api_key_here",
       firebaseAuthDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "your_project.firebaseapp.com",
       firebaseProjectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "your_project_id",

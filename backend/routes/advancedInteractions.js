@@ -1,18 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 const advancedInteractionsController = require('../controllers/advancedInteractionsController');
 
 // Super Likes routes
-router.post('/super-like', auth, advancedInteractionsController.sendSuperLike);
-router.get('/super-like-quota', auth, advancedInteractionsController.getSuperLikeQuota);
+router.post('/super-like', authenticate, advancedInteractionsController.sendSuperLike);
+router.get('/super-like-quota', authenticate, advancedInteractionsController.getSuperLikeQuota);
 
 // Rewind routes
-router.post('/rewind', auth, advancedInteractionsController.rewindLastSwipe);
-router.get('/rewind-quota', auth, advancedInteractionsController.getRewindQuota);
+router.post('/rewind', authenticate, advancedInteractionsController.rewindLastSwipe);
+router.get('/rewind-quota', authenticate, advancedInteractionsController.getRewindQuota);
 
 // Boost Profile routes
-router.post('/boost', auth, advancedInteractionsController.boostProfile);
-router.get('/boost-quota', auth, advancedInteractionsController.getBoostQuota);
+router.post('/boost', authenticate, advancedInteractionsController.boostProfile);
+router.get('/boost-quota', authenticate, advancedInteractionsController.getBoostQuota);
 
 module.exports = router;

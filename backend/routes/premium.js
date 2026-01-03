@@ -1,11 +1,11 @@
 const express = require('express');
 const premiumController = require('../controllers/premiumController');
-const auth = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
 // All routes require authentication
-router.use(auth);
+router.use(authenticate);
 
 // Subscription management
 router.get('/subscription/status', premiumController.getSubscriptionStatus);

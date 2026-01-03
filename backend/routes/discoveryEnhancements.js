@@ -1,24 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 const discoveryEnhancementsController = require('../controllers/discoveryEnhancementsController');
 
 // Explore/Browse mode
-router.get('/explore', auth, discoveryEnhancementsController.exploreUsers);
+router.get('/explore', authenticate, discoveryEnhancementsController.exploreUsers);
 
 // Top Picks
-router.get('/top-picks', auth, discoveryEnhancementsController.getTopPicks);
+router.get('/top-picks', authenticate, discoveryEnhancementsController.getTopPicks);
 
 // Recently Active Users
-router.get('/recently-active', auth, discoveryEnhancementsController.getRecentlyActiveUsers);
+router.get('/recently-active', authenticate, discoveryEnhancementsController.getRecentlyActiveUsers);
 
 // Verified Profiles
-router.get('/verified', auth, discoveryEnhancementsController.getVerifiedProfiles);
+router.get('/verified', authenticate, discoveryEnhancementsController.getVerifiedProfiles);
 
 // Profile Verification
-router.post('/verify-profile', auth, discoveryEnhancementsController.verifyProfile);
+router.post('/verify-profile', authenticate, discoveryEnhancementsController.verifyProfile);
 
 // Admin: Approve verification
-router.post('/approve-verification', auth, discoveryEnhancementsController.approveProfileVerification);
+router.post('/approve-verification', authenticate, discoveryEnhancementsController.approveProfileVerification);
 
 module.exports = router;

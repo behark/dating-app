@@ -63,3 +63,6 @@ exports.optionalAuth = async (req, res, next) => {
   }
   next();
 };
+
+// Alias for backwards compatibility
+exports.authenticateToken = exports.authenticate;

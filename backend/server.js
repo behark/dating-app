@@ -11,6 +11,7 @@ const { Server } = require('socket.io');
 // Import models
 const Message = require('./models/Message');
 const Swipe = require('./models/Swipe');
+const User = require('./models/User');
 
 // Import routes
 const discoveryRoutes = require('./routes/discovery');
@@ -40,9 +41,35 @@ app.use(compression()); // Compress responses
 app.use(morgan('combined')); // Logging
 
 // CORS configuration
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://localhost:8081',
+  'http://localhost:19006',
+  /\.vercel\.app$/,
+];
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin matches allowed patterns
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (allowed instanceof RegExp) {
+        return allowed.test(origin);
+      }
+      return allowed === origin;
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log('Blocked by CORS:', origin);
+      callback(null, true); // Allow all for now during development
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID'],
   credentials: true
 };
@@ -126,24 +153,41 @@ app.use((error, req, res, next) => {
 });
 
 // MongoDB connection
+let isConnected = false;
+
 const connectDB = async () => {
+  if (isConnected) {
+    console.log('Using existing MongoDB connection');
+    return;
+  }
+
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/dating-app';
+    const mongoURI = process.env.MONGODB_URI;
+    
+    if (!mongoURI) {
+      console.warn('MONGODB_URI not set - database features will be unavailable');
+      return;
+    }
 
     const conn = await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     });
 
+    isConnected = true;
     console.log(`MongoDB Connected: ${conn.connection.host}`);
 
     // Handle connection events
     mongoose.connection.on('error', (error) => {
       console.error('MongoDB connection error:', error);
+      isConnected = false;
     });
 
     mongoose.connection.on('disconnected', () => {
       console.log('MongoDB disconnected');
+      isConnected = false;
     });
 
     // Graceful shutdown
@@ -155,7 +199,11 @@ const connectDB = async () => {
 
   } catch (error) {
     console.error('MongoDB connection failed:', error.message);
-    process.exit(1);
+    isConnected = false;
+    // Don't exit in serverless environment
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
   }
 };
 
@@ -365,7 +413,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Start server
+// Start server (for local development)
 const startServer = async () => {
   try {
     await connectDB();
@@ -384,17 +432,28 @@ const startServer = async () => {
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
   console.error('Unhandled Promise Rejection:', err.message);
-  server.close(() => {
-    process.exit(1);
-  });
+  if (process.env.NODE_ENV !== 'production') {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err.message);
-  process.exit(1);
+  if (process.env.NODE_ENV !== 'production') {
+    process.exit(1);
+  }
 });
 
-startServer();
+// For Vercel serverless, connect DB on first request
+if (process.env.VERCEL) {
+  // Serverless - connect on each cold start
+  connectDB();
+} else {
+  // Traditional server
+  startServer();
+}
 
 module.exports = app;

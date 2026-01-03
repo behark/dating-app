@@ -1,11 +1,11 @@
 const express = require('express');
 const SocialFeaturesController = require('../controllers/socialFeaturesController');
-const authMiddleware = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
 // Apply authentication middleware
-router.use(authMiddleware);
+router.use(authenticate);
 
 /**
  * GROUP DATES

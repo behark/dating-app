@@ -1,23 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 const mediaMessagesController = require('../controllers/mediaMessagesController');
 
 // GIFs
-router.post('/gif', auth, mediaMessagesController.sendGifMessage);
-router.get('/gifs/popular', auth, mediaMessagesController.getPopularGifs);
-router.get('/gifs/search', auth, mediaMessagesController.searchGifs);
+router.post('/gif', authenticate, mediaMessagesController.sendGifMessage);
+router.get('/gifs/popular', authenticate, mediaMessagesController.getPopularGifs);
+router.get('/gifs/search', authenticate, mediaMessagesController.searchGifs);
 
 // Stickers
-router.post('/sticker', auth, mediaMessagesController.sendStickerMessage);
-router.get('/sticker-packs', auth, mediaMessagesController.getStickerPacks);
+router.post('/sticker', authenticate, mediaMessagesController.sendStickerMessage);
+router.get('/sticker-packs', authenticate, mediaMessagesController.getStickerPacks);
 
 // Voice Messages
-router.post('/voice', auth, mediaMessagesController.sendVoiceMessage);
-router.post('/voice/transcribe', auth, mediaMessagesController.transcribeVoiceMessage);
+router.post('/voice', authenticate, mediaMessagesController.sendVoiceMessage);
+router.post('/voice/transcribe', authenticate, mediaMessagesController.transcribeVoiceMessage);
 
 // Video Calls
-router.post('/video-call/initiate', auth, mediaMessagesController.initiateVideoCall);
-router.put('/video-call/status', auth, mediaMessagesController.updateVideoCallStatus);
+router.post('/video-call/initiate', authenticate, mediaMessagesController.initiateVideoCall);
+router.put('/video-call/status', authenticate, mediaMessagesController.updateVideoCallStatus);
 
 module.exports = router;

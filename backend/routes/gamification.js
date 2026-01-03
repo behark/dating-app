@@ -1,11 +1,11 @@
 const express = require('express');
 const GamificationController = require('../controllers/gamificationController');
-const authMiddleware = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
 // Apply authentication middleware
-router.use(authMiddleware);
+router.use(authenticate);
 
 /**
  * SWIPE STREAKS
