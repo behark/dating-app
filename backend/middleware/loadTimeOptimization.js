@@ -27,22 +27,32 @@ const compressionMiddleware = compression({
  */
 const performanceHeaders = (req, res, next) => {
   // Performance hints
-  res.set({
-    // Enable HTTP/2 Server Push hints
-    'X-Content-Type-Options': 'nosniff',
-    'X-DNS-Prefetch-Control': 'on',
-    // Connection hints
-    'Connection': 'keep-alive',
-  });
+  if (!res.headersSent) {
+    res.set({
+      // Enable HTTP/2 Server Push hints
+      'X-Content-Type-Options': 'nosniff',
+      'X-DNS-Prefetch-Control': 'on',
+      // Connection hints
+      'Connection': 'keep-alive',
+    });
 
-  // Timing headers for performance monitoring
-  res.set('Server-Timing', `start;dur=0`);
+    // Timing headers for performance monitoring
+    res.set('Server-Timing', `start;dur=0`);
+  }
+  
   const startTime = process.hrtime.bigint();
   
+  // Log timing after response finishes (don't try to set headers)
   res.on('finish', () => {
     const endTime = process.hrtime.bigint();
     const duration = Number(endTime - startTime) / 1000000; // Convert to ms
-    res.set('Server-Timing', `total;dur=${duration.toFixed(2)}`);
+    // Don't set headers here - response already sent
+    // Just log for monitoring purposes
+    if (duration > 1000) {
+      setImmediate(() => {
+        console.log(`[PERF] ${req.method} ${req.path} - ${duration.toFixed(2)}ms`);
+      });
+    }
   });
 
   next();
