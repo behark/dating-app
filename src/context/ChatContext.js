@@ -1,4 +1,3 @@
-import Constants from 'expo-constants';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
@@ -45,7 +44,7 @@ export const ChatProvider = ({ children }) => {
   // Initialize Socket.io connection
   useEffect(() => {
     if (user?.uid) {
-      const serverUrl = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000';
+      const serverUrl = SOCKET_URL;
 
       const newSocket = io(serverUrl, {
         auth: {
@@ -145,7 +144,7 @@ export const ChatProvider = ({ children }) => {
     if (!user?.uid) return;
 
     try {
-      const serverUrl = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000';
+      const serverUrl = SOCKET_URL;
       const response = await fetch(`${serverUrl}/api/chat/conversations`, {
         headers: {
           'Content-Type': 'application/json',
@@ -174,7 +173,7 @@ export const ChatProvider = ({ children }) => {
     if (!user?.uid || !matchId) return;
 
     try {
-      const serverUrl = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000';
+      const serverUrl = SOCKET_URL;
       const response = await fetch(
         `${serverUrl}/api/chat/messages/${matchId}?page=${page}&limit=50`,
         {
@@ -228,7 +227,7 @@ export const ChatProvider = ({ children }) => {
     if (!user?.uid || !matchId) return;
 
     try {
-      const serverUrl = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3000';
+      const serverUrl = SOCKET_URL;
       await fetch(`${serverUrl}/api/chat/messages/${matchId}/read`, {
         method: 'PUT',
         headers: {

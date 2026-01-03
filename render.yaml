@@ -26,4 +26,12 @@ services:
       - key: FIREBASE_PROJECT_ID
         value: my-project-de65d
       - key: CORS_ORIGIN
-        value: https://dating-app-beharks-projects.vercel.app
+        value: https://dating-app-seven-peach.vercel.app
+      - key: FRONTEND_URL
+        value: https://dating-app-seven-peach.vercel.app
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 30d

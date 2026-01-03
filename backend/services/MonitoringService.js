@@ -440,6 +440,9 @@ class HealthCheckService {
 
     // Detailed health check
     router.get('/health/detailed', async (req, res) => {
+      if (res.headersSent) {
+        return;
+      }
       const results = await this.runChecks();
       const statusCode = results.status === 'healthy' ? 200 : 503;
       res.status(statusCode).json(results);
@@ -447,6 +450,9 @@ class HealthCheckService {
 
     // Readiness probe
     router.get('/ready', async (req, res) => {
+      if (res.headersSent) {
+        return;
+      }
       const results = await this.runChecks();
       if (results.status === 'healthy') {
         res.json({ ready: true });
@@ -457,6 +463,9 @@ class HealthCheckService {
 
     // Liveness probe
     router.get('/live', (req, res) => {
+      if (res.headersSent) {
+        return;
+      }
       res.json({ alive: true, uptime: process.uptime() });
     });
 

@@ -3,14 +3,13 @@ import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
 import { createContext, useContext, useEffect, useState } from 'react';
+import { API_URL } from '../config/api';
 import { LocationService } from '../services/LocationService';
 import { NotificationService } from '../services/NotificationService';
 
 WebBrowser.maybeCompleteAuthSession();
 
 const AuthContext = createContext({});
-
-const API_URL = Constants.expoConfig?.extra?.backendUrl || 'http://localhost:3000/api';
 
 export const useAuth = () => {
   return useContext(AuthContext);
