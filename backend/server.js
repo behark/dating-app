@@ -246,53 +246,56 @@ app.use((error, req, res, next) => {
 
   // Call errorRateMiddleware first (it's an error handler, just tracks metrics)
   errorRateMiddleware(error, req, res, () => {
-    // Continue to main error handler
-  // Don't send response if headers already sent
-  if (res.headersSent) {
-    return next(error);
-  }
-
-  // Log error with context
-  logger.logError(error, {
-    requestId: req.requestId,
-    userId: req.user?.id,
-    method: req.method,
-    url: req.originalUrl,
-  });
-
-  // Mongoose validation error
-  if (error.name === 'ValidationError') {
-    const errors = Object.values(error.errors).map(err => err.message);
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors
+    // Log error with context
+    logger.logError(error, {
+      requestId: req.requestId,
+      userId: req.user?.id,
+      method: req.method,
+      url: req.originalUrl,
     });
-  }
 
-  // Mongoose duplicate key error
-  if (error.code === 11000) {
-    return res.status(409).json({
-      success: false,
-      message: 'Duplicate entry found'
-    });
-  }
+    // Mongoose validation error
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      if (!res.headersSent) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors
+        });
+      }
+      return;
+    }
 
-  // Custom error with status code
-  if (error.statusCode) {
-    return res.status(error.statusCode).json({
-      success: false,
-      message: error.message
-    });
-  }
+    // Mongoose duplicate key error
+    if (error.code === 11000) {
+      if (!res.headersSent) {
+        return res.status(409).json({
+          success: false,
+          message: 'Duplicate entry found'
+        });
+      }
+      return;
+    }
 
-  // Default server error
-  if (!res.headersSent) {
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
+    // Custom error with status code
+    if (error.statusCode) {
+      if (!res.headersSent) {
+        return res.status(error.statusCode).json({
+          success: false,
+          message: error.message
+        });
+      }
+      return;
+    }
+
+    // Default server error
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
   });
 });
 
