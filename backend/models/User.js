@@ -256,6 +256,197 @@ const userSchema = new mongoose.Schema({
   },
   premiumExpiresAt: Date,
 
+  // Feature 12: Advanced Interactions
+  // Super like tracking
+  superLikeUsageToday: {
+    type: Number,
+    default: 0
+  },
+  superLikeResetTime: Date,
+
+  // Rewind tracking
+  rewindUsageToday: {
+    type: Number,
+    default: 0
+  },
+  rewindResetTime: Date,
+
+  // Boost profile tracking
+  boostUsageToday: {
+    type: Number,
+    default: 0
+  },
+  boostResetTime: Date,
+  activeBoostId: mongoose.Schema.Types.ObjectId, // Reference to active boost
+
+  // Feature 13: Discovery Enhancements
+  // Profile verification
+  isProfileVerified: {
+    type: Boolean,
+    default: false
+  },
+  verificationStatus: {
+    type: String,
+    enum: ['unverified', 'pending', 'verified', 'rejected'],
+    default: 'unverified'
+  },
+  verificationMethod: {
+    type: String,
+    enum: ['photo', 'video', 'id', 'none'],
+    default: 'none'
+  },
+  verificationDate: Date,
+
+  // Recently active tracking
+  lastActivityAt: {
+    type: Date,
+    default: Date.now,
+    index: true
+  },
+
+  // Activity score for top picks algorithm
+  activityScore: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100
+  },
+
+  // Engagement metrics
+  totalSwipes: {
+    type: Number,
+    default: 0
+  },
+  totalMatches: {
+    type: Number,
+    default: 0
+  },
+  totalConversations: {
+    type: Number,
+    default: 0
+  },
+  responseRate: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 100 // percentage
+  },
+
+  // ========== PREMIUM FEATURES ==========
+  // See Who Liked You
+  receivedLikes: [{
+    fromUserId: mongoose.Schema.Types.ObjectId,
+    action: {
+      type: String,
+      enum: ['like', 'superlike'],
+      default: 'like'
+    },
+    receivedAt: {
+      type: Date,
+      default: Date.now,
+      expires: 2592000 // 30 days
+    }
+  }],
+
+  // Passport (Location Override)
+  passportMode: {
+    enabled: { type: Boolean, default: false },
+    currentLocation: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: [Number], // [longitude, latitude]
+      city: String,
+      country: String
+    },
+    lastChanged: Date,
+    changeHistory: [{
+      location: {
+        type: {
+          type: String,
+          enum: ['Point']
+        },
+        coordinates: [Number]
+      },
+      city: String,
+      country: String,
+      changedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }]
+  },
+
+  // Advanced Filters
+  advancedFilters: {
+    minIncome: Number,
+    maxIncome: Number,
+    educationLevel: [String], // high_school, bachelor, masters, phd
+    bodyType: [String],
+    drinkingFrequency: String, // never, rarely, socially, regularly
+    smokingStatus: String, // never, rarely, sometimes, regularly
+    maritalStatus: [String],
+    hasChildren: Boolean,
+    wantsChildren: String, // yes, no, maybe, unsure
+    religion: [String],
+    zodiacSign: [String],
+    languages: [String],
+    pets: [{
+      type: String, // dog, cat, bird, reptile, other
+      description: String
+    }],
+    travelFrequency: String, // never, rarely, sometimes, frequently
+  },
+
+  // Priority Likes
+  priorityLikesReceived: {
+    type: Number,
+    default: 0
+  },
+  priorityLikesSent: {
+    type: Number,
+    default: 0
+  },
+
+  // Ads Control
+  adsPreferences: {
+    showAds: { type: Boolean, default: true },
+    adCategories: [String],
+    lastAdUpdate: Date
+  },
+
+  // Profile Boost Analytics
+  boostAnalytics: {
+    totalBoosts: { type: Number, default: 0 },
+    totalProfileViews: { type: Number, default: 0 },
+    totalLikesReceivedDuringBoosts: { type: Number, default: 0 },
+    boostHistory: [{
+      startTime: Date,
+      endTime: Date,
+      duration: Number, // in minutes
+      viewsGained: { type: Number, default: 0 },
+      likesGained: { type: Number, default: 0 },
+      matches: { type: Number, default: 0 }
+    }],
+    averageViewsPerBoost: {
+      type: Number,
+      default: 0
+    },
+    averageLikesPerBoost: {
+      type: Number,
+      default: 0
+    }
+  },
+
+  // Unlimited Swipes - daily swipe tracking
+  swipeStats: {
+    dailySwipeCount: { type: Number, default: 0 },
+    swipeResetTime: Date,
+    totalSwipesAllTime: { type: Number, default: 0 }
+  },
+
   // Timestamps
 }, {
   timestamps: true

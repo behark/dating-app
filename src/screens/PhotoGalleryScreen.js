@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { ImageService } from '../services/ImageService';
-import { useAuth } from '../context/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import { db } from '../config/firebase';
+import { useAuth } from '../context/AuthContext';
+import { ImageService } from '../services/ImageService';
 
 const PhotoGalleryScreen = ({ navigation, route }) => {
   const { currentUser } = useAuth();
@@ -214,7 +214,19 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Photo Gallery</Text>
-        <Text style={styles.photoCount}>{photos.length}/6</Text>
+        <View style={styles.headerRightSection}>
+          <TouchableOpacity
+            style={styles.analyzeButton}
+            onPress={() => navigation.navigate('Premium', { 
+              feature: 'smartPhotos',
+              photos: photos 
+            })}
+          >
+            <Ionicons name="sparkles" size={18} color="#FFD700" style={{ marginRight: 4 }} />
+            <Text style={styles.analyzeButtonText}>Analyze</Text>
+          </TouchableOpacity>
+          <Text style={styles.photoCount}>{photos.length}/6</Text>
+        </View>
       </LinearGradient>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -477,6 +489,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     lineHeight: 20,
+  },
+  headerRightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  analyzeButton: {
+    flexDirection: 'row',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 6,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  analyzeButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
 

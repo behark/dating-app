@@ -24,6 +24,12 @@ const enhancedProfileRoutes = require('./routes/enhancedProfile');
 const activityRoutes = require('./routes/activity');
 const socialMediaRoutes = require('./routes/socialMedia');
 const safetyRoutes = require('./routes/safety');
+const premiumRoutes = require('./routes/premium');
+const advancedInteractionsRoutes = require('./routes/advancedInteractions');
+const discoveryEnhancementsRoutes = require('./routes/discoveryEnhancements');
+const mediaMessagesRoutes = require('./routes/mediaMessages');
+const gamificationRoutes = require('./routes/gamification');
+const socialFeaturesRoutes = require('./routes/socialFeatures');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -63,10 +69,16 @@ app.use('/api/activity', activityRoutes);
 app.use('/api/social-media', socialMediaRoutes);
 app.use('/api', discoveryRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/chat/media', mediaMessagesRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/swipes', swipeRoutes);
+app.use('/api/interactions', advancedInteractionsRoutes);
+app.use('/api/discovery', discoveryEnhancementsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/safety', safetyRoutes);
+app.use('/api/premium', premiumRoutes);
+app.use('/api/gamification', gamificationRoutes);
+app.use('/api/social', socialFeaturesRoutes);
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {

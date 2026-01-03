@@ -24,9 +24,11 @@ const ProfileScreen = () => {
   const [bio, setBio] = useState('');
   const [photoURL, setPhotoURL] = useState('');
   const [loading, setLoading] = useState(false);
+  const [userBadges, setUserBadges] = useState([]);
 
   useEffect(() => {
     loadProfile();
+    loadUserBadges();
   }, []);
 
   const loadProfile = async () => {
@@ -41,6 +43,16 @@ const ProfileScreen = () => {
       }
     } catch (error) {
       console.error('Error loading profile:', error);
+    }
+  };
+
+  const loadUserBadges = async () => {
+    try {
+      const GamificationService = require('../services/GamificationService').default;
+      const badges = await GamificationService.getUserBadges(currentUser.uid);
+      setUserBadges(badges || []);
+    } catch (error) {
+      console.error('Error loading user badges:', error);
     }
   };
 
@@ -278,6 +290,12 @@ const ProfileScreen = () => {
             </LinearGradient>
           </TouchableOpacity>
 
+          {/* Gamification Section - Badge Showcase */}
+          <BadgeShowcase 
+            badges={userBadges}
+            userId={currentUser.uid}
+          />
+
           <View style={styles.buttonGroup}>
             <TouchableOpacity
               style={styles.secondaryButton}
@@ -322,6 +340,15 @@ const ProfileScreen = () => {
             >
               <Ionicons name="shield-checkmark-outline" size={20} color="#FF9800" style={{ marginRight: 8 }} />
               <Text style={styles.secondaryButtonText}>Safety Tips</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('SafetyAdvanced', { userId: currentUser.uid, isPremium: true })}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="shield" size={20} color="#FF6B9D" style={{ marginRight: 8 }} />
+              <Text style={styles.secondaryButtonText}>🛡️ Safety Center</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

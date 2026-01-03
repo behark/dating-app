@@ -5,6 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import ChatScreen from '../screens/ChatScreen';
+import EventsScreen from '../screens/EventsScreen';
+import GroupDatesScreen from '../screens/GroupDatesScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import MatchesScreen from '../screens/MatchesScreen';
@@ -13,7 +15,9 @@ import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
 import PreferencesScreen from '../screens/PreferencesScreen';
 import PremiumScreen from '../screens/PremiumScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import ProfileSharingScreen from '../screens/ProfileSharingScreen';
 import ReportUserScreen from '../screens/ReportUserScreen';
+import SafetyAdvancedScreen from '../screens/SafetyAdvancedScreen';
 import SafetyTipsScreen from '../screens/SafetyTipsScreen';
 import VerificationScreen from '../screens/VerificationScreen';
 import ViewProfileScreen from '../screens/ViewProfileScreen';
@@ -66,6 +70,15 @@ const MainTabs = () => {
             <Ionicons name="heart" size={size || 26} color={color} />
           ),
           tabBarBadge: unreadCount > 0 ? unreadCount : null,
+        }}
+      />
+      <Tab.Screen
+        name="Social"
+        component={GroupDatesScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people" size={size || 26} color={color} />
+          ),
         }}
       />
       <Tab.Screen
@@ -157,6 +170,30 @@ const AppNavigator = () => {
             <Stack.Screen
               name="SafetyTips"
               component={SafetyTipsScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="SafetyAdvanced"
+              component={SafetyAdvancedScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="Events"
+              component={EventsScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="ProfileSharing"
+              component={ProfileSharingScreen}
               options={{
                 headerShown: false,
                 presentation: 'card',

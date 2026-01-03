@@ -22,6 +22,13 @@ const swipeSchema = new mongoose.Schema({
     required: true
   },
 
+  // Premium feature: Priority Like flag
+  isPriority: {
+    type: Boolean,
+    default: false
+  },
+  prioritySentAt: Date,
+
   // Timestamp of the swipe
   createdAt: {
     type: Date,

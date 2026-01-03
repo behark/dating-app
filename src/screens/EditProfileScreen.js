@@ -243,7 +243,15 @@ export const EditProfileScreen = ({ navigation, route }) => {
 
       {/* Bio */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Bio</Text>
+        <View style={styles.bioHeaderRow}>
+          <Text style={styles.sectionTitle}>Bio</Text>
+          <TouchableOpacity 
+            style={styles.bioSuggestButton}
+            onPress={() => navigation.navigate('Premium', { feature: 'bioSuggestions', currentBio: bio, interests: interests })}
+          >
+            <Text style={styles.bioSuggestButtonText}>✨ Suggestions</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Tell us about yourself</Text>
           <TextInput
@@ -511,5 +519,22 @@ const styles = StyleSheet.create({
   },
   spacer: {
     height: 20
-  }
+  },
+  bioHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  bioSuggestButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 6,
+  },
+  bioSuggestButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#667eea',
+  },
 });

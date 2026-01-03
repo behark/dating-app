@@ -1,7 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const safetyController = require('../controllers/safetyController');
+const safetyAdvancedController = require('../controllers/safetyAdvancedController');
 const { authenticateToken } = require('../middleware/auth');
+
+// ============================================================
+// EXISTING SAFETY ENDPOINTS
+// ============================================================
 
 // Report user
 router.post('/report', authenticateToken, safetyController.reportUser);
@@ -38,5 +43,37 @@ router.put('/suspend/:userId', authenticateToken, safetyController.suspendUser);
 
 // Unsuspend user (admin)
 router.put('/unsuspend/:userId', authenticateToken, safetyController.unsuspendUser);
+
+// ============================================================
+// ADVANCED SAFETY FEATURES (Tier 2 Features)
+// ============================================================
+
+// Date Plans - Share date plan with friends for safety
+router.post('/date-plan', authenticateToken, safetyAdvancedController.shareDatePlan);
+
+// Get active date plans
+router.get('/date-plans/active', authenticateToken, safetyAdvancedController.getActiveDatePlans);
+
+// Check-in Features
+router.post('/checkin/start', authenticateToken, safetyAdvancedController.startCheckIn);
+router.post('/checkin/:checkInId/complete', authenticateToken, safetyAdvancedController.completeCheckIn);
+
+// Emergency SOS Button
+router.post('/sos', authenticateToken, safetyAdvancedController.sendEmergencySOS);
+router.get('/sos/active', authenticateToken, safetyAdvancedController.getActiveSOS);
+router.post('/sos/:sosAlertId/respond', authenticateToken, safetyAdvancedController.respondToSOS);
+router.put('/sos/:sosAlertId/resolve', authenticateToken, safetyAdvancedController.resolveSOS);
+
+// Background Checks (Premium Feature)
+router.post('/background-check', authenticateToken, safetyAdvancedController.initiateBackgroundCheck);
+router.get('/background-check/:backgroundCheckId', authenticateToken, safetyAdvancedController.getBackgroundCheckStatus);
+
+// Emergency Contacts
+router.post('/emergency-contact', authenticateToken, safetyAdvancedController.addEmergencyContact);
+router.get('/emergency-contacts', authenticateToken, safetyAdvancedController.getEmergencyContacts);
+router.delete('/emergency-contact/:contactId', authenticateToken, safetyAdvancedController.deleteEmergencyContact);
+
+// Advanced Photo Verification with Liveness Detection
+router.post('/photo-verification/advanced', authenticateToken, safetyAdvancedController.submitAdvancedPhotoVerification);
 
 module.exports = router;

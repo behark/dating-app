@@ -102,6 +102,20 @@ const MatchesScreen = ({ navigation }) => {
           <Ionicons name="close-circle" size={24} color="#FF6B6B" />
         </TouchableOpacity>
         <TouchableOpacity
+          onPress={() => navigation.navigate('ViewProfile', { userId: item.otherUser._id, showCompatibility: true })}
+          activeOpacity={0.8}
+          style={styles.compatibilityButton}
+        >
+          <Ionicons name="heart" size={20} color="#FF6B9D" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('SafetyAdvanced', { userId: currentUser.uid, isPremium: true, preSelectTab: 'date-plans' })}
+          activeOpacity={0.8}
+          style={styles.datePlanButton}
+        >
+          <Ionicons name="calendar" size={20} color="#FF9800" />
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={() => navigation.navigate('Chat', {
             matchId: item.matchId,
             otherUser: item.otherUser
@@ -392,6 +406,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   unmatchButton: {
+    padding: 8,
+  },
+  compatibilityButton: {
+    padding: 8,
+  },
+  datePlanButton: {
     padding: 8,
   },
   chatButton: {

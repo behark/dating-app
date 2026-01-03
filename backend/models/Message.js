@@ -33,23 +33,57 @@ const messageSchema = new mongoose.Schema({
   // Message type (text, image, etc.)
   type: {
     type: String,
-    enum: ['text', 'image', 'gif', 'system'],
+    enum: ['text', 'image', 'gif', 'sticker', 'voice', 'video_call', 'system'],
     default: 'text'
   },
 
-  // Image/GIF URL (for image and gif types)
-  imageUrl: {
+  // Media URL (for image, gif, sticker, voice types)
+  mediaUrl: {
     type: String,
     default: null
   },
 
-  // Image metadata
-  imageMetadata: {
+  // Media metadata
+  mediaMetadata: {
     width: Number,
     height: Number,
     size: Number,
-    mimeType: String
+    mimeType: String,
+    duration: Number, // For audio and video in seconds
+    gifId: String, // For GIF providers like Giphy
+    stickerPackId: String // For sticker packs
   },
+
+  // Voice message specific fields
+  voiceMessage: {
+    duration: Number, // in seconds
+    transcript: String, // AI-generated transcript (optional)
+    isTranscribed: Boolean,
+    language: String
+  },
+
+  // Video call specific fields
+  videoCall: {
+    callId: String,
+    initiatedBy: mongoose.Schema.Types.ObjectId,
+    duration: Number, // in seconds
+    status: {
+      type: String,
+      enum: ['pending', 'accepted', 'declined', 'missed', 'ended'],
+      default: 'pending'
+    },
+    endedAt: Date
+  },
+
+  // Reactions to the message (emoji reactions)
+  reactions: [{
+    emoji: String,
+    userId: mongoose.Schema.Types.ObjectId,
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
 
   // Read status
   isRead: {

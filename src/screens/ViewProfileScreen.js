@@ -1,24 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  ScrollView,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import {
+    Dimensions,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
 import { db } from '../config/firebase';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const ViewProfileScreen = ({ route, navigation }) => {
-  const { userId } = route.params;
+  const { userId, showCompatibility } = route.params;
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showCompatibilityScore, setShowCompatibilityScore] = useState(showCompatibility || false);
 
   useEffect(() => {
     loadProfile();
@@ -72,7 +73,12 @@ const ViewProfileScreen = ({ route, navigation }) => {
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity
+          onPress={() => setShowCompatibilityScore(!showCompatibilityScore)}
+          style={styles.compatibilityButton}
+        >
+          <Ionicons name="heart" size={20} color="#FF6B6B" />
+        </TouchableOpacity>
       </LinearGradient>
 
       <ScrollView
@@ -114,6 +120,25 @@ const ViewProfileScreen = ({ route, navigation }) => {
               </View>
             )}
           </View>
+
+          {showCompatibilityScore && (
+            <View style={styles.compatibilitySection}>
+              <View style={styles.compatibilityHeader}>
+                <Ionicons name="sparkles" size={18} color="#667eea" />
+                <Text style={styles.compatibilityTitle}>Compatibility Score</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.viewCompatibilityButton}
+                onPress={() => navigation.navigate('Premium', {
+                  feature: 'compatibility',
+                  targetUserId: userId
+                })}
+              >
+                <Ionicons name="trending-up" size={16} color="#fff" />
+                <Text style={styles.viewCompatibilityText}>View AI Analysis</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </ScrollView>
     </LinearGradient>
@@ -242,6 +267,56 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 12,
     flex: 1,
+  },
+  compatibilityButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  compatibilitySection: {
+    backgroundColor: '#fff',
+    marginHorizontal: 20,
+    marginTop: 15,
+    borderRadius: 15,
+    padding: 15,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF6B6B',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  compatibilityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  compatibilityTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginLeft: 8,
+  },
+  viewCompatibilityButton: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    backgroundColor: '#667eea',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  viewCompatibilityText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

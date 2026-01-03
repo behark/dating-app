@@ -1,5 +1,4 @@
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { API_BASE_URL } from '../config/api';
 
 export class PremiumService {
   static PREMIUM_FEATURES = {
@@ -8,34 +7,275 @@ export class PremiumService {
     ADVANCED_FILTERS: true,
     SEE_WHO_LIKED_YOU: true,
     BOOST_PROFILE: true,
-    PRIORITY_MATCHING: true,
+    PRIORITY_LIKES: true,
+    HIDE_ADS: true,
+    PASSPORT: true,
+    PROFILE_BOOST_ANALYTICS: true,
   };
 
-  static async checkPremiumStatus(userId) {
+  /**
+   * Check premium subscription status
+   */
+  static async checkPremiumStatus(userId, token) {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      const userData = userDoc.data();
-
-      const now = new Date();
-      const subscriptionEnd = userData?.subscriptionEnd ? new Date(userData.subscriptionEnd) : null;
-
-      return {
-        isPremium: subscriptionEnd && subscriptionEnd > now,
-        subscriptionType: userData?.subscriptionType || null,
-        subscriptionEnd: subscriptionEnd,
-        features: this.getAvailableFeatures(userData),
+      const response = await fetch(`${API_BASE_URL}/premium/subscription/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      return data.data || {
+        isPremium: false,
+        features: {}
       };
     } catch (error) {
       console.error('Error checking premium status:', error);
-      return {
-        isPremium: false,
-        subscriptionType: null,
-        subscriptionEnd: null,
-        features: this.getAvailableFeatures(null),
-      };
+      return { isPremium: false, features: {} };
     }
   }
 
+  /**
+   * Start free trial subscription
+   */
+  static async startTrialSubscription(userId, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/subscription/trial/start`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error starting trial:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Upgrade to premium subscription
+   */
+  static async upgradeToPremium(userId, planType = 'monthly', token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/subscription/upgrade`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ planType })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error upgrading to premium:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Cancel premium subscription
+   */
+  static async cancelSubscription(userId, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/subscription/cancel`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get received likes (See Who Liked You feature)
+   */
+  static async getReceivedLikes(userId, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/likes/received`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      return data.data || { likes: [] };
+    } catch (error) {
+      console.error('Error getting received likes:', error);
+      return { likes: [] };
+    }
+  }
+
+  /**
+   * Set passport location (location override)
+   */
+  static async setPassportLocation(longitude, latitude, city, country, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/passport/location`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ longitude, latitude, city, country })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error setting passport location:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get passport status
+   */
+  static async getPassportStatus(userId, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/passport/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      return data.data || { enabled: false };
+    } catch (error) {
+      console.error('Error getting passport status:', error);
+      return { enabled: false };
+    }
+  }
+
+  /**
+   * Disable passport mode
+   */
+  static async disablePassport(userId, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/passport/disable`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error disabling passport:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get advanced filter options
+   */
+  static async getAdvancedFilterOptions(userId, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/filters/options`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      return data.data || {};
+    } catch (error) {
+      console.error('Error getting filter options:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Update advanced filters
+   */
+  static async updateAdvancedFilters(filters, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/filters/update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(filters)
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating filters:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Send priority like
+   */
+  static async sendPriorityLike(targetUserId, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/likes/priority`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ targetUserId })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error sending priority like:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Update ads preferences
+   */
+  static async updateAdsPreferences(showAds, adCategories, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/ads/preferences`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ showAds, adCategories })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating ads preferences:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get profile boost analytics
+   */
+  static async getBoostAnalytics(userId, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/analytics/boosts`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      return data.data || {};
+    } catch (error) {
+      console.error('Error getting boost analytics:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Record boost session
+   */
+  static async recordBoostSession(duration, viewsGained, likesGained, matches, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/premium/analytics/boost-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ duration, viewsGained, likesGained, matches })
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error recording boost session:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get available features for current user
+   */
   static getAvailableFeatures(userData) {
     const isPremium = userData?.subscriptionEnd && new Date(userData.subscriptionEnd) > new Date();
 
@@ -45,219 +285,10 @@ export class PremiumService {
       advancedFilters: isPremium ? this.PREMIUM_FEATURES.ADVANCED_FILTERS : false,
       seeWhoLikedYou: isPremium ? this.PREMIUM_FEATURES.SEE_WHO_LIKED_YOU : false,
       boostProfile: isPremium ? this.PREMIUM_FEATURES.BOOST_PROFILE : false,
-      priorityMatching: isPremium ? this.PREMIUM_FEATURES.PRIORITY_MATCHING : false,
+      priorityLikes: isPremium ? this.PREMIUM_FEATURES.PRIORITY_LIKES : false,
+      hideAds: isPremium ? this.PREMIUM_FEATURES.HIDE_ADS : false,
+      passport: isPremium ? this.PREMIUM_FEATURES.PASSPORT : false,
+      profileBoostAnalytics: isPremium ? this.PREMIUM_FEATURES.PROFILE_BOOST_ANALYTICS : false,
     };
-  }
-
-  static async getSuperLikesUsedToday(userId) {
-    try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      const userData = userDoc.data();
-
-      const today = new Date().toDateString();
-      const lastSuperLikeDate = userData?.lastSuperLikeDate;
-
-      if (lastSuperLikeDate !== today) {
-        // Reset counter for new day
-        await updateDoc(doc(db, 'users', userId), {
-          superLikesUsedToday: 0,
-          lastSuperLikeDate: today,
-        });
-        return 0;
-      }
-
-      return userData?.superLikesUsedToday || 0;
-    } catch (error) {
-      console.error('Error getting super likes used today:', error);
-      return 0;
-    }
-  }
-
-  static async useSuperLike(userId, targetUserId) {
-    try {
-      const superLikesUsed = await this.getSuperLikesUsedToday(userId);
-      const premiumStatus = await this.checkPremiumStatus(userId);
-
-      const maxSuperLikes = premiumStatus.features.superLikesPerDay;
-
-      if (superLikesUsed >= maxSuperLikes) {
-        return { success: false, error: 'Daily super like limit reached' };
-      }
-
-      // Record the super like
-      const today = new Date().toDateString();
-      await updateDoc(doc(db, 'users', userId), {
-        superLikesUsedToday: superLikesUsed + 1,
-        lastSuperLikeDate: today,
-      }, { merge: true });
-
-      // Add to target user's super likes received
-      const targetUserRef = doc(db, 'users', targetUserId);
-      const targetUserDoc = await getDoc(targetUserRef);
-      const superLikesReceived = targetUserDoc.data()?.superLikesReceived || [];
-
-      await updateDoc(targetUserRef, {
-        superLikesReceived: [...superLikesReceived, {
-          fromUserId: userId,
-          timestamp: new Date(),
-        }],
-      }, { merge: true });
-
-      return { success: true };
-    } catch (error) {
-      console.error('Error using super like:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  static async getReceivedSuperLikes(userId) {
-    try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      const userData = userDoc.data();
-
-      const superLikesReceived = userData?.superLikesReceived || [];
-      const recentSuperLikes = superLikesReceived.filter(like => {
-        const likeDate = new Date(like.timestamp);
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        return likeDate > weekAgo;
-      });
-
-      // Get user details for each super like
-      const superLikesWithDetails = [];
-      for (const like of recentSuperLikes) {
-        try {
-          const likerDoc = await getDoc(doc(db, 'users', like.fromUserId));
-          if (likerDoc.exists()) {
-            superLikesWithDetails.push({
-              ...like,
-              user: {
-                id: likerDoc.id,
-                name: likerDoc.data().name,
-                photoURL: likerDoc.data().photoURL,
-                age: likerDoc.data().age,
-              },
-            });
-          }
-        } catch (error) {
-          console.error('Error getting liker details:', error);
-        }
-      }
-
-      return superLikesWithDetails;
-    } catch (error) {
-      console.error('Error getting received super likes:', error);
-      return [];
-    }
-  }
-
-  static async boostProfile(userId) {
-    try {
-      const premiumStatus = await this.checkPremiumStatus(userId);
-
-      if (!premiumStatus.features.boostProfile) {
-        return { success: false, error: 'Premium feature required' };
-      }
-
-      const boostEndTime = new Date();
-      boostEndTime.setMinutes(boostEndTime.getMinutes() + 30); // 30 minutes boost
-
-      await updateDoc(doc(db, 'users', userId), {
-        profileBoosted: true,
-        boostEndTime: boostEndTime,
-        lastBoostTime: new Date(),
-      }, { merge: true });
-
-      return { success: true, boostEndTime };
-    } catch (error) {
-      console.error('Error boosting profile:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  static async checkProfileBoostStatus(userId) {
-    try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      const userData = userDoc.data();
-
-      const boostEndTime = userData?.boostEndTime ? new Date(userData.boostEndTime) : null;
-      const now = new Date();
-
-      if (boostEndTime && boostEndTime > now) {
-        return {
-          isBoosted: true,
-          boostEndTime,
-          timeRemaining: Math.max(0, Math.floor((boostEndTime - now) / (1000 * 60))), // minutes
-        };
-      } else {
-        // Clear expired boost
-        if (userData?.profileBoosted) {
-          await updateDoc(doc(db, 'users', userId), {
-            profileBoosted: false,
-            boostEndTime: null,
-          }, { merge: true });
-        }
-
-        return {
-          isBoosted: false,
-          boostEndTime: null,
-          timeRemaining: 0,
-        };
-      }
-    } catch (error) {
-      console.error('Error checking profile boost status:', error);
-      return {
-        isBoosted: false,
-        boostEndTime: null,
-        timeRemaining: 0,
-      };
-    }
-  }
-
-  // Mock subscription methods (in production, integrate with payment processor)
-  static async startTrialSubscription(userId) {
-    try {
-      const trialEnd = new Date();
-      trialEnd.setDate(trialEnd.getDate() + 7); // 7-day trial
-
-      await updateDoc(doc(db, 'users', userId), {
-        subscriptionType: 'trial',
-        subscriptionEnd: trialEnd,
-        subscriptionStart: new Date(),
-      }, { merge: true });
-
-      return { success: true, trialEnd };
-    } catch (error) {
-      console.error('Error starting trial subscription:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
-  static async upgradeToPremium(userId, planType = 'monthly') {
-    try {
-      const subscriptionEnd = new Date();
-
-      switch (planType) {
-        case 'monthly':
-          subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
-          break;
-        case 'yearly':
-          subscriptionEnd.setFullYear(subscriptionEnd.getFullYear() + 1);
-          break;
-        default:
-          subscriptionEnd.setMonth(subscriptionEnd.getMonth() + 1);
-      }
-
-      await updateDoc(doc(db, 'users', userId), {
-        subscriptionType: planType,
-        subscriptionEnd: subscriptionEnd,
-        subscriptionStart: new Date(),
-      }, { merge: true });
-
-      return { success: true, subscriptionEnd };
-    } catch (error) {
-      console.error('Error upgrading to premium:', error);
-      return { success: false, error: error.message };
-    }
   }
 }

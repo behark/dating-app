@@ -33,14 +33,31 @@ const HomeScreen = ({ navigation }) => {
   const [userLocation, setUserLocation] = useState(null);
   const [discoveryRadius, setDiscoveryRadius] = useState(50); // km
   const [locationUpdating, setLocationUpdating] = useState(false);
+  const [showRewardNotification, setShowRewardNotification] = useState(false);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [longestStreak, setLongestStreak] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       loadCards();
       loadPremiumStatus();
+      loadGamificationData();
       initializeLocation();
     }, [])
   );
+
+  const loadGamificationData = async () => {
+    try {
+      const streakData = await GamificationService.getSwipeStreak(currentUser.uid);
+      if (streakData) {
+        setCurrentStreak(streakData.currentStreak || 0);
+        setLongestStreak(streakData.longestStreak || 0);
+      }
+      setShowRewardNotification(true);
+    } catch (error) {
+      console.error('Error loading gamification data:', error);
+    }
+  };
 
   const initializeLocation = async () => {
     try {
@@ -223,6 +240,17 @@ const HomeScreen = ({ navigation }) => {
       setSwipesUsedToday(newCount);
       if (!isPremium) {
         setSwipesRemaining(Math.max(0, 50 - newCount));
+      }
+
+      // Track swipe for gamification
+      try {
+        const streakResult = await GamificationService.trackSwipe(currentUser.uid, 'like');
+        if (streakResult) {
+          setCurrentStreak(streakResult.currentStreak || 0);
+          setLongestStreak(streakResult.longestStreak || 0);
+        }
+      } catch (error) {
+        console.error('Error tracking swipe for gamification:', error);
       }
 
       // If it's a match, show the match alert
@@ -504,6 +532,77 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
       </View>
+
+      {/* AI Features Quick Access */}
+      {isPremium && (
+        <View style={styles.aiQuickAccessContainer}>
+          <View style={styles.aiHeaderRow}>
+            <Ionicons name="sparkles" size={18} color="#667eea" style={{ marginRight: 8 }} />
+            <Text style={styles.aiQuickAccessTitle}>AI Insights</Text>
+          </View>
+          <View style={styles.aiButtonsGrid}>
+            <TouchableOpacity 
+              style={styles.aiQuickButton}
+              onPress={() => navigation.navigate('ViewProfile', { 
+                userId: cards[currentIndex]?.id,
+                showCompatibility: true 
+              })}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="heart" size={20} color="#FF6B6B" />
+              <Text style={styles.aiButtonLabel}>Compatibility</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.aiQuickButton}
+              onPress={() => navigation.navigate('Premium', { 
+                feature: 'conversationStarters',
+                targetUserId: cards[currentIndex]?.id
+              })}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="chatbubbles" size={20} color="#4ECDC4" />
+              <Text style={styles.aiButtonLabel}>Talk Tips</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.aiQuickButton}
+              onPress={() => navigation.navigate('EditProfile', { 
+                feature: 'bioSuggestions'
+              })}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="create" size={20} color="#FFD700" />
+              <Text style={styles.aiButtonLabel}>Bio Ideas</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.aiQuickButton}
+              onPress={() => navigation.navigate('Premium', { 
+                feature: 'smartPhotos'
+              })}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="image" size={20} color="#667eea" />
+              <Text style={styles.aiButtonLabel}>Photo Tips</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Gamification Components */}
+        <View style={styles.gamificationSection}>
+          <StreakCard 
+            currentStreak={currentStreak}
+            longestStreak={longestStreak}
+          />
+          {showRewardNotification && (
+            <DailyRewardNotification 
+              userId={currentUser.uid}
+              onRewardClaimed={() => setShowRewardNotification(false)}
+            />
+          )}
+        </View>
+      )}
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -910,6 +1009,53 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#fff',
+  },
+  aiQuickAccessContainer: {
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  aiHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  aiQuickAccessTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  aiButtonsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  aiQuickButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    backgroundColor: '#f8f9fa',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  aiButtonLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#333',
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  gamificationSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
 });
 

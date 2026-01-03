@@ -341,6 +341,529 @@ export class SafetyService {
     }
   }
 
+  // ============================================================
+  // ADVANCED SAFETY FEATURES (AI/ML & Safety Tier 2)
+  // ============================================================
+
+  /**
+   * Share date plans with friends
+   * User can share their date plans with selected friends for safety
+   */
+  static async shareDatePlan(userId, datePlanData, friendIds = []) {
+    try {
+      const datePlan = {
+        userId,
+        matchUserId: datePlanData.matchUserId,
+        matchName: datePlanData.matchName,
+        matchPhotoUrl: datePlanData.matchPhotoUrl,
+        location: datePlanData.location,
+        address: datePlanData.address,
+        coordinates: datePlanData.coordinates, // { latitude, longitude }
+        dateTime: datePlanData.dateTime, // ISO string
+        notes: datePlanData.notes || '',
+        sharedWith: friendIds,
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+        status: 'active', // 'active', 'completed', 'cancelled'
+      };
+
+      const docRef = await addDoc(collection(db, 'datePlans'), datePlan);
+      console.log('Date plan shared:', docRef.id);
+
+      // Notify friends that plan was shared
+      for (const friendId of friendIds) {
+        await this.createNotification(friendId, {
+          type: 'date_plan_shared',
+          title: 'Date Plan Shared',
+          message: `${datePlan.matchName} shared their date plan at ${datePlan.location}`,
+          data: {
+            datePlanId: docRef.id,
+            userId,
+            matchUserId: datePlanData.matchUserId,
+          }
+        });
+      }
+
+      return { success: true, datePlanId: docRef.id };
+    } catch (error) {
+      console.error('Error sharing date plan:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get user's active date plans
+   */
+  static async getActiveDatePlans(userId) {
+    try {
+      const q = query(
+        collection(db, 'datePlans'),
+        where('userId', '==', userId),
+        where('status', '==', 'active')
+      );
+      const docs = await getDocs(q);
+
+      return docs.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        dateTime: doc.data().dateTime?.toDate?.() || new Date(doc.data().dateTime)
+      }));
+    } catch (error) {
+      console.error('Error getting date plans:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get date plans shared with user
+   */
+  static async getSharedDatePlans(userId) {
+    try {
+      const q = query(
+        collection(db, 'datePlans'),
+        where('sharedWith', 'array-contains', userId)
+      );
+      const docs = await getDocs(q);
+
+      return docs.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        dateTime: doc.data().dateTime?.toDate?.() || new Date(doc.data().dateTime)
+      }));
+    } catch (error) {
+      console.error('Error getting shared date plans:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Update date plan status
+   */
+  static async updateDatePlanStatus(datePlanId, status) {
+    try {
+      await updateDoc(doc(db, 'datePlans', datePlanId), {
+        status, // 'active', 'completed', 'cancelled'
+        updatedAt: new Date()
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating date plan:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Check-in Timer & Notifications
+   * User checks in when they arrive/leave, friends are notified
+   */
+  static async startCheckInTimer(userId, datePlanId, duration = 300000) {
+    // Default 5 minutes
+    try {
+      const checkIn = {
+        userId,
+        datePlanId,
+        status: 'active', // 'active', 'checked_in', 'expired'
+        startedAt: new Date(),
+        expiresAt: new Date(Date.now() + duration),
+        alertSent: false,
+      };
+
+      const docRef = await addDoc(collection(db, 'checkIns'), checkIn);
+      console.log('Check-in timer started:', docRef.id);
+
+      return { success: true, checkInId: docRef.id };
+    } catch (error) {
+      console.error('Error starting check-in timer:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Complete check-in (user confirms they're safe)
+   */
+  static async completeCheckIn(checkInId) {
+    try {
+      await updateDoc(doc(db, 'checkIns', checkInId), {
+        status: 'checked_in',
+        checkedInAt: new Date()
+      });
+
+      // Get the check-in details to notify friends
+      const checkInDoc = await getDoc(doc(db, 'checkIns', checkInId));
+      const checkInData = checkInDoc.data();
+
+      // Get the date plan to find who to notify
+      const datePlanDoc = await getDoc(doc(db, 'datePlans', checkInData.datePlanId));
+      const datePlanData = datePlanDoc.data();
+
+      // Notify all friends that user checked in
+      for (const friendId of datePlanData.sharedWith) {
+        await this.createNotification(friendId, {
+          type: 'check_in_complete',
+          title: 'Safe Check-in Received',
+          message: 'Your friend checked in and is safe',
+          data: { userId: checkInData.userId }
+        });
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error completing check-in:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get active check-ins for user
+   */
+  static async getActiveCheckIns(userId) {
+    try {
+      const q = query(
+        collection(db, 'checkIns'),
+        where('userId', '==', userId),
+        where('status', 'in', ['active', 'expired'])
+      );
+      const docs = await getDocs(q);
+      return docs.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error('Error getting check-ins:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Emergency SOS Button
+   * User can send emergency alert to friends and emergency contacts
+   */
+  static async sendEmergencySOS(userId, location = {}, emergencyMessage = '') {
+    try {
+      const sosAlert = {
+        userId,
+        type: 'sos',
+        location: {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          address: location.address || '',
+          timestamp: new Date(),
+        },
+        message: emergencyMessage,
+        severity: 'critical',
+        status: 'active', // 'active', 'resolved', 'false_alarm'
+        respondedBy: [],
+        responses: [],
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      };
+
+      const docRef = await addDoc(collection(db, 'emergencyAlerts'), sosAlert);
+      console.log('SOS alert created:', docRef.id);
+
+      // Get user's emergency contacts
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      const emergencyContacts = userDoc.data()?.emergencyContacts || [];
+      const trustedFriends = userDoc.data()?.trustedFriends || [];
+
+      // Combine all recipients
+      const allRecipients = [...new Set([...emergencyContacts, ...trustedFriends])];
+
+      // Send immediate notifications
+      for (const recipientId of allRecipients) {
+        await this.createNotification(recipientId, {
+          type: 'emergency_sos',
+          title: '🚨 EMERGENCY SOS',
+          message: 'Your friend sent an emergency SOS',
+          data: {
+            sosAlertId: docRef.id,
+            userId,
+            location: sosAlert.location,
+            message: sosAlert.message
+          },
+          priority: 'high'
+        });
+      }
+
+      // Log the emergency event
+      await addDoc(collection(db, 'securityEvents'), {
+        userId,
+        type: 'sos_triggered',
+        timestamp: new Date(),
+        location: sosAlert.location,
+        details: { sosAlertId: docRef.id }
+      });
+
+      return { success: true, sosAlertId: docRef.id };
+    } catch (error) {
+      console.error('Error sending SOS:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get active SOS alerts
+   */
+  static async getActiveSOS(userId) {
+    try {
+      const q = query(
+        collection(db, 'emergencyAlerts'),
+        where('userId', '==', userId),
+        where('status', '==', 'active')
+      );
+      const docs = await getDocs(q);
+      return docs.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error('Error getting SOS alerts:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Respond to SOS alert
+   */
+  static async respondToSOS(sosAlertId, responderId, response = {}) {
+    try {
+      const sosRef = doc(db, 'emergencyAlerts', sosAlertId);
+      const sosDoc = await getDoc(sosRef);
+      const currentResponses = sosDoc.data()?.responses || [];
+      const respondedBy = sosDoc.data()?.respondedBy || [];
+
+      const newResponse = {
+        responderId,
+        message: response.message || '',
+        confirmedSafe: response.confirmedSafe || false,
+        timestamp: new Date(),
+        contactInfo: response.contactInfo || ''
+      };
+
+      await updateDoc(sosRef, {
+        responses: [...currentResponses, newResponse],
+        respondedBy: [...respondedBy, responderId]
+      });
+
+      // Notify the user who sent SOS
+      const sosData = sosDoc.data();
+      await this.createNotification(sosData.userId, {
+        type: 'sos_response',
+        title: 'Emergency Response Received',
+        message: `${responderId} has responded to your SOS`,
+        data: { sosAlertId }
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error responding to SOS:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Resolve SOS alert
+   */
+  static async resolveSOS(sosAlertId, status = 'resolved') {
+    try {
+      await updateDoc(doc(db, 'emergencyAlerts', sosAlertId), {
+        status, // 'resolved' or 'false_alarm'
+        resolvedAt: new Date()
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error resolving SOS:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Background Check Integration
+   * Initiate background check for user (premium feature)
+   * This would integrate with third-party service like Checkr or Instamotor
+   */
+  static async initiateBackgroundCheck(userId, userInfo = {}) {
+    try {
+      const backgroundCheckRequest = {
+        userId,
+        status: 'pending', // 'pending', 'in_progress', 'completed', 'failed'
+        userInfo: {
+          firstName: userInfo.firstName || '',
+          lastName: userInfo.lastName || '',
+          dateOfBirth: userInfo.dateOfBirth || '',
+          email: userInfo.email || '',
+          phone: userInfo.phone || '',
+          address: userInfo.address || '',
+          ...userInfo
+        },
+        checks: {
+          criminalRecord: false,
+          sexOffenderRegistry: false,
+          addressHistory: false,
+          identityVerification: false,
+        },
+        results: {},
+        requestedAt: new Date(),
+        completedAt: null,
+        externalServiceId: null,
+        externalStatus: null,
+      };
+
+      const docRef = await addDoc(collection(db, 'backgroundChecks'), backgroundCheckRequest);
+      console.log('Background check requested:', docRef.id);
+
+      return { success: true, backgroundCheckId: docRef.id };
+    } catch (error) {
+      console.error('Error initiating background check:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get background check status
+   */
+  static async getBackgroundCheckStatus(userId) {
+    try {
+      const q = query(
+        collection(db, 'backgroundChecks'),
+        where('userId', '==', userId)
+      );
+      const docs = await getDocs(q);
+
+      if (docs.empty) {
+        return { completed: false, status: 'not_initiated' };
+      }
+
+      const latest = docs.docs
+        .sort((a, b) => b.data().requestedAt - a.data().requestedAt)[0]
+        .data();
+
+      return {
+        completed: latest.status === 'completed',
+        status: latest.status,
+        results: latest.results,
+        requestedAt: latest.requestedAt,
+        completedAt: latest.completedAt,
+      };
+    } catch (error) {
+      console.error('Error getting background check status:', error);
+      return { completed: false, status: 'error' };
+    }
+  }
+
+  /**
+   * Update background check with external service results
+   */
+  static async updateBackgroundCheckResults(backgroundCheckId, results = {}) {
+    try {
+      await updateDoc(doc(db, 'backgroundChecks', backgroundCheckId), {
+        status: 'completed',
+        results,
+        completedAt: new Date()
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating background check:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Advanced Photo Verification with Liveness Detection
+   */
+  static async submitAdvancedPhotoVerification(userId, photoUri, livenessData = {}) {
+    try {
+      const verification = {
+        userId,
+        type: 'liveness_detection',
+        photoUri,
+        livenessChecks: {
+          method: livenessData.method || 'advanced', // 'basic', 'advanced', 'ai_powered'
+          timestamp: new Date(),
+          faceDetected: livenessData.faceDetected || false,
+          livenessPassed: livenessData.livenessPassed || false,
+          confidence: livenessData.confidence || 0,
+          challenges: livenessData.challenges || [], // e.g., ['blink', 'smile', 'turn_head']
+          completedChallenges: livenessData.completedChallenges || [],
+        },
+        status: 'pending', // 'pending', 'approved', 'rejected'
+        submittedAt: new Date(),
+        reviewedAt: null,
+        aiAnalysis: {
+          faceQuality: livenessData.faceQuality || 0,
+          imageQuality: livenessData.imageQuality || 0,
+          spoofingRisk: livenessData.spoofingRisk || 'low', // 'low', 'medium', 'high'
+          matchWithProfilePhoto: livenessData.matchWithProfilePhoto || 0,
+        }
+      };
+
+      const docRef = await addDoc(collection(db, 'advancedVerifications'), verification);
+      console.log('Advanced verification submitted:', docRef.id);
+
+      return { success: true, verificationId: docRef.id };
+    } catch (error) {
+      console.error('Error submitting advanced verification:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get emergency contacts list
+   */
+  static async getEmergencyContacts(userId) {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      return userDoc.data()?.emergencyContacts || [];
+    } catch (error) {
+      console.error('Error getting emergency contacts:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Add emergency contact
+   */
+  static async addEmergencyContact(userId, contactInfo) {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userRef);
+      const emergencyContacts = userDoc.data()?.emergencyContacts || [];
+
+      const newContact = {
+        id: Date.now(),
+        name: contactInfo.name,
+        phone: contactInfo.phone,
+        relationship: contactInfo.relationship,
+        addedAt: new Date(),
+      };
+
+      await updateDoc(userRef, {
+        emergencyContacts: [...emergencyContacts, newContact]
+      });
+
+      return { success: true, contact: newContact };
+    } catch (error) {
+      console.error('Error adding emergency contact:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Helper function to create notifications
+   */
+  static async createNotification(userId, notificationData) {
+    try {
+      const notification = {
+        userId,
+        type: notificationData.type,
+        title: notificationData.title,
+        message: notificationData.message,
+        data: notificationData.data || {},
+        priority: notificationData.priority || 'normal',
+        read: false,
+        createdAt: new Date(),
+      };
+
+      await addDoc(collection(db, 'notifications'), notification);
+    } catch (error) {
+      console.error('Error creating notification:', error);
+    }
+  }
+
   // Validation
   static validateReport(category, description) {
     const errors = [];
@@ -355,6 +878,48 @@ export class SafetyService {
 
     if (description && description.length > 500) {
       errors.push('Description cannot exceed 500 characters');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  }
+
+  static validateDatePlan(datePlan) {
+    const errors = [];
+
+    if (!datePlan.location || datePlan.location.trim() === '') {
+      errors.push('Location is required');
+    }
+
+    if (!datePlan.dateTime) {
+      errors.push('Date and time are required');
+    }
+
+    if (new Date(datePlan.dateTime) < new Date()) {
+      errors.push('Date must be in the future');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+    };
+  }
+
+  static validateEmergencyContact(contact) {
+    const errors = [];
+
+    if (!contact.name || contact.name.trim() === '') {
+      errors.push('Contact name is required');
+    }
+
+    if (!contact.phone || !/^\d{10}/.test(contact.phone.replace(/\D/g, ''))) {
+      errors.push('Valid phone number is required');
+    }
+
+    if (!contact.relationship || contact.relationship.trim() === '') {
+      errors.push('Relationship is required');
     }
 
     return {

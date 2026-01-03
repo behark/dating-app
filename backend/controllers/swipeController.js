@@ -1,5 +1,6 @@
 const Swipe = require('../models/Swipe');
 const User = require('../models/User');
+const Subscription = require('../models/Subscription');
 
 /**
  * Helper function to send notifications
@@ -53,9 +54,9 @@ const createSwipe = async (req, res) => {
       });
     }
 
-    // Check if user is premium
-    const swiperUser = await User.findById(swiperId);
-    const isPremium = swiperUser?.subscriptionStatus === 'active';
+    // Check if user is premium using Subscription model
+    const subscription = await Subscription.findOne({ userId: swiperId });
+    const isPremium = subscription && subscription.isActive;
 
     // Check swipe limit for free users
     const limitCheck = await Swipe.canSwipe(swiperId, isPremium);
@@ -90,9 +91,27 @@ const createSwipe = async (req, res) => {
 
     await swipe.save();
 
+    // Track received like for "See Who Liked You" feature
+    if (action === 'like' || action === 'superlike') {
+      await User.findByIdAndUpdate(
+        targetId,
+        {
+          $push: {
+            receivedLikes: {
+              fromUserId: swiperId,
+              action: action,
+              receivedAt: new Date()
+            }
+          }
+        },
+        { new: true }
+      );
+    }
+
     // Check for match if it's a like
     let isMatch = false;
     let matchData = null;
+    const swiperUser = await User.findById(swiperId);
 
     if (action === 'like' || action === 'superlike') {
       const reverseSwipe = await Swipe.findOne({
@@ -174,8 +193,9 @@ const getSwipeCountToday = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const user = await User.findById(userId);
-    const isPremium = user?.subscriptionStatus === 'active';
+    // Check if user has premium subscription
+    const subscription = await Subscription.findOne({ userId });
+    const isPremium = subscription && subscription.isActive;
 
     if (isPremium) {
       return res.json({

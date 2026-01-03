@@ -9,7 +9,7 @@
     "web": "expo start --web",
     "web:build": "npx expo export -p web --output-dir web-build",
     "build": "npx expo export -p web --output-dir web-build",
-    "vercel-build": "npm install --legacy-peer-deps && npx expo export -p web --output-dir web-build",
+    "vercel-build": "npx expo export -p web --output-dir web-build",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
