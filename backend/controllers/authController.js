@@ -101,7 +101,7 @@ exports.register = async (req, res) => {
 
     // Create new user
     // Location is required - use provided location or default to San Francisco
-    const defaultLocation = {
+    const userLocation = req.body.location || {
       type: 'Point',
       coordinates: [-122.4194, 37.7749] // San Francisco
     };
@@ -112,7 +112,10 @@ exports.register = async (req, res) => {
       name,
       age,
       gender,
-      location: req.body.location || defaultLocation,
+      location: {
+        type: userLocation.type || 'Point',
+        coordinates: userLocation.coordinates || [-122.4194, 37.7749]
+      },
       photos: [],
       interests: []
     });
