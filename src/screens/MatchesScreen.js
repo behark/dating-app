@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,12 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
@@ -17,10 +19,13 @@ const MatchesScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadMatches();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadMatches();
+    }, [])
+  );
 
   const loadMatches = async () => {
     try {
@@ -30,6 +35,7 @@ const MatchesScreen = ({ navigation }) => {
       if (matchIds.length === 0) {
         setMatches([]);
         setLoading(false);
+        setRefreshing(false);
         return;
       }
 
@@ -43,10 +49,17 @@ const MatchesScreen = ({ navigation }) => {
 
       setMatches(matchesData);
       setLoading(false);
+      setRefreshing(false);
     } catch (error) {
       console.error('Error loading matches:', error);
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadMatches();
   };
 
   const renderMatch = ({ item }) => (
@@ -55,13 +68,19 @@ const MatchesScreen = ({ navigation }) => {
       onPress={() => navigation.navigate('Chat', { userId: item.id, userName: item.name })}
       activeOpacity={0.8}
     >
-      <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: item.photoURL || 'https://via.placeholder.com/100' }}
-          style={styles.matchImage}
-        />
-        <View style={styles.onlineIndicator} />
-      </View>
+      <TouchableOpacity
+        style={styles.profileButton}
+        onPress={() => navigation.navigate('ViewProfile', { userId: item.id })}
+        activeOpacity={0.8}
+      >
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: item.photoURL || 'https://via.placeholder.com/100' }}
+            style={styles.matchImage}
+          />
+          <View style={styles.onlineIndicator} />
+        </View>
+      </TouchableOpacity>
       <View style={styles.matchInfo}>
         <Text style={styles.matchName}>{item.name}</Text>
         <View style={styles.matchDetails}>
@@ -73,7 +92,17 @@ const MatchesScreen = ({ navigation }) => {
           )}
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={24} color="#999" />
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Chat', { userId: item.id, userName: item.name })}
+        activeOpacity={0.8}
+      >
+        <LinearGradient
+          colors={['#667eea', '#764ba2']}
+          style={styles.chatButton}
+        >
+          <Ionicons name="chatbubble" size={20} color="#fff" />
+        </LinearGradient>
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 
@@ -115,6 +144,9 @@ const MatchesScreen = ({ navigation }) => {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       )}
     </LinearGradient>

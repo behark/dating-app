@@ -9,6 +9,7 @@ import HomeScreen from '../screens/HomeScreen';
 import MatchesScreen from '../screens/MatchesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ChatScreen from '../screens/ChatScreen';
+import ViewProfileScreen from '../screens/ViewProfileScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -83,6 +84,14 @@ const AppNavigator = () => {
             <Stack.Screen
               name="Chat"
               component={ChatScreen}
+              options={{ 
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="ViewProfile"
+              component={ViewProfileScreen}
               options={{ 
                 headerShown: false,
                 presentation: 'card',

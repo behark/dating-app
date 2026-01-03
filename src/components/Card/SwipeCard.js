@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
-import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { PanGestureHandler } from 'react-native-gesture-handler';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useAnimatedGestureHandler,
   useAnimatedStyle,
@@ -14,7 +15,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
 const CARD_HEIGHT = SCREEN_HEIGHT * 0.75;
 
-const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index }) => {
+const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -81,8 +82,20 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index }) => {
         <Image 
           source={{ uri: card.photoURL || 'https://via.placeholder.com/400' }} 
           style={styles.image}
-          defaultSource={require('../../../assets/icon.png')}
         />
+        
+        <TouchableOpacity
+          style={styles.infoButton}
+          onPress={() => onViewProfile && onViewProfile()}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={['rgba(102, 126, 234, 0.9)', 'rgba(118, 75, 162, 0.9)']}
+            style={styles.infoButtonGradient}
+          >
+            <Ionicons name="information-circle" size={24} color="#fff" />
+          </LinearGradient>
+        </TouchableOpacity>
         
         <LinearGradient
           colors={['transparent', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.95)']}
@@ -147,6 +160,25 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  infoButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 10,
+    borderRadius: 25,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  infoButtonGradient: {
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   gradientOverlay: {
     position: 'absolute',
