@@ -4,7 +4,6 @@
  */
 
 const Sentry = require('@sentry/node');
-const { ProfilingIntegration } = require('@sentry/profiling-node');
 
 class MonitoringService {
   constructor() {
@@ -32,13 +31,11 @@ class MonitoringService {
       
       integrations: [
         // Enable HTTP calls tracing
-        new Sentry.Integrations.Http({ tracing: true }),
+        Sentry.httpIntegration({ tracing: true }),
         // Enable Express tracing
-        new Sentry.Integrations.Express({ app }),
+        Sentry.expressIntegration({ app }),
         // Enable Mongo tracing
-        new Sentry.Integrations.Mongo(),
-        // Enable profiling
-        new ProfilingIntegration(),
+        Sentry.mongoIntegration(),
       ],
 
       // Filter sensitive data
