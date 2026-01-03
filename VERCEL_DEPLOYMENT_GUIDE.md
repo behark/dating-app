@@ -104,14 +104,14 @@ Before going live, verify:
 Make sure these are set in Vercel dashboard:
 
 ```bash
-REACT_APP_FIREBASE_API_KEY=your_key
-REACT_APP_FIREBASE_AUTH_DOMAIN=your_domain
-REACT_APP_FIREBASE_PROJECT_ID=your_project
-REACT_APP_FIREBASE_STORAGE_BUCKET=your_bucket
-REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_id
-REACT_APP_FIREBASE_APP_ID=your_app_id
-REACT_APP_API_URL=https://your-backend-url.com
-REACT_APP_GOOGLE_CLIENT_ID=your_google_id
+EXPO_PUBLIC_FIREBASE_API_KEY=your_key
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_domain
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_bucket
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_id
+EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
+EXPO_PUBLIC_API_URL=https://your-backend-url.com
+EXPO_PUBLIC_GOOGLE_CLIENT_ID=your_google_id
 ```
 
 ---
