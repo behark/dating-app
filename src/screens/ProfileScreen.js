@@ -64,17 +64,46 @@ const ProfileScreen = () => {
   const uploadImage = async (uri) => {
     try {
       setLoading(true);
-      const response = await fetch(uri);
-      const blob = await response.blob();
-      const imageRef = ref(storage, `profiles/${currentUser.uid}/${Date.now()}.jpg`);
       
-      await uploadBytes(imageRef, blob);
-      const downloadURL = await getDownloadURL(imageRef);
-      setPhotoURL(downloadURL);
+      // Try to upload to Firebase Storage if available
+      if (storage) {
+        try {
+          const response = await fetch(uri);
+          const blob = await response.blob();
+          const imageRef = ref(storage, `profiles/${currentUser.uid}/${Date.now()}.jpg`);
+          
+          await uploadBytes(imageRef, blob);
+          const downloadURL = await getDownloadURL(imageRef);
+          setPhotoURL(downloadURL);
+          setLoading(false);
+          return;
+        } catch (storageError) {
+        // If Storage is not available, use the local URI directly
+        // Note: This works for local images but won't persist across devices
+        console.warn('Firebase Storage not available, using local image:', storageError);
+        setPhotoURL(uri);
+        Alert.alert(
+          'Storage Not Available',
+          'Firebase Storage is not enabled. You can use an image URL instead. Go to profile settings to add a URL.',
+          [{ text: 'OK' }]
+        );
+        setLoading(false);
+        }
+      }
+      
+      // If Storage is not available, use the local URI directly
+      // Note: This works for local images but won't persist across devices
+      console.warn('Firebase Storage not available, using local image');
+      setPhotoURL(uri);
+      Alert.alert(
+        'Storage Not Available',
+        'Firebase Storage is not enabled. You can use an image URL instead. Paste a URL in the Photo URL field below.',
+        [{ text: 'OK' }]
+      );
       setLoading(false);
     } catch (error) {
       console.error('Error uploading image:', error);
-      Alert.alert('Error', 'Failed to upload image');
+      Alert.alert('Error', 'Failed to upload image. You can add an image URL manually in the profile.');
       setLoading(false);
     }
   };
@@ -136,6 +165,17 @@ const ProfileScreen = () => {
           multiline
           numberOfLines={4}
         />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Photo URL (paste image link here)"
+          value={photoURL}
+          onChangeText={setPhotoURL}
+          autoCapitalize="none"
+        />
+        <Text style={styles.helpText}>
+          💡 Tip: You can paste an image URL from the web (e.g., from imgur, imgbb, or any image hosting service)
+        </Text>
 
         <TouchableOpacity
           style={styles.saveButton}
@@ -223,6 +263,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: -10,
+    marginBottom: 15,
+    paddingHorizontal: 5,
   },
 });
 

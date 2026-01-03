@@ -48,8 +48,14 @@ try {
 // Initialize Firestore
 const db = getFirestore(app);
 
-// Initialize Storage
-const storage = getStorage(app);
+// Initialize Storage (optional - may not be available on free tier)
+let storage;
+try {
+  storage = getStorage(app);
+} catch (error) {
+  console.warn('Firebase Storage not available:', error);
+  storage = null;
+}
 
 export { auth, db, storage };
 export default app;
