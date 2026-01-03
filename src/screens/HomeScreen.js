@@ -7,8 +7,15 @@ import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import SwipeCard from '../components/Card/SwipeCard';
+import { PreferencesService } from '../services/PreferencesService';
+import { NotificationService } from '../services/NotificationService';
+import { PremiumService } from '../services/PremiumService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// Simple in-memory cache for user profiles
+const userCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const HomeScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
@@ -17,12 +24,35 @@ const HomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastSwipedCard, setLastSwipedCard] = useState(null);
+  const [superLikesUsed, setSuperLikesUsed] = useState(0);
+  const [isPremium, setIsPremium] = useState(false);
+  const [premiumFeatures, setPremiumFeatures] = useState({});
 
   useFocusEffect(
     useCallback(() => {
       loadCards();
+      loadPremiumStatus();
     }, [])
   );
+
+  const loadPremiumStatus = async () => {
+    try {
+      const premiumStatus = await PremiumService.checkPremiumStatus(currentUser.uid);
+      setIsPremium(premiumStatus.isPremium);
+      setPremiumFeatures(premiumStatus.features);
+
+      const superLikesCount = await PremiumService.getSuperLikesUsedToday(currentUser.uid);
+      setSuperLikesUsed(superLikesCount);
+    } catch (error) {
+      console.error('Error loading premium status:', error);
+    }
+  };
+
+  // Periodic cache cleanup
+  useEffect(() => {
+    const cleanupInterval = setInterval(cleanupCache, CACHE_DURATION);
+    return () => clearInterval(cleanupInterval);
+  }, []);
 
   const loadCards = async () => {
     try {
@@ -44,20 +74,47 @@ const HomeScreen = ({ navigation }) => {
 
       const availableUsers = [];
       querySnapshot.forEach((doc) => {
-        const user = { id: doc.id, ...doc.data() };
-        if (
-          user.id !== currentUser.uid &&
-          !swipedUsers.includes(user.id) &&
-          !matches.includes(user.id) &&
-          user.photoURL &&
-          user.name
-        ) {
-          availableUsers.push(user);
+        const userId = doc.id;
+        const cachedUser = userCache.get(userId);
+
+        // Check if user is in cache and not expired
+        if (cachedUser && (Date.now() - cachedUser.cachedAt) < CACHE_DURATION) {
+          const user = cachedUser.data;
+          if (
+            user.id !== currentUser.uid &&
+            !swipedUsers.includes(user.id) &&
+            !matches.includes(user.id) &&
+            user.photoURL &&
+            user.name
+          ) {
+            availableUsers.push(user);
+          }
+        } else {
+          // Cache the user data
+          const userData = doc.data();
+          userCache.set(userId, {
+            data: { id: userId, ...userData },
+            cachedAt: Date.now()
+          });
+
+          const user = { id: userId, ...userData };
+          if (
+            user.id !== currentUser.uid &&
+            !swipedUsers.includes(user.id) &&
+            !matches.includes(user.id) &&
+            user.photoURL &&
+            user.name
+          ) {
+            availableUsers.push(user);
+          }
         }
       });
 
+      // Apply user preferences filtering
+      const filteredUsers = await PreferencesService.filterUsersForDiscovery(currentUser.uid, availableUsers);
+
       // Shuffle for variety
-      const shuffled = availableUsers.sort(() => Math.random() - 0.5);
+      const shuffled = filteredUsers.sort(() => Math.random() - 0.5);
       setCards(shuffled);
       setCurrentIndex(0);
       setLoading(false);
@@ -70,8 +127,19 @@ const HomeScreen = ({ navigation }) => {
 
   const onRefresh = async () => {
     setRefreshing(true);
+    // Clear cache on refresh to get fresh data
+    userCache.clear();
     await loadCards();
     setRefreshing(false);
+  };
+
+  const cleanupCache = () => {
+    const now = Date.now();
+    for (const [userId, cachedData] of userCache.entries()) {
+      if (now - cachedData.cachedAt > CACHE_DURATION) {
+        userCache.delete(userId);
+      }
+    }
   };
 
   const handleSwipeRight = async (card) => {
@@ -101,6 +169,9 @@ const HomeScreen = ({ navigation }) => {
           matches: [...otherMatches, currentUser.uid],
         }, { merge: true });
 
+        // Send match notification to the other user
+        await NotificationService.sendMatchNotification(card.id, userData.name);
+
         // Navigate to matches on match
         setTimeout(() => {
           Alert.alert(
@@ -108,8 +179,8 @@ const HomeScreen = ({ navigation }) => {
             `You and ${card.name} liked each other!`,
             [
               { text: 'Keep Swiping', style: 'cancel' },
-              { 
-                text: 'View Match', 
+              {
+                text: 'View Match',
                 onPress: () => navigation.navigate('Matches')
               }
             ]
@@ -129,7 +200,7 @@ const HomeScreen = ({ navigation }) => {
       const userRef = doc(db, 'users', currentUser.uid);
       const userDoc = await getDoc(userRef);
       const swipedUsers = userDoc.data()?.swipedUsers || [];
-      
+
       await setDoc(userRef, {
         swipedUsers: [...swipedUsers, card.id],
       }, { merge: true });
@@ -137,6 +208,44 @@ const HomeScreen = ({ navigation }) => {
       setCurrentIndex(currentIndex + 1);
     } catch (error) {
       console.error('Error handling swipe:', error);
+    }
+  };
+
+  const handleSuperLike = async (card) => {
+    try {
+      const result = await PremiumService.useSuperLike(currentUser.uid, card.id);
+
+      if (!result.success) {
+        if (result.error === 'Daily super like limit reached') {
+          Alert.alert(
+            'Super Like Limit Reached',
+            `You've used all ${premiumFeatures.superLikesPerDay || 1} super likes for today. Upgrade to premium for more!`,
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Upgrade', onPress: () => {/* TODO: Navigate to premium screen */} }
+            ]
+          );
+        } else {
+          Alert.alert('Error', result.error);
+        }
+        return;
+      }
+
+      // Update local state
+      setSuperLikesUsed(prev => prev + 1);
+
+      // It's automatically a like, so handle as a right swipe
+      await handleSwipeRight(card);
+
+      // Show super like feedback
+      Alert.alert(
+        '💎 Super Liked!',
+        `${card.name} will definitely see your interest!`,
+        [{ text: 'Awesome!', style: 'default' }]
+      );
+    } catch (error) {
+      console.error('Error using super like:', error);
+      Alert.alert('Error', 'Failed to use super like');
     }
   };
 
@@ -235,6 +344,31 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
+      {/* Premium Status Header */}
+      <View style={styles.premiumHeader}>
+        {isPremium ? (
+          <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.premiumBadge}>
+            <Ionicons name="diamond" size={16} color="#fff" />
+            <Text style={styles.premiumText}>PREMIUM</Text>
+          </LinearGradient>
+        ) : (
+          <TouchableOpacity
+            style={styles.upgradePrompt}
+              onPress={() => navigation.navigate('Premium')}
+          >
+            <Ionicons name="diamond-outline" size={16} color="#FFD700" />
+            <Text style={styles.upgradeText}>Upgrade to Premium</Text>
+          </TouchableOpacity>
+        )}
+
+        <View style={styles.superLikeCounter}>
+          <Ionicons name="star" size={16} color="#4ECDC4" />
+          <Text style={styles.counterText}>
+            {Math.max(0, (premiumFeatures.superLikesPerDay || 1) - superLikesUsed)} left
+          </Text>
+        </View>
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -337,16 +471,41 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.superLikeButton}
-            onPress={() => handleButtonSwipe('right')}
+            style={[
+              styles.superLikeButton,
+              superLikesUsed >= (premiumFeatures.superLikesPerDay || 1) && styles.disabledButton,
+            ]}
+            onPress={() => {
+              if (superLikesUsed < (premiumFeatures.superLikesPerDay || 1) && cards.length > 0 && currentIndex < cards.length) {
+                handleSuperLike(cards[currentIndex]);
+              } else if (superLikesUsed >= (premiumFeatures.superLikesPerDay || 1)) {
+                Alert.alert(
+                  'Super Like Limit',
+                  'You\'ve reached your daily limit. Upgrade to premium for unlimited super likes!',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Upgrade', onPress: () => navigation.navigate('Premium') }
+                  ]
+                );
+              }
+            }}
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={['#4ECDC4', '#44A08D']}
+              colors={
+                superLikesUsed >= (premiumFeatures.superLikesPerDay || 1)
+                  ? ['#ccc', '#bbb']
+                  : ['#4ECDC4', '#44A08D']
+              }
               style={styles.actionButtonCircle}
             >
               <Ionicons name="star" size={28} color="#fff" />
             </LinearGradient>
+            {superLikesUsed >= (premiumFeatures.superLikesPerDay || 1) && (
+              <View style={styles.limitBadge}>
+                <Ionicons name="lock-closed" size={12} color="#fff" />
+              </View>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -370,6 +529,62 @@ const HomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  premiumHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 10,
+  },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  premiumText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '800',
+    marginLeft: 4,
+  },
+  upgradePrompt: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#FFD700',
+  },
+  upgradeText: {
+    color: '#FFD700',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  superLikeCounter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(78, 205, 196, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  counterText: {
+    color: '#4ECDC4',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
   },
   scrollContent: {
     flexGrow: 1,
@@ -502,6 +717,22 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  limitBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
   },
 });
 

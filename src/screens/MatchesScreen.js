@@ -14,12 +14,16 @@ import { useAuth } from '../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { PremiumService } from '../services/PremiumService';
 
 const MatchesScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
+  const [receivedLikes, setReceivedLikes] = useState([]);
+  const [showLikes, setShowLikes] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -31,6 +35,16 @@ const MatchesScreen = ({ navigation }) => {
     try {
       const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
       const matchIds = userDoc.data()?.matches || [];
+
+      // Load premium status
+      const premiumStatus = await PremiumService.checkPremiumStatus(currentUser.uid);
+      setIsPremium(premiumStatus.isPremium);
+
+      // Load received likes for premium users
+      if (premiumStatus.features.seeWhoLikedYou) {
+        const likes = await PremiumService.getReceivedSuperLikes(currentUser.uid);
+        setReceivedLikes(likes);
+      }
 
       if (matchIds.length === 0) {
         setMatches([]);
@@ -120,10 +134,108 @@ const MatchesScreen = ({ navigation }) => {
   return (
     <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Your Matches</Text>
-        <Text style={styles.subtitle}>{matches.length} {matches.length === 1 ? 'match' : 'matches'}</Text>
+        <Text style={styles.title}>{showLikes ? 'People Who Liked You' : 'Your Matches'}</Text>
+        <Text style={styles.subtitle}>
+          {showLikes ? `${receivedLikes.length} likes` : `${matches.length} ${matches.length === 1 ? 'match' : 'matches'}`}
+        </Text>
+
+        {isPremium && (
+          <View style={styles.toggleContainer}>
+            <TouchableOpacity
+              style={[styles.toggleButton, !showLikes && styles.toggleButtonActive]}
+              onPress={() => setShowLikes(false)}
+            >
+              <Ionicons name="heart" size={16} color={!showLikes ? '#fff' : '#667eea'} />
+              <Text style={[styles.toggleText, !showLikes && styles.toggleTextActive]}>
+                Matches
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.toggleButton, showLikes && styles.toggleButtonActive]}
+              onPress={() => setShowLikes(true)}
+            >
+              <Ionicons name="star" size={16} color={showLikes ? '#fff' : '#FFD700'} />
+              <Text style={[styles.toggleText, showLikes && styles.toggleTextActive]}>
+                Likes
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
-      {matches.length === 0 ? (
+      {showLikes ? (
+        receivedLikes.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <LinearGradient
+              colors={['#667eea', '#764ba2']}
+              style={styles.emptyCard}
+            >
+              <Ionicons name="star-outline" size={80} color="#fff" />
+              <Text style={styles.emptyTitle}>No likes yet</Text>
+              <Text style={styles.emptyText}>
+                When someone super likes you, they'll appear here!{'\n'}
+                Keep your profile updated to attract more likes.
+              </Text>
+            </LinearGradient>
+          </View>
+        ) : (
+          <FlatList
+            data={receivedLikes}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.matchCard}
+                onPress={() => navigation.navigate('ViewProfile', { userId: item.user.id })}
+                activeOpacity={0.8}
+              >
+                <TouchableOpacity
+                  style={styles.profileButton}
+                  onPress={() => navigation.navigate('ViewProfile', { userId: item.user.id })}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.imageContainer}>
+                    <Image
+                      source={{ uri: item.user.photoURL || 'https://via.placeholder.com/100' }}
+                      style={styles.matchImage}
+                    />
+                    <View style={[styles.onlineIndicator, { backgroundColor: '#FFD700' }]} />
+                  </View>
+                </TouchableOpacity>
+                <View style={styles.matchInfo}>
+                  <View style={styles.nameRow}>
+                    <Text style={styles.matchName}>{item.user.name}</Text>
+                    {item.user.age && <Text style={styles.matchAge}>, {item.user.age}</Text>}
+                    <View style={[styles.superLikeBadge]}>
+                      <Ionicons name="star" size={12} color="#FFD700" />
+                    </View>
+                  </View>
+                  <View style={styles.matchDetails}>
+                    <Text style={styles.likeTime}>
+                      Super liked you {new Date(item.timestamp).toLocaleDateString()}
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Chat', { userId: item.user.id, userName: item.user.name })}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={['#667eea', '#764ba2']}
+                    style={styles.chatButton}
+                  >
+                    <Ionicons name="chatbubble" size={20} color="#fff" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            )}
+            keyExtractor={(item) => item.user.id}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+          />
+        )
+      ) : matches.length === 0 ? (
         <View style={styles.emptyContainer}>
           <LinearGradient
             colors={['#667eea', '#764ba2']}
@@ -173,6 +285,39 @@ const styles = StyleSheet.create({
     color: '#666',
     fontWeight: '600',
   },
+  toggleContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 20,
+    padding: 4,
+    marginTop: 15,
+  },
+  toggleButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+  },
+  toggleButtonActive: {
+    backgroundColor: '#667eea',
+    shadowColor: '#667eea',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  toggleText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#667eea',
+    marginLeft: 4,
+  },
+  toggleTextActive: {
+    color: '#fff',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -205,12 +350,27 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginRight: 15,
   },
+  profileButton: {
+    marginRight: 15,
+  },
   matchImage: {
     width: 70,
     height: 70,
     borderRadius: 35,
     borderWidth: 3,
     borderColor: '#667eea',
+  },
+  chatButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#667eea',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   onlineIndicator: {
     position: 'absolute',
@@ -226,11 +386,15 @@ const styles = StyleSheet.create({
   matchInfo: {
     flex: 1,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
   matchName: {
     fontSize: 20,
     fontWeight: '700',
     color: '#333',
-    marginBottom: 5,
   },
   matchDetails: {
     flexDirection: 'row',
@@ -242,6 +406,20 @@ const styles = StyleSheet.create({
     color: '#667eea',
     fontWeight: '600',
     marginRight: 10,
+  },
+  superLikeBadge: {
+    marginLeft: 8,
+    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FFD700',
+  },
+  likeTime: {
+    fontSize: 12,
+    color: '#999',
+    fontStyle: 'italic',
   },
   matchBio: {
     fontSize: 14,

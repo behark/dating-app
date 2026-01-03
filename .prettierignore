@@ -1,0 +1,17 @@
+# ESLint and Prettier
+.eslintcache
+*.log
+
+# Testing
+coverage/
+__snapshots__/
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

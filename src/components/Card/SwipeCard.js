@@ -10,6 +10,8 @@ import Animated, {
   withSpring,
   runOnJS,
 } from 'react-native-reanimated';
+import { VerificationService } from '../../services/VerificationService';
+import { LocationService } from '../../services/LocationService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
@@ -78,7 +80,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) =>
 
   return (
     <PanGestureHandler onGestureEvent={gestureHandler}>
-      <Animated.View style={[styles.card, cardStyle]}>
+      <Animated.View style={[styles.card, cardStyle]} testID="swipe-card">
         <Image 
           source={{ uri: card.photoURL || 'https://via.placeholder.com/400' }} 
           style={styles.image}
@@ -88,6 +90,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) =>
           style={styles.infoButton}
           onPress={() => onViewProfile && onViewProfile()}
           activeOpacity={0.8}
+          testID="info-button"
         >
           <LinearGradient
             colors={['rgba(102, 126, 234, 0.9)', 'rgba(118, 75, 162, 0.9)']}
@@ -106,7 +109,17 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) =>
             <View style={styles.nameRow}>
               <Text style={styles.name}>{card.name || 'Unknown'}</Text>
               {card.age && <Text style={styles.age}>, {card.age}</Text>}
+              {VerificationService.getVerificationBadgeInfo(card).showBadge && (
+                <View style={[styles.verificationBadge, { backgroundColor: VerificationService.getVerificationBadgeInfo(card).badgeColor }]}>
+                  <Ionicons name={VerificationService.getVerificationBadgeInfo(card).iconName} size={12} color="#fff" />
+                </View>
+              )}
             </View>
+            {card.distance && (
+              <Text style={styles.distance}>
+                {LocationService.getLocationDisplayString(card.distance)}
+              </Text>
+            )}
             {card.bio && (
               <Text style={styles.bio} numberOfLines={3}>
                 {card.bio}
@@ -195,7 +208,7 @@ const styles = StyleSheet.create({
   },
   nameRow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     marginBottom: 8,
   },
   name: {
@@ -215,6 +228,24 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
+  },
+  verificationBadge: {
+    marginLeft: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  distance: {
+    fontSize: 14,
+    color: '#fff',
+    opacity: 0.8,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   bio: {
     fontSize: 17,

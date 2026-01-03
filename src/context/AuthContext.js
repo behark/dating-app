@@ -4,6 +4,8 @@ import { auth } from '../config/firebase';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import Constants from 'expo-constants';
+import { NotificationService } from '../services/NotificationService';
+import { LocationService } from '../services/LocationService';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -25,8 +27,17 @@ export const AuthProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
+
+      if (user) {
+        // Register for push notifications
+        await NotificationService.registerForPushNotifications(user.uid);
+
+        // Update user location
+        await LocationService.updateLocationOnLogin(user.uid);
+      }
+
       setLoading(false);
     });
 

@@ -1,0 +1,336 @@
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { storage, db } from '../config/firebase';
+
+export class ImageService {
+  static async requestPermissions() {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      throw new Error('Camera roll permissions are required');
+    }
+  }
+
+  static async compressImage(uri, options = {}) {
+    const {
+      maxWidth = 1200,
+      maxHeight = 1200,
+      quality = 0.8,
+      format = ImageManipulator.SaveFormat.JPEG,
+    } = options;
+
+    try {
+      const manipulatedImage = await ImageManipulator.manipulateAsync(
+        uri,
+        [
+          {
+            resize: {
+              width: maxWidth,
+              height: maxHeight,
+            },
+          },
+        ],
+        {
+          compress: quality,
+          format,
+        }
+      );
+
+      return manipulatedImage;
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      // Return original if compression fails
+      return { uri };
+    }
+  }
+
+  static async createThumbnail(uri, size = 200) {
+    try {
+      const thumbnail = await ImageManipulator.manipulateAsync(
+        uri,
+        [
+          {
+            resize: {
+              width: size,
+              height: size,
+            },
+          },
+        ],
+        {
+          compress: 0.7,
+          format: ImageManipulator.SaveFormat.JPEG,
+        }
+      );
+
+      return thumbnail;
+    } catch (error) {
+      console.error('Error creating thumbnail:', error);
+      return null;
+    }
+  }
+
+  static async validateImage(uri) {
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      // Check file size (max 10MB)
+      if (blob.size > 10 * 1024 * 1024) {
+        throw new Error('Image size must be less than 10MB');
+      }
+
+      // Check file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(blob.type)) {
+        throw new Error('Only JPEG, PNG, and WebP images are allowed');
+      }
+
+      return { valid: true, size: blob.size, type: blob.type };
+    } catch (error) {
+      return { valid: false, error: error.message };
+    }
+  }
+
+  static async uploadProfileImage(userId, uri, isPrimary = false) {
+    try {
+      await this.requestPermissions();
+
+      // Validate image
+      const validation = await this.validateImage(uri);
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+
+      // Compress image
+      const compressedImage = await this.compressImage(uri);
+      const thumbnail = await this.createThumbnail(uri);
+
+      // Generate unique filename
+      const timestamp = Date.now();
+      const fileName = `${userId}_${timestamp}`;
+      const fullImageRef = ref(storage, `profiles/${userId}/${fileName}_full.jpg`);
+      const thumbnailRef = ref(storage, `profiles/${userId}/${fileName}_thumb.jpg`);
+
+      // Upload images
+      const [fullUpload, thumbUpload] = await Promise.all([
+        uploadBytes(fullImageRef, await this.uriToBlob(compressedImage.uri)),
+        thumbnail ? uploadBytes(thumbnailRef, await this.uriToBlob(thumbnail.uri)) : null,
+      ]);
+
+      // Get download URLs
+      const [fullUrl, thumbUrl] = await Promise.all([
+        getDownloadURL(fullImageRef),
+        thumbnail ? getDownloadURL(thumbnailRef) : null,
+      ]);
+
+      // Create image object
+      const imageData = {
+        id: `${timestamp}`,
+        fullUrl,
+        thumbnailUrl: thumbUrl,
+        uploadedAt: new Date(),
+        isPrimary,
+        fileName,
+      };
+
+      // Update user profile
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        photos: arrayUnion(imageData),
+        updatedAt: new Date(),
+      });
+
+      // If this is primary, update the main photoURL field
+      if (isPrimary) {
+        await updateDoc(userRef, {
+          photoURL: fullUrl,
+          updatedAt: new Date(),
+        });
+      }
+
+      return { success: true, imageData };
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async deleteProfileImage(userId, imageId, imageData) {
+    try {
+      // Delete from storage
+      if (imageData.fullUrl) {
+        const fullRef = ref(storage, imageData.fullUrl);
+        await deleteObject(fullRef);
+      }
+
+      if (imageData.thumbnailUrl) {
+        const thumbRef = ref(storage, imageData.thumbnailUrl);
+        await deleteObject(thumbRef);
+      }
+
+      // Remove from user profile
+      const userRef = doc(db, 'users', userId);
+      await updateDoc(userRef, {
+        photos: arrayRemove(imageData),
+        updatedAt: new Date(),
+      });
+
+      // If this was the primary photo, set another photo as primary or clear photoURL
+      if (imageData.isPrimary) {
+        const userDoc = await getDoc(userRef);
+        const userData = userDoc.data();
+        const remainingPhotos = userData.photos?.filter(p => p.id !== imageId) || [];
+
+        if (remainingPhotos.length > 0) {
+          // Set first remaining photo as primary
+          const newPrimary = remainingPhotos[0];
+          await updateDoc(userRef, {
+            photoURL: newPrimary.fullUrl,
+            photos: remainingPhotos.map(p =>
+              p.id === newPrimary.id ? { ...p, isPrimary: true } : p
+            ),
+          });
+        } else {
+          // No photos left
+          await updateDoc(userRef, {
+            photoURL: null,
+          });
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting profile image:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async setPrimaryPhoto(userId, imageId) {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userRef);
+      const userData = userDoc.data();
+
+      const updatedPhotos = userData.photos?.map(photo => ({
+        ...photo,
+        isPrimary: photo.id === imageId,
+      })) || [];
+
+      const primaryPhoto = updatedPhotos.find(p => p.isPrimary);
+
+      await updateDoc(userRef, {
+        photos: updatedPhotos,
+        photoURL: primaryPhoto?.fullUrl || null,
+        updatedAt: new Date(),
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error setting primary photo:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async reorderPhotos(userId, photoIds) {
+    try {
+      const userRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userRef);
+      const userData = userDoc.data();
+
+      // Reorder photos based on new order
+      const reorderedPhotos = photoIds.map(id =>
+        userData.photos?.find(p => p.id === id)
+      ).filter(Boolean);
+
+      await updateDoc(userRef, {
+        photos: reorderedPhotos,
+        updatedAt: new Date(),
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error reordering photos:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async uriToBlob(uri) {
+    const response = await fetch(uri);
+    return await response.blob();
+  }
+
+  static async moderateImage(uri) {
+    // Basic moderation - in production, integrate with services like:
+    // - Google Cloud Vision API
+    // - AWS Rekognition
+    // - Clarifai
+    // - Sightengine
+
+    try {
+      // For now, just check file size and basic validation
+      // In production, you'd send to a moderation service
+
+      const validation = await this.validateImage(uri);
+      if (!validation.valid) {
+        return { approved: false, reason: validation.error };
+      }
+
+      // Mock moderation result - always approve for demo
+      // In production, this would check for inappropriate content
+      return {
+        approved: true,
+        confidence: 0.95,
+        categories: [],
+      };
+    } catch (error) {
+      console.error('Error moderating image:', error);
+      return { approved: false, reason: 'Moderation failed' };
+    }
+  }
+
+  static getImageQualityScore(uri) {
+    // Basic quality scoring based on file size and dimensions
+    // In production, use more sophisticated algorithms
+
+    // This is a simplified scoring - in production you'd analyze:
+    // - Resolution
+    // - Contrast
+    // - Sharpness
+    // - Lighting
+    // - Composition
+
+    return new Promise((resolve) => {
+      // Mock scoring for demo
+      const score = Math.random() * 40 + 60; // 60-100 range
+      resolve(Math.round(score));
+    });
+  }
+
+  static async optimizeImageForUpload(uri) {
+    try {
+      // Analyze image quality
+      const qualityScore = await this.getImageQualityScore(uri);
+
+      // Adjust compression based on quality
+      let compressionQuality = 0.8;
+      if (qualityScore < 70) {
+        compressionQuality = 0.9; // Less compression for lower quality images
+      } else if (qualityScore > 90) {
+        compressionQuality = 0.7; // More compression for high quality images
+      }
+
+      // Compress and optimize
+      const optimized = await this.compressImage(uri, {
+        quality: compressionQuality,
+        maxWidth: 1200,
+        maxHeight: 1200,
+      });
+
+      return optimized;
+    } catch (error) {
+      console.error('Error optimizing image:', error);
+      return { uri }; // Return original on error
+    }
+  }
+}

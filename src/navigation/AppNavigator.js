@@ -10,6 +10,10 @@ import MatchesScreen from '../screens/MatchesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import ChatScreen from '../screens/ChatScreen';
 import ViewProfileScreen from '../screens/ViewProfileScreen';
+import PreferencesScreen from '../screens/PreferencesScreen';
+import VerificationScreen from '../screens/VerificationScreen';
+import PremiumScreen from '../screens/PremiumScreen';
+import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -92,7 +96,39 @@ const AppNavigator = () => {
             <Stack.Screen
               name="ViewProfile"
               component={ViewProfileScreen}
-              options={{ 
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="Preferences"
+              component={PreferencesScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="Verification"
+              component={VerificationScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="Premium"
+              component={PremiumScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="PhotoGallery"
+              component={PhotoGalleryScreen}
+              options={{
                 headerShown: false,
                 presentation: 'card',
               }}

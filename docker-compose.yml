@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  dating-app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npx serve -s web-build -l 3000
+
+  # For development with hot reload
+  dating-app-dev:
+    build: .
+    ports:
+      - "19006:19006"
+    environment:
+      - NODE_ENV=development
+      - EXPO_DEV=true
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npx expo start --web --clear

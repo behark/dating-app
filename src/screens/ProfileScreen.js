@@ -63,24 +63,51 @@ const ProfileScreen = () => {
     }
   };
 
+  const compressImage = async (uri) => {
+    // Basic image compression - in production, consider using react-native-image-picker's compression
+    // or a library like react-native-image-resizer
+    return new Promise((resolve) => {
+      // For now, return the original URI - in production you'd compress here
+      resolve(uri);
+    });
+  };
+
   const uploadImage = async (uri) => {
     try {
       setLoading(true);
-      
+
+      // Compress image before upload
+      const compressedUri = await compressImage(uri);
+
       if (storage) {
         try {
-          const response = await fetch(uri);
+          const response = await fetch(compressedUri);
           const blob = await response.blob();
+
+          // Check file size (limit to 2MB after compression)
+          if (blob.size > 2 * 1024 * 1024) {
+            Alert.alert('Error', 'Image is too large. Please choose a smaller image.');
+            setLoading(false);
+            return;
+          }
+
           const imageRef = ref(storage, `profiles/${currentUser.uid}/${Date.now()}.jpg`);
-          
-          await uploadBytes(imageRef, blob);
+
+          await uploadBytes(imageRef, blob, {
+            contentType: 'image/jpeg',
+            customMetadata: {
+              uploadedBy: currentUser.uid,
+              uploadedAt: new Date().toISOString(),
+            }
+          });
+
           const downloadURL = await getDownloadURL(imageRef);
           setPhotoURL(downloadURL);
           setLoading(false);
           return;
         } catch (storageError) {
           console.warn('Firebase Storage not available:', storageError);
-          setPhotoURL(uri);
+          setPhotoURL(compressedUri);
           Alert.alert(
             'Storage Not Available',
             'Firebase Storage is not enabled. You can use an image URL instead.',
@@ -89,8 +116,8 @@ const ProfileScreen = () => {
           setLoading(false);
         }
       }
-      
-      setPhotoURL(uri);
+
+      setPhotoURL(compressedUri);
       Alert.alert(
         'Storage Not Available',
         'Firebase Storage is not enabled. You can use an image URL instead.',
@@ -99,27 +126,48 @@ const ProfileScreen = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error uploading image:', error);
-      Alert.alert('Error', 'Failed to upload image. You can add an image URL manually.');
+      Alert.alert('Error', 'Failed to upload image. Please try again or use an image URL.');
       setLoading(false);
     }
   };
 
+  const validateProfileData = () => {
+    if (!name || name.trim().length < 2) {
+      Alert.alert('Error', 'Please enter a valid name (at least 2 characters)');
+      return false;
+    }
+
+    const ageNum = parseInt(age);
+    if (!age || isNaN(ageNum) || ageNum < 18 || ageNum > 100) {
+      Alert.alert('Error', 'Please enter a valid age between 18 and 100');
+      return false;
+    }
+
+    if (bio && bio.length > 500) {
+      Alert.alert('Error', 'Bio must be less than 500 characters');
+      return false;
+    }
+
+    return true;
+  };
+
   const saveProfile = async () => {
-    if (!name || !age) {
-      Alert.alert('Error', 'Please fill in name and age');
+    if (!validateProfileData()) {
       return;
     }
+
     try {
       setLoading(true);
       await setDoc(doc(db, 'users', currentUser.uid), {
-        name,
+        name: name.trim(),
         age: parseInt(age),
-        bio,
+        bio: bio ? bio.trim() : '',
         photoURL,
         email: currentUser.email,
         createdAt: new Date(),
+        updatedAt: new Date(),
       }, { merge: true });
-      
+
       Alert.alert('Success', 'Profile updated successfully!');
       setLoading(false);
     } catch (error) {
@@ -145,7 +193,7 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.card}>
-          <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
+          <TouchableOpacity onPress={() => navigation.navigate('PhotoGallery')} style={styles.imageContainer}>
             {photoURL ? (
               <Image source={{ uri: photoURL }} style={styles.image} />
             ) : (
@@ -158,7 +206,7 @@ const ProfileScreen = () => {
               </LinearGradient>
             )}
             <View style={styles.editBadge}>
-              <Ionicons name="pencil" size={16} color="#fff" />
+              <Ionicons name="images" size={16} color="#fff" />
             </View>
           </TouchableOpacity>
 
@@ -230,8 +278,51 @@ const ProfileScreen = () => {
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.logoutButton} 
+          <View style={styles.buttonGroup}>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('Preferences')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="settings" size={20} color="#667eea" style={{ marginRight: 8 }} />
+              <Text style={styles.secondaryButtonText}>Preferences</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('Verification')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="shield-checkmark" size={20} color="#4ECDC4" style={{ marginRight: 8 }} />
+              <Text style={styles.secondaryButtonText}>Verification</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => navigation.navigate('PhotoGallery')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="images" size={20} color="#FF6B6B" style={{ marginRight: 8 }} />
+              <Text style={styles.secondaryButtonText}>Photo Gallery</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.premiumButton}
+              onPress={() => navigation.navigate('Premium')}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={['#FFD700', '#FFA500']}
+                style={styles.premiumButtonGradient}
+              >
+                <Ionicons name="diamond" size={20} color="#fff" style={{ marginRight: 8 }} />
+                <Text style={styles.premiumButtonText}>Go Premium</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.logoutButton}
             onPress={logout}
             activeOpacity={0.8}
           >
@@ -381,6 +472,47 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontSize: 18,
+    fontWeight: '700',
+  },
+  buttonGroup: {
+    marginTop: 20,
+    marginBottom: 15,
+  },
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#e9ecef',
+    borderRadius: 15,
+    paddingVertical: 15,
+    marginBottom: 10,
+  },
+  secondaryButtonText: {
+    color: '#667eea',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  premiumButton: {
+    borderRadius: 15,
+    overflow: 'hidden',
+    marginTop: 10,
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  premiumButtonGradient: {
+    flexDirection: 'row',
+    paddingVertical: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  premiumButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: '700',
   },
   logoutButton: {

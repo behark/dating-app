@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,30 +23,87 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { NotificationService } from '../services/NotificationService';
 
 const ChatScreen = ({ route, navigation }) => {
   const { userId, userName } = route.params;
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const flatListRef = useRef();
+  const lastMessageRef = useRef();
 
+  const loadMessages = async (loadMore = false) => {
+    if (loading || (loadMore && !hasMoreMessages)) return;
+
+    try {
+      if (loadMore) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+
+      const chatId = [currentUser.uid, userId].sort().join('_');
+      const messagesRef = collection(db, 'chats', chatId, 'messages');
+
+      let q = query(messagesRef, orderBy('createdAt', 'desc'), limit(20));
+
+      if (loadMore && messages.length > 0) {
+        const lastMessage = messages[0];
+        q = query(messagesRef, orderBy('createdAt', 'desc'),
+                 startAfter(lastMessage.createdAt), limit(20));
+      }
+
+      const snapshot = await getDocs(q);
+      const newMessages = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })).reverse(); // Reverse to show oldest first
+
+      if (loadMore) {
+        setMessages(prevMessages => [...newMessages, ...prevMessages]);
+        setHasMoreMessages(newMessages.length === 20);
+      } else {
+        setMessages(newMessages);
+        setHasMoreMessages(snapshot.docs.length === 20);
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      }
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMessages();
+  }, [userId]);
+
+  // Real-time listener for new messages
   useEffect(() => {
     const chatId = [currentUser.uid, userId].sort().join('_');
     const messagesRef = collection(db, 'chats', chatId, 'messages');
     const q = query(messagesRef, orderBy('createdAt', 'asc'));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const messagesData = snapshot.docs.map((doc) => ({
+      const latestMessages = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setMessages(messagesData);
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+
+      // Only update if we have new messages
+      if (latestMessages.length > messages.length) {
+        setMessages(latestMessages);
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 100);
+      }
     });
 
     return unsubscribe;
-  }, [userId]);
+  }, [userId, messages.length]);
 
   const sendMessage = async () => {
     if (messageText.trim() === '') return;
@@ -54,15 +113,25 @@ const ChatScreen = ({ route, navigation }) => {
       const messagesRef = collection(db, 'chats', chatId, 'messages');
 
       await addDoc(messagesRef, {
-        text: messageText,
+        text: messageText.trim(),
         senderId: currentUser.uid,
         receiverId: userId,
         createdAt: serverTimestamp(),
       });
 
+      // Send message notification to the recipient
+      await NotificationService.sendMessageNotification(userId, currentUser.displayName || currentUser.email, messageText.trim());
+
       setMessageText('');
     } catch (error) {
       console.error('Error sending message:', error);
+      Alert.alert('Error', 'Failed to send message. Please try again.');
+    }
+  };
+
+  const loadMoreMessages = () => {
+    if (!loadingMore && hasMoreMessages && messages.length > 0) {
+      loadMessages(true);
     }
   };
 
@@ -122,15 +191,33 @@ const ChatScreen = ({ route, navigation }) => {
           <Ionicons name="heart" size={24} color="#fff" style={{ opacity: 0 }} />
         </LinearGradient>
 
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.messagesList}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-          showsVerticalScrollIndicator={false}
-        />
+        {loading && messages.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#667eea" />
+            <Text style={styles.loadingText}>Loading messages...</Text>
+          </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.messagesList}
+            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            showsVerticalScrollIndicator={false}
+            onEndReached={loadMoreMessages}
+            onEndReachedThreshold={0.1}
+            ListHeaderComponent={
+              loadingMore ? (
+                <View style={styles.loadMoreContainer}>
+                  <ActivityIndicator size="small" color="#667eea" />
+                  <Text style={styles.loadMoreText}>Loading more messages...</Text>
+                </View>
+              ) : null
+            }
+            inverted={false} // Keep normal order, we'll handle scrolling
+          />
+        )}
 
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
@@ -267,6 +354,28 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#999',
     alignSelf: 'flex-end',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#667eea',
+    fontWeight: '600',
+  },
+  loadMoreContainer: {
+    padding: 10,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  },
+  loadMoreText: {
+    marginTop: 5,
+    fontSize: 12,
+    color: '#999',
   },
   inputContainer: {
     flexDirection: 'row',

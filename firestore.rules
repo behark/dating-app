@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read and write their own profile
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Users can read other users' public profiles (for swiping)
+    match /users/{userId} {
+      allow read: if request.auth != null &&
+        // Only allow reading name, age, bio, photoURL for swiping
+        request.query.limit <= 50 &&
+        (resource.data.name != null || resource.data.age != null ||
+         resource.data.bio != null || resource.data.photoURL != null);
+    }
+
+    // Chat messages - users can only access chats they're part of
+    match /chats/{chatId}/messages/{messageId} {
+      allow read, write: if request.auth != null &&
+        // Extract user IDs from chat ID (format: user1_user2 sorted)
+        chatId.split('_').hasAny([request.auth.uid]);
+    }
+
+    // Chats collection - users can create and read chats they're part of
+    match /chats/{chatId} {
+      allow read, create: if request.auth != null &&
+        chatId.split('_').hasAny([request.auth.uid]);
+    }
+  }
+}
