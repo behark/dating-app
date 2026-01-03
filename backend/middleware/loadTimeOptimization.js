@@ -56,21 +56,35 @@ const etagMiddleware = (req, res, next) => {
   const originalJson = res.json.bind(res);
   
   res.json = function(data) {
+    // Check if headers already sent
+    if (res.headersSent) {
+      return originalJson(data);
+    }
+
     if (req.method === 'GET' && res.statusCode === 200) {
-      const crypto = require('crypto');
-      const hash = crypto
-        .createHash('md5')
-        .update(JSON.stringify(data))
-        .digest('hex')
-        .substring(0, 12);
-      
-      const etag = `W/"${hash}"`;
-      res.set('ETag', etag);
-      
-      // Check If-None-Match header
-      const ifNoneMatch = req.get('If-None-Match');
-      if (ifNoneMatch === etag) {
-        return res.status(304).end();
+      try {
+        const crypto = require('crypto');
+        const hash = crypto
+          .createHash('md5')
+          .update(JSON.stringify(data))
+          .digest('hex')
+          .substring(0, 12);
+        
+        const etag = `W/"${hash}"`;
+        
+        // Only set header if not already sent
+        if (!res.headersSent) {
+          res.set('ETag', etag);
+        }
+        
+        // Check If-None-Match header
+        const ifNoneMatch = req.get('If-None-Match');
+        if (ifNoneMatch === etag && !res.headersSent) {
+          return res.status(304).end();
+        }
+      } catch (error) {
+        // If ETag generation fails, just continue with normal response
+        console.error('ETag generation error:', error);
       }
     }
     
@@ -82,22 +96,30 @@ const etagMiddleware = (req, res, next) => {
 
 /**
  * Response time logging middleware
+ * NOTE: This is a simplified version - detailed metrics are handled by metricsMiddleware
  */
 const responseTimeMiddleware = (req, res, next) => {
   const startTime = Date.now();
   
   res.on('finish', () => {
+    // Only log if headers haven't been sent (safety check)
+    if (res.headersSent) {
+      return;
+    }
+
     const duration = Date.now() - startTime;
     const route = req.route?.path || req.path;
     const method = req.method;
     
-    // Log slow requests (>500ms)
+    // Log slow requests (>500ms) - async to avoid blocking
     if (duration > 500) {
-      console.warn(`[SLOW] ${method} ${route} - ${duration}ms`);
+      setImmediate(() => {
+        console.warn(`[SLOW] ${method} ${route} - ${duration}ms`);
+      });
     }
     
-    // Add timing header
-    res.set('X-Response-Time', `${duration}ms`);
+    // Don't set header here - metricsMiddleware handles it
+    // This prevents duplicate header setting
   });
   
   next();

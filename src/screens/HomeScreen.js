@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
-import { useCallback, useEffect, useState } from 'react';
-import { Alert, Dimensions, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useEffect, useState, startTransition } from 'react';
+import { Alert, Dimensions, InteractionManager, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import SwipeCard from '../components/Card/SwipeCard';
 import StreakCard from '../components/Gamification/StreakCard';
 import DailyRewardNotification from '../components/Gamification/DailyRewardNotification';
@@ -13,6 +13,7 @@ import { LocationService } from '../services/LocationService';
 import { PreferencesService } from '../services/PreferencesService';
 import { PremiumService } from '../services/PremiumService';
 import { SwipeController } from '../services/SwipeController';
+import { GamificationService } from '../services/GamificationService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -201,172 +202,211 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const handleSwipeRight = async (card) => {
-    try {
-      // Check swipe limit
-      const limitCheck = await SwipeController.checkSwipeLimit(currentUser.uid, isPremium);
-      if (!limitCheck.canSwipe) {
-        Alert.alert(
-          'Daily Limit Reached',
-          `You've reached your daily swipe limit (50). Upgrade to Premium for unlimited swipes!`,
-          [
-            { text: 'Keep Going', style: 'cancel' },
-            { text: 'Upgrade', onPress: () => navigation.navigate('Premium') }
-          ]
-        );
-        return;
-      }
-
+  const handleSwipeRight = useCallback(async (card) => {
+    // Immediately update UI (non-blocking)
+    startTransition(() => {
       setLastSwipedCard({ card, direction: 'right', swipeId: null });
-      
-      // Use SwipeController to save the swipe and check for matches
-      const result = await SwipeController.saveSwipe(currentUser.uid, card.id, 'like', isPremium);
-
-      if (!result.success) {
-        if (result.limitExceeded) {
-          Alert.alert(
-            'Daily Limit Reached',
-            `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
-          );
-        } else {
-          Alert.alert('Error', result.error || 'Failed to save swipe');
-        }
-        return;
-      }
-
-      // Update lastSwipedCard with swipeId for undo functionality
-      setLastSwipedCard({ card, direction: 'right', swipeId: result.swipeId });
-
-      // Update swipe counter display
+      setCurrentIndex(prev => prev + 1);
       const newCount = swipesUsedToday + 1;
       setSwipesUsedToday(newCount);
       if (!isPremium) {
         setSwipesRemaining(Math.max(0, 50 - newCount));
       }
+    });
 
-      // Track swipe for gamification
+    // Defer heavy async work to avoid blocking UI
+    InteractionManager.runAfterInteractions(async () => {
       try {
-        const streakResult = await GamificationService.trackSwipe(currentUser.uid, 'like');
-        if (streakResult) {
-          setCurrentStreak(streakResult.currentStreak || 0);
-          setLongestStreak(streakResult.longestStreak || 0);
+        // Check swipe limit
+        const limitCheck = await SwipeController.checkSwipeLimit(currentUser.uid, isPremium);
+        if (!limitCheck.canSwipe) {
+          setTimeout(() => {
+            Alert.alert(
+              'Daily Limit Reached',
+              `You've reached your daily swipe limit (50). Upgrade to Premium for unlimited swipes!`,
+              [
+                { text: 'Keep Going', style: 'cancel' },
+                { text: 'Upgrade', onPress: () => navigation.navigate('Premium') }
+              ]
+            );
+          }, 0);
+          return;
+        }
+      
+        // Use SwipeController to save the swipe and check for matches
+        const result = await SwipeController.saveSwipe(currentUser.uid, card.id, 'like', isPremium);
+
+        if (!result.success) {
+          if (result.limitExceeded) {
+            setTimeout(() => {
+              Alert.alert(
+                'Daily Limit Reached',
+                `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
+              );
+            }, 0);
+          } else {
+            setTimeout(() => {
+              Alert.alert('Error', result.error || 'Failed to save swipe');
+            }, 0);
+          }
+          return;
+        }
+
+        // Update lastSwipedCard with swipeId for undo functionality (non-blocking)
+        startTransition(() => {
+          setLastSwipedCard({ card, direction: 'right', swipeId: result.swipeId });
+        });
+
+        // Track swipe for gamification (deferred, non-critical)
+        setTimeout(async () => {
+          try {
+            const streakResult = await GamificationService.trackSwipe(currentUser.uid, 'like');
+            if (streakResult) {
+              startTransition(() => {
+                setCurrentStreak(streakResult.currentStreak || 0);
+                setLongestStreak(streakResult.longestStreak || 0);
+              });
+            }
+          } catch (error) {
+            console.error('Error tracking swipe for gamification:', error);
+          }
+        }, 100);
+
+        // If it's a match, show the match alert (deferred)
+        if (result.match && result.matchId) {
+          setTimeout(() => {
+            Alert.alert(
+              '🎉 It\'s a Match!',
+              `You and ${card.name} liked each other!`,
+              [
+                { text: 'Keep Swiping', style: 'cancel' },
+                {
+                  text: 'View Match',
+                  onPress: () => navigation.navigate('Matches')
+                }
+              ]
+            );
+          }, 500);
         }
       } catch (error) {
-        console.error('Error tracking swipe for gamification:', error);
-      }
-
-      // If it's a match, show the match alert
-      if (result.match && result.matchId) {
+        console.error('Error handling swipe:', error);
         setTimeout(() => {
-          Alert.alert(
-            '🎉 It\'s a Match!',
-            `You and ${card.name} liked each other!`,
-            [
-              { text: 'Keep Swiping', style: 'cancel' },
-              {
-                text: 'View Match',
-                onPress: () => navigation.navigate('Matches')
-              }
-            ]
-          );
-        }, 500);
+          Alert.alert('Error', 'Failed to process swipe');
+        }, 0);
       }
+    });
+  }, [currentUser.uid, isPremium, swipesUsedToday, navigation]);
 
-      setCurrentIndex(currentIndex + 1);
-    } catch (error) {
-      console.error('Error handling swipe:', error);
-      Alert.alert('Error', 'Failed to process swipe');
-    }
-  };
-
-  const handleSwipeLeft = async (card) => {
-    try {
-      // Check swipe limit
-      const limitCheck = await SwipeController.checkSwipeLimit(currentUser.uid, isPremium);
-      if (!limitCheck.canSwipe) {
-        Alert.alert(
-          'Daily Limit Reached',
-          `You've reached your daily swipe limit (50). Upgrade to Premium for unlimited swipes!`,
-          [
-            { text: 'Keep Going', style: 'cancel' },
-            { text: 'Upgrade', onPress: () => navigation.navigate('Premium') }
-          ]
-        );
-        return;
-      }
-
+  const handleSwipeLeft = useCallback(async (card) => {
+    // Immediately update UI (non-blocking)
+    startTransition(() => {
       setLastSwipedCard({ card, direction: 'left', swipeId: null });
-      
-      // Use SwipeController to save the dislike
-      const result = await SwipeController.saveSwipe(currentUser.uid, card.id, 'dislike', isPremium);
-
-      if (!result.success) {
-        if (result.limitExceeded) {
-          Alert.alert(
-            'Daily Limit Reached',
-            `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
-          );
-        } else {
-          console.error('Error saving swipe:', result.error);
-        }
-        // Continue anyway to update UI
-      }
-
-      // Update lastSwipedCard with swipeId for undo functionality
-      setLastSwipedCard({ card, direction: 'left', swipeId: result.swipeId });
-
-      // Update swipe counter display
+      setCurrentIndex(prev => prev + 1);
       const newCount = swipesUsedToday + 1;
       setSwipesUsedToday(newCount);
       if (!isPremium) {
         setSwipesRemaining(Math.max(0, 50 - newCount));
       }
+    });
 
-      setCurrentIndex(currentIndex + 1);
-    } catch (error) {
-      console.error('Error handling swipe:', error);
-    }
-  };
-
-  const handleSuperLike = async (card) => {
-    try {
-      const result = await PremiumService.useSuperLike(currentUser.uid, card.id);
-
-      if (!result.success) {
-        if (result.error === 'Daily super like limit reached') {
-          Alert.alert(
-            'Super Like Limit Reached',
-            `You've used all ${premiumFeatures.superLikesPerDay || 1} super likes for today. Upgrade to premium for more!`,
-            [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Upgrade', onPress: () => {/* TODO: Navigate to premium screen */} }
-            ]
-          );
-        } else {
-          Alert.alert('Error', result.error);
+    // Defer heavy async work to avoid blocking UI
+    InteractionManager.runAfterInteractions(async () => {
+      try {
+        // Check swipe limit
+        const limitCheck = await SwipeController.checkSwipeLimit(currentUser.uid, isPremium);
+        if (!limitCheck.canSwipe) {
+          setTimeout(() => {
+            Alert.alert(
+              'Daily Limit Reached',
+              `You've reached your daily swipe limit (50). Upgrade to Premium for unlimited swipes!`,
+              [
+                { text: 'Keep Going', style: 'cancel' },
+                { text: 'Upgrade', onPress: () => navigation.navigate('Premium') }
+              ]
+            );
+          }, 0);
+          return;
         }
-        return;
+      
+        // Use SwipeController to save the dislike
+        const result = await SwipeController.saveSwipe(currentUser.uid, card.id, 'dislike', isPremium);
+
+        if (!result.success) {
+          if (result.limitExceeded) {
+            setTimeout(() => {
+              Alert.alert(
+                'Daily Limit Reached',
+                `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
+              );
+            }, 0);
+          } else {
+            console.error('Error saving swipe:', result.error);
+          }
+          // Continue anyway to update UI
+        }
+
+        // Update lastSwipedCard with swipeId for undo functionality (non-blocking)
+        startTransition(() => {
+          setLastSwipedCard({ card, direction: 'left', swipeId: result.swipeId });
+        });
+      } catch (error) {
+        console.error('Error handling swipe:', error);
       }
+    });
+  }, [currentUser.uid, isPremium, swipesUsedToday, navigation]);
 
-      // Update local state
+  const handleSuperLike = useCallback(async (card) => {
+    // Immediately update UI
+    startTransition(() => {
       setSuperLikesUsed(prev => prev + 1);
+    });
 
-      // It's automatically a like, so handle as a right swipe
-      await handleSwipeRight(card);
+    // Defer heavy async work
+    InteractionManager.runAfterInteractions(async () => {
+      try {
+        const result = await PremiumService.useSuperLike(currentUser.uid, card.id);
 
-      // Show super like feedback
-      Alert.alert(
-        '💎 Super Liked!',
-        `${card.name} will definitely see your interest!`,
-        [{ text: 'Awesome!', style: 'default' }]
-      );
-    } catch (error) {
-      console.error('Error using super like:', error);
-      Alert.alert('Error', 'Failed to use super like');
-    }
-  };
+        if (!result.success) {
+          if (result.error === 'Daily super like limit reached') {
+            setTimeout(() => {
+              Alert.alert(
+                'Super Like Limit Reached',
+                `You've used all ${premiumFeatures.superLikesPerDay || 1} super likes for today. Upgrade to premium for more!`,
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Upgrade', onPress: () => {/* TODO: Navigate to premium screen */} }
+                ]
+              );
+            }, 0);
+          } else {
+            setTimeout(() => {
+              Alert.alert('Error', result.error);
+            }, 0);
+          }
+          return;
+        }
 
-  const handleButtonSwipe = (direction) => {
+        // It's automatically a like, so handle as a right swipe
+        await handleSwipeRight(card);
+
+        // Show super like feedback (deferred)
+        setTimeout(() => {
+          Alert.alert(
+            '💎 Super Liked!',
+            `${card.name} will definitely see your interest!`,
+            [{ text: 'Awesome!', style: 'default' }]
+          );
+        }, 100);
+      } catch (error) {
+        console.error('Error using super like:', error);
+        setTimeout(() => {
+          Alert.alert('Error', 'Failed to use super like');
+        }, 0);
+      }
+    });
+  }, [currentUser.uid, premiumFeatures.superLikesPerDay, handleSwipeRight]);
+
+  const handleButtonSwipe = useCallback((direction) => {
     if (cards.length > 0 && currentIndex < cards.length) {
       const card = cards[currentIndex];
       if (direction === 'right') {
@@ -375,7 +415,7 @@ const HomeScreen = ({ navigation }) => {
         handleSwipeLeft(card);
       }
     }
-  };
+  }, [cards, currentIndex, handleSwipeRight, handleSwipeLeft]);
 
   const undoLastSwipe = async () => {
     if (lastSwipedCard) {

@@ -104,7 +104,7 @@ app.use(photoUploadMetricsMiddleware);
 
 // Performance & Security Middleware (order matters!)
 app.use(requestIdMiddleware);        // Add request ID for tracing
-app.use(responseTimeMiddleware);     // Log response times
+// Note: responseTimeMiddleware removed - using metricsResponseTimeMiddleware instead to avoid conflicts
 app.use(performanceHeaders);         // Performance headers
 app.use(helmet());                   // Security headers
 app.use(compression({                // Compress responses
@@ -230,6 +230,11 @@ app.use(errorRateMiddleware);
 
 // Global error handler
 app.use((error, req, res, next) => {
+  // Don't send response if headers already sent
+  if (res.headersSent) {
+    return next(error);
+  }
+
   // Log error with context
   logger.logError(error, {
     requestId: req.requestId,

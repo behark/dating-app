@@ -51,11 +51,17 @@ const apiCache = (type, ttlOverride = null) => {
       
       if (cachedResponse) {
         // Add cache headers
-        res.set({
-          'X-Cache': 'HIT',
-          'X-Cache-Key': cacheKey,
-          'Cache-Control': 'private, max-age=60',
-        });
+        if (!res.headersSent) {
+          try {
+            res.set({
+              'X-Cache': 'HIT',
+              'X-Cache-Key': cacheKey,
+              'Cache-Control': 'private, max-age=60',
+            });
+          } catch (error) {
+            // Headers already sent, ignore
+          }
+        }
         
         return res.json(cachedResponse);
       }
@@ -65,17 +71,31 @@ const apiCache = (type, ttlOverride = null) => {
 
       // Override json method to cache response
       res.json = async (data) => {
+        // Check if headers already sent
+        if (res.headersSent) {
+          return originalJson(data);
+        }
+
         // Only cache successful responses
         if (res.statusCode >= 200 && res.statusCode < 300 && data?.success !== false) {
           const ttl = ttlOverride || getTTLForType(type);
-          await cache.set(cacheKey, data, ttl);
+          // Cache asynchronously to avoid blocking response
+          cache.set(cacheKey, data, ttl).catch(err => {
+            console.error('Cache set error:', err);
+          });
         }
 
-        // Add cache headers
-        res.set({
-          'X-Cache': 'MISS',
-          'X-Cache-Key': cacheKey,
-        });
+        // Add cache headers (only if headers not sent)
+        if (!res.headersSent) {
+          try {
+            res.set({
+              'X-Cache': 'MISS',
+              'X-Cache-Key': cacheKey,
+            });
+          } catch (error) {
+            // Headers already sent, ignore
+          }
+        }
 
         return originalJson(data);
       };
@@ -194,10 +214,16 @@ const staleWhileRevalidate = (type, fetchFn, staleTime = 60) => {
 
       // Return cached data immediately
       if (cachedResponse) {
-        res.set({
-          'X-Cache': isStale ? 'STALE' : 'HIT',
-          'X-Cache-Age': meta ? Math.round((now - meta.timestamp) / 1000) : 0,
-        });
+        if (!res.headersSent) {
+          try {
+            res.set({
+              'X-Cache': isStale ? 'STALE' : 'HIT',
+              'X-Cache-Age': meta ? Math.round((now - meta.timestamp) / 1000) : 0,
+            });
+          } catch (error) {
+            // Headers already sent, ignore
+          }
+        }
 
         // If stale, trigger background refresh
         if (isStale) {
@@ -266,12 +292,20 @@ const etagCache = (type) => {
       // Generate new ETag
       const originalJson = res.json.bind(res);
       res.json = async (data) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          const crypto = require('crypto');
-          const etag = crypto.createHash('md5').update(JSON.stringify(data)).digest('hex');
-          
-          res.set('ETag', etag);
-          await cache.set(etagKey, etag, getTTLForType(type));
+        if (res.statusCode >= 200 && res.statusCode < 300 && !res.headersSent) {
+          try {
+            const crypto = require('crypto');
+            const etag = crypto.createHash('md5').update(JSON.stringify(data)).digest('hex');
+            
+            res.set('ETag', etag);
+            // Cache asynchronously to avoid blocking response
+            cache.set(etagKey, etag, getTTLForType(type)).catch(err => {
+              console.error('Cache error:', err);
+            });
+          } catch (error) {
+            // Headers already sent or error, continue with response
+            console.error('ETag error:', error);
+          }
         }
         
         return originalJson(data);

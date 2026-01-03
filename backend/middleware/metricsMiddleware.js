@@ -17,6 +17,11 @@ const responseTimeMiddleware = (req, res, next) => {
   const originalEnd = res.end;
   
   res.end = function(...args) {
+    // Only process if response hasn't been sent yet
+    if (res.headersSent) {
+      return originalEnd.apply(this, args);
+    }
+
     const endTime = process.hrtime.bigint();
     const durationNs = Number(endTime - startTime);
     const durationMs = durationNs / 1000000;
@@ -25,22 +30,33 @@ const responseTimeMiddleware = (req, res, next) => {
     const route = req.route?.path || req.path || 'unknown';
     const baseRoute = normalizeRoute(route, req.baseUrl);
 
-    // Track the metric
-    analyticsMetricsService.trackApiResponseTime(
-      baseRoute,
-      req.method,
-      res.statusCode,
-      durationMs
-    );
+    // Track the metric (async, non-blocking)
+    try {
+      analyticsMetricsService.trackApiResponseTime(
+        baseRoute,
+        req.method,
+        res.statusCode,
+        durationMs
+      );
+    } catch (error) {
+      // Silently fail metrics tracking to avoid blocking response
+      console.error('Error tracking metrics:', error);
+    }
 
     // Add timing header for debugging (only if headers haven't been sent)
     if (!res.headersSent) {
-      res.setHeader('X-Response-Time', `${durationMs.toFixed(2)}ms`);
+      try {
+        res.setHeader('X-Response-Time', `${durationMs.toFixed(2)}ms`);
+      } catch (error) {
+        // Headers already sent, ignore
+      }
     }
 
-    // Log slow requests (> 1000ms)
+    // Log slow requests (> 1000ms) - async to avoid blocking
     if (durationMs > 1000) {
-      console.warn(`Slow request: ${req.method} ${baseRoute} - ${durationMs.toFixed(2)}ms`);
+      setImmediate(() => {
+        console.warn(`Slow request: ${req.method} ${baseRoute} - ${durationMs.toFixed(2)}ms`);
+      });
     }
 
     // Call original end
