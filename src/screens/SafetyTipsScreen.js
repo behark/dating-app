@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
     FlatList,
@@ -11,7 +12,6 @@ import {
     UIManager,
     View
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { SafetyService } from '../services/SafetyService';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {

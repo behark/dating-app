@@ -248,18 +248,17 @@ const PreferencesScreen = ({ navigation }) => {
         </View>
         <View style={styles.switchRow}>
           <View style={styles.switchInfo}>
-            <Ionicons name="chatbubble" size={24} color="#4ECDC4" />
+            <Ionicons name="calendar" size={24} color="#FF6B6B" />
             <View style={styles.switchText}>
-              <Text style={styles.switchTitle}>Message Notifications</Text>
-              <Text style={styles.switchSubtitle}>Get notified of new messages</Text>
+              <Text style={styles.switchTitle}>Show Age</Text>
+              <Text style={styles.switchSubtitle}>Display your age on your profile</Text>
             </View>
           </View>
           <Switch
-            value={preferences.messageNotifications}
-            onValueChange={(value) => updatePreference('messageNotifications', value)}
-            trackColor={{ false: '#ccc', true: '#4ECDC4' }}
+            value={preferences.showAge}
+            onValueChange={(value) => updatePreference('showAge', value)}
+            trackColor={{ false: '#ccc', true: '#FF6B6B' }}
             thumbColor="#fff"
-            disabled={!preferences.notificationsEnabled}
           />
         </View>
       </View>
@@ -318,22 +317,6 @@ const PreferencesScreen = ({ navigation }) => {
             </View>
           </TouchableOpacity>
         ))}
-      </View>
-    </View>
-  );
-            <Ionicons name="calendar" size={24} color="#FF6B6B" />
-            <View style={styles.switchText}>
-              <Text style={styles.switchTitle}>Show Age</Text>
-              <Text style={styles.switchSubtitle}>Display your age on your profile</Text>
-            </View>
-          </View>
-          <Switch
-            value={preferences.showAge}
-            onValueChange={(value) => updatePreference('showAge', value)}
-            trackColor={{ false: '#ccc', true: '#FF6B6B' }}
-            thumbColor="#fff"
-          />
-        </View>
       </View>
     </View>
   );

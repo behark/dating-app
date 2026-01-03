@@ -1,22 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  SectionList,
-  Alert,
-  ActivityIndicator,
+    Alert,
+    ScrollView,
+    SectionList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
-import { SafetyService } from '../../services/SafetyService';
 import {
-  DatePlansSharing,
-  CheckInTimer,
-  EmergencySOS,
-  PhotoVerificationAdvanced,
-  BackgroundCheck,
-} from '../../components/Safety/SafetyAdvancedComponents';
+    BackgroundCheck,
+    CheckInTimer,
+    DatePlansSharing,
+    EmergencySOS,
+    PhotoVerificationAdvanced,
+} from '../components/Safety/SafetyAdvancedComponents';
+import { SafetyService } from '../services/SafetyService';
 
 /**
  * SafetyAdvancedScreen

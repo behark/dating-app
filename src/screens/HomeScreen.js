@@ -5,6 +5,8 @@ import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Dimensions, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import SwipeCard from '../components/Card/SwipeCard';
+import StreakCard from '../components/Gamification/StreakCard';
+import DailyRewardNotification from '../components/Gamification/DailyRewardNotification';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
 import { LocationService } from '../services/LocationService';
@@ -587,20 +589,6 @@ const HomeScreen = ({ navigation }) => {
               <Text style={styles.aiButtonLabel}>Photo Tips</Text>
             </TouchableOpacity>
           </View>
-        </View>
-
-        {/* Gamification Components */}
-        <View style={styles.gamificationSection}>
-          <StreakCard 
-            currentStreak={currentStreak}
-            longestStreak={longestStreak}
-          />
-          {showRewardNotification && (
-            <DailyRewardNotification 
-              userId={currentUser.uid}
-              onRewardClaimed={() => setShowRewardNotification(false)}
-            />
-          )}
         </View>
       )}
 

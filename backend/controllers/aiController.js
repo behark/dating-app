@@ -552,11 +552,11 @@ const getCompatibilityExplanation = (score, commonInterests, commonValues) => {
   let explanation = '';
   
   if (score >= 80) {
-    explanation = 'Excellent match! You have a lot in common. 🔥';
+    explanation = 'Excellent match! You have a lot in common.';
   } else if (score >= 60) {
-    explanation = 'Good compatibility! You share some important values and interests. ✨';
+    explanation = 'Good compatibility! You share some important values and interests.';
   } else if (score >= 40) {
-    explanation = 'You might be compatible! Worth exploring to see if there's chemistry. 👀';
+    explanation = 'You might be compatible! Worth exploring to see if there is chemistry.';
   } else {
     explanation = 'Limited compatibility based on interests and values. Could still be worth trying!';
   }

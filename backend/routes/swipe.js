@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 const swipeController = require('../controllers/swipeController');
 
 /**
@@ -8,31 +8,31 @@ const swipeController = require('../controllers/swipeController');
  * Create a new swipe
  * Body: { targetId, action }
  */
-router.post('/', auth, swipeController.createSwipe);
+router.post('/', authenticate, swipeController.createSwipe);
 
 /**
  * GET /api/swipes/count/today
  * Get swipe count for today
  */
-router.get('/count/today', auth, swipeController.getSwipeCountToday);
+router.get('/count/today', authenticate, swipeController.getSwipeCountToday);
 
 /**
  * POST /api/swipes/undo
  * Undo a swipe
  * Body: { swipeId }
  */
-router.post('/undo', auth, swipeController.undoSwipe);
+router.post('/undo', authenticate, swipeController.undoSwipe);
 
 /**
  * GET /api/swipes/user
  * Get user's swipes
  */
-router.get('/user', auth, swipeController.getUserSwipes);
+router.get('/user', authenticate, swipeController.getUserSwipes);
 
 /**
  * GET /api/swipes/received
  * Get received swipes (likes)
  */
-router.get('/received', auth, swipeController.getReceivedSwipes);
+router.get('/received', authenticate, swipeController.getReceivedSwipes);
 
 module.exports = router;
