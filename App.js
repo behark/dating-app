@@ -1,27 +1,39 @@
-import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
+import 'react-native-gesture-handler';
+import ErrorBoundary from './src/components/ErrorBoundary';
+import NetworkStatusBanner from './src/components/NetworkStatusBanner';
+import { AppProvider } from './src/context/AppContext';
 import { AuthProvider } from './src/context/AuthContext';
 import { ChatProvider } from './src/context/ChatContext';
 import AppNavigator from './src/navigation/AppNavigator';
-import ErrorBoundary from './src/components/ErrorBoundary';
 import { AnalyticsService } from './src/services/AnalyticsService';
-import 'react-native-gesture-handler';
+import { PWAService } from './src/services/PWAService';
 
 export default function App() {
   useEffect(() => {
     // Initialize analytics on app start
     AnalyticsService.initialize();
     AnalyticsService.logAppOpened(true);
+    
+    // Initialize PWA features for web
+    if (Platform.OS === 'web') {
+      PWAService.initialize();
+    }
   }, []);
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <ChatProvider>
-          <AppNavigator />
-          <StatusBar style="auto" />
-        </ChatProvider>
-      </AuthProvider>
+      <AppProvider>
+        <AuthProvider>
+          <ChatProvider>
+            <AppNavigator />
+            <NetworkStatusBanner />
+            <StatusBar style="auto" />
+          </ChatProvider>
+        </AuthProvider>
+      </AppProvider>
     </ErrorBoundary>
   );
 }

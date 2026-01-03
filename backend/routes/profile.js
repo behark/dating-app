@@ -12,6 +12,7 @@ const {
   getPendingPhotos
 } = require('../controllers/profileController');
 const { authenticate } = require('../middleware/auth');
+const { apiCache, invalidateUserCache } = require('../middleware/apiCache');
 
 const router = express.Router();
 
@@ -28,22 +29,37 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// Get user profile (public)
-router.get('/:userId', getProfile);
+// Middleware to invalidate cache after profile updates
+const invalidateCacheAfterUpdate = async (req, res, next) => {
+  const originalJson = res.json.bind(res);
+  res.json = async (data) => {
+    if (res.statusCode >= 200 && res.statusCode < 300 && data?.success !== false) {
+      const userId = req.user?._id || req.user?.id;
+      if (userId) {
+        await invalidateUserCache(userId);
+      }
+    }
+    return originalJson(data);
+  };
+  next();
+};
 
-// Get my profile (private)
-router.get('/me', authenticate, getMyProfile);
+// Get user profile (public) - cached for 5 minutes
+router.get('/:userId', apiCache('profile', 300), getProfile);
 
-// Update profile
-router.put('/update', authenticate, [
+// Get my profile (private) - cached for 5 minutes
+router.get('/me', authenticate, apiCache('profile', 300), getMyProfile);
+
+// Update profile - invalidates cache
+router.put('/update', authenticate, invalidateCacheAfterUpdate, [
   body('name').optional().trim().notEmpty(),
   body('age').optional().isInt({ min: 18, max: 100 }),
   body('gender').optional().isIn(['male', 'female', 'other']),
   body('bio').optional().isLength({ max: 500 })
 ], handleValidationErrors, updateProfile);
 
-// Upload photos
-router.post('/photos/upload', authenticate, [
+// Upload photos - invalidates cache
+router.post('/photos/upload', authenticate, invalidateCacheAfterUpdate, [
   body('photos').isArray({ min: 1, max: 6 }).withMessage('Photos array must have 1-6 items'),
   body('photos.*.url').isURL().withMessage('Invalid photo URL')
 ], handleValidationErrors, uploadPhotos);

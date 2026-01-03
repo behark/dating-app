@@ -5,8 +5,32 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+
+// Security middleware
+const { csrfProtection, getCsrfToken } = require('./middleware/csrf');
+
+// Performance optimization middleware
+const {
+  performanceHeaders,
+  responseTimeMiddleware,
+  requestIdMiddleware,
+  configureKeepAlive,
+  gracefulShutdown,
+  preflightCache,
+} = require('./middleware/loadTimeOptimization');
+const { cdnCacheMiddleware } = require('./services/cdnService');
+
+// Monitoring and Logging
+const {
+  monitoringService,
+  datadogService,
+  metricsCollector,
+  healthCheckService,
+} = require('./services/MonitoringService');
+const { logger, auditLogger, morganFormat } = require('./services/LoggingService');
 
 // Import models
 const Message = require('./models/Message');
@@ -26,19 +50,64 @@ const activityRoutes = require('./routes/activity');
 const socialMediaRoutes = require('./routes/socialMedia');
 const safetyRoutes = require('./routes/safety');
 const premiumRoutes = require('./routes/premium');
+const paymentRoutes = require('./routes/payment');
 const advancedInteractionsRoutes = require('./routes/advancedInteractions');
 const discoveryEnhancementsRoutes = require('./routes/discoveryEnhancements');
 const mediaMessagesRoutes = require('./routes/mediaMessages');
 const gamificationRoutes = require('./routes/gamification');
 const socialFeaturesRoutes = require('./routes/socialFeatures');
+const privacyRoutes = require('./routes/privacy');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(helmet()); // Security headers
-app.use(compression()); // Compress responses
-app.use(morgan('combined')); // Logging
+// Initialize monitoring services
+monitoringService.initSentry(app);
+datadogService.init();
+
+// Register health checks
+healthCheckService.registerCheck('mongodb', async () => {
+  const state = mongoose.connection.readyState;
+  if (state !== 1) throw new Error('MongoDB not connected');
+  return { connected: true };
+});
+
+healthCheckService.registerCheck('redis', async () => {
+  // Add Redis health check if redis client is available
+  return { status: 'ok' };
+});
+
+// Sentry request handler (must be first)
+if (process.env.SENTRY_DSN) {
+  app.use(monitoringService.getRequestHandler());
+  app.use(monitoringService.getTracingHandler());
+}
+
+// Metrics collection middleware
+app.use(metricsCollector.getMiddleware());
+
+// Performance & Security Middleware (order matters!)
+app.use(requestIdMiddleware);        // Add request ID for tracing
+app.use(responseTimeMiddleware);     // Log response times
+app.use(performanceHeaders);         // Performance headers
+app.use(helmet());                   // Security headers
+app.use(compression({                // Compress responses
+  level: 6,
+  threshold: 1024,
+  filter: (req, res) => {
+    // Don't compress already compressed formats
+    const contentType = res.getHeader('Content-Type');
+    if (typeof contentType === 'string') {
+      if (['image/', 'video/', 'audio/'].some(t => contentType.includes(t))) {
+        return false;
+      }
+    }
+    return compression.filter(req, res);
+  },
+}));
+app.use(cdnCacheMiddleware);         // CDN cache headers
+app.use(preflightCache(86400));      // Cache CORS preflight for 24h
+app.use(morgan(morganFormat, { stream: logger.getStream() }));  // Structured logging
 
 // CORS configuration
 const allowedOrigins = [
@@ -79,12 +148,29 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health check endpoint
+// Cookie parser for CSRF tokens
+app.use(cookieParser());
+
+// CSRF Protection (for non-API routes with session cookies)
+// Skipped for Bearer token authenticated API routes
+app.use(csrfProtection({
+  ignoreMethods: ['GET', 'HEAD', 'OPTIONS'],
+  ignorePaths: ['/api/auth', '/api/webhook', '/health']
+}));
+
+// CSRF Token endpoint
+app.get('/api/csrf-token', getCsrfToken);
+
+// Health check endpoints (use health check service)
+app.use(healthCheckService.getRouter());
+
+// Legacy health check for backwards compatibility
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV
   });
 });
 
@@ -104,8 +190,10 @@ app.use('/api/discovery', discoveryEnhancementsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/safety', safetyRoutes);
 app.use('/api/premium', premiumRoutes);
+app.use('/api/payment', paymentRoutes);
 app.use('/api/gamification', gamificationRoutes);
 app.use('/api/social', socialFeaturesRoutes);
+app.use('/api/privacy', privacyRoutes);
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {
@@ -115,9 +203,20 @@ app.use('*', (req, res) => {
   });
 });
 
+// Sentry error handler (must be before other error handlers)
+if (process.env.SENTRY_DSN) {
+  app.use(monitoringService.getErrorHandler());
+}
+
 // Global error handler
 app.use((error, req, res, next) => {
-  console.error('Error:', error);
+  // Log error with context
+  logger.logError(error, {
+    requestId: req.requestId,
+    userId: req.user?.id,
+    method: req.method,
+    url: req.originalUrl,
+  });
 
   // Mongoose validation error
   if (error.name === 'ValidationError') {
@@ -154,57 +253,76 @@ app.use((error, req, res, next) => {
 
 // MongoDB connection
 let isConnected = false;
+let connectionPromise = null;
 
 const connectDB = async () => {
-  if (isConnected) {
-    console.log('Using existing MongoDB connection');
+  if (isConnected && mongoose.connection.readyState === 1) {
     return;
   }
 
-  try {
-    const mongoURI = process.env.MONGODB_URI;
-    
-    if (!mongoURI) {
-      console.warn('MONGODB_URI not set - database features will be unavailable');
-      return;
-    }
-
-    const conn = await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-    });
-
-    isConnected = true;
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-
-    // Handle connection events
-    mongoose.connection.on('error', (error) => {
-      console.error('MongoDB connection error:', error);
-      isConnected = false;
-    });
-
-    mongoose.connection.on('disconnected', () => {
-      console.log('MongoDB disconnected');
-      isConnected = false;
-    });
-
-    // Graceful shutdown
-    process.on('SIGINT', async () => {
-      await mongoose.connection.close();
-      console.log('MongoDB connection closed through app termination');
-      process.exit(0);
-    });
-
-  } catch (error) {
-    console.error('MongoDB connection failed:', error.message);
-    isConnected = false;
-    // Don't exit in serverless environment
-    if (process.env.NODE_ENV !== 'production') {
-      process.exit(1);
-    }
+  // If there's already a connection attempt in progress, wait for it
+  if (connectionPromise) {
+    return connectionPromise;
   }
+
+  connectionPromise = (async () => {
+    try {
+      const mongoURI = process.env.MONGODB_URI;
+      
+      if (!mongoURI) {
+        console.warn('MONGODB_URI not set - database features will be unavailable');
+        return;
+      }
+
+      console.log('Attempting MongoDB connection...');
+      
+      // Serverless-optimized connection settings
+      const conn = await mongoose.connect(mongoURI, {
+        bufferCommands: false,
+        maxPoolSize: 50,              // Increased for better concurrency
+        minPoolSize: 10,              // Keep minimum connections warm
+        serverSelectionTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        maxIdleTimeMS: 30000,         // Close idle connections after 30s
+        waitQueueTimeoutMS: 10000,    // Timeout for waiting in queue
+        family: 4,                    // Use IPv4, skip trying IPv6
+      });
+
+      isConnected = true;
+      console.log(`MongoDB Connected: ${conn.connection.host}`);
+
+      // Handle connection events
+      mongoose.connection.on('error', (error) => {
+        console.error('MongoDB connection error:', error);
+        isConnected = false;
+        connectionPromise = null;
+      });
+
+      mongoose.connection.on('disconnected', () => {
+        console.log('MongoDB disconnected');
+        isConnected = false;
+        connectionPromise = null;
+      });
+
+      // Graceful shutdown
+      process.on('SIGINT', async () => {
+        await mongoose.connection.close();
+        console.log('MongoDB connection closed through app termination');
+        process.exit(0);
+      });
+
+    } catch (error) {
+      console.error('MongoDB connection failed:', error.message);
+      isConnected = false;
+      connectionPromise = null;
+      // Don't exit in serverless environment
+      if (process.env.NODE_ENV !== 'production') {
+        process.exit(1);
+      }
+    }
+  })();
+
+  return connectionPromise;
 };
 
 // Socket.io setup
@@ -418,10 +536,21 @@ const startServer = async () => {
   try {
     await connectDB();
 
+    // Configure keep-alive for better HTTP/1.1 connection reuse
+    configureKeepAlive(server);
+
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`Socket.io enabled`);
+      console.log(`Performance optimizations: enabled`);
+    });
+
+    // Setup graceful shutdown
+    gracefulShutdown(server, async () => {
+      console.log('Closing database connections...');
+      await mongoose.connection.close();
+      console.log('Database connections closed');
     });
   } catch (error) {
     console.error('Failed to start server:', error);

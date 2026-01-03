@@ -5,6 +5,7 @@ const {
   getDiscoverySettings,
   updateLocation
 } = require('../controllers/discoveryController');
+const { apiCache, staleWhileRevalidate } = require('../middleware/apiCache');
 
 // Mock authentication middleware (replace with actual auth in production)
 const mockAuth = (req, res, next) => {
@@ -44,10 +45,10 @@ router.get('/discover', [
     });
   }
   next();
-}, discoverUsers);
+}, apiCache('discovery', 60), discoverUsers);
 
 // GET /api/discover/settings - Get user's discovery preferences
-router.get('/discover/settings', getDiscoverySettings);
+router.get('/discover/settings', apiCache('preferences', 600), getDiscoverySettings);
 
 // PUT /api/discover/location - Update user's location
 router.put('/discover/location', [

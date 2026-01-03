@@ -1,0 +1,137 @@
+name: Scheduled Tasks
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Task to run'
+        required: true
+        default: 'backup'
+        type: choice
+        options:
+          - backup
+          - security-scan
+          - cleanup
+          - all
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ============================================
+  # Database Backup
+  # ============================================
+  backup:
+    name: Database Backup
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.task == 'backup' || github.event.inputs.task == 'all'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run backup on production server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          script: |
+            cd /opt/dating-app
+            ./scripts/backup.sh
+
+      - name: Upload backup to S3
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          script: |
+            BACKUP_FILE=$(ls -t /opt/dating-app/backups/*.tar.gz | head -1)
+            aws s3 cp "$BACKUP_FILE" s3://${{ secrets.BACKUP_S3_BUCKET }}/$(date +%Y/%m)/
+
+      - name: Notify on failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: '⚠️ Database backup failed!'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # ============================================
+  # Security Scan (Weekly)
+  # ============================================
+  security-scan:
+    name: Weekly Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.task == 'security-scan' || github.event.inputs.task == 'all'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # ============================================
+  # Cleanup Old Resources
+  # ============================================
+  cleanup:
+    name: Cleanup Old Resources
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event.inputs.task == 'cleanup' || github.event.inputs.task == 'all'
+    
+    steps:
+      - name: Cleanup old Docker images
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          script: |
+            # Remove images older than 7 days
+            docker image prune -a --filter "until=168h" -f
+            # Remove old backup files (keep last 30 days)
+            find /opt/dating-app/backups -name "*.tar.gz" -mtime +30 -delete
+
+      - name: Cleanup old S3 backups
+        run: |
+          # Keep only last 90 days of backups
+          aws s3 ls s3://${{ secrets.BACKUP_S3_BUCKET }}/ --recursive | \
+          awk '{print $4}' | \
+          while read file; do
+            file_date=$(echo "$file" | grep -oP '\d{4}/\d{2}')
+            if [[ -n "$file_date" ]]; then
+              file_epoch=$(date -d "${file_date/\//-}-01" +%s 2>/dev/null || echo 0)
+              cutoff_epoch=$(date -d "90 days ago" +%s)
+              if [[ $file_epoch -lt $cutoff_epoch && $file_epoch -ne 0 ]]; then
+                aws s3 rm "s3://${{ secrets.BACKUP_S3_BUCKET }}/$file"
+              fi
+            fi
+          done
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}

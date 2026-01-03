@@ -1,0 +1,168 @@
+# Discovery Flow E2E Test
+appId: com.datingapp
+
+---
+- launchApp
+
+# Ensure on discover screen
+- assertVisible: "Discover"
+
+---
+# Test: View Profile Card
+- assertVisible:
+    - id: "profile-card"
+- assertVisible:
+    - id: "profile-name"
+    - id: "profile-age"
+    - id: "profile-photo"
+
+---
+# Test: Swipe Right (Like)
+- swipe:
+    from:
+      x: "50%"
+      y: "50%"
+    to:
+      x: "90%"
+      y: "50%"
+    duration: 300
+
+# Verify swipe registered
+- assertNotVisible:
+    id: "previous-profile"
+    
+---
+# Test: Swipe Left (Pass)
+- swipe:
+    from:
+      x: "50%"
+      y: "50%"
+    to:
+      x: "10%"
+      y: "50%"
+    duration: 300
+
+---
+# Test: Super Like
+- doubleTapOn:
+    id: "profile-card"
+
+# Or use super like button
+- tapOn:
+    id: "super-like-button"
+
+# Verify super like animation
+- assertVisible:
+    id: "super-like-animation"
+  timeout: 2000
+
+---
+# Test: View Full Profile
+- tapOn:
+    id: "profile-card"
+
+# Should show expanded profile
+- assertVisible: "About"
+- assertVisible:
+    id: "profile-bio"
+- assertVisible:
+    id: "profile-interests"
+
+# Navigate photos
+- swipe:
+    from:
+      x: "70%"
+      y: "30%"
+    to:
+      x: "30%"
+      y: "30%"
+    duration: 200
+
+# Close full profile
+- tapOn:
+    id: "close-button"
+
+---
+# Test: Match Popup
+# This test simulates a match occurring
+- runFlow: auth.yaml # Ensure logged in
+
+# Swipe right on user who has also liked us
+- swipe:
+    from:
+      x: "50%"
+      y: "50%"
+    to:
+      x: "90%"
+      y: "50%"
+    duration: 300
+
+# If match occurs, verify popup
+- assertVisible:
+    text: "It's a Match!"
+  optional: true
+  timeout: 3000
+
+- tapOn:
+    text: "Send Message"
+  optional: true
+
+---
+# Test: Profile Filters
+- tapOn:
+    id: "filter-button"
+
+# Adjust age range
+- assertVisible: "Age Range"
+- swipe:
+    from:
+      id: "age-slider-max"
+    to:
+      x: "-50"
+      y: "0"
+    duration: 200
+
+# Adjust distance
+- assertVisible: "Distance"
+- tapOn:
+    text: "50 km"
+
+# Apply filters
+- tapOn: "Apply"
+
+# Verify filter applied
+- assertVisible: "Filters applied"
+
+---
+# Test: Undo Last Swipe (Premium)
+- tapOn:
+    id: "undo-button"
+
+# If premium, should undo
+# If not premium, should show upgrade prompt
+- assertVisible:
+    - id: "previous-profile"
+    - "Upgrade to Premium"
+  anyOf: true
+
+---
+# Test: Boost Profile
+- tapOn:
+    id: "boost-button"
+
+# Should show boost confirmation or purchase
+- assertVisible:
+    - "Boost Active"
+    - "Get Boost"
+  anyOf: true
+
+---
+# Test: Empty State
+# When no more profiles to show
+- assertVisible:
+    text: "No more profiles"
+  optional: true
+
+- assertVisible:
+    id: "expand-preferences-button"
+  optional: true

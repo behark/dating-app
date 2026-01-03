@@ -1,12 +1,13 @@
 const Message = require('../models/Message');
 const Swipe = require('../models/Swipe');
+const { encryptMessage, decryptMessage, generateConversationKey } = require('../utils/encryption');
 
 // Get all messages for a specific match
 const getMessages = async (req, res) => {
   try {
     const { matchId } = req.params;
     const userId = req.user?.id; // From auth middleware
-    const { page = 1, limit = 50 } = req.query;
+    const { page = 1, limit = 50, decrypt: shouldDecrypt = 'true' } = req.query;
 
     // Validate matchId
     if (!matchId || !require('mongoose').Types.ObjectId.isValid(matchId)) {
@@ -39,7 +40,7 @@ const getMessages = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Get messages with pagination
-    const messages = await Message.getMessagesForMatch(
+    let messages = await Message.getMessagesForMatch(
       matchId,
       parseInt(limit),
       skip
@@ -51,6 +52,32 @@ const getMessages = async (req, res) => {
     // Mark messages as read for the current user
     if (userId) {
       await Message.markMatchAsRead(matchId, userId);
+    }
+
+    // Decrypt messages if requested and if they are encrypted
+    if (shouldDecrypt === 'true' && userId) {
+      const match = await Swipe.findById(matchId);
+      if (match) {
+        const otherUserId = match.swiperId.toString() === userId 
+          ? match.swipedId.toString() 
+          : match.swiperId.toString();
+        const conversationKey = generateConversationKey(userId, otherUserId);
+        
+        messages = messages.map(msg => {
+          if (msg.isEncrypted && msg.content) {
+            try {
+              return {
+                ...msg,
+                content: decryptMessage(msg.content, conversationKey),
+                _decrypted: true
+              };
+            } catch (e) {
+              return { ...msg, _decryptionFailed: true };
+            }
+          }
+          return msg;
+        });
+      }
     }
 
     res.json({
@@ -381,6 +408,93 @@ const getReadReceipts = async (req, res) => {
   }
 };
 
+// Send an encrypted message
+const sendEncryptedMessage = async (req, res) => {
+  try {
+    const { matchId, content, type = 'text' } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    if (!matchId || !content) {
+      return res.status(400).json({
+        success: false,
+        message: 'Match ID and content are required'
+      });
+    }
+
+    // Verify user has access to this match
+    const match = await Swipe.findOne({
+      _id: matchId,
+      $or: [
+        { swiperId: userId },
+        { swipedId: userId }
+      ],
+      action: 'like'
+    });
+
+    if (!match) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied to this conversation'
+      });
+    }
+
+    // Determine recipient
+    const receiverId = match.swiperId.toString() === userId 
+      ? match.swipedId 
+      : match.swiperId;
+
+    // Generate conversation key and encrypt message
+    const conversationKey = generateConversationKey(userId, receiverId.toString());
+    const encryptedContent = encryptMessage(content, conversationKey);
+
+    // Create encrypted message
+    const message = new Message({
+      matchId,
+      senderId: userId,
+      receiverId,
+      content: encryptedContent,
+      type,
+      isEncrypted: true,
+      encryptionMetadata: {
+        algorithm: 'aes-256-gcm',
+        keyVersion: 1
+      }
+    });
+
+    await message.save();
+
+    res.status(201).json({
+      success: true,
+      data: {
+        message: {
+          _id: message._id,
+          matchId: message.matchId,
+          senderId: message.senderId,
+          receiverId: message.receiverId,
+          content: content, // Return decrypted for sender
+          type: message.type,
+          isEncrypted: true,
+          createdAt: message.createdAt
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Send encrypted message error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   getMessages,
   getConversations,
@@ -388,5 +502,6 @@ module.exports = {
   getUnreadCount,
   deleteMessage,
   markMessageAsRead,
-  getReadReceipts
+  getReadReceipts,
+  sendEncryptedMessage
 };

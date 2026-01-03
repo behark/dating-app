@@ -1,0 +1,255 @@
+{
+  "version": "2.11.0",
+  "about": "OWASP ZAP Scan Policy for Dating App API",
+  "policyName": "API-Scan",
+  "defaultStrength": "MEDIUM",
+  "defaultThreshold": "MEDIUM",
+  "rules": [
+    {
+      "id": 40012,
+      "name": "Cross Site Scripting (Reflected)",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 40014,
+      "name": "Cross Site Scripting (Persistent)",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 40018,
+      "name": "SQL Injection",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 40019,
+      "name": "SQL Injection - MySQL",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 40024,
+      "name": "SQL Injection - SQLite",
+      "threshold": "LOW",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 90019,
+      "name": "Server Side Code Injection",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 90020,
+      "name": "Remote OS Command Injection",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 40009,
+      "name": "Server Side Include",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 30001,
+      "name": "Buffer Overflow",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 30002,
+      "name": "Format String Error",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 40003,
+      "name": "CRLF Injection",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 40008,
+      "name": "Parameter Tampering",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 40013,
+      "name": "Session Fixation",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 10045,
+      "name": "Source Code Disclosure",
+      "threshold": "LOW",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 10048,
+      "name": "Remote Code Execution - Shell Shock",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 10095,
+      "name": "Backup File Disclosure",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 10104,
+      "name": "User Agent Fuzzer",
+      "threshold": "OFF",
+      "strength": "LOW"
+    },
+    {
+      "id": 10105,
+      "name": "Weak Authentication Method",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 20012,
+      "name": "Anti CSRF Tokens Scanner",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 20014,
+      "name": "HTTP Parameter Pollution",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 20015,
+      "name": "Heartbleed OpenSSL Vulnerability",
+      "threshold": "LOW",
+      "strength": "LOW"
+    },
+    {
+      "id": 20016,
+      "name": "Cross-Domain Misconfiguration",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 20017,
+      "name": "Source Code Disclosure - CVE-2012-1823",
+      "threshold": "LOW",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 20018,
+      "name": "Remote Code Execution - CVE-2012-1823",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 40016,
+      "name": "Cross Site Scripting (Persistent) - Prime",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 40017,
+      "name": "Cross Site Scripting (Persistent) - Spider",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 40025,
+      "name": "Proxy Disclosure",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 40026,
+      "name": "Cross Site Scripting (DOM Based)",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 40027,
+      "name": "SQL Injection - MsSQL",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 40028,
+      "name": "ELMAH Information Leak",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 40029,
+      "name": "Trace.axd Information Leak",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 40032,
+      "name": ".htaccess Information Leak",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 40034,
+      "name": ".env Information Leak",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 90021,
+      "name": "XPath Injection",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 90023,
+      "name": "XML External Entity Attack",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 90024,
+      "name": "Generic Padding Oracle",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 90025,
+      "name": "Expression Language Injection",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 90026,
+      "name": "SOAP Action Spoofing",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 90028,
+      "name": "Insecure HTTP Method",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    },
+    {
+      "id": 90029,
+      "name": "SOAP XML Injection",
+      "threshold": "MEDIUM",
+      "strength": "MEDIUM"
+    },
+    {
+      "id": 90034,
+      "name": "Cloud Metadata Potentially Exposed",
+      "threshold": "LOW",
+      "strength": "HIGH"
+    }
+  ]
+}

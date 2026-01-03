@@ -1,0 +1,233 @@
+version: '3.8'
+
+# =============================================
+# STAGING ENVIRONMENT
+# =============================================
+# Usage: docker compose -f docker-compose.staging.yml up -d
+# =============================================
+
+x-common-env: &common-env
+  NODE_ENV: staging
+  LOG_LEVEL: debug
+  SENTRY_ENVIRONMENT: staging
+
+services:
+  # ===========================================
+  # Backend API Server
+  # ===========================================
+  api:
+    image: ghcr.io/${GITHUB_REPOSITORY:-dating-app}/api:staging
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      <<: *common-env
+      PORT: 3000
+      MONGODB_URI: mongodb://mongo:27017/dating-app-staging
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN}
+      DATADOG_API_KEY: ${DATADOG_API_KEY}
+      FRONTEND_URL: https://staging.your-domain.com
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dating-app-staging
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service,environment"
+
+  # ===========================================
+  # Background Job Worker
+  # ===========================================
+  worker:
+    image: ghcr.io/${GITHUB_REPOSITORY:-dating-app}/api:staging
+    command: node worker.js
+    environment:
+      <<: *common-env
+      MONGODB_URI: mongodb://mongo:27017/dating-app-staging
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN}
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dating-app-staging
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ===========================================
+  # Web Frontend
+  # ===========================================
+  web:
+    image: ghcr.io/${GITHUB_REPOSITORY:-dating-app}/web:staging
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      <<: *common-env
+      API_URL: http://api:3000
+    networks:
+      - dating-app-staging
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================
+  # MongoDB Database
+  # ===========================================
+  mongo:
+    image: mongo:7.0
+    environment:
+      MONGO_INITDB_DATABASE: dating-app-staging
+    volumes:
+      - mongo-staging-data:/data/db
+      - ./backend/mongo-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - dating-app-staging
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/dating-app-staging --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ===========================================
+  # Redis Cache
+  # ===========================================
+  redis:
+    image: redis:7.2-alpine
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-staging-data:/data
+    networks:
+      - dating-app-staging
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ===========================================
+  # Nginx Reverse Proxy
+  # ===========================================
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.staging.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - api
+      - web
+    networks:
+      - dating-app-staging
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================
+  # Development Tools (Optional)
+  # ===========================================
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - dating-app-staging
+    profiles:
+      - tools
+
+  mongo-express:
+    image: mongo-express:latest
+    ports:
+      - "8082:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_BASICAUTH_USERNAME=${MONGO_EXPRESS_USER:-admin}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGO_EXPRESS_PASSWORD:-admin123}
+    depends_on:
+      - mongo
+    networks:
+      - dating-app-staging
+    profiles:
+      - tools
+
+networks:
+  dating-app-staging:
+    driver: bridge
+
+volumes:
+  mongo-staging-data:
+  redis-staging-data:

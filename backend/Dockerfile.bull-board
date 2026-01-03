@@ -1,0 +1,51 @@
+# Bull Board Dashboard Dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install bull-board
+RUN npm install @bull-board/express@5.10.2 express@4.18.2 bull@4.12.2
+
+# Create server file
+COPY <<EOF /app/index.js
+const express = require('express');
+const { createBullBoard } = require('@bull-board/api');
+const { BullAdapter } = require('@bull-board/api/bullAdapter');
+const { ExpressAdapter } = require('@bull-board/express');
+const Bull = require('bull');
+
+const app = express();
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath('/');
+
+const redisConfig = process.env.REDIS_URL || {
+  host: process.env.REDIS_HOST || 'localhost',
+  port: process.env.REDIS_PORT || 6379,
+};
+
+const queues = [
+  'notifications',
+  'matches',
+  'emails',
+  'analytics',
+  'moderation',
+  'cleanup',
+  'push-notifications',
+].map(name => new Bull(name, { redis: redisConfig, prefix: 'dating-app' }));
+
+createBullBoard({
+  queues: queues.map(q => new BullAdapter(q)),
+  serverAdapter,
+});
+
+app.use('/', serverAdapter.getRouter());
+
+const PORT = process.env.PORT || 8083;
+app.listen(PORT, () => {
+  console.log(\`Bull Board running on port \${PORT}\`);
+});
+EOF
+
+EXPOSE 8083
+
+CMD ["node", "index.js"]

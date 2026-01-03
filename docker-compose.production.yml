@@ -1,0 +1,337 @@
+version: '3.8'
+
+# =============================================
+# PRODUCTION ENVIRONMENT
+# =============================================
+# Usage: docker compose -f docker-compose.production.yml up -d
+# =============================================
+
+x-common-env: &common-env
+  NODE_ENV: production
+  LOG_LEVEL: info
+  SENTRY_ENVIRONMENT: production
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "50m"
+    max-file: "10"
+    labels: "service,environment"
+
+x-healthcheck: &default-healthcheck
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+
+services:
+  # ===========================================
+  # Backend API Server (Scalable)
+  # ===========================================
+  api:
+    image: ghcr.io/${GITHUB_REPOSITORY:-dating-app}/api:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      <<: *common-env
+      PORT: 3000
+      MONGODB_URI: ${MONGODB_URI}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN}
+      DATADOG_API_KEY: ${DATADOG_API_KEY}
+      FRONTEND_URL: ${FRONTEND_URL}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dating-app-production
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 3
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        delay: 10s
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+    logging:
+      <<: *default-logging
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`api.your-domain.com`)"
+      - "traefik.http.services.api.loadbalancer.server.port=3000"
+
+  # ===========================================
+  # Background Job Worker (Scalable)
+  # ===========================================
+  worker:
+    image: ghcr.io/${GITHUB_REPOSITORY:-dating-app}/api:latest
+    command: node worker.js
+    environment:
+      <<: *common-env
+      MONGODB_URI: ${MONGODB_URI}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dating-app-production
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      <<: *default-logging
+
+  # ===========================================
+  # Web Frontend (Scalable)
+  # ===========================================
+  web:
+    image: ghcr.io/${GITHUB_REPOSITORY:-dating-app}/web:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      <<: *common-env
+      API_URL: ${API_URL}
+    networks:
+      - dating-app-production
+    restart: always
+    deploy:
+      mode: replicated
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+    logging:
+      <<: *default-logging
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=Host(`your-domain.com`)"
+      - "traefik.http.services.web.loadbalancer.server.port=3000"
+
+  # ===========================================
+  # MongoDB Database (Replica Set for HA)
+  # ===========================================
+  mongo:
+    image: mongo:7.0
+    command: mongod --replSet rs0 --bind_ip_all
+    environment:
+      MONGO_INITDB_DATABASE: dating-app
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo-production-data:/data/db
+      - ./backend/mongo-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - dating-app-production
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+    healthcheck:
+      <<: *default-healthcheck
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/dating-app --quiet
+      start_period: 30s
+    logging:
+      <<: *default-logging
+
+  # ===========================================
+  # Redis Cache (Sentinel for HA)
+  # ===========================================
+  redis:
+    image: redis:7.2-alpine
+    command: >
+      redis-server 
+      --appendonly yes 
+      --maxmemory 1gb 
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    volumes:
+      - redis-production-data:/data
+    networks:
+      - dating-app-production
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+    logging:
+      <<: *default-logging
+
+  # ===========================================
+  # Nginx Load Balancer
+  # ===========================================
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.production.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/logs:/var/log/nginx
+      - certbot-webroot:/var/www/certbot:ro
+    depends_on:
+      - api
+      - web
+    networks:
+      - dating-app-production
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD", "nginx", "-t"]
+    logging:
+      <<: *default-logging
+
+  # ===========================================
+  # Certbot for SSL
+  # ===========================================
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./nginx/ssl:/etc/letsencrypt
+      - certbot-webroot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - dating-app-production
+    restart: always
+
+  # ===========================================
+  # Datadog Agent (Monitoring)
+  # ===========================================
+  datadog-agent:
+    image: gcr.io/datadoghq/agent:latest
+    environment:
+      - DD_API_KEY=${DATADOG_API_KEY}
+      - DD_SITE=datadoghq.com
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_APM_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_PROCESS_AGENT_ENABLED=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    networks:
+      - dating-app-production
+    restart: always
+    profiles:
+      - monitoring
+
+  # ===========================================
+  # Prometheus (Metrics)
+  # ===========================================
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    networks:
+      - dating-app-production
+    restart: always
+    profiles:
+      - monitoring
+
+  # ===========================================
+  # Grafana (Dashboards)
+  # ===========================================
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - dating-app-production
+    restart: always
+    profiles:
+      - monitoring
+
+networks:
+  dating-app-production:
+    driver: bridge
+
+volumes:
+  mongo-production-data:
+  redis-production-data:
+  certbot-webroot:
+  prometheus-data:
+  grafana-data:

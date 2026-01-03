@@ -26,8 +26,22 @@ const messageSchema = new mongoose.Schema({
   content: {
     type: String,
     required: true,
-    maxlength: 1000,
+    maxlength: 5000, // Increased for encrypted content
     trim: true
+  },
+
+  // Whether message content is encrypted (E2E)
+  isEncrypted: {
+    type: Boolean,
+    default: false
+  },
+
+  // Encryption metadata
+  encryptionMetadata: {
+    algorithm: { type: String, default: 'aes-256-gcm' },
+    keyVersion: Number,
+    // Encrypted conversation key for each participant
+    recipientKey: String // Conversation key encrypted for recipient
   },
 
   // Message type (text, image, etc.)

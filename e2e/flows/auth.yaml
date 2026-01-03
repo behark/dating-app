@@ -1,0 +1,120 @@
+# Authentication Flow E2E Test
+appId: com.datingapp
+
+---
+- launchApp
+
+# Test: User Registration Flow
+- tapOn: "Get Started"
+- assertVisible: "Create Account"
+
+# Fill registration form
+- tapOn: "Email"
+- inputText: "newuser@test.com"
+- tapOn: "Password"
+- inputText: "TestPassword123!"
+- tapOn: "Confirm Password"
+- inputText: "TestPassword123!"
+- tapOn: "Full Name"
+- inputText: "Test User"
+
+# Select date of birth (must be 18+)
+- tapOn: "Date of Birth"
+- scroll:
+    direction: UP
+    duration: 1000
+- tapOn: "Done"
+
+# Accept terms
+- tapOn: "I agree to Terms"
+
+# Submit registration
+- tapOn: "Create Account"
+
+# Verify success - should show profile setup
+- assertVisible: "Set Up Your Profile"
+
+---
+# Test: User Login Flow
+- launchApp:
+    clearState: true
+
+- tapOn: "Sign In"
+- assertVisible: "Welcome Back"
+
+# Enter credentials
+- tapOn: "Email"
+- inputText: "existing@test.com"
+- tapOn: "Password"
+- inputText: "TestPassword123!"
+
+# Submit login
+- tapOn: "Sign In"
+
+# Verify successful login - should show home/discover screen
+- assertVisible:
+    - "Discover"
+    - "Home"
+  timeout: 10000
+
+---
+# Test: Password Reset Flow
+- launchApp:
+    clearState: true
+
+- tapOn: "Sign In"
+- tapOn: "Forgot Password?"
+- assertVisible: "Reset Password"
+
+- tapOn: "Email"
+- inputText: "forgot@test.com"
+- tapOn: "Send Reset Link"
+
+# Verify email sent confirmation
+- assertVisible: "Check your email"
+
+---
+# Test: Social Login (Google)
+- launchApp:
+    clearState: true
+
+- tapOn: "Continue with Google"
+# Google OAuth flow would be tested here
+# Using mock for E2E
+- assertVisible:
+    - "Discover"
+    - "Set Up Your Profile"
+  timeout: 15000
+
+---
+# Test: Logout Flow
+- launchApp
+
+# Navigate to settings
+- tapOn: "Profile"
+- tapOn: "Settings"
+- scrollUntilVisible:
+    element: "Log Out"
+    direction: DOWN
+
+- tapOn: "Log Out"
+- tapOn: "Confirm"
+
+# Should be back at login/welcome screen
+- assertVisible:
+    - "Sign In"
+    - "Get Started"
+
+---
+# Test: Session Persistence
+- launchApp
+
+# Should already be logged in if session is valid
+- assertVisible: "Discover"
+
+# Force close and reopen
+- stopApp
+- launchApp
+
+# Should still be logged in
+- assertVisible: "Discover"

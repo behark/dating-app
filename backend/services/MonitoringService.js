@@ -1,0 +1,481 @@
+/**
+ * Monitoring Service
+ * Integrates Sentry for error tracking and Datadog for APM
+ */
+
+const Sentry = require('@sentry/node');
+const { ProfilingIntegration } = require('@sentry/profiling-node');
+
+class MonitoringService {
+  constructor() {
+    this.initialized = false;
+    this.environment = process.env.NODE_ENV || 'development';
+  }
+
+  /**
+   * Initialize Sentry for error tracking
+   */
+  initSentry(app) {
+    if (!process.env.SENTRY_DSN) {
+      console.log('⚠️  Sentry DSN not configured, skipping Sentry initialization');
+      return;
+    }
+
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      environment: this.environment,
+      release: process.env.RELEASE_VERSION || 'unknown',
+      
+      // Performance Monitoring
+      tracesSampleRate: this.environment === 'production' ? 0.1 : 1.0,
+      profilesSampleRate: this.environment === 'production' ? 0.1 : 1.0,
+      
+      integrations: [
+        // Enable HTTP calls tracing
+        new Sentry.Integrations.Http({ tracing: true }),
+        // Enable Express tracing
+        new Sentry.Integrations.Express({ app }),
+        // Enable Mongo tracing
+        new Sentry.Integrations.Mongo(),
+        // Enable profiling
+        new ProfilingIntegration(),
+      ],
+
+      // Filter sensitive data
+      beforeSend(event, hint) {
+        // Remove sensitive data
+        if (event.request) {
+          delete event.request.cookies;
+          if (event.request.headers) {
+            delete event.request.headers.authorization;
+            delete event.request.headers.cookie;
+          }
+        }
+        return event;
+      },
+
+      // Ignore common non-critical errors
+      ignoreErrors: [
+        'ResizeObserver loop limit exceeded',
+        'Network request failed',
+        'Load failed',
+        'ChunkLoadError',
+      ],
+    });
+
+    this.initialized = true;
+    console.log('✅ Sentry initialized for environment:', this.environment);
+  }
+
+  /**
+   * Get Sentry request handler middleware
+   */
+  getRequestHandler() {
+    return Sentry.Handlers.requestHandler({
+      // Include request body in events (be careful with sensitive data)
+      request: ['method', 'url', 'query_string', 'headers'],
+      serverName: true,
+      user: ['id', 'email'],
+    });
+  }
+
+  /**
+   * Get Sentry tracing middleware
+   */
+  getTracingHandler() {
+    return Sentry.Handlers.tracingHandler();
+  }
+
+  /**
+   * Get Sentry error handler middleware (must be first error handler)
+   */
+  getErrorHandler() {
+    return Sentry.Handlers.errorHandler({
+      shouldHandleError(error) {
+        // Capture all 400+ errors except 401/403
+        if (error.status >= 500 || !error.status) {
+          return true;
+        }
+        // Also capture 400 errors that aren't validation issues
+        if (error.status === 400 && !error.isValidationError) {
+          return true;
+        }
+        return false;
+      },
+    });
+  }
+
+  /**
+   * Capture an exception manually
+   */
+  captureException(error, context = {}) {
+    if (!this.initialized) return;
+
+    Sentry.withScope((scope) => {
+      if (context.user) {
+        scope.setUser(context.user);
+      }
+      if (context.tags) {
+        Object.entries(context.tags).forEach(([key, value]) => {
+          scope.setTag(key, value);
+        });
+      }
+      if (context.extra) {
+        Object.entries(context.extra).forEach(([key, value]) => {
+          scope.setExtra(key, value);
+        });
+      }
+      if (context.level) {
+        scope.setLevel(context.level);
+      }
+      Sentry.captureException(error);
+    });
+  }
+
+  /**
+   * Capture a message manually
+   */
+  captureMessage(message, level = 'info', context = {}) {
+    if (!this.initialized) return;
+
+    Sentry.withScope((scope) => {
+      scope.setLevel(level);
+      if (context.tags) {
+        Object.entries(context.tags).forEach(([key, value]) => {
+          scope.setTag(key, value);
+        });
+      }
+      Sentry.captureMessage(message);
+    });
+  }
+
+  /**
+   * Add breadcrumb for debugging
+   */
+  addBreadcrumb(breadcrumb) {
+    if (!this.initialized) return;
+    Sentry.addBreadcrumb(breadcrumb);
+  }
+
+  /**
+   * Set user context
+   */
+  setUser(user) {
+    if (!this.initialized) return;
+    Sentry.setUser(user ? {
+      id: user._id?.toString() || user.id,
+      email: user.email,
+      username: user.displayName,
+    } : null);
+  }
+
+  /**
+   * Start a transaction for performance monitoring
+   */
+  startTransaction(name, op = 'function') {
+    if (!this.initialized) return null;
+    return Sentry.startTransaction({ name, op });
+  }
+
+  /**
+   * Flush pending events before shutdown
+   */
+  async close(timeout = 2000) {
+    if (!this.initialized) return;
+    await Sentry.close(timeout);
+  }
+}
+
+// =============================================
+// Datadog APM Integration
+// =============================================
+
+class DatadogService {
+  constructor() {
+    this.tracer = null;
+    this.StatsD = null;
+  }
+
+  /**
+   * Initialize Datadog APM
+   */
+  init() {
+    if (!process.env.DATADOG_API_KEY) {
+      console.log('⚠️  Datadog API key not configured, skipping Datadog initialization');
+      return;
+    }
+
+    try {
+      // Initialize tracer
+      this.tracer = require('dd-trace').init({
+        service: 'dating-app-api',
+        env: process.env.NODE_ENV || 'development',
+        version: process.env.RELEASE_VERSION || '1.0.0',
+        logInjection: true,
+        runtimeMetrics: true,
+        profiling: true,
+        appsec: true,
+      });
+
+      // Initialize StatsD for custom metrics
+      const { StatsD } = require('hot-shots');
+      this.StatsD = new StatsD({
+        host: process.env.DD_AGENT_HOST || 'localhost',
+        port: 8125,
+        prefix: 'dating_app.',
+        globalTags: {
+          env: process.env.NODE_ENV || 'development',
+          service: 'dating-app-api',
+        },
+      });
+
+      console.log('✅ Datadog APM initialized');
+    } catch (error) {
+      console.log('⚠️  Failed to initialize Datadog:', error.message);
+    }
+  }
+
+  /**
+   * Send custom metric
+   */
+  gauge(metric, value, tags = []) {
+    if (this.StatsD) {
+      this.StatsD.gauge(metric, value, tags);
+    }
+  }
+
+  /**
+   * Increment a counter
+   */
+  increment(metric, value = 1, tags = []) {
+    if (this.StatsD) {
+      this.StatsD.increment(metric, value, tags);
+    }
+  }
+
+  /**
+   * Record timing
+   */
+  timing(metric, value, tags = []) {
+    if (this.StatsD) {
+      this.StatsD.timing(metric, value, tags);
+    }
+  }
+
+  /**
+   * Record histogram
+   */
+  histogram(metric, value, tags = []) {
+    if (this.StatsD) {
+      this.StatsD.histogram(metric, value, tags);
+    }
+  }
+
+  /**
+   * Create a custom span
+   */
+  trace(operationName, options, callback) {
+    if (this.tracer) {
+      return this.tracer.trace(operationName, options, callback);
+    }
+    return callback();
+  }
+
+  /**
+   * Close Datadog connections
+   */
+  close() {
+    if (this.StatsD) {
+      this.StatsD.close();
+    }
+  }
+}
+
+// =============================================
+// Custom Metrics Helper
+// =============================================
+
+class MetricsCollector {
+  constructor(datadogService) {
+    this.datadog = datadogService;
+    this.counters = new Map();
+    this.startTime = Date.now();
+  }
+
+  /**
+   * Track API request metrics
+   */
+  trackRequest(req, res, duration) {
+    const tags = [
+      `method:${req.method}`,
+      `route:${req.route?.path || 'unknown'}`,
+      `status:${res.statusCode}`,
+      `status_class:${Math.floor(res.statusCode / 100)}xx`,
+    ];
+
+    this.datadog.increment('http.requests', 1, tags);
+    this.datadog.timing('http.request.duration', duration, tags);
+
+    if (res.statusCode >= 400) {
+      this.datadog.increment('http.errors', 1, tags);
+    }
+  }
+
+  /**
+   * Track database query metrics
+   */
+  trackDatabaseQuery(operation, collection, duration, success = true) {
+    const tags = [
+      `operation:${operation}`,
+      `collection:${collection}`,
+      `success:${success}`,
+    ];
+
+    this.datadog.increment('db.queries', 1, tags);
+    this.datadog.timing('db.query.duration', duration, tags);
+  }
+
+  /**
+   * Track cache metrics
+   */
+  trackCache(operation, hit = false) {
+    const tags = [`operation:${operation}`, `hit:${hit}`];
+    this.datadog.increment('cache.operations', 1, tags);
+    
+    if (operation === 'get') {
+      this.datadog.increment(hit ? 'cache.hits' : 'cache.misses', 1);
+    }
+  }
+
+  /**
+   * Track user activity
+   */
+  trackUserActivity(activity, userId) {
+    this.datadog.increment('user.activity', 1, [`activity:${activity}`]);
+  }
+
+  /**
+   * Track business metrics
+   */
+  trackBusinessMetric(metric, value, tags = []) {
+    this.datadog.gauge(`business.${metric}`, value, tags);
+  }
+
+  /**
+   * Get Express middleware for request tracking
+   */
+  getMiddleware() {
+    return (req, res, next) => {
+      const startTime = Date.now();
+
+      res.on('finish', () => {
+        const duration = Date.now() - startTime;
+        this.trackRequest(req, res, duration);
+      });
+
+      next();
+    };
+  }
+}
+
+// =============================================
+// Health Check Service
+// =============================================
+
+class HealthCheckService {
+  constructor() {
+    this.checks = new Map();
+  }
+
+  /**
+   * Register a health check
+   */
+  registerCheck(name, checkFn) {
+    this.checks.set(name, checkFn);
+  }
+
+  /**
+   * Run all health checks
+   */
+  async runChecks() {
+    const results = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      checks: {},
+    };
+
+    for (const [name, checkFn] of this.checks) {
+      try {
+        const start = Date.now();
+        const result = await checkFn();
+        results.checks[name] = {
+          status: 'healthy',
+          responseTime: Date.now() - start,
+          ...result,
+        };
+      } catch (error) {
+        results.status = 'unhealthy';
+        results.checks[name] = {
+          status: 'unhealthy',
+          error: error.message,
+        };
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Get Express router for health endpoints
+   */
+  getRouter() {
+    const router = require('express').Router();
+
+    // Basic health check
+    router.get('/health', (req, res) => {
+      res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    });
+
+    // Detailed health check
+    router.get('/health/detailed', async (req, res) => {
+      const results = await this.runChecks();
+      const statusCode = results.status === 'healthy' ? 200 : 503;
+      res.status(statusCode).json(results);
+    });
+
+    // Readiness probe
+    router.get('/ready', async (req, res) => {
+      const results = await this.runChecks();
+      if (results.status === 'healthy') {
+        res.json({ ready: true });
+      } else {
+        res.status(503).json({ ready: false, checks: results.checks });
+      }
+    });
+
+    // Liveness probe
+    router.get('/live', (req, res) => {
+      res.json({ alive: true, uptime: process.uptime() });
+    });
+
+    return router;
+  }
+}
+
+// Export singleton instances
+const monitoringService = new MonitoringService();
+const datadogService = new DatadogService();
+const metricsCollector = new MetricsCollector(datadogService);
+const healthCheckService = new HealthCheckService();
+
+module.exports = {
+  MonitoringService,
+  DatadogService,
+  MetricsCollector,
+  HealthCheckService,
+  monitoringService,
+  datadogService,
+  metricsCollector,
+  healthCheckService,
+};

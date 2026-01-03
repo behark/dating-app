@@ -1,0 +1,236 @@
+# Profile Management E2E Test
+appId: com.datingapp
+
+---
+- launchApp
+
+# Navigate to profile
+- tapOn:
+    id: "profile-tab"
+
+---
+# Test: View Own Profile
+- assertVisible:
+    id: "profile-name"
+- assertVisible:
+    id: "profile-photos"
+- assertVisible: "Edit Profile"
+
+---
+# Test: Edit Profile Info
+- tapOn: "Edit Profile"
+- assertVisible: "Edit Your Profile"
+
+# Edit name
+- tapOn:
+    id: "name-input"
+- clearText
+- inputText: "Updated Name"
+
+# Edit bio
+- tapOn:
+    id: "bio-input"
+- clearText
+- inputText: "This is my updated bio with interests and hobbies!"
+
+# Save changes
+- tapOn: "Save"
+
+# Verify update
+- assertVisible: "Updated Name"
+- assertVisible: "Profile updated"
+
+---
+# Test: Add Photo
+- tapOn: "Edit Profile"
+- tapOn:
+    id: "add-photo-button"
+
+# Choose source
+- tapOn: "Take Photo"
+
+# Camera permission
+- tapOn: "Allow"
+  optional: true
+
+# Take photo
+- tapOn:
+    id: "capture-button"
+
+# Confirm photo
+- tapOn: "Use Photo"
+
+# Verify photo added
+- assertVisible:
+    id: "photo-5"
+  optional: true
+
+---
+# Test: Reorder Photos
+- tapOn: "Edit Profile"
+
+# Long press to drag
+- longPressOn:
+    id: "photo-1"
+- moveTo:
+    id: "photo-0"
+- release
+
+# Save
+- tapOn: "Save"
+
+---
+# Test: Delete Photo
+- tapOn: "Edit Profile"
+- tapOn:
+    id: "photo-delete-1"
+- tapOn: "Confirm"
+
+# Verify photo removed
+- assertNotVisible:
+    id: "deleted-photo"
+
+---
+# Test: Edit Interests
+- tapOn: "Edit Profile"
+- scrollUntilVisible:
+    element: "Interests"
+    direction: DOWN
+
+- tapOn:
+    id: "edit-interests"
+
+# Add interest
+- tapOn: "Photography"
+- tapOn: "Travel"
+- tapOn: "Fitness"
+
+# Remove interest
+- tapOn: "Gaming"
+
+# Save
+- tapOn: "Done"
+- tapOn: "Save"
+
+---
+# Test: Update Preferences
+- tapOn: "Edit Profile"
+- scrollUntilVisible:
+    element: "Preferences"
+    direction: DOWN
+
+- tapOn: "Preferences"
+
+# Update age range
+- swipe:
+    from:
+      id: "age-min-slider"
+    to:
+      x: "20"
+      y: "0"
+
+- swipe:
+    from:
+      id: "age-max-slider"
+    to:
+      x: "-20"
+      y: "0"
+
+# Update distance
+- tapOn:
+    id: "distance-slider"
+- inputText: "75"
+
+# Update gender preferences
+- tapOn: "Show Me"
+- tapOn: "Everyone"
+
+# Save
+- tapOn: "Save Preferences"
+
+---
+# Test: Photo Verification
+- tapOn: "Edit Profile"
+- tapOn: "Verify Profile"
+
+# Start verification
+- assertVisible: "Photo Verification"
+- tapOn: "Start Verification"
+
+# Take selfie matching pose
+- assertVisible: "Match this pose"
+- tapOn:
+    id: "capture-button"
+
+# Submit for review
+- tapOn: "Submit"
+
+# Verify pending status
+- assertVisible: "Verification Pending"
+
+---
+# Test: Profile Preview
+- tapOn: "Preview Profile"
+
+# Should show how profile appears to others
+- assertVisible: "Profile Preview"
+- assertVisible:
+    id: "preview-card"
+
+# Close preview
+- tapOn: "Close"
+
+---
+# Test: Profile Completeness
+- assertVisible:
+    id: "profile-completeness"
+
+# Should show percentage
+- assertVisible: "%"
+
+# Tap to see suggestions
+- tapOn:
+    id: "profile-completeness"
+- assertVisible: "Complete Your Profile"
+- assertVisible: "Add more photos"
+
+---
+# Test: Privacy Settings
+- tapOn: "Settings"
+- tapOn: "Privacy"
+
+# Toggle settings
+- tapOn:
+    id: "show-distance-toggle"
+- tapOn:
+    id: "show-age-toggle"
+- tapOn:
+    id: "read-receipts-toggle"
+
+# Save
+- tapOn: "Save"
+
+---
+# Test: Account Settings
+- tapOn: "Settings"
+- tapOn: "Account"
+
+# Verify options
+- assertVisible: "Change Email"
+- assertVisible: "Change Password"
+- assertVisible: "Delete Account"
+
+---
+# Test: Notification Settings
+- tapOn: "Settings"
+- tapOn: "Notifications"
+
+# Toggle notifications
+- tapOn:
+    id: "new-matches-toggle"
+- tapOn:
+    id: "messages-toggle"
+- tapOn:
+    id: "likes-toggle"
+
+- tapOn: "Save"

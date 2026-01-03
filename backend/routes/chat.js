@@ -4,7 +4,10 @@ const {
   getConversations,
   markAsRead,
   getUnreadCount,
-  deleteMessage
+  deleteMessage,
+  markMessageAsRead,
+  getReadReceipts,
+  sendEncryptedMessage
 } = require('../controllers/chatController');
 
 // Mock authentication middleware (replace with actual auth in production)
@@ -34,6 +37,15 @@ router.get('/messages/:matchId', getMessages);
 
 // PUT /api/chat/messages/:matchId/read - Mark messages as read for a match
 router.put('/messages/:matchId/read', markAsRead);
+
+// PUT /api/chat/messages/:messageId/read-single - Mark single message as read
+router.put('/messages/:messageId/read-single', markMessageAsRead);
+
+// GET /api/chat/receipts/:matchId - Get read receipts for a conversation
+router.get('/receipts/:matchId', getReadReceipts);
+
+// POST /api/chat/messages/encrypted - Send an encrypted message
+router.post('/messages/encrypted', sendEncryptedMessage);
 
 // DELETE /api/chat/messages/:messageId - Delete a message
 router.delete('/messages/:messageId', deleteMessage);

@@ -447,6 +447,52 @@ const userSchema = new mongoose.Schema({
     totalSwipesAllTime: { type: Number, default: 0 }
   },
 
+  // ========== PRIVACY & COMPLIANCE (GDPR/CCPA) ==========
+  privacySettings: {
+    // Data sharing preferences
+    dataSharing: { type: Boolean, default: true },
+    marketingEmails: { type: Boolean, default: false },
+    thirdPartySharing: { type: Boolean, default: false },
+    analyticsTracking: { type: Boolean, default: true },
+    
+    // CCPA: Do Not Sell
+    doNotSell: { type: Boolean, default: false },
+    doNotSellDate: Date,
+    
+    // Data retention
+    dataRetentionPeriod: {
+      type: String,
+      enum: ['1year', '2years', '5years', 'indefinite'],
+      default: '2years'
+    },
+    
+    // Consent tracking
+    hasConsented: { type: Boolean, default: false },
+    consentDate: Date,
+    consentVersion: { type: String, default: '1.0' },
+    
+    // Consent history for audit trail
+    consentHistory: [{
+      timestamp: { type: Date, default: Date.now },
+      action: String, // 'consent_given', 'consent_withdrawn', 'settings_updated'
+      version: String,
+      purposes: mongoose.Schema.Types.Mixed,
+      ipAddress: String,
+      userAgent: String,
+      changes: mongoose.Schema.Types.Mixed
+    }],
+    
+    lastUpdated: { type: Date, default: Date.now }
+  },
+
+  // ========== END-TO-END ENCRYPTION ==========
+  // User's public key for E2E encrypted messaging
+  encryptionPublicKey: String,
+  // Encrypted private key (encrypted with user's password-derived key)
+  encryptionPrivateKeyEncrypted: String,
+  // Key version for rotation support
+  encryptionKeyVersion: { type: Number, default: 1 },
+
   // Timestamps
 }, {
   timestamps: true

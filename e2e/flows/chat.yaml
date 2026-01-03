@@ -1,0 +1,179 @@
+# Chat Flow E2E Test
+appId: com.datingapp
+
+---
+- launchApp
+
+# Navigate to matches/chat
+- tapOn:
+    id: "matches-tab"
+
+---
+# Test: View Matches List
+- assertVisible: "Matches"
+- assertVisible:
+    id: "matches-list"
+
+---
+# Test: Open Chat from Match
+- tapOn:
+    id: "match-item-0"
+
+# Should open chat screen
+- assertVisible:
+    id: "chat-header"
+- assertVisible:
+    id: "message-input"
+
+---
+# Test: Send Text Message
+- tapOn:
+    id: "message-input"
+- inputText: "Hello! How are you?"
+- tapOn:
+    id: "send-button"
+
+# Verify message appears
+- assertVisible: "Hello! How are you?"
+
+# Verify sent status
+- assertVisible:
+    id: "message-sent-indicator"
+
+---
+# Test: Receive Message (Real-time)
+# Wait for incoming message simulation
+- extendedWaitUntil:
+    visible:
+      id: "incoming-message"
+    timeout: 30000
+  optional: true
+
+---
+# Test: Send Image
+- tapOn:
+    id: "attachment-button"
+- tapOn: "Photo"
+
+# Select from gallery or camera
+- tapOn: "Choose from Gallery"
+
+# Select first photo
+- tapOn:
+    id: "gallery-item-0"
+
+# Confirm send
+- tapOn: "Send"
+
+# Verify image message appears
+- assertVisible:
+    id: "image-message"
+
+---
+# Test: Send GIF
+- tapOn:
+    id: "attachment-button"
+- tapOn: "GIF"
+
+# Search for GIF
+- tapOn:
+    id: "gif-search"
+- inputText: "hello"
+
+# Select first GIF
+- tapOn:
+    id: "gif-item-0"
+
+# Verify GIF sent
+- assertVisible:
+    id: "gif-message"
+
+---
+# Test: Typing Indicator
+- tapOn:
+    id: "message-input"
+- inputText: "typing..."
+
+# Recipient should see typing indicator (simulated)
+- assertVisible:
+    id: "typing-indicator"
+  optional: true
+  timeout: 2000
+
+---
+# Test: Read Receipts
+# Scroll to last message
+- scrollUntilVisible:
+    element:
+      id: "last-message"
+    direction: DOWN
+
+# Verify read receipt
+- assertVisible:
+    id: "read-receipt"
+  optional: true
+
+---
+# Test: Video Call
+- tapOn:
+    id: "video-call-button"
+
+# Should show video call screen or permission request
+- assertVisible:
+    - "Video Call"
+    - "Camera Permission"
+  anyOf: true
+
+# Decline/end call
+- tapOn:
+    id: "end-call-button"
+  optional: true
+
+---
+# Test: Report User from Chat
+- tapOn:
+    id: "chat-menu"
+- tapOn: "Report"
+
+# Select report reason
+- assertVisible: "Report User"
+- tapOn: "Inappropriate behavior"
+- tapOn:
+    id: "report-details"
+- inputText: "Test report description"
+- tapOn: "Submit Report"
+
+# Verify report submitted
+- assertVisible: "Report submitted"
+
+---
+# Test: Block User from Chat
+- tapOn:
+    id: "chat-menu"
+- tapOn: "Block"
+- tapOn: "Confirm"
+
+# Should return to matches list
+- assertVisible: "Matches"
+
+# Blocked user should not appear
+- assertNotVisible:
+    id: "blocked-user-match"
+
+---
+# Test: Unmatch
+- tapOn:
+    id: "match-item-0"
+- tapOn:
+    id: "chat-menu"
+- tapOn: "Unmatch"
+- tapOn: "Confirm"
+
+# Should return to matches list
+- assertVisible: "Matches"
+
+---
+# Test: Empty Chat State
+- assertVisible:
+    text: "Start a conversation"
+  optional: true
