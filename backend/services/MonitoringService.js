@@ -431,6 +431,10 @@ class HealthCheckService {
 
     // Basic health check
     router.get('/health', (req, res) => {
+      // Don't send response if headers already sent
+      if (res.headersSent) {
+        return;
+      }
       res.json({ status: 'ok', timestamp: new Date().toISOString() });
     });
 

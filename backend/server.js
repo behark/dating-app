@@ -180,10 +180,15 @@ app.get('/api/csrf-token', getCsrfToken);
 // Health check endpoints (use health check service)
 app.use(healthCheckService.getRouter());
 
-// Legacy health check for backwards compatibility
+// Legacy health check for backwards compatibility (only if not already handled)
 app.get('/health', (req, res) => {
+  // Don't send response if headers already sent
+  if (res.headersSent) {
+    return;
+  }
+  
   res.json({
-    status: 'healthy',
+    status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV
@@ -214,6 +219,11 @@ app.use('/api/metrics', metricsRoutes);
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {
+  // Don't send response if headers already sent
+  if (res.headersSent) {
+    return;
+  }
+  
   res.status(404).json({
     success: false,
     message: 'Route not found'
