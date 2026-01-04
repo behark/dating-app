@@ -103,7 +103,15 @@ matchSchema.pre('save', function(next) {
   if (this.isNew || this.isModified('users')) {
     // Sort users array to ensure consistent ordering
     const sortedUsers = this.users.map(u => u.toString()).sort();
-    this.users = sortedUsers.map(u => new mongoose.Types.ObjectId(u));
+    // Use compatible ObjectId constructor
+    this.users = sortedUsers.map(u => {
+      if (mongoose.Types.ObjectId.isValid(u)) {
+        return mongoose.Types.ObjectId.createFromHexString ? 
+          mongoose.Types.ObjectId.createFromHexString(u) :
+          new mongoose.Types.ObjectId(u);
+      }
+      return u;
+    });
     this.user1 = this.users[0];
     this.user2 = this.users[1];
   }

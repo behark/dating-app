@@ -299,19 +299,29 @@ const setupEmailProcessors = () => {
   
   const nodemailer = require('nodemailer');
   
-  // Create transporter
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: process.env.SMTP_PORT || 587,
-    secure: process.env.SMTP_SECURE === 'true',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  // Create transporter only if credentials are configured
+  let transporter = null;
+  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT || 587,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+  } else {
+    console.warn('⚠️  SMTP credentials not configured - email job processing disabled');
+  }
   
   // Generic email sender
   emailQueue.process(JOB_TYPES.SEND_EMAIL, async (job) => {
+    if (!transporter) {
+      console.warn('Email service not configured - skipping email job');
+      return { success: false, reason: 'Email service not configured' };
+    }
+
     const { to, template, data } = job.data;
     
     const emailTemplates = {
@@ -342,18 +352,28 @@ const setupEmailProcessors = () => {
       throw new Error(`Unknown email template: ${template}`);
     }
     
-    const result = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || 'noreply@datingapp.com',
-      to,
-      subject: emailTemplate.subject,
-      html: emailTemplate.html,
-    });
-    
-    return { success: true, messageId: result.messageId };
+    try {
+      const result = await transporter.sendMail({
+        from: process.env.EMAIL_FROM || 'noreply@datingapp.com',
+        to,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+      });
+      
+      return { success: true, messageId: result.messageId };
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      throw error;
+    }
   });
   
   // Weekly digest
   emailQueue.process(JOB_TYPES.SEND_WEEKLY_DIGEST, async (job) => {
+    if (!transporter) {
+      console.warn('Email service not configured - skipping weekly digest job');
+      return { success: false, reason: 'Email service not configured' };
+    }
+
     const { userId } = job.data;
     
     const user = await User.findById(userId).select('email name');
@@ -382,21 +402,26 @@ const setupEmailProcessors = () => {
       }),
     ]);
     
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM || 'noreply@datingapp.com',
-      to: user.email,
-      subject: `Your weekly update on Dating App 📊`,
-      html: `
-        <h1>Hi ${user.name}!</h1>
-        <p>Here's your activity this week:</p>
-        <ul>
-          <li>👀 Profile views: ${views}</li>
-          <li>❤️ Likes received: ${likes}</li>
-          <li>🎉 New matches: ${matches}</li>
-        </ul>
-        <p>Keep swiping to find your perfect match!</p>
-      `,
-    });
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_FROM || 'noreply@datingapp.com',
+        to: user.email,
+        subject: `Your weekly update on Dating App 📊`,
+        html: `
+          <h1>Hi ${user.name}!</h1>
+          <p>Here's your activity this week:</p>
+          <ul>
+            <li>👀 Profile views: ${views}</li>
+            <li>❤️ Likes received: ${likes}</li>
+            <li>🎉 New matches: ${matches}</li>
+          </ul>
+          <p>Keep swiping to find your perfect match!</p>
+        `,
+      });
+    } catch (error) {
+      console.error('Email sending failed:', error);
+      throw error;
+    }
     
     return { success: true };
   });

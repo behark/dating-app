@@ -1,18 +1,29 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
-import Animated, {
-    Easing,
-    runOnJS,
-    useAnimatedGestureHandler,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-    withTiming
-} from 'react-native-reanimated';
+import { Dimensions, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LocationService } from '../../services/LocationService';
 import { VerificationService } from '../../services/VerificationService';
+
+// Only import gesture handlers on native platforms
+const PanGestureHandler = Platform.OS !== 'web' 
+  ? require('react-native-gesture-handler').PanGestureHandler 
+  : View;
+
+const Animated = Platform.OS !== 'web'
+  ? require('react-native-reanimated').default
+  : require('react-native').Animated;
+
+const { useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withSpring, withTiming, runOnJS, Easing } = Platform.OS !== 'web'
+  ? require('react-native-reanimated')
+  : {
+      useAnimatedGestureHandler: () => ({}),
+      useAnimatedStyle: () => ({}),
+      useSharedValue: (val) => ({ value: val }),
+      withSpring: (val) => val,
+      withTiming: (val) => val,
+      runOnJS: (fn) => fn,
+      Easing: { inOut: () => ({})},
+    };
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;

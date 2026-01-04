@@ -13,9 +13,18 @@ exports.authenticate = async (req, res, next) => {
       });
     }
 
+    // Ensure JWT_SECRET is set
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not configured');
+      return res.status(500).json({
+        success: false,
+        message: 'Authentication system is not properly configured'
+      });
+    }
+
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+      process.env.JWT_SECRET
     );
 
     const user = await User.findById(decoded.userId);
@@ -48,10 +57,10 @@ exports.optionalAuth = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
 
-    if (token) {
+    if (token && process.env.JWT_SECRET) {
       const decoded = jwt.verify(
         token,
-        process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+        process.env.JWT_SECRET
       );
       const user = await User.findById(decoded.userId);
       if (user) {

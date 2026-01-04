@@ -15,7 +15,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { validateEmail, validatePassword } from '../utils/validators';
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation, onAuthSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
@@ -45,6 +45,10 @@ const LoginScreen = ({ navigation }) => {
       } else {
         await signup(email, password);
       }
+      // Call success callback if provided
+      if (onAuthSuccess) {
+        onAuthSuccess();
+      }
     } catch (error) {
       Alert.alert('Error', error.message);
     }
@@ -53,6 +57,10 @@ const LoginScreen = ({ navigation }) => {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
+      // Call success callback if provided
+      if (onAuthSuccess) {
+        onAuthSuccess();
+      }
     } catch (error) {
       Alert.alert('Error', error.message);
     }

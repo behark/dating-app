@@ -9,6 +9,10 @@ const cookieParser = require('cookie-parser');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
+// Validate environment variables before starting
+const { validateOrExit } = require('./utils/validateEnv');
+validateOrExit();
+
 // Security middleware
 const { csrfProtection, getCsrfToken } = require('./middleware/csrf');
 
@@ -151,8 +155,15 @@ const corsOptions = {
     if (isAllowed) {
       callback(null, true);
     } else {
-      console.log('Blocked by CORS:', origin);
-      callback(null, true); // Allow all for now during development
+      // In production, block unauthorized origins
+      if (process.env.NODE_ENV === 'production') {
+        console.warn('CORS: Blocked origin:', origin);
+        callback(new Error('Not allowed by CORS'));
+      } else {
+        // In development, allow all but log
+        console.log('CORS: Allowing origin in dev mode:', origin);
+        callback(null, true);
+      }
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -305,7 +316,7 @@ let connectionPromise = null;
 
 const connectDB = async () => {
   if (isConnected && mongoose.connection.readyState === 1) {
-    return;
+    return true;
   }
 
   // If there's already a connection attempt in progress, wait for it
@@ -320,7 +331,7 @@ const connectDB = async () => {
       
       if (!mongoURI) {
         console.warn('MONGODB_URI or MONGODB_URL not set - database features will be unavailable');
-        return;
+        return false;
       }
 
       console.log('Attempting MongoDB connection...');
@@ -360,6 +371,7 @@ const connectDB = async () => {
         process.exit(0);
       });
 
+      return true;
     } catch (error) {
       console.error('MongoDB connection failed:', error.message);
       isConnected = false;
@@ -368,6 +380,7 @@ const connectDB = async () => {
       if (process.env.NODE_ENV !== 'production') {
         process.exit(1);
       }
+      return false;
     }
   })();
 
@@ -583,9 +596,9 @@ io.on('connection', (socket) => {
 // Start server (for local development)
 const startServer = async () => {
   try {
-    const dbConnection = await connectDB();
+    const dbConnected = await connectDB();
     
-    if (!dbConnection) {
+    if (!dbConnected) {
       console.warn('⚠️  MongoDB connection failed - server starting without database');
       console.warn('⚠️  Some features may not work until MongoDB is connected');
     } else {

@@ -18,7 +18,6 @@ const sharedProfileSchema = new mongoose.Schema({
   },
   shareToken: {
     type: String,
-    unique: true,
     required: true
   },
   expiresAt: {
@@ -87,7 +86,6 @@ const sharedProfileSchema = new mongoose.Schema({
 // Indexes for efficient queries
 sharedProfileSchema.index({ userId: 1 });
 sharedProfileSchema.index({ shareToken: 1 }, { unique: true });
-sharedProfileSchema.index({ expiresAt: 1 });
 sharedProfileSchema.index({ sharedByUserId: 1 });
 sharedProfileSchema.index({ createdAt: -1 });
 
@@ -96,7 +94,7 @@ sharedProfileSchema.pre('save', function(next) {
   next();
 });
 
-// TTL index to auto-delete expired share links after 30 days
+// TTL index to auto-delete expired share links after 30 days (includes expiresAt index)
 sharedProfileSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('SharedProfile', sharedProfileSchema);
