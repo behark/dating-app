@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import {
@@ -203,6 +203,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
     <Modal
       transparent
       visible={frequencyModalVisible}
+      accessibilityLabel="Notification frequency dialog"
       onRequestClose={() => setFrequencyModalVisible(false)}
     >
       <View style={styles.modalOverlay}>
@@ -246,6 +247,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
     <Modal
       transparent
       visible={quietHoursModalVisible}
+      accessibilityLabel="Quiet hours dialog"
       onRequestClose={() => setQuietHoursModalVisible(false)}
     >
       <View style={styles.modalOverlay}>

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
@@ -74,6 +74,7 @@ const StickerPickerModal = ({ visible, onClose, onSelectSticker, authToken }) =>
       visible={visible}
       animationType="slide"
       transparent={false}
+      accessibilityLabel="Sticker picker dialog"
       onRequestClose={onClose}
     >
       <View style={styles.container}>

@@ -3,6 +3,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
 import { createContext, useContext, useEffect, useState } from 'react';
+import { Platform } from 'react-native';
 import { API_URL } from '../config/api';
 import { LocationService } from '../services/LocationService';
 import { NotificationService } from '../services/NotificationService';
@@ -21,11 +22,15 @@ export const AuthProvider = ({ children }) => {
   const [authToken, setAuthToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
 
+  const googleWebClientId = Constants.expoConfig?.extra?.googleWebClientId;
+  const googleIosClientId = Constants.expoConfig?.extra?.googleIosClientId;
+  const googleAndroidClientId = Constants.expoConfig?.extra?.googleAndroidClientId;
+
   // Google Sign-In
   const [request, response, promptAsync] = Google.useAuthRequest({
-    iosClientId: Constants.expoConfig?.extra?.googleIosClientId,
-    androidClientId: Constants.expoConfig?.extra?.googleAndroidClientId,
-    webClientId: Constants.expoConfig?.extra?.googleWebClientId,
+    iosClientId: googleIosClientId,
+    androidClientId: googleAndroidClientId,
+    webClientId: googleWebClientId,
   });
 
   // Load user data from async storage on app start
@@ -315,6 +320,28 @@ export const AuthProvider = ({ children }) => {
   };
 
   const promptGoogleSignIn = async () => {
+    // Fail fast with a helpful message instead of sending users into
+    // Google's "invalid_client" screen when client IDs aren't configured.
+    const clientId =
+      Platform.OS === 'web'
+        ? googleWebClientId
+        : Platform.OS === 'ios'
+          ? googleIosClientId
+          : googleAndroidClientId;
+
+    const looksLikeGoogleClientId =
+      typeof clientId === 'string' &&
+      clientId.length > 0 &&
+      clientId.includes('.apps.googleusercontent.com');
+
+    if (!looksLikeGoogleClientId) {
+      throw new Error(
+        Platform.OS === 'web'
+          ? 'Google Sign-In is not configured for web. Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID to your OAuth Web Client ID (ends with .apps.googleusercontent.com) and redeploy.'
+          : 'Google Sign-In is not configured for this platform. Set the appropriate EXPO_PUBLIC_GOOGLE_*_CLIENT_ID env var and rebuild.'
+      );
+    }
+
     await promptAsync();
   };
 

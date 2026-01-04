@@ -3,7 +3,11 @@
  * Validates that critical environment variables are set before server starts
  */
 
-const chalk = require('chalk') || { red: (s) => s, green: (s) => s, yellow: (s) => s };
+// NOTE:
+// We intentionally avoid importing `chalk` here.
+// - In some production deploys, optional deps may be missing (causing MODULE_NOT_FOUND).
+// - Chalk v5+ is ESM-only, which throws when required from CommonJS.
+// This file doesn't need chalk (no colored output), so keeping it dependency-free is safest.
 
 /**
  * Critical environment variables that MUST be set
