@@ -93,7 +93,13 @@ const decrypt = (encryptedData) => {
  */
 const hash = (data) => {
   if (!data) return data;
-  const salt = process.env.HASH_SALT || 'default-salt';
+  
+  // Ensure HASH_SALT is configured
+  if (!process.env.HASH_SALT) {
+    throw new Error('HASH_SALT environment variable is not set. This is required for secure hashing.');
+  }
+  
+  const salt = process.env.HASH_SALT;
   return crypto.createHmac('sha256', salt).update(data).digest('hex');
 };
 

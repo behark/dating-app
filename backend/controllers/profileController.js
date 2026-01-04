@@ -175,7 +175,9 @@ exports.uploadPhotos = async (req, res) => {
 
     // Add new photos with moderation status
     const newPhotos = photos.map((photo, index) => ({
-      _id: new mongoose.Types.ObjectId(),
+      _id: mongoose.Types.ObjectId.createFromTime 
+        ? mongoose.Types.ObjectId.createFromTime(Math.floor(Date.now() / 1000))
+        : new mongoose.Types.ObjectId(),
       url: photo.url,
       order: photo.order || index,
       moderationStatus: 'pending',

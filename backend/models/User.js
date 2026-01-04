@@ -519,9 +519,15 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
 // Method to generate JWT token
 userSchema.methods.generateAuthToken = function() {
   const jwt = require('jsonwebtoken');
+  
+  // Ensure JWT_SECRET is set
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is not set. This is required for authentication.');
+  }
+  
   const token = jwt.sign(
     { userId: this._id, email: this.email },
-    process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+    process.env.JWT_SECRET,
     { expiresIn: '7d' }
   );
   return token;
@@ -530,9 +536,15 @@ userSchema.methods.generateAuthToken = function() {
 // Method to generate refresh token
 userSchema.methods.generateRefreshToken = function() {
   const jwt = require('jsonwebtoken');
+  
+  // Ensure JWT_REFRESH_SECRET is set
+  if (!process.env.JWT_REFRESH_SECRET) {
+    throw new Error('JWT_REFRESH_SECRET environment variable is not set. This is required for authentication.');
+  }
+  
   const token = jwt.sign(
     { userId: this._id },
-    process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key-change-in-production',
+    process.env.JWT_REFRESH_SECRET,
     { expiresIn: '30d' }
   );
   return token;

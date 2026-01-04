@@ -22,6 +22,13 @@ const emailService = {
    */
   init: function() {
     if (!this.transporter) {
+      // Check if email credentials are configured
+      if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+        console.warn('⚠️  Email credentials not configured - email features disabled');
+        this.transporter = null;
+        return;
+      }
+
       this.transporter = nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE || 'gmail',
         auth: {
@@ -42,6 +49,12 @@ const emailService = {
    */
   sendEmail: async function(to, subject, html) {
     this.init();
+    
+    if (!this.transporter) {
+      console.warn('Email service not configured - cannot send email');
+      return false;
+    }
+
     try {
       await this.transporter.sendMail({
         from: process.env.EMAIL_USER,
@@ -416,13 +429,6 @@ exports.deleteAccount = async (req, res) => {
     const userId = req.user.id;
     const { password } = req.body;
 
-    if (!password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password is required to delete account'
-      });
-    }
-
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
@@ -431,8 +437,15 @@ exports.deleteAccount = async (req, res) => {
       });
     }
 
-    // Verify password
+    // Verify password only for users who have one (not OAuth-only accounts)
     if (user.password) {
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Password is required to delete account'
+        });
+      }
+      
       const isPasswordMatch = await user.matchPassword(password);
       if (!isPasswordMatch) {
         return res.status(401).json({
@@ -475,10 +488,19 @@ exports.refreshToken = async (req, res) => {
       });
     }
 
+    // Ensure JWT_REFRESH_SECRET is set
+    if (!process.env.JWT_REFRESH_SECRET) {
+      console.error('JWT_REFRESH_SECRET is not configured');
+      return res.status(500).json({
+        success: false,
+        message: 'Authentication system is not properly configured'
+      });
+    }
+
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(
       refreshToken,
-      process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-key-change-in-production'
+      process.env.JWT_REFRESH_SECRET
     );
 
     const user = await User.findById(decoded.userId);
@@ -524,13 +546,17 @@ exports.googleAuth = async (req, res) => {
     let user = await User.findOne({ $or: [{ googleId }, { email }] });
 
     if (!user) {
-      // Create new user
+      // Create new user with required location field
       user = new User({
         googleId,
         email: email.toLowerCase(),
         name: name || email.split('@')[0],
         oauthProviders: ['google'],
         isEmailVerified: true,
+        location: {
+          type: 'Point',
+          coordinates: [-122.4194, 37.7749] // Default: San Francisco
+        },
         photos: photoUrl ? [{
           url: photoUrl,
           order: 0,
@@ -597,12 +623,17 @@ exports.facebookAuth = async (req, res) => {
     let user = await User.findOne({ $or: [{ facebookId }, { email }] });
 
     if (!user) {
+      // Create new user with required location field
       user = new User({
         facebookId,
         email: email.toLowerCase(),
         name: name || email.split('@')[0],
         oauthProviders: ['facebook'],
         isEmailVerified: true,
+        location: {
+          type: 'Point',
+          coordinates: [-122.4194, 37.7749] // Default: San Francisco
+        },
         photos: photoUrl ? [{
           url: photoUrl,
           order: 0,
@@ -668,12 +699,17 @@ exports.appleAuth = async (req, res) => {
     let user = await User.findOne({ appleId });
 
     if (!user) {
+      // Create new user with required location field
       user = new User({
         appleId,
         email: email?.toLowerCase() || `${appleId}@appleid.apple.com`,
         name: name || 'Apple User',
         oauthProviders: ['apple'],
-        isEmailVerified: !!email
+        isEmailVerified: !!email,
+        location: {
+          type: 'Point',
+          coordinates: [-122.4194, 37.7749] // Default: San Francisco
+        }
       });
       await user.save();
     }

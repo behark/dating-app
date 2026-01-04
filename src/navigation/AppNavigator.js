@@ -10,6 +10,7 @@ import GroupDatesScreen from '../screens/GroupDatesScreen';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import MatchesScreen from '../screens/MatchesScreen';
+import PreviewHomeScreen from '../screens/PreviewHomeScreen';
 import NotificationPreferencesScreen from '../screens/NotificationPreferencesScreen';
 import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
 import PreferencesScreen from '../screens/PreferencesScreen';
@@ -201,7 +202,16 @@ const AppNavigator = () => {
             />
           </>
         ) : (
-          <Stack.Screen name="Login" component={LoginScreen} />
+          <>
+            <Stack.Screen name="Preview" component={PreviewHomeScreen} />
+            <Stack.Screen 
+              name="Login" 
+              component={LoginScreen}
+              options={{
+                presentation: 'modal',
+              }}
+            />
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>

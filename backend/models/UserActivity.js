@@ -140,10 +140,17 @@ userActivitySchema.statics.getActivitySummary = async function(userId, days = 7)
   const timeframe = new Date();
   timeframe.setDate(timeframe.getDate() - days);
 
+  // Convert userId string to ObjectId safely
+  const userObjectId = mongoose.Types.ObjectId.isValid(userId)
+    ? (mongoose.Types.ObjectId.createFromHexString 
+        ? mongoose.Types.ObjectId.createFromHexString(userId)
+        : new mongoose.Types.ObjectId(userId))
+    : userId;
+
   return await this.aggregate([
     {
       $match: {
-        userId: mongoose.Types.ObjectId(userId),
+        userId: userObjectId,
         createdAt: { $gte: timeframe }
       }
     },

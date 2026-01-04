@@ -1,7 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
-import 'react-native-gesture-handler';
+// Only import gesture handler on native platforms
+if (Platform.OS !== 'web') {
+  require('react-native-gesture-handler');
+}
 import ErrorBoundary from './src/components/ErrorBoundary';
 import NetworkStatusBanner from './src/components/NetworkStatusBanner';
 import { AppProvider } from './src/context/AppContext';

@@ -16,7 +16,6 @@ const paymentTransactionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    index: true,
   },
 
   // Payment provider
@@ -176,10 +175,13 @@ paymentTransactionSchema.statics.findByProviderId = function(provider, providerT
 
 // Static method: Calculate user total spend
 paymentTransactionSchema.statics.getUserTotalSpend = async function(userId) {
+  const mongoose = require('mongoose');
   const result = await this.aggregate([
     {
       $match: {
-        userId: new mongoose.Types.ObjectId(userId),
+        userId: mongoose.Types.ObjectId.isValid(userId) 
+          ? new mongoose.Types.ObjectId(userId) 
+          : userId,
         status: 'completed',
         type: { $ne: 'refund' },
       },

@@ -8,8 +8,7 @@ const dailyRewardSchema = new mongoose.Schema({
   },
   rewardDate: {
     type: Date,
-    required: true,
-    index: true
+    required: true
   },
   rewardType: {
     type: String,
