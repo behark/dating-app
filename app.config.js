@@ -80,7 +80,12 @@ export default {
       firebaseStorageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "your_project_id.appspot.com",
       firebaseMessagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "your_sender_id",
       firebaseAppId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || "your_app_id",
-      googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || "your_google_web_client_id"
+      // Google OAuth Client IDs (required for Google Sign-In)
+      // - Web must be an OAuth Client ID ending with `.apps.googleusercontent.com`
+      // - iOS/Android are optional unless you ship native builds
+      googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || "",
+      googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || "",
+      googleAndroidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || ""
     }
   }
 };

@@ -124,6 +124,7 @@ export const DatePlansSharing = ({ userId, onPlanShared }) => {
       <Modal
         visible={showForm}
         animationType="slide"
+        accessibilityLabel="Share date plan dialog"
         onRequestClose={() => setShowForm(false)}
       >
         <ScrollView style={styles.formContainer}>

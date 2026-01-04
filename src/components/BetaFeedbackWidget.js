@@ -155,6 +155,7 @@ export const BetaFeedbackWidget = ({
       visible={isVisible}
       animationType="none"
       transparent
+      accessibilityLabel="Beta feedback dialog"
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView

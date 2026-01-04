@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import {
@@ -273,6 +273,7 @@ const PreviewHomeScreen = ({ navigation }) => {
         visible={showLoginModal}
         animationType="slide"
         transparent={false}
+        accessibilityLabel="Authentication dialog"
         onRequestClose={() => setShowLoginModal(false)}
       >
         <View style={styles.modalContainer}>

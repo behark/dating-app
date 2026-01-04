@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
@@ -72,6 +72,7 @@ export default function ReportUserScreen({ route, navigation }) {
       visible={showCategoryPicker}
       transparent
       animationType="fade"
+      accessibilityLabel="Report category picker dialog"
       onRequestClose={() => setShowCategoryPicker(false)}
     >
       <View style={styles.modalOverlay}>
