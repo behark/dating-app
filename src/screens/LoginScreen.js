@@ -18,6 +18,9 @@ import { validateEmail, validatePassword } from '../utils/validators';
 const LoginScreen = ({ navigation, onAuthSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const { login, signup, signInWithGoogle } = useAuth();
@@ -27,6 +30,20 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
+    }
+
+    // Additional validation for signup
+    if (!isLogin) {
+      if (!name || !age || !gender) {
+        Alert.alert('Error', 'Please fill in all required fields (name, age, gender)');
+        return;
+      }
+      
+      const ageNum = parseInt(age);
+      if (isNaN(ageNum) || ageNum < 18 || ageNum > 100) {
+        Alert.alert('Error', 'Please enter a valid age (18-100)');
+        return;
+      }
     }
 
     if (!validateEmail(email)) {
@@ -43,7 +60,7 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
       if (isLogin) {
         await login(email, password);
       } else {
-        await signup(email, password);
+        await signup(email, password, name, parseInt(age), gender);
       }
       // Call success callback if provided
       if (onAuthSuccess) {
@@ -94,6 +111,65 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
           </View>
 
           <View style={styles.formContainer}>
+            {!isLogin && (
+              <>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="person-outline" size={20} color="#667eea" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Name"
+                    placeholderTextColor="#999"
+                    value={name}
+                    onChangeText={setName}
+                    autoCapitalize="words"
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Ionicons name="calendar-outline" size={20} color="#667eea" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Age"
+                    placeholderTextColor="#999"
+                    value={age}
+                    onChangeText={setAge}
+                    keyboardType="number-pad"
+                    maxLength={2}
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Ionicons name="male-female-outline" size={20} color="#667eea" style={styles.inputIcon} />
+                  <View style={styles.genderContainer}>
+                    <TouchableOpacity
+                      style={[styles.genderButton, gender === 'male' && styles.genderButtonActive]}
+                      onPress={() => setGender('male')}
+                    >
+                      <Text style={[styles.genderText, gender === 'male' && styles.genderTextActive]}>
+                        Male
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.genderButton, gender === 'female' && styles.genderButtonActive]}
+                      onPress={() => setGender('female')}
+                    >
+                      <Text style={[styles.genderText, gender === 'female' && styles.genderTextActive]}>
+                        Female
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.genderButton, gender === 'other' && styles.genderButtonActive]}
+                      onPress={() => setGender('other')}
+                    >
+                      <Text style={[styles.genderText, gender === 'other' && styles.genderTextActive]}>
+                        Other
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </>
+            )}
+
             <View style={styles.inputContainer}>
               <Ionicons name="mail-outline" size={20} color="#667eea" style={styles.inputIcon} />
               <TextInput
@@ -334,6 +410,33 @@ const styles = StyleSheet.create({
   switchTextBold: {
     color: '#667eea',
     fontWeight: '700',
+  },
+  genderContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  genderButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    alignItems: 'center',
+  },
+  genderButtonActive: {
+    backgroundColor: '#667eea',
+    borderColor: '#667eea',
+  },
+  genderText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '600',
+  },
+  genderTextActive: {
+    color: '#fff',
   },
 });
 
