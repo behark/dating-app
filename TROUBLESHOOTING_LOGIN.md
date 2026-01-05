@@ -12,6 +12,7 @@
 ### Step 2: Check API Configuration
 
 When the page loads, you should see:
+
 ```
 🌐 API Configuration:
   - Platform: web
@@ -28,6 +29,7 @@ When the page loads, you should see:
 2. Watch the console for these messages:
 
 **For Login:**
+
 ```
 🔍 Login - API_URL: [should show the backend URL]
 🔍 Login - Full URL: [should show the full endpoint]
@@ -36,6 +38,7 @@ When the page loads, you should see:
 ```
 
 **For Signup:**
+
 ```
 🔍 Signup - API_URL: [should show the backend URL]
 🔍 Signup - Full URL: [should show the full endpoint]
@@ -46,6 +49,7 @@ When the page loads, you should see:
 ### Step 4: Check for Errors
 
 Look for messages starting with:
+
 - ❌ (red X) = Error occurred
 - ✅ (green check) = Success
 
@@ -54,10 +58,12 @@ Look for messages starting with:
 ### Issue 1: API_URL is undefined or wrong
 
 **Symptoms:**
+
 - Console shows `API_URL: undefined` or wrong URL
 - Requests fail immediately
 
 **Solution:**
+
 - Check Vercel environment variables
 - Set `EXPO_PUBLIC_API_URL` = `https://dating-app-backend-x4yq.onrender.com/api`
 - Redeploy on Vercel
@@ -65,10 +71,12 @@ Look for messages starting with:
 ### Issue 2: CORS Error
 
 **Symptoms:**
+
 - Console shows: `Access to fetch at '...' from origin '...' has been blocked by CORS policy`
 - Network tab shows CORS error
 
 **Solution:**
+
 - Update Render environment variables:
   - `CORS_ORIGIN` = `https://dating-app-seven-peach.vercel.app`
   - `FRONTEND_URL` = `https://dating-app-seven-peach.vercel.app`
@@ -77,10 +85,12 @@ Look for messages starting with:
 ### Issue 3: Network Error
 
 **Symptoms:**
+
 - Console shows: `❌ Login - No response received`
 - Network tab shows failed request
 
 **Solution:**
+
 - Check if backend is running: https://dating-app-backend-x4yq.onrender.com/health
 - Check Render dashboard for service status
 - Verify backend is not sleeping (free tier sleeps after inactivity)
@@ -88,10 +98,12 @@ Look for messages starting with:
 ### Issue 4: Invalid Response Format
 
 **Symptoms:**
+
 - Console shows: `❌ Login - JSON parse error`
 - Response status is not 200/201
 
 **Solution:**
+
 - Check the response text in console
 - Verify backend is returning valid JSON
 - Check backend logs in Render dashboard
@@ -99,10 +111,12 @@ Look for messages starting with:
 ### Issue 5: Response Not OK
 
 **Symptoms:**
+
 - Console shows: `❌ Login - Response not OK:`
 - Response status is 400, 401, 500, etc.
 
 **Solution:**
+
 - Check the error message in console
 - Verify credentials are correct
 - Check backend logs for detailed error

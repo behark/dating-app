@@ -8,54 +8,55 @@ import { validateApiResponse } from './validators';
 import logger from './logger';
 
 /**
- * Handle API response with consistent error checking
- * @param {Response} response - Fetch response object
- * @param {Object} options - Options
- * @param {boolean} options.requireData - Require data property in response
- * @param {boolean} options.userFriendly - Return user-friendly error messages
- * @returns {Promise<Object>} Parsed response data
- * @throws {Error} If response is not ok or request failed
+ * Extract error message from failed API response
  */
-export async function handleApiResponse(response, options = {}) {
-  const { requireData = false, userFriendly = true } = options;
+async function extractErrorFromResponse(response) {
+  let errorMessage = `Request failed with status ${response.status}`;
 
-  // Check if response is ok before parsing JSON
-  if (!response.ok) {
-    let errorData = null;
-    let errorMessage = `Request failed with status ${response.status}`;
-
-    try {
-      errorData = await response.json();
-      errorMessage = extractErrorMessage(errorData);
-    } catch {
-      // If response is not JSON, use status text
-      errorMessage = response.statusText || errorMessage;
-    }
-
-    // Log API error
-    logger.apiError(response.url, 'FETCH', response.status, errorMessage);
-
-    // Return user-friendly message if requested
-    if (userFriendly) {
-      errorMessage = getUserFriendlyMessage(errorMessage);
-    }
-
-    throw new Error(errorMessage);
+  try {
+    const errorData = await response.json();
+    errorMessage = extractErrorMessage(errorData);
+  } catch {
+    // If response is not JSON, use status text
+    errorMessage = response.statusText || errorMessage;
   }
 
-  // Parse JSON response
-  let data;
+  return errorMessage;
+}
+
+/**
+ * Handle non-OK API response
+ */
+async function handleErrorResponse(response, userFriendly) {
+  const errorMessage = await extractErrorFromResponse(response);
+
+  // Log API error
+  logger.apiError(response.url, 'FETCH', response.status, errorMessage);
+
+  // Return user-friendly message if requested
+  const finalMessage = userFriendly ? getUserFriendlyMessage(errorMessage) : errorMessage;
+  throw new Error(finalMessage);
+}
+
+/**
+ * Parse JSON response with error handling
+ */
+async function parseJsonResponse(response, userFriendly) {
   try {
-    data = await response.json();
+    return await response.json();
   } catch (error) {
     logger.error('Invalid JSON response from server', error);
-    throw new Error(
-      userFriendly
-        ? 'Invalid response from server. Please try again.'
-        : 'Invalid JSON response from server'
-    );
+    const message = userFriendly
+      ? 'Invalid response from server. Please try again.'
+      : 'Invalid JSON response from server';
+    throw new Error(message);
   }
+}
 
+/**
+ * Validate and extract data from API response
+ */
+function extractResponseData(data, requireData, userFriendly) {
   // Validate response structure
   const validation = validateApiResponse(data, { requireSuccess: true, requireData });
   if (!validation.valid) {
@@ -81,6 +82,30 @@ export async function handleApiResponse(response, options = {}) {
   }
 
   return result;
+}
+
+/**
+ * Handle API response with consistent error checking
+ * @param {Response} response - Fetch response object
+ * @param {Object} options - Options
+ * @param {boolean} options.requireData - Require data property in response
+ * @param {boolean} options.userFriendly - Return user-friendly error messages
+ * @returns {Promise<Object>} Parsed response data
+ * @throws {Error} If response is not ok or request failed
+ */
+export async function handleApiResponse(response, options = {}) {
+  const { requireData = false, userFriendly = true } = options;
+
+  // Check if response is ok before parsing JSON
+  if (!response.ok) {
+    await handleErrorResponse(response, userFriendly);
+  }
+
+  // Parse JSON response
+  const data = await parseJsonResponse(response, userFriendly);
+
+  // Validate and extract data
+  return extractResponseData(data, requireData, userFriendly);
 }
 
 /**

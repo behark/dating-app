@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Colors } from '../constants/colors';
 import {
   ActivityIndicator,
   Alert,
@@ -120,7 +121,7 @@ export const ForgotPasswordScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
   },
   content: {
     flex: 1,
@@ -133,12 +134,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
-    color: '#999',
+    color: Colors.text.tertiary,
     lineHeight: 24,
   },
   form: {
@@ -151,19 +152,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333',
+    color: Colors.text.dark,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
   },
   button: {
     paddingVertical: 14,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 16,
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   backLink: {
-    color: '#FF6B6B',
+    color: Colors.accent.red,
     textAlign: 'center',
     fontSize: 14,
     fontWeight: 'bold',
@@ -194,19 +195,19 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 12,
   },
   successText: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     marginBottom: 8,
     lineHeight: 24,
   },
   successSubtext: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.tertiary,
     textAlign: 'center',
   },
 });

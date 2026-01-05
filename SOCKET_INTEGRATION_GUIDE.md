@@ -14,11 +14,13 @@ The following components have been created to enable real-time communication:
 ## 📁 Files Created
 
 ### Frontend Components
+
 - `src/contexts/SocketContext.js` - Socket.io context provider
 - `src/hooks/useSocket.js` - Socket operations hook
 - `src/hooks/useChat.js` - Chat-specific hook
 
 ### Shared Types
+
 - `shared/types/user.ts` - User type definitions
 - `shared/types/message.ts` - Message and chat types
 - `shared/types/match.ts` - Match and swipe types
@@ -39,9 +41,7 @@ import { NavigationContainer } from '@react-navigation/native';
 function App() {
   return (
     <SocketProvider>
-      <NavigationContainer>
-        {/* Your app navigation and screens */}
-      </NavigationContainer>
+      <NavigationContainer>{/* Your app navigation and screens */}</NavigationContainer>
     </SocketProvider>
   );
 }
@@ -60,21 +60,15 @@ import { useChat } from '../hooks/useChat';
 
 function ChatScreen({ route }) {
   const { matchId, otherUserId } = route.params;
-  const { 
-    messages, 
-    sendMessage, 
-    sendTypingIndicator,
-    stopTyping,
-    isConnected,
-    typing 
-  } = useChat(matchId);
+  const { messages, sendMessage, sendTypingIndicator, stopTyping, isConnected, typing } =
+    useChat(matchId);
 
   const handleSendMessage = async (text) => {
     try {
       await sendMessage({
         senderId: currentUserId, // Get from auth context
         content: text,
-        type: 'text'
+        type: 'text',
       });
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -97,10 +91,7 @@ function ChatScreen({ route }) {
         keyExtractor={(item) => item._id}
       />
       {typing[otherUserId] && <Text>User is typing...</Text>}
-      <TextInput 
-        onChangeText={handleTextChange}
-        placeholder="Type a message..."
-      />
+      <TextInput onChangeText={handleTextChange} placeholder="Type a message..." />
       <Button title="Send" onPress={() => handleSendMessage(text)} />
     </View>
   );
@@ -122,11 +113,11 @@ function MatchListScreen() {
 
     // Listen for user online status
     const handleUserOnline = (userId) => {
-      setOnlineUsers(prev => new Set([...prev, userId]));
+      setOnlineUsers((prev) => new Set([...prev, userId]));
     };
 
     const handleUserOffline = (userId) => {
-      setOnlineUsers(prev => {
+      setOnlineUsers((prev) => {
         const updated = new Set(prev);
         updated.delete(userId);
         return updated;
@@ -159,7 +150,7 @@ function LoginScreen() {
   const handleLogin = async (email, password) => {
     try {
       const response = await loginAPI(email, password);
-      
+
       // Store tokens
       await AsyncStorage.setItem('token', response.tokens.accessToken);
       await AsyncStorage.setItem('refreshToken', response.tokens.refreshToken);
@@ -220,7 +211,7 @@ const message: IMessage = {
   receiverId: 'user2',
   content: 'Hello!',
   type: 'text',
-  createdAt: new Date()
+  createdAt: new Date(),
 };
 ```
 
@@ -229,6 +220,7 @@ const message: IMessage = {
 Your backend already implements these events (see `backend/server.js:650-820`):
 
 ### Client → Server Events
+
 - `join_room` - Join a chat room
 - `leave_room` - Leave a chat room
 - `send_message` - Send a message
@@ -238,6 +230,7 @@ Your backend already implements these events (see `backend/server.js:650-820`):
 - `read_receipt` - Send read receipt
 
 ### Server → Client Events
+
 - `new_message` - Receive a new message
 - `typing` - Someone is typing
 - `stop_typing` - Someone stopped typing
@@ -249,6 +242,7 @@ Your backend already implements these events (see `backend/server.js:650-820`):
 ## 📊 Connection States
 
 The `SocketContext` tracks connection state:
+
 - `disconnected` - Not connected
 - `connecting` - Attempting to connect
 - `connected` - Successfully connected
@@ -256,6 +250,7 @@ The `SocketContext` tracks connection state:
 - `reconnecting` - Attempting to reconnect
 
 Access via:
+
 ```javascript
 const { connectionState, isConnected, error } = useSocketContext();
 ```
@@ -263,6 +258,7 @@ const { connectionState, isConnected, error } = useSocketContext();
 ## 🔄 Auto-Reconnection
 
 The socket automatically reconnects on connection loss with:
+
 - 5 retry attempts
 - Exponential backoff (1-5 seconds)
 - Automatic re-authentication
@@ -278,6 +274,7 @@ All event listeners are automatically cleaned up when components unmount.
 ## 🚨 Error Handling
 
 Errors are logged and stored in the context:
+
 ```javascript
 const { error } = useSocketContext();
 

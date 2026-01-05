@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import {
@@ -76,7 +77,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
       <View style={styles.switchGroup}>
         <View style={styles.switchRow}>
           <View style={styles.switchInfo}>
-            <Ionicons name="heart" size={24} color="#FF6B6B" />
+            <Ionicons name="heart" size={24} color={Colors.accent.red} />
             <View style={styles.switchText}>
               <Text style={styles.switchTitle}>Match Notifications</Text>
               <Text style={styles.switchSubtitle}>When you match with someone</Text>
@@ -85,8 +86,8 @@ const NotificationPreferencesScreen = ({ navigation }) => {
           <Switch
             value={preferences.matchNotifications}
             onValueChange={(value) => updatePreference('matchNotifications', value)}
-            trackColor={{ false: '#ccc', true: '#FF6B6B' }}
-            thumbColor="#fff"
+            trackColor={{ false: Colors.text.light, true: Colors.accent.red }}
+            thumbColor={Colors.background.white}
           />
         </View>
 
@@ -94,7 +95,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
 
         <View style={styles.switchRow}>
           <View style={styles.switchInfo}>
-            <Ionicons name="chatbubble" size={24} color="#4ECDC4" />
+            <Ionicons name="chatbubble" size={24} color={Colors.accent.teal} />
             <View style={styles.switchText}>
               <Text style={styles.switchTitle}>Message Notifications</Text>
               <Text style={styles.switchSubtitle}>New messages from matches</Text>
@@ -103,8 +104,8 @@ const NotificationPreferencesScreen = ({ navigation }) => {
           <Switch
             value={preferences.messageNotifications}
             onValueChange={(value) => updatePreference('messageNotifications', value)}
-            trackColor={{ false: '#ccc', true: '#4ECDC4' }}
-            thumbColor="#fff"
+            trackColor={{ false: Colors.text.light, true: Colors.accent.teal }}
+            thumbColor={Colors.background.white}
           />
         </View>
 
@@ -121,8 +122,8 @@ const NotificationPreferencesScreen = ({ navigation }) => {
           <Switch
             value={preferences.likeNotifications}
             onValueChange={(value) => updatePreference('likeNotifications', value)}
-            trackColor={{ false: '#ccc', true: '#FFA500' }}
-            thumbColor="#fff"
+            trackColor={{ false: Colors.text.light, true: '#FFA500' }}
+            thumbColor={Colors.background.white}
           />
         </View>
 
@@ -130,7 +131,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
 
         <View style={styles.switchRow}>
           <View style={styles.switchInfo}>
-            <Ionicons name="megaphone" size={24} color="#667eea" />
+            <Ionicons name="megaphone" size={24} color={Colors.primary} />
             <View style={styles.switchText}>
               <Text style={styles.switchTitle}>System Announcements</Text>
               <Text style={styles.switchSubtitle}>App updates and announcements</Text>
@@ -139,8 +140,8 @@ const NotificationPreferencesScreen = ({ navigation }) => {
           <Switch
             value={preferences.systemNotifications}
             onValueChange={(value) => updatePreference('systemNotifications', value)}
-            trackColor={{ false: '#ccc', true: '#667eea' }}
-            thumbColor="#fff"
+            trackColor={{ false: Colors.text.light, true: Colors.primary }}
+            thumbColor={Colors.background.white}
           />
         </View>
       </View>
@@ -166,7 +167,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
               }
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={24} color="#667eea" />
+          <Ionicons name="chevron-forward" size={24} color={Colors.primary} />
         </View>
       </TouchableOpacity>
     </View>
@@ -179,8 +180,8 @@ const NotificationPreferencesScreen = ({ navigation }) => {
         <Switch
           value={tempQuietHours?.enabled || false}
           onValueChange={(value) => setTempQuietHours((prev) => ({ ...prev, enabled: value }))}
-          trackColor={{ false: '#ccc', true: '#667eea' }}
-          thumbColor="#fff"
+          trackColor={{ false: Colors.text.light, true: Colors.primary }}
+          thumbColor={Colors.background.white}
         />
       </View>
 
@@ -193,7 +194,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
             style={styles.editQuietHoursButton}
             onPress={() => setQuietHoursModalVisible(true)}
           >
-            <Ionicons name="time" size={20} color="#667eea" />
+            <Ionicons name="time" size={20} color={Colors.primary} />
             <Text style={styles.editQuietHoursText}>Edit Times</Text>
           </TouchableOpacity>
         </View>
@@ -213,7 +214,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Notification Frequency</Text>
             <TouchableOpacity onPress={() => setFrequencyModalVisible(false)}>
-              <Ionicons name="close" size={24} color="#333" />
+              <Ionicons name="close" size={24} color={Colors.text.dark} />
             </TouchableOpacity>
           </View>
 
@@ -235,7 +236,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
                   <Text style={styles.frequencyOptionDescription}>{option.description}</Text>
                 </View>
                 {preferences.notificationFrequency === option.id && (
-                  <Ionicons name="checkmark-circle" size={24} color="#667eea" />
+                  <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
                 )}
               </TouchableOpacity>
             ))}
@@ -257,7 +258,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Quiet Hours</Text>
             <TouchableOpacity onPress={() => setQuietHoursModalVisible(false)}>
-              <Ionicons name="close" size={24} color="#333" />
+              <Ionicons name="close" size={24} color={Colors.text.dark} />
             </TouchableOpacity>
           </View>
 
@@ -290,9 +291,9 @@ const NotificationPreferencesScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="notifications" size={60} color="#fff" />
+          <Ionicons name="notifications" size={60} color={Colors.background.white} />
           <Text style={styles.loadingText}>Loading preferences...</Text>
         </View>
       </LinearGradient>
@@ -300,14 +301,14 @@ const NotificationPreferencesScreen = ({ navigation }) => {
   }
 
   return (
-    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+    <LinearGradient colors={Colors.gradient.light} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color={Colors.background.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notification Settings</Text>
         <TouchableOpacity onPress={savePreferences} style={styles.saveButton} disabled={saving}>
-          <Ionicons name="checkmark" size={24} color="#fff" />
+          <Ionicons name="checkmark" size={24} color={Colors.background.white} />
         </TouchableOpacity>
       </LinearGradient>
 
@@ -323,10 +324,15 @@ const NotificationPreferencesScreen = ({ navigation }) => {
             disabled={saving}
           >
             <LinearGradient
-              colors={saving ? ['#ccc', '#bbb'] : ['#667eea', '#764ba2']}
+              colors={saving ? Colors.gradient.disabled : Colors.gradient.primary}
               style={styles.saveButtonGradient}
             >
-              <Ionicons name="checkmark-circle" size={24} color="#fff" style={{ marginRight: 8 }} />
+              <Ionicons
+                name="checkmark-circle"
+                size={24}
+                color={Colors.background.white}
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save Settings'}</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -349,7 +355,7 @@ const styles = StyleSheet.create({
     padding: 15,
     paddingTop: 50,
     paddingBottom: 15,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -363,7 +369,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
     textAlign: 'center',
   },
   saveButton: {
@@ -377,7 +383,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 20,
     fontSize: 18,
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '600',
   },
   scrollView: {
@@ -388,11 +394,11 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   section: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -401,7 +407,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 15,
   },
   switchGroup: {
@@ -425,23 +431,23 @@ const styles = StyleSheet.create({
   switchTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   switchSubtitle: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 2,
   },
   divider: {
     height: 1,
-    backgroundColor: '#e9ecef',
+    backgroundColor: Colors.border.gray,
   },
   frequencyButton: {
     padding: 15,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: Colors.border.gray,
   },
   frequencyContent: {
     flexDirection: 'row',
@@ -451,11 +457,11 @@ const styles = StyleSheet.create({
   frequencyLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   frequencyDescription: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 4,
   },
   quietHoursHeader: {
@@ -465,14 +471,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   quietHoursContent: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     padding: 15,
     borderRadius: 10,
     marginTop: 10,
   },
   quietHoursDescription: {
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
     fontWeight: '500',
     marginBottom: 12,
   },
@@ -483,13 +489,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#667eea',
+    borderColor: Colors.primary,
   },
   editQuietHoursText: {
     marginLeft: 8,
     fontSize: 14,
     fontWeight: '600',
-    color: '#667eea',
+    color: Colors.primary,
   },
   modalOverlay: {
     flex: 1,
@@ -497,7 +503,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '80%',
@@ -508,12 +514,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderBottomColor: Colors.border.gray,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   modalBody: {
     padding: 20,
@@ -525,14 +531,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 15,
     marginBottom: 10,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: Colors.border.gray,
   },
   frequencyOptionSelected: {
     backgroundColor: '#f0f0ff',
-    borderColor: '#667eea',
+    borderColor: Colors.primary,
   },
   frequencyOptionContent: {
     flex: 1,
@@ -540,49 +546,49 @@ const styles = StyleSheet.create({
   frequencyOptionLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   frequencyOptionDescription: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 2,
   },
   timeLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     marginTop: 20,
     marginBottom: 8,
   },
   timeInputContainer: {
     paddingVertical: 12,
     paddingHorizontal: 15,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: Colors.border.gray,
     marginBottom: 15,
   },
   timeDisplay: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#667eea',
+    color: Colors.primary,
   },
   timeNote: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 15,
     marginBottom: 20,
     fontStyle: 'italic',
   },
   confirmButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: Colors.primary,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
   },
   confirmButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -590,7 +596,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     borderRadius: 15,
     overflow: 'hidden',
-    shadowColor: '#667eea',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -603,7 +609,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 18,
     fontWeight: '700',
   },

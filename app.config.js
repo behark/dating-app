@@ -18,10 +18,7 @@ export default {
       bundleIdentifier: 'com.datingapp.app',
       buildNumber: '1',
       // Deep linking support
-      associatedDomains: [
-        'applinks:dating-app.com',
-        'applinks:*.dating-app.com',
-      ],
+      associatedDomains: ['applinks:dating-app.com', 'applinks:*.dating-app.com'],
       infoPlist: {
         MinimumOSVersion: '14.0',
         UIRequiresFullScreen: false, // Required for iPad multitasking

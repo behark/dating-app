@@ -1,7 +1,21 @@
 const User = require('../models/User');
 const Swipe = require('../models/Swipe');
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
-const { calculateDistance, getDistanceCategory, stripPreciseLocation } = require('../utils/geoUtils');
+const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require('../constants/messages');
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
+const {
+  calculateDistance,
+  getDistanceCategory,
+  stripPreciseLocation,
+} = require('../utils/geoUtils');
 
 // Query timeout constants - MUST be less than Nginx proxy_read_timeout (90s)
 const QUERY_TIMEOUT_MS = 30000; // 30 seconds for MongoDB queries
@@ -12,7 +26,7 @@ const MAX_LIMIT = 50; // Maximum results per page
 // Discovery endpoint to find users within radius
 const discoverUsers = async (req, res) => {
   const startTime = Date.now();
-  
+
   try {
     const { lat, lng, radius, limit, cursor, page } = req.query;
     const currentUserId = req.user?.id; // Assuming authentication middleware sets req.user
@@ -62,7 +76,7 @@ const discoverUsers = async (req, res) => {
         .select('preferredAgeRange preferredGender preferredDistance')
         .maxTimeMS(QUERY_TIMEOUT_MS)
         .lean();
-      
+
       if (!currentUser) {
         return res.status(404).json({
           success: false,
@@ -85,8 +99,8 @@ const discoverUsers = async (req, res) => {
           .select('swipedId')
           .maxTimeMS(SWIPE_LOOKUP_TIMEOUT_MS)
           .lean();
-        
-        excludedUserIds = swipes.map(s => s.swipedId.toString());
+
+        excludedUserIds = swipes.map((s) => s.swipedId.toString());
         excludedUserIds.push(currentUserId);
       } catch (swipeError) {
         // If swipe lookup times out, continue without exclusions but log
@@ -126,7 +140,7 @@ const discoverUsers = async (req, res) => {
       // Calculate distance in kilometers (for internal use only)
       let distance = null;
       let distanceCategory = null;
-      
+
       if (user.location?.coordinates) {
         distance = calculateDistance(
           latitude,
@@ -152,7 +166,7 @@ const discoverUsers = async (req, res) => {
           distance: Math.round(distance * 10) / 10,
           distanceCategory,
           // Include city only if privacy allows
-          city: user.locationPrivacy === 'visible_to_all' ? (user.location?.city || null) : null,
+          city: user.locationPrivacy === 'visible_to_all' ? user.location?.city || null : null,
           // NEVER include coordinates
         };
       }
@@ -168,7 +182,10 @@ const discoverUsers = async (req, res) => {
         profileCompleteness: sanitizedUser.profileCompleteness,
         lastActive: sanitizedUser.lastActive,
         // Sanitized location - NEVER raw coordinates
-        distance: user.locationPrivacy !== 'hidden' && distance !== null ? Math.round(distance * 10) / 10 : null,
+        distance:
+          user.locationPrivacy !== 'hidden' && distance !== null
+            ? Math.round(distance * 10) / 10
+            : null,
         distanceCategory,
         locationPrivacy: user.locationPrivacy,
         location: locationData,
@@ -176,10 +193,12 @@ const discoverUsers = async (req, res) => {
     });
 
     const queryTime = Date.now() - startTime;
-    
+
     // Log slow queries for monitoring
     if (queryTime > 5000) {
-      console.warn(`[SLOW] Discovery query took ${queryTime}ms for ${usersWithDistance.length} results`);
+      console.warn(
+        `[SLOW] Discovery query took ${queryTime}ms for ${usersWithDistance.length} results`
+      );
     }
 
     res.json({
@@ -206,9 +225,18 @@ const discoverUsers = async (req, res) => {
   } catch (error) {
     const queryTime = Date.now() - startTime;
     console.error(`Discovery error after ${queryTime}ms:`, error);
-    
+
     // Check if this was a timeout error
-    if ((error instanceof Error ? (error instanceof Error ? error.name : 'Error') : 'Error') === 'MongooseError' && (error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error)).includes('maxTimeMS')) {
+    if (
+      (error instanceof Error ? (error instanceof Error ? error.name : 'Error') : 'Error') ===
+        'MongooseError' &&
+      (error instanceof Error
+        ? error instanceof Error
+          ? error.message
+          : String(error)
+        : String(error)
+      ).includes('maxTimeMS')
+    ) {
       return res.status(503).json({
         success: false,
         message: 'Discovery query timed out. Try with a smaller search radius or more filters.',
@@ -220,10 +248,10 @@ const discoverUsers = async (req, res) => {
         ],
       });
     }
-    
+
     res.status(500).json({
       success: false,
-      message: 'Internal server error during user discovery',
+      message: ERROR_MESSAGES.INTERNAL_ERROR_DISCOVERY,
     });
   }
 };
@@ -238,7 +266,7 @@ const getDiscoverySettings = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required',
+        message: ERROR_MESSAGES.AUTH_REQUIRED,
       });
     }
 
@@ -247,18 +275,20 @@ const getDiscoverySettings = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: ERROR_MESSAGES.USER_NOT_FOUND,
       });
     }
 
     // PRIVACY: Don't expose raw coordinates in settings response
     // User can see their own city/country but not exact coordinates
-    const sanitizedLocation = user.location ? {
-      city: user.location.city || null,
-      country: user.location.country || null,
-      // Include a flag to indicate location is set, without exposing coordinates
-      isSet: !!(user.location.coordinates && user.location.coordinates.length === 2),
-    } : null;
+    const sanitizedLocation = user.location
+      ? {
+          city: user.location.city || null,
+          country: user.location.country || null,
+          // Include a flag to indicate location is set, without exposing coordinates
+          isSet: !!(user.location.coordinates && user.location.coordinates.length === 2),
+        }
+      : null;
 
     res.json({
       success: true,
@@ -272,7 +302,7 @@ const getDiscoverySettings = async (req, res) => {
     console.error('Get discovery settings error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
     });
   }
 };
@@ -286,7 +316,7 @@ const updateLocation = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required',
+        message: ERROR_MESSAGES.AUTH_REQUIRED,
       });
     }
 
@@ -301,7 +331,7 @@ const updateLocation = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: ERROR_MESSAGES.USER_NOT_FOUND,
       });
     }
 
@@ -309,13 +339,13 @@ const updateLocation = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Location updated successfully',
+      message: SUCCESS_MESSAGES.LOCATION_UPDATED,
     });
   } catch (error) {
     console.error('Update location error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
     });
   }
 };
@@ -329,7 +359,7 @@ const updateLocationPrivacy = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required',
+        message: ERROR_MESSAGES.AUTH_REQUIRED,
       });
     }
 
@@ -350,13 +380,13 @@ const updateLocationPrivacy = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: ERROR_MESSAGES.USER_NOT_FOUND,
       });
     }
 
     res.json({
       success: true,
-      message: 'Location privacy updated successfully',
+      message: SUCCESS_MESSAGES.LOCATION_PRIVACY_UPDATED,
       data: {
         locationPrivacy: user.locationPrivacy,
       },
@@ -365,7 +395,7 @@ const updateLocationPrivacy = async (req, res) => {
     console.error('Update location privacy error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
     });
   }
 };
@@ -378,7 +408,7 @@ const getLocationPrivacy = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required',
+        message: ERROR_MESSAGES.AUTH_REQUIRED,
       });
     }
 
@@ -387,7 +417,7 @@ const getLocationPrivacy = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: ERROR_MESSAGES.USER_NOT_FOUND,
       });
     }
 
@@ -402,7 +432,7 @@ const getLocationPrivacy = async (req, res) => {
     console.error('Get location privacy error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
     });
   }
 };
@@ -416,7 +446,7 @@ const updatePreferredDistance = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required',
+        message: ERROR_MESSAGES.AUTH_REQUIRED,
       });
     }
 
@@ -437,13 +467,13 @@ const updatePreferredDistance = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: ERROR_MESSAGES.USER_NOT_FOUND,
       });
     }
 
     res.json({
       success: true,
-      message: 'Preferred distance updated successfully',
+      message: SUCCESS_MESSAGES.PREFERRED_DISTANCE_UPDATED,
       data: {
         preferredDistance: user.preferredDistance,
       },
@@ -452,7 +482,7 @@ const updatePreferredDistance = async (req, res) => {
     console.error('Update preferred distance error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
     });
   }
 };

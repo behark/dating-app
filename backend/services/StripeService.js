@@ -380,7 +380,10 @@ class StripeService {
           : null,
       };
     } catch (error) {
-      if ((error instanceof Error && 'code' in error ? error.code : 'UNKNOWN_ERROR') === 'invoice_upcoming_none') {
+      if (
+        (error instanceof Error && 'code' in error ? error.code : 'UNKNOWN_ERROR') ===
+        'invoice_upcoming_none'
+      ) {
         return null;
       }
       console.error('Error getting upcoming invoice:', error);
@@ -444,11 +447,7 @@ class StripeService {
    */
   static verifyWebhookSignature(payload, signature) {
     try {
-      return stripe.webhooks.constructEvent(
-        payload,
-        signature,
-        paymentConfig.stripe.webhookSecret
-      );
+      return stripe.webhooks.constructEvent(payload, signature, paymentConfig.stripe.webhookSecret);
     } catch (error) {
       console.error('Webhook signature verification failed:', error);
       throw error;

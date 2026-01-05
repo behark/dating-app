@@ -31,10 +31,10 @@ const initializeFirebase = () => {
 
     // Option 1: Try service account JSON file
     const serviceAccountPath = path.join(__dirname, '../keys/firebase-service-account.json');
-    
+
     if (fs.existsSync(serviceAccountPath)) {
       const serviceAccount = require(serviceAccountPath);
-      
+
       firebaseAdmin.initializeApp({
         credential: firebaseAdmin.credential.cert(serviceAccount),
       });
@@ -47,7 +47,11 @@ const initializeFirebase = () => {
     }
 
     // Option 2: Try environment variables
-    if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
+    if (
+      process.env.FIREBASE_PROJECT_ID &&
+      process.env.FIREBASE_PRIVATE_KEY &&
+      process.env.FIREBASE_CLIENT_EMAIL
+    ) {
       firebaseAdmin.initializeApp({
         credential: firebaseAdmin.credential.cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
@@ -66,7 +70,6 @@ const initializeFirebase = () => {
     // No credentials available
     console.warn('⚠️ Firebase credentials not configured - using MongoDB fallback');
     return { admin: null, db: null };
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.warn('⚠️ Firebase Admin initialization failed:', errorMessage);

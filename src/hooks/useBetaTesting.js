@@ -5,6 +5,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { STORAGE_KEYS } from '../constants/constants';
 import { betaTestingService } from '../services/BetaTestingService';
 import { featureFlagService } from '../services/FeatureFlagService';
 import logger from '../utils/logger';
@@ -112,10 +113,10 @@ export const useBetaTesting = (userId, userGroups = []) => {
         });
 
         // Also persist to AsyncStorage for offline support
-        const storedFeedback = (await AsyncStorage.getItem('@pending_feedback')) || '[]';
+        const storedFeedback = (await AsyncStorage.getItem(STORAGE_KEYS.PENDING_FEEDBACK)) || '[]';
         const pending = JSON.parse(storedFeedback);
         pending.push(feedback);
-        await AsyncStorage.setItem('@pending_feedback', JSON.stringify(pending));
+        await AsyncStorage.setItem(STORAGE_KEYS.PENDING_FEEDBACK, JSON.stringify(pending));
 
         return feedback;
       } catch (error) {
@@ -214,7 +215,7 @@ export const useBetaTesting = (userId, userGroups = []) => {
   // Get all pending feedback to sync
   const getPendingFeedback = useCallback(async () => {
     try {
-      const stored = await AsyncStorage.getItem('@pending_feedback');
+      const stored = await AsyncStorage.getItem(STORAGE_KEYS.PENDING_FEEDBACK);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
       logger.error('Error getting pending feedback', error);
@@ -225,7 +226,7 @@ export const useBetaTesting = (userId, userGroups = []) => {
   // Clear synced feedback
   const clearPendingFeedback = useCallback(async () => {
     try {
-      await AsyncStorage.removeItem('@pending_feedback');
+      await AsyncStorage.removeItem(STORAGE_KEYS.PENDING_FEEDBACK);
     } catch (error) {
       logger.error('Error clearing pending feedback', error);
     }

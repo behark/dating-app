@@ -1,15 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import {
-    Animated,
-    Easing,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import { Animated, Easing, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const ACHIEVEMENTS = {
   // Profile achievements
@@ -159,17 +152,33 @@ const ACHIEVEMENTS = {
 };
 
 const RARITY_COLORS = {
-  common: { bg: '#E8F5E9', border: '#4CAF50', text: '#2E7D32' },
-  uncommon: { bg: '#E3F2FD', border: '#2196F3', text: '#1565C0' },
-  rare: { bg: '#F3E5F5', border: '#9C27B0', text: '#7B1FA2' },
-  legendary: { bg: '#FFF8E1', border: '#FFD700', text: '#F57F17' },
+  common: {
+    bg: Colors.status.successLight,
+    border: Colors.status.success,
+    text: Colors.status.successDark,
+  },
+  uncommon: {
+    bg: Colors.status.infoLight,
+    border: Colors.status.info,
+    text: Colors.status.infoBlue,
+  },
+  rare: {
+    bg: '#F3E5F5',
+    border: Colors.gamification.socialButterfly,
+    text: Colors.gamification.socialButterfly,
+  },
+  legendary: {
+    bg: Colors.status.warningLight,
+    border: Colors.accent.gold,
+    text: Colors.status.warningDark,
+  },
 };
 
 const RARITY_GRADIENTS = {
-  common: ['#4CAF50', '#81C784'],
-  uncommon: ['#2196F3', '#64B5F6'],
-  rare: ['#9C27B0', '#BA68C8'],
-  legendary: ['#FFD700', '#FFA500'],
+  common: Colors.gradient.success,
+  uncommon: Colors.gradient.info,
+  rare: [Colors.gamification.socialButterfly, Colors.gamification.socialButterfly],
+  legendary: Colors.gradient.gold,
 };
 
 const AchievementBadgeAnimated = ({
@@ -182,19 +191,21 @@ const AchievementBadgeAnimated = ({
   animate = true,
 }) => {
   const [showUnlockModal, setShowUnlockModal] = useState(false);
-  
+
   // Animation values
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const floatAnim = useRef(new Animated.Value(0)).current;
-  const particleAnims = useRef([...Array(8)].map(() => ({
-    x: new Animated.Value(0),
-    y: new Animated.Value(0),
-    opacity: new Animated.Value(0),
-    scale: new Animated.Value(0),
-  }))).current;
+  const particleAnims = useRef(
+    [...Array(8)].map(() => ({
+      x: new Animated.Value(0),
+      y: new Animated.Value(0),
+      opacity: new Animated.Value(0),
+      scale: new Animated.Value(0),
+    }))
+  ).current;
 
   const achievement = ACHIEVEMENTS[achievementId];
   const rarityStyle = RARITY_COLORS[achievement?.rarity || 'common'];
@@ -283,8 +294,8 @@ const AchievementBadgeAnimated = ({
   const triggerUnlockAnimation = () => {
     // Particle burst
     particleAnims.forEach((anim, i) => {
-      const angle = (i * 45) * (Math.PI / 180);
-      
+      const angle = i * 45 * (Math.PI / 180);
+
       Animated.parallel([
         Animated.timing(anim.x, {
           toValue: Math.cos(angle) * 80,
@@ -358,11 +369,7 @@ const AchievementBadgeAnimated = ({
             styles.particle,
             {
               opacity: anim.opacity,
-              transform: [
-                { translateX: anim.x },
-                { translateY: anim.y },
-                { scale: anim.scale },
-              ],
+              transform: [{ translateX: anim.x }, { translateY: anim.y }, { scale: anim.scale }],
             },
           ]}
         >
@@ -385,10 +392,7 @@ const AchievementBadgeAnimated = ({
         onPress={() => setShowUnlockModal(false)}
       >
         <View style={styles.modalContent}>
-          <LinearGradient
-            colors={rarityGradient}
-            style={styles.modalBadgeContainer}
-          >
+          <LinearGradient colors={rarityGradient} style={styles.modalBadgeContainer}>
             <Text style={styles.modalIcon}>{achievement.icon}</Text>
           </LinearGradient>
 
@@ -423,11 +427,7 @@ const AchievementBadgeAnimated = ({
           style={[
             styles.badgeWrapper,
             {
-              transform: [
-                { scale: scaleAnim },
-                { rotate: rotation },
-                { translateY: floatAnim },
-              ],
+              transform: [{ scale: scaleAnim }, { rotate: rotation }, { translateY: floatAnim }],
             },
           ]}
         >
@@ -455,8 +455,8 @@ const AchievementBadgeAnimated = ({
                 width: currentSize.badge,
                 height: currentSize.badge,
                 borderRadius: currentSize.badge / 2,
-                borderColor: unlocked ? rarityStyle.border : '#ddd',
-                backgroundColor: unlocked ? rarityStyle.bg : '#f5f5f5',
+                borderColor: unlocked ? rarityStyle.border : Colors.border.light,
+                backgroundColor: unlocked ? rarityStyle.bg : Colors.background.lighter,
               },
             ]}
           >
@@ -472,9 +472,7 @@ const AchievementBadgeAnimated = ({
                   },
                 ]}
               >
-                <Text style={{ fontSize: currentSize.icon }}>
-                  {achievement.icon}
-                </Text>
+                <Text style={{ fontSize: currentSize.icon }}>{achievement.icon}</Text>
 
                 {/* Shimmer effect */}
                 {['rare', 'legendary'].includes(achievement.rarity) && (
@@ -494,7 +492,7 @@ const AchievementBadgeAnimated = ({
                 <Ionicons
                   name="lock-closed"
                   size={currentSize.icon * 0.6}
-                  color="#ccc"
+                  color={Colors.text.light}
                 />
               </View>
             )}
@@ -513,21 +511,14 @@ const AchievementBadgeAnimated = ({
               styles.label,
               {
                 fontSize: currentSize.font,
-                color: unlocked ? '#333' : '#999',
+                color: unlocked ? Colors.text.dark : Colors.text.tertiary,
               },
             ]}
             numberOfLines={1}
           >
             {achievement.name}
           </Text>
-          {unlocked && (
-            <View
-              style={[
-                styles.rarityDot,
-                { backgroundColor: rarityStyle.border },
-              ]}
-            />
-          )}
+          {unlocked && <View style={[styles.rarityDot, { backgroundColor: rarityStyle.border }]} />}
         </View>
       )}
 
@@ -590,7 +581,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -639,7 +630,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
@@ -660,12 +651,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   modalDescription: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -688,20 +679,20 @@ const styles = StyleSheet.create({
   },
   modalRewardLabel: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   modalRewardValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#667eea',
+    color: Colors.primary,
   },
   modalDate: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 8,
   },
   showcaseContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 16,
     padding: 16,
     marginVertical: 8,
@@ -715,11 +706,11 @@ const styles = StyleSheet.create({
   showcaseTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   showcaseCount: {
     fontSize: 14,
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: '600',
   },
   showcaseGrid: {

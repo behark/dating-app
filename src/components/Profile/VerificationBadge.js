@@ -1,62 +1,56 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import {
-    Animated,
-    Easing,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const VERIFICATION_TYPES = {
   PHOTO: {
     icon: 'camera',
-    color: '#4ECDC4',
-    gradient: ['#4ECDC4', '#44A08D'],
+    color: Colors.accent.teal,
+    gradient: Colors.gradient.teal,
     label: 'Photo Verified',
     shortLabel: 'Photo',
   },
   ID: {
     icon: 'card',
-    color: '#667eea',
-    gradient: ['#667eea', '#764ba2'],
+    color: Colors.primary,
+    gradient: Colors.gradient.primary,
     label: 'ID Verified',
     shortLabel: 'ID',
   },
   PHONE: {
     icon: 'call',
-    color: '#FF6B6B',
-    gradient: ['#FF6B6B', '#FF8E53'],
+    color: Colors.accent.red,
+    gradient: Colors.gradient.redOrange,
     label: 'Phone Verified',
     shortLabel: 'Phone',
   },
   EMAIL: {
     icon: 'mail',
-    color: '#3B82F6',
-    gradient: ['#3B82F6', '#1D4ED8'],
+    color: Colors.accent.blue,
+    gradient: Colors.gradient.blue,
     label: 'Email Verified',
     shortLabel: 'Email',
   },
   SOCIAL: {
     icon: 'share-social',
-    color: '#8B5CF6',
-    gradient: ['#8B5CF6', '#7C3AED'],
+    color: Colors.accent.purple,
+    gradient: Colors.gradient.purple,
     label: 'Social Verified',
     shortLabel: 'Social',
   },
   PREMIUM: {
     icon: 'diamond',
-    color: '#FFD700',
-    gradient: ['#FFD700', '#FFA500'],
+    color: Colors.accent.gold,
+    gradient: Colors.gradient.gold,
     label: 'Premium Member',
     shortLabel: 'Premium',
   },
   TRUSTED: {
     icon: 'shield-checkmark',
-    color: '#10B981',
-    gradient: ['#10B981', '#059669'],
+    color: Colors.accent.green,
+    gradient: Colors.gradient.green,
     label: 'Trusted User',
     shortLabel: 'Trusted',
   },
@@ -73,7 +67,7 @@ const VerificationBadge = ({
   style,
 }) => {
   const [tooltipVisible, setTooltipVisible] = useState(false);
-  
+
   // Animation values
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -199,7 +193,7 @@ const VerificationBadge = ({
             <Ionicons
               name={verification.icon}
               size={currentSize.icon}
-              color="#fff"
+              color={Colors.background.white}
             />
 
             {/* Shimmer effect for special badges */}
@@ -295,11 +289,7 @@ export const VerificationBadgeGroup = ({
 };
 
 // Large verification display for profile
-export const VerificationStatus = ({
-  verifications = [],
-  onVerify,
-  onPress,
-}) => {
+export const VerificationStatus = ({ verifications = [], onVerify, onPress }) => {
   const allTypes = Object.keys(VERIFICATION_TYPES);
   const verifiedTypes = verifications.filter(Boolean);
   const unverifiedTypes = allTypes.filter((t) => !verifiedTypes.includes(t) && t !== 'PREMIUM');
@@ -307,7 +297,7 @@ export const VerificationStatus = ({
   return (
     <View style={styles.statusContainer}>
       <View style={styles.statusHeader}>
-        <Ionicons name="shield-checkmark" size={20} color="#4ECDC4" />
+        <Ionicons name="shield-checkmark" size={20} color={Colors.accent.teal} />
         <Text style={styles.statusTitle}>Verification Status</Text>
       </View>
 
@@ -344,11 +334,9 @@ export const VerificationStatus = ({
                   <Ionicons
                     name={VERIFICATION_TYPES[type].icon}
                     size={20}
-                    color="#999"
+                    color={Colors.text.tertiary}
                   />
-                  <Text style={styles.pendingLabel}>
-                    {VERIFICATION_TYPES[type].shortLabel}
-                  </Text>
+                  <Text style={styles.pendingLabel}>{VERIFICATION_TYPES[type].shortLabel}</Text>
                 </View>
                 <Text style={styles.verifyText}>Verify</Text>
               </TouchableOpacity>
@@ -367,7 +355,7 @@ export const VerificationStatus = ({
         </View>
         <View style={styles.progressTrack}>
           <LinearGradient
-            colors={['#4ECDC4', '#10B981']}
+            colors={[Colors.accent.teal, Colors.accent.green]}
             style={[
               styles.progressFill,
               {
@@ -390,7 +378,7 @@ const styles = StyleSheet.create({
   badgeContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -429,7 +417,7 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   tooltipText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 12,
     fontWeight: '500',
     whiteSpace: 'nowrap',
@@ -440,27 +428,27 @@ const styles = StyleSheet.create({
   },
   groupBadge: {
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: Colors.background.white,
     borderRadius: 20,
   },
   moreCount: {
     marginLeft: 4,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
   },
   moreCountText: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     fontWeight: '600',
   },
   statusContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 16,
     padding: 16,
     marginVertical: 8,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -475,7 +463,7 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   statusSection: {
     marginBottom: 16,
@@ -483,13 +471,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4ECDC4',
+    color: Colors.accent.teal,
     marginBottom: 12,
   },
   sectionTitlePending: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#999',
+    color: Colors.text.tertiary,
     marginBottom: 12,
   },
   badgesGrid: {
@@ -509,7 +497,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 4,
@@ -518,11 +506,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -16,
     fontSize: 10,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   verifyText: {
     fontSize: 11,
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: '600',
     marginTop: 18,
   },
@@ -530,7 +518,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: Colors.background.light,
   },
   progressHeader: {
     flexDirection: 'row',
@@ -540,16 +528,16 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   progressValue: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#4ECDC4',
+    color: Colors.accent.teal,
   },
   progressTrack: {
     height: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderRadius: 4,
     overflow: 'hidden',
   },

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Colors } from '../constants/colors';
 import {
   View,
   Text,
@@ -40,7 +41,7 @@ export const SmartPhotoSelector = ({ userId, onPhotoSelected }) => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#FF6B9D" />
+        <ActivityIndicator size="large" color={Colors.accent.pink} />
       </View>
     );
   }
@@ -68,7 +69,7 @@ export const SmartPhotoSelector = ({ userId, onPhotoSelected }) => {
                 {
                   backgroundColor:
                     rec.priority === 'high'
-                      ? '#FF6B9D'
+                      ? Colors.accent.pink
                       : rec.priority === 'medium'
                         ? '#FFD93D'
                         : '#9D84B7',
@@ -140,7 +141,7 @@ export const BioSuggestions = ({ userId, interests, currentBio, onBioSelected })
   }, [loadSuggestions]);
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#FF6B9D" />;
+    return <ActivityIndicator size="large" color={Colors.accent.pink} />;
   }
 
   return (
@@ -202,7 +203,7 @@ export const CompatibilityScore = ({ userId, targetUserId }) => {
   }, [loadScore]);
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#FF6B9D" />;
+    return <ActivityIndicator size="large" color={Colors.accent.pink} />;
   }
 
   if (!score) {
@@ -212,7 +213,7 @@ export const CompatibilityScore = ({ userId, targetUserId }) => {
   const getScoreColor = (value) => {
     if (value >= 75) return '#6BCB77';
     if (value >= 50) return '#FFD93D';
-    return '#FF6B6B';
+    return Colors.accent.red;
   };
 
   return (
@@ -281,7 +282,7 @@ export const ConversationStarters = ({
   }, [userId, targetUserId]); // loadStarters is stable due to useCallback
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#FF6B9D" />;
+    return <ActivityIndicator size="large" color={Colors.accent.pink} />;
   }
 
   return (
@@ -316,21 +317,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.lighter,
   },
   title: {
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 8,
-    color: '#000',
+    color: Colors.text.primary,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 16,
   },
   photoCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -351,7 +352,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   badgeText: {
-    color: '#FFF',
+    color: Colors.background.white,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -367,17 +368,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
+    borderBottomColor: Colors.text.lighter,
     marginBottom: 12,
   },
   scoreLabel: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   scoreValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FF6B9D',
+    color: Colors.accent.pink,
   },
   reasonsList: {
     marginBottom: 16,
@@ -389,22 +390,22 @@ const styles = StyleSheet.create({
   },
   reasonItem: {
     fontSize: 13,
-    color: '#555',
+    color: Colors.text.medium,
     marginBottom: 4,
   },
   button: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.accent.pink,
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#FFF',
+    color: Colors.background.white,
     fontWeight: '600',
     fontSize: 14,
   },
   analysisCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -416,11 +417,11 @@ const styles = StyleSheet.create({
   },
   analysisText: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 8,
   },
   suggestionCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -429,7 +430,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   toneBadge: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: Colors.status.infoLight,
     color: '#1976D2',
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -441,18 +442,18 @@ const styles = StyleSheet.create({
   bioSuggestionText: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#000',
+    color: Colors.text.primary,
     marginBottom: 12,
     fontWeight: '500',
   },
   reasonText: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 12,
     fontStyle: 'italic',
   },
   tipsCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -464,11 +465,11 @@ const styles = StyleSheet.create({
   },
   tipText: {
     fontSize: 13,
-    color: '#555',
+    color: Colors.text.medium,
     marginBottom: 6,
   },
   scoreCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 20,
   },
@@ -488,11 +489,11 @@ const styles = StyleSheet.create({
   mainScore: {
     fontSize: 48,
     fontWeight: '700',
-    color: '#FF6B9D',
+    color: Colors.accent.pink,
   },
   scoreExplanation: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
   },
   breakdownContainer: {
@@ -513,7 +514,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#EEE',
+    backgroundColor: Colors.text.lighter,
     borderRadius: 4,
     marginBottom: 6,
     overflow: 'hidden',
@@ -524,31 +525,31 @@ const styles = StyleSheet.create({
   },
   breakdownValue: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     textAlign: 'right',
   },
   starterCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#FF6B9D',
+    borderLeftColor: Colors.accent.pink,
   },
   starterText: {
     fontSize: 15,
-    color: '#000',
+    color: Colors.text.primary,
     lineHeight: 22,
     marginBottom: 8,
   },
   useText: {
     fontSize: 12,
-    color: '#FF6B9D',
+    color: Colors.accent.pink,
     fontWeight: '600',
   },
   errorText: {
     fontSize: 14,
-    color: '#FF6B6B',
+    color: Colors.accent.red,
     textAlign: 'center',
   },
 });

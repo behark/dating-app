@@ -29,11 +29,13 @@ I've successfully implemented **Option B: Platform.select solution** for all tex
 ## 🔧 Implementation Pattern
 
 **Before (CSS string - web only):**
+
 ```javascript
 textShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
 ```
 
 **After (Platform.select - works everywhere):**
+
 ```javascript
 ...Platform.select({
   web: {
@@ -76,6 +78,7 @@ textShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
 ## 🎉 Result
 
 Your text shadows now work perfectly on:
+
 - ✅ Web (using CSS string)
 - ✅ iOS (using React Native properties)
 - ✅ Android (using React Native properties)

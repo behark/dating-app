@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
@@ -85,7 +86,7 @@ const GifPickerModal = ({ visible, onClose, onSelectGif, authToken }) => {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={28} color="#333" />
+            <Ionicons name="close" size={28} color={Colors.text.dark} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Choose a GIF</Text>
           <View style={{ width: 28 }} />
@@ -93,11 +94,16 @@ const GifPickerModal = ({ visible, onClose, onSelectGif, authToken }) => {
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
+          <Ionicons
+            name="search"
+            size={20}
+            color={Colors.text.tertiary}
+            style={styles.searchIcon}
+          />
           <TextInput
             style={styles.searchInput}
             placeholder="Search GIFs..."
-            placeholderTextColor="#999"
+            placeholderTextColor={Colors.text.tertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
             onSubmitEditing={handleSearch}
@@ -109,7 +115,7 @@ const GifPickerModal = ({ visible, onClose, onSelectGif, authToken }) => {
                 loadPopularGifs();
               }}
             >
-              <Ionicons name="close-circle" size={20} color="#999" />
+              <Ionicons name="close-circle" size={20} color={Colors.text.tertiary} />
             </TouchableOpacity>
           )}
         </View>
@@ -117,7 +123,7 @@ const GifPickerModal = ({ visible, onClose, onSelectGif, authToken }) => {
         {/* GIFs Grid */}
         {loading || searchLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#667eea" />
+            <ActivityIndicator size="large" color={Colors.primary} />
           </View>
         ) : (
           <FlatList
@@ -137,7 +143,7 @@ const GifPickerModal = ({ visible, onClose, onSelectGif, authToken }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
   },
   header: {
     flexDirection: 'row',
@@ -146,13 +152,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: Colors.text.lighter,
     paddingTop: 16,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.dark,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -161,7 +167,7 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderRadius: 20,
   },
   searchIcon: {
@@ -170,7 +176,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
   },
   loadingContainer: {
     flex: 1,
@@ -191,7 +197,7 @@ const styles = StyleSheet.create({
     height: ITEM_SIZE,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     marginBottom: 8,
   },
   gif: {

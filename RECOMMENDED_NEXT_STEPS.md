@@ -33,6 +33,7 @@
 ### Estimated Time: 2-3 days for all 32 remaining files
 
 ### Strategy:
+
 - **Batch 1:** All service files (15 files) - Most impact
 - **Batch 2:** Component files (10 files) - User-facing
 - **Batch 3:** Remaining files (7 files) - Utils, hooks, etc.
@@ -60,6 +61,7 @@
 ### Estimated Time: 2-3 days for error handling patterns
 
 ### Strategy:
+
 - Start with controllers (most visible)
 - Then services (core logic)
 - Then middleware (infrastructure)
@@ -87,6 +89,7 @@
 ### Estimated Time: 2-3 days
 
 ### Strategy:
+
 - Start with most-used screens (ChatScreen, MatchesScreen)
 - Add React.memo with proper comparisons
 - Use useMemo for expensive calculations
@@ -95,23 +98,25 @@
 
 ## 📊 **COMPARISON TABLE**
 
-| Priority | Task | Impact | Effort | Risk | Time | Why Now |
-|----------|------|--------|--------|------|------|---------|
-| 🥇 **1st** | Console Replacements | High | Low | Low | 2-3 days | ✅ Patterns ready, momentum, quick wins |
-| 🥈 **2nd** | TypeScript Errors | Very High | Medium | Low | 2-3 days | ✅ Clear patterns, high impact |
-| 🥉 **3rd** | React Optimizations | High | Medium | Medium | 2-3 days | ✅ Performance boost, needs foundation |
-| 4th | API Interceptors | Medium | Low | Low | 1 day | Good for consistency |
-| 5th | Error Boundaries | Medium | Low | Low | 1-2 days | Better UX |
-| 6th | Code Splitting | Medium | Medium | Low | 2 days | Bundle size reduction |
+| Priority   | Task                 | Impact    | Effort | Risk   | Time     | Why Now                                 |
+| ---------- | -------------------- | --------- | ------ | ------ | -------- | --------------------------------------- |
+| 🥇 **1st** | Console Replacements | High      | Low    | Low    | 2-3 days | ✅ Patterns ready, momentum, quick wins |
+| 🥈 **2nd** | TypeScript Errors    | Very High | Medium | Low    | 2-3 days | ✅ Clear patterns, high impact          |
+| 🥉 **3rd** | React Optimizations  | High      | Medium | Medium | 2-3 days | ✅ Performance boost, needs foundation  |
+| 4th        | API Interceptors     | Medium    | Low    | Low    | 1 day    | Good for consistency                    |
+| 5th        | Error Boundaries     | Medium    | Low    | Low    | 1-2 days | Better UX                               |
+| 6th        | Code Splitting       | Medium    | Medium | Low    | 2 days   | Bundle size reduction                   |
 
 ---
 
 ## 🎯 **MY SPECIFIC RECOMMENDATION**
 
 ### **Option A: Complete Console Replacements (Recommended)**
+
 **Why:** Build on momentum, quick wins, establishes foundation
 
 **Plan:**
+
 1. **Day 1:** Complete all service files (15 files) - High impact
 2. **Day 2:** Complete component files (10 files) - User-facing
 3. **Day 3:** Complete remaining files (7 files) - Cleanup
@@ -121,9 +126,11 @@
 ---
 
 ### **Option B: Mixed Approach (Alternative)**
+
 **Why:** Balance multiple improvements
 
 **Plan:**
+
 1. **Morning:** Console replacements (2-3 files)
 2. **Afternoon:** TypeScript fixes (1-2 files)
 3. **Repeat daily**
@@ -133,9 +140,11 @@
 ---
 
 ### **Option C: TypeScript First (If You Prefer)**
+
 **Why:** High impact, fixes real issues
 
 **Plan:**
+
 1. **Day 1:** Fix error handling in controllers (~50 errors)
 2. **Day 2:** Fix error handling in services (~100 errors)
 3. **Day 3:** Fix null/undefined checks (~170 errors)
@@ -149,12 +158,14 @@
 I recommend **Option A: Complete Console Replacements First**
 
 ### Reasons:
+
 1. **Psychological:** Completing one task 100% feels great and builds momentum
 2. **Practical:** Clean codebase makes everything else easier
 3. **Strategic:** Better logging helps debug TypeScript issues
 4. **Efficiency:** We have patterns ready, can batch process quickly
 
 ### Then:
+
 - **Next:** TypeScript error handling (high impact)
 - **After:** React optimizations (performance)
 - **Finally:** Other improvements (polish)
@@ -164,14 +175,17 @@ I recommend **Option A: Complete Console Replacements First**
 ## 🚀 **QUICK START - If You Choose Console Replacements**
 
 ### Step 1: Run the helper script
+
 ```bash
 node scripts/replace-console-statements.js
 ```
 
 ### Step 2: Pick a batch (I recommend services first)
+
 Focus on: `src/services/*.js` files
 
 ### Step 3: Use the pattern
+
 ```javascript
 // 1. Add import at top
 import logger from '../utils/logger';
@@ -187,6 +201,7 @@ console.warn('Warning') → logger.warn('Warning', { context })
 ```
 
 ### Step 4: Test incrementally
+
 - Test after each file or small batch
 - Verify logging works correctly
 - Check for any issues
@@ -196,18 +211,21 @@ console.warn('Warning') → logger.warn('Warning', { context })
 ## 📈 **EXPECTED OUTCOMES**
 
 ### After Console Replacements (Option A):
+
 - ✅ 100% clean logging (0 console statements)
 - ✅ Better production debugging
 - ✅ Consistent error tracking
 - ✅ Ready for TypeScript fixes
 
 ### After TypeScript Fixes:
+
 - ✅ ~400 errors fixed (46% of total)
 - ✅ Much better type safety
 - ✅ Fewer runtime errors
 - ✅ Better developer experience
 
 ### After React Optimizations:
+
 - ✅ Faster UI rendering
 - ✅ Better user experience
 - ✅ Smoother animations
@@ -220,6 +238,7 @@ console.warn('Warning') → logger.warn('Warning', { context })
 **Start with: Console Replacements (Option A)**
 
 **Why:**
+
 - ✅ We have momentum
 - ✅ Patterns established
 - ✅ Quick wins
@@ -228,6 +247,7 @@ console.warn('Warning') → logger.warn('Warning', { context })
 - ✅ 100% completion feels great
 
 **Then:**
+
 - TypeScript error handling (high impact)
 - React optimizations (performance)
 - Other improvements (polish)
@@ -237,6 +257,7 @@ console.warn('Warning') → logger.warn('Warning', { context })
 ## 💬 **What Do You Think?**
 
 I'm happy to:
+
 1. **Continue with console replacements** (my recommendation)
 2. **Start TypeScript fixes** (if you prefer high impact first)
 3. **Do a mix** (balance multiple improvements)

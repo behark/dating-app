@@ -1,15 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import {
-    Dimensions,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { db } from '../config/firebase';
 import logger from '../utils/logger';
@@ -41,9 +42,9 @@ const ViewProfileScreen = ({ route, navigation }) => {
 
   if (loading) {
     return (
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="person" size={60} color="#fff" />
+          <Ionicons name="person" size={60} color={Colors.background.white} />
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
       </LinearGradient>
@@ -52,9 +53,9 @@ const ViewProfileScreen = ({ route, navigation }) => {
 
   if (!profile) {
     return (
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="alert-circle" size={60} color="#fff" />
+          <Ionicons name="alert-circle" size={60} color={Colors.background.white} />
           <Text style={styles.loadingText}>Profile not found</Text>
         </View>
       </LinearGradient>
@@ -62,17 +63,17 @@ const ViewProfileScreen = ({ route, navigation }) => {
   }
 
   return (
-    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+    <LinearGradient colors={Colors.gradient.light} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color={Colors.background.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
         <TouchableOpacity
           onPress={() => setShowCompatibilityScore(!showCompatibilityScore)}
           style={styles.compatibilityButton}
         >
-          <Ionicons name="heart" size={20} color="#FF6B6B" />
+          <Ionicons name="heart" size={20} color={Colors.accent.red} />
         </TouchableOpacity>
       </LinearGradient>
 
@@ -83,7 +84,14 @@ const ViewProfileScreen = ({ route, navigation }) => {
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: profile.photoURL || profile.photos?.[0]?.url || profile.photos?.[0] || process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL || 'https://via.placeholder.com/400' }}
+            source={{
+              uri:
+                profile.photoURL ||
+                profile.photos?.[0]?.url ||
+                profile.photos?.[0] ||
+                process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
+                'https://via.placeholder.com/400',
+            }}
             style={styles.profileImage}
           />
         </View>
@@ -103,12 +111,12 @@ const ViewProfileScreen = ({ route, navigation }) => {
 
           <View style={styles.infoSection}>
             <View style={styles.infoItem}>
-              <Ionicons name="mail-outline" size={20} color="#667eea" />
+              <Ionicons name="mail-outline" size={20} color={Colors.primary} />
               <Text style={styles.infoText}>{profile.email || 'Not provided'}</Text>
             </View>
             {profile.createdAt && (
               <View style={styles.infoItem}>
-                <Ionicons name="calendar-outline" size={20} color="#667eea" />
+                <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
                 <Text style={styles.infoText}>
                   Member since {profile.createdAt.toDate?.().toLocaleDateString() || 'Recently'}
                 </Text>
@@ -119,7 +127,7 @@ const ViewProfileScreen = ({ route, navigation }) => {
           {showCompatibilityScore && (
             <View style={styles.compatibilitySection}>
               <View style={styles.compatibilityHeader}>
-                <Ionicons name="sparkles" size={18} color="#667eea" />
+                <Ionicons name="sparkles" size={18} color={Colors.primary} />
                 <Text style={styles.compatibilityTitle}>Compatibility Score</Text>
               </View>
               <TouchableOpacity
@@ -131,7 +139,7 @@ const ViewProfileScreen = ({ route, navigation }) => {
                   })
                 }
               >
-                <Ionicons name="trending-up" size={16} color="#fff" />
+                <Ionicons name="trending-up" size={16} color={Colors.background.white} />
                 <Text style={styles.viewCompatibilityText}>View AI Analysis</Text>
               </TouchableOpacity>
             </View>
@@ -152,7 +160,7 @@ const styles = StyleSheet.create({
     padding: 15,
     paddingTop: 50,
     paddingBottom: 15,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -166,7 +174,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
     textAlign: 'center',
   },
   loadingContainer: {
@@ -177,7 +185,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 20,
     fontSize: 18,
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '600',
   },
   scrollView: {
@@ -197,19 +205,19 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 75,
     borderWidth: 5,
-    borderColor: '#fff',
-    shadowColor: '#000',
+    borderColor: Colors.background.white,
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 10,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     marginHorizontal: 20,
     borderRadius: 25,
     padding: 25,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -220,17 +228,17 @@ const styles = StyleSheet.create({
     marginBottom: 25,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderBottomColor: Colors.border.gray,
   },
   name: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 5,
   },
   age: {
     fontSize: 20,
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: '600',
   },
   section: {
@@ -239,12 +247,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 10,
   },
   bio: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
     lineHeight: 24,
   },
   infoSection: {
@@ -256,12 +264,12 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     paddingVertical: 10,
     paddingHorizontal: 15,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 12,
   },
   infoText: {
     fontSize: 15,
-    color: '#666',
+    color: Colors.text.secondary,
     marginLeft: 12,
     flex: 1,
   },
@@ -276,14 +284,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   compatibilitySection: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     marginHorizontal: 20,
     marginTop: 15,
     borderRadius: 15,
     padding: 15,
     borderLeftWidth: 4,
-    borderLeftColor: '#FF6B6B',
-    shadowColor: '#000',
+    borderLeftColor: Colors.accent.red,
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -297,21 +305,21 @@ const styles = StyleSheet.create({
   compatibilityTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     marginLeft: 8,
   },
   viewCompatibilityButton: {
     flexDirection: 'row',
     paddingVertical: 10,
     paddingHorizontal: 15,
-    backgroundColor: '#667eea',
+    backgroundColor: Colors.primary,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
   },
   viewCompatibilityText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 14,
     fontWeight: '600',
   },

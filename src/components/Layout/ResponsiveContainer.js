@@ -1,4 +1,5 @@
 import React from 'react';
+import { Colors } from '../constants/colors';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { BREAKPOINTS, useResponsive } from '../../hooks/useResponsive';
 
@@ -173,7 +174,7 @@ export const PlatformInfo = ({ visible = __DEV__ }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.background.white,
   },
   safeArea: {
     ...Platform.select({
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
   },
   rightPanel: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: Colors.background.white,
   },
   grid: {
     flexDirection: 'row',
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   platformText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 10,
   },
 });

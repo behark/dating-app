@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -266,7 +267,7 @@ const ChatScreen = ({ route, navigation }) => {
             )}
           </View>
         ) : isMe ? (
-          <LinearGradient colors={['#667eea', '#764ba2']} style={styles.myMessage}>
+          <LinearGradient colors={Colors.gradient.primary} style={styles.myMessage}>
             <Text style={styles.myMessageText}>{item.content}</Text>
             <View style={styles.messageFooter}>
               <Text style={styles.myTimestamp}>{time}</Text>
@@ -298,21 +299,21 @@ const ChatScreen = ({ route, navigation }) => {
   };
 
   return (
-    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
+    <LinearGradient colors={Colors.gradient.light} style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
         keyboardVerticalOffset={90}
       >
-        <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+        <LinearGradient colors={Colors.gradient.primary} style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Ionicons name="arrow-back" size={24} color={Colors.background.white} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
             <View
               style={[
                 styles.headerIndicator,
-                { backgroundColor: isConnected ? '#4ECDC4' : '#FF6B6B' },
+                { backgroundColor: isConnected ? Colors.accent.teal : Colors.accent.red },
               ]}
             />
             <View>
@@ -320,12 +321,12 @@ const ChatScreen = ({ route, navigation }) => {
               {otherUserTyping && <Text style={styles.typingIndicator}>typing...</Text>}
             </View>
           </View>
-          <Ionicons name="heart" size={24} color="#fff" style={{ opacity: 0 }} />
+          <Ionicons name="heart" size={24} color={Colors.background.white} style={{ opacity: 0 }} />
         </LinearGradient>
 
         {loading && messages.length === 0 ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#667eea" />
+            <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={styles.loadingText}>Loading messages...</Text>
           </View>
         ) : (
@@ -341,7 +342,7 @@ const ChatScreen = ({ route, navigation }) => {
             ListHeaderComponent={
               loadingMore ? (
                 <View style={styles.loadMoreContainer}>
-                  <ActivityIndicator size="small" color="#667eea" />
+                  <ActivityIndicator size="small" color={Colors.primary} />
                   <Text style={styles.loadMoreText}>Loading more messages...</Text>
                 </View>
               ) : null
@@ -355,7 +356,7 @@ const ChatScreen = ({ route, navigation }) => {
             onPress={handleShowMediaOptions}
             activeOpacity={0.7}
           >
-            <Ionicons name="image" size={24} color="#667eea" />
+            <Ionicons name="image" size={24} color={Colors.primary} />
           </TouchableOpacity>
           <View style={styles.inputWrapper}>
             <TextInput
@@ -363,7 +364,7 @@ const ChatScreen = ({ route, navigation }) => {
               value={messageText}
               onChangeText={handleTextChange}
               placeholder="Type a message..."
-              placeholderTextColor="#999"
+              placeholderTextColor={Colors.text.tertiary}
               multiline
               maxLength={500}
             />
@@ -375,10 +376,14 @@ const ChatScreen = ({ route, navigation }) => {
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={messageText.trim() && isConnected ? ['#667eea', '#764ba2'] : ['#ccc', '#bbb']}
+              colors={
+                messageText.trim() && isConnected
+                  ? Colors.gradient.primary
+                  : Colors.gradient.disabled
+              }
               style={styles.sendButtonGradient}
             >
-              <Ionicons name="send" size={20} color="#fff" />
+              <Ionicons name="send" size={20} color={Colors.background.white} />
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -400,7 +405,7 @@ const styles = StyleSheet.create({
     padding: 15,
     paddingTop: 50,
     paddingBottom: 15,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -419,15 +424,15 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#4ECDC4',
+    backgroundColor: Colors.accent.teal,
     marginRight: 10,
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: Colors.background.white,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
   },
   typingIndicator: {
     fontSize: 12,
@@ -456,33 +461,33 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderTopRightRadius: 4,
     maxWidth: '100%',
-    shadowColor: '#667eea',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
   },
   theirMessage: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     padding: 12,
     paddingHorizontal: 16,
     borderRadius: 20,
     borderTopLeftRadius: 4,
     maxWidth: '100%',
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
   },
   myMessageText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     lineHeight: 20,
     marginBottom: 4,
   },
   theirMessageText: {
-    color: '#333',
+    color: Colors.text.dark,
     fontSize: 16,
     lineHeight: 20,
     marginBottom: 4,
@@ -500,7 +505,7 @@ const styles = StyleSheet.create({
   },
   imageMessageWrapper: {
     padding: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderRadius: 16,
     maxWidth: '100%',
   },
@@ -516,7 +521,7 @@ const styles = StyleSheet.create({
   },
   theirTimestamp: {
     fontSize: 11,
-    color: '#999',
+    color: Colors.text.tertiary,
     alignSelf: 'flex-end',
   },
   loadingContainer: {
@@ -528,24 +533,24 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: '600',
   },
   loadMoreContainer: {
     padding: 10,
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: Colors.background.white90,
   },
   loadMoreText: {
     marginTop: 5,
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   inputContainer: {
     flexDirection: 'row',
     padding: 15,
     paddingBottom: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0, 0, 0, 0.05)',
     alignItems: 'flex-end',
@@ -556,17 +561,17 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: Colors.border.gray,
     marginRight: 10,
   },
   input: {
     paddingHorizontal: 20,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#333',
+    color: Colors.text.dark,
     maxHeight: 100,
   },
   sendButton: {

@@ -26,7 +26,9 @@ class MonitoringService {
     // Express integration is handled via middleware in server.js
     if (Sentry.getCurrentHub().getClient()) {
       this.initialized = true;
-      console.log('✅ Sentry already initialized (from instrument.js), ready for Express middleware');
+      console.log(
+        '✅ Sentry already initialized (from instrument.js), ready for Express middleware'
+      );
     } else {
       console.log('⚠️  Sentry not initialized yet');
     }
@@ -226,7 +228,10 @@ class DatadogService {
 
       console.log('✅ Datadog APM initialized');
     } catch (error) {
-      console.log('⚠️  Failed to initialize Datadog:', (error instanceof Error ? error.message : String(error)));
+      console.log(
+        '⚠️  Failed to initialize Datadog:',
+        error instanceof Error ? error.message : String(error)
+      );
     }
   }
 

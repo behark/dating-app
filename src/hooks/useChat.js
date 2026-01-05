@@ -19,7 +19,7 @@ export const useChat = (matchId) => {
    */
   const joinChatRoom = useCallback(() => {
     if (!matchId || !isConnected) return;
-    
+
     logger.info('[useChat] Joining chat room:', matchId);
     emit('join_room', matchId);
   }, [matchId, isConnected, emit]);
@@ -29,7 +29,7 @@ export const useChat = (matchId) => {
    */
   const leaveChatRoom = useCallback(() => {
     if (!matchId || !isConnected) return;
-    
+
     logger.info('[useChat] Leaving chat room:', matchId);
     emit('leave_room', matchId);
   }, [matchId, isConnected, emit]);
@@ -39,88 +39,103 @@ export const useChat = (matchId) => {
    * @param {object} messageData - Message data { matchId, senderId, content, type }
    * @returns {Promise} Promise that resolves with sent message
    */
-  const sendMessage = useCallback(async (messageData) => {
-    try {
-      logger.info('[useChat] Sending message:', messageData);
-      
-      if (!isConnected) {
-        throw new Error('Not connected to socket server');
+  const sendMessage = useCallback(
+    async (messageData) => {
+      try {
+        logger.info('[useChat] Sending message:', messageData);
+
+        if (!isConnected) {
+          throw new Error('Not connected to socket server');
+        }
+
+        const response = await emitWithAck('send_message', {
+          matchId: matchId || messageData.matchId,
+          senderId: messageData.senderId,
+          content: messageData.content,
+          type: messageData.type || 'text',
+          metadata: messageData.metadata,
+        });
+
+        logger.info('[useChat] Message sent successfully:', response);
+        return response;
+      } catch (error) {
+        logger.error('[useChat] Failed to send message:', error);
+        throw error;
       }
-
-      const response = await emitWithAck('send_message', {
-        matchId: matchId || messageData.matchId,
-        senderId: messageData.senderId,
-        content: messageData.content,
-        type: messageData.type || 'text',
-        metadata: messageData.metadata,
-      });
-
-      logger.info('[useChat] Message sent successfully:', response);
-      return response;
-    } catch (error) {
-      logger.error('[useChat] Failed to send message:', error);
-      throw error;
-    }
-  }, [matchId, isConnected, emitWithAck]);
+    },
+    [matchId, isConnected, emitWithAck]
+  );
 
   /**
    * Send typing indicator
    * @param {string} userId - User ID who is typing
    */
-  const sendTypingIndicator = useCallback((userId) => {
-    if (!matchId || !isConnected) return;
+  const sendTypingIndicator = useCallback(
+    (userId) => {
+      if (!matchId || !isConnected) return;
 
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
+      // Clear existing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
 
-    // Send typing event
-    emit('typing', { matchId, userId });
-    setIsUserTyping(true);
+      // Send typing event
+      emit('typing', { matchId, userId });
+      setIsUserTyping(true);
 
-    // Auto-stop typing after 3 seconds
-    typingTimeoutRef.current = setTimeout(() => {
-      stopTyping(userId);
-    }, 3000);
-  }, [matchId, isConnected, emit]);
+      // Auto-stop typing after 3 seconds
+      typingTimeoutRef.current = setTimeout(() => {
+        stopTyping(userId);
+      }, 3000);
+    },
+    [matchId, isConnected, emit]
+  );
 
   /**
    * Stop typing indicator
    * @param {string} userId - User ID who stopped typing
    */
-  const stopTyping = useCallback((userId) => {
-    if (!matchId || !isConnected) return;
+  const stopTyping = useCallback(
+    (userId) => {
+      if (!matchId || !isConnected) return;
 
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = null;
-    }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
 
-    emit('stop_typing', { matchId, userId });
-    setIsUserTyping(false);
-  }, [matchId, isConnected, emit]);
+      emit('stop_typing', { matchId, userId });
+      setIsUserTyping(false);
+    },
+    [matchId, isConnected, emit]
+  );
 
   /**
    * Mark messages as read
    * @param {array} messageIds - Array of message IDs to mark as read
    */
-  const markMessagesAsRead = useCallback((messageIds) => {
-    if (!matchId || !isConnected) return;
+  const markMessagesAsRead = useCallback(
+    (messageIds) => {
+      if (!matchId || !isConnected) return;
 
-    logger.info('[useChat] Marking messages as read:', messageIds);
-    emit('mark_read', { matchId, messageIds });
-  }, [matchId, isConnected, emit]);
+      logger.info('[useChat] Marking messages as read:', messageIds);
+      emit('mark_read', { matchId, messageIds });
+    },
+    [matchId, isConnected, emit]
+  );
 
   /**
    * Send read receipt
    * @param {string} messageId - Message ID to send receipt for
    */
-  const sendReadReceipt = useCallback((messageId) => {
-    if (!matchId || !isConnected) return;
+  const sendReadReceipt = useCallback(
+    (messageId) => {
+      if (!matchId || !isConnected) return;
 
-    emit('read_receipt', { matchId, messageId });
-  }, [matchId, isConnected, emit]);
+      emit('read_receipt', { matchId, messageId });
+    },
+    [matchId, isConnected, emit]
+  );
 
   /**
    * Handle incoming new message
@@ -130,20 +145,19 @@ export const useChat = (matchId) => {
 
     const handleNewMessage = (message) => {
       logger.info('[useChat] Received new message:', message);
-      
+
       // Only add if it's for this chat
       if (message.matchId === matchId || message.match === matchId) {
-        setMessages(prev => {
+        setMessages((prev) => {
           // Avoid duplicates
-          const exists = prev.some(m => m._id === message._id);
+          const exists = prev.some((m) => m._id === message._id);
           if (exists) return prev;
           return [...prev, message];
         });
       }
     };
 
-    const unsubscribe = on('new_message', handleNewMessage);
-    return unsubscribe;
+    return on('new_message', handleNewMessage);
   }, [socket, matchId, on]);
 
   /**
@@ -155,11 +169,11 @@ export const useChat = (matchId) => {
     const handleTyping = ({ userId, matchId: typingMatchId }) => {
       if (typingMatchId === matchId) {
         logger.debug('[useChat] User typing:', userId);
-        setTyping(prev => ({ ...prev, [userId]: true }));
-        
+        setTyping((prev) => ({ ...prev, [userId]: true }));
+
         // Clear typing after 3 seconds
         setTimeout(() => {
-          setTyping(prev => {
+          setTyping((prev) => {
             const updated = { ...prev };
             delete updated[userId];
             return updated;
@@ -171,7 +185,7 @@ export const useChat = (matchId) => {
     const handleStopTyping = ({ userId, matchId: typingMatchId }) => {
       if (typingMatchId === matchId) {
         logger.debug('[useChat] User stopped typing:', userId);
-        setTyping(prev => {
+        setTyping((prev) => {
           const updated = { ...prev };
           delete updated[userId];
           return updated;
@@ -196,12 +210,12 @@ export const useChat = (matchId) => {
 
     const handleUserOnline = (userId) => {
       logger.debug('[useChat] User online:', userId);
-      setOnlineUsers(prev => new Set([...prev, userId]));
+      setOnlineUsers((prev) => new Set([...prev, userId]));
     };
 
     const handleUserOffline = (userId) => {
       logger.debug('[useChat] User offline:', userId);
-      setOnlineUsers(prev => {
+      setOnlineUsers((prev) => {
         const updated = new Set(prev);
         updated.delete(userId);
         return updated;
@@ -225,16 +239,15 @@ export const useChat = (matchId) => {
 
     const handleMessageRead = ({ messageId, readBy }) => {
       logger.debug('[useChat] Message read:', { messageId, readBy });
-      
-      setMessages(prev => prev.map(msg => 
-        msg._id === messageId 
-          ? { ...msg, readBy: [...(msg.readBy || []), readBy] }
-          : msg
-      ));
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === messageId ? { ...msg, readBy: [...(msg.readBy || []), readBy] } : msg
+        )
+      );
     };
 
-    const unsubscribe = on('message_read', handleMessageRead);
-    return unsubscribe;
+    return on('message_read', handleMessageRead);
   }, [socket, matchId, on]);
 
   /**
@@ -245,16 +258,15 @@ export const useChat = (matchId) => {
 
     const handleMessageDelivered = ({ messageId }) => {
       logger.debug('[useChat] Message delivered:', messageId);
-      
-      setMessages(prev => prev.map(msg => 
-        msg._id === messageId 
-          ? { ...msg, status: 'delivered', deliveredAt: new Date() }
-          : msg
-      ));
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === messageId ? { ...msg, status: 'delivered', deliveredAt: new Date() } : msg
+        )
+      );
     };
 
-    const unsubscribe = on('message_delivered', handleMessageDelivered);
-    return unsubscribe;
+    return on('message_delivered', handleMessageDelivered);
   }, [socket, matchId, on]);
 
   /**
@@ -290,7 +302,7 @@ export const useChat = (matchId) => {
     onlineUsers,
     isUserTyping,
     isConnected,
-    
+
     // Actions
     sendMessage,
     sendTypingIndicator,
@@ -299,7 +311,7 @@ export const useChat = (matchId) => {
     sendReadReceipt,
     joinChatRoom,
     leaveChatRoom,
-    
+
     // Utils
     setMessages, // Allow external message updates (e.g., from API fetch)
   };

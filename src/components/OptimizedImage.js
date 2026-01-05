@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Image, Platform, StyleSheet, View } from 'react-native';
+import { Colors } from '../constants/colors';
 
 // Image cache manager
 const imageCache = new Map();
@@ -25,7 +26,7 @@ const OptimizedImage = ({
   resizeMode = 'cover',
   fadeDuration = 300,
   showLoadingIndicator = true,
-  loadingIndicatorColor = '#667eea',
+  loadingIndicatorColor = Colors.primary,
   onLoad,
   onError,
   blurRadius,
@@ -98,9 +99,11 @@ const OptimizedImage = ({
           Image.prefetch(uri)
             .then(() => {
               cacheImage(uri);
+              return null; // Explicit return to satisfy promise/always-return
             })
             .catch(() => {
               // Prefetch failed, but we can still try to load
+              return null; // Explicit return to satisfy promise/always-return
             });
         }
       } catch (err) {
@@ -250,8 +253,14 @@ export const preloadImages = async (urls) => {
         img.src = url;
       } else {
         Image.prefetch(url)
-          .then(() => resolve(url))
-          .catch(() => resolve(null));
+          .then(() => {
+            resolve(url);
+            return null; // Explicit return to satisfy promise/always-return
+          })
+          .catch(() => {
+            resolve(null);
+            return null; // Explicit return to satisfy promise/always-return
+          });
       }
     });
   });
@@ -277,7 +286,7 @@ export const getCacheStats = () => ({
 const styles = StyleSheet.create({
   container: {
     overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
   },
   image: {
     width: '100%',
@@ -289,14 +298,14 @@ const styles = StyleSheet.create({
   placeholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#e0e0e0',
+    backgroundColor: Colors.ui.disabled,
     justifyContent: 'center',
     alignItems: 'center',
   },
   errorPlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background.lighter,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -304,14 +313,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#ddd',
+    backgroundColor: Colors.border.light,
     justifyContent: 'center',
     alignItems: 'center',
   },
   errorLine: {
     width: 20,
     height: 2,
-    backgroundColor: '#999',
+    backgroundColor: Colors.text.tertiary,
     transform: [{ rotate: '45deg' }],
   },
 });

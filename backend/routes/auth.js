@@ -129,11 +129,11 @@ router.post(
 // Returns which OAuth providers are properly configured
 router.get('/oauth-status', (req, res) => {
   const { checkOAuthConfig } = require('../utils/oauthVerifier');
-  
+
   const googleConfig = checkOAuthConfig('google');
   const facebookConfig = checkOAuthConfig('facebook');
   const appleConfig = checkOAuthConfig('apple');
-  
+
   res.json({
     success: true,
     data: {

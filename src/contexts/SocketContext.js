@@ -57,7 +57,7 @@ export const SocketProvider = ({ children }) => {
 
       // Get authentication token
       const token = await AsyncStorage.getItem('authToken');
-      
+
       if (!token && !userId) {
         logger.warn('[Socket] No authentication token or userId available');
         setConnectionState(SOCKET_STATES.DISCONNECTED);
@@ -86,7 +86,7 @@ export const SocketProvider = ({ children }) => {
         setIsConnected(true);
         setConnectionState(SOCKET_STATES.CONNECTED);
         setError(null);
-        
+
         // Start heartbeat
         startHeartbeat(newSocket);
       });
@@ -95,10 +95,10 @@ export const SocketProvider = ({ children }) => {
         logger.info('[Socket] Disconnected:', reason);
         setIsConnected(false);
         setConnectionState(SOCKET_STATES.DISCONNECTED);
-        
+
         // Stop heartbeat
         stopHeartbeat();
-        
+
         // Attempt reconnection for certain reasons
         if (reason === 'io server disconnect') {
           // Server disconnected, manually reconnect
@@ -182,7 +182,7 @@ export const SocketProvider = ({ children }) => {
     }
 
     logger.debug('[Socket] Emitting event:', event, data);
-    
+
     if (callback) {
       socketRef.current.emit(event, data, callback);
     } else {
@@ -200,13 +200,13 @@ export const SocketProvider = ({ children }) => {
     }
 
     logger.debug('[Socket] Subscribing to event:', event);
-    
+
     // Store handler reference for cleanup
     if (!eventListenersRef.current.has(event)) {
       eventListenersRef.current.set(event, new Set());
     }
     eventListenersRef.current.get(event).add(handler);
-    
+
     socketRef.current.on(event, handler);
 
     // Return cleanup function
@@ -281,11 +281,7 @@ export const SocketProvider = ({ children }) => {
     off,
   };
 
-  return (
-    <SocketContext.Provider value={value}>
-      {children}
-    </SocketContext.Provider>
-  );
+  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 };
 
 /**

@@ -1,9 +1,9 @@
-import { AnalyticsService } from './AnalyticsService';
 import logger from '../utils/logger';
+import { AnalyticsService } from './AnalyticsService';
 
 /**
  * User Behavior Analytics Service
- * 
+ *
  * Provides comprehensive analytics for understanding user behavior:
  * - Swipe pattern analysis for better recommendations
  * - Time spent tracking on different features
@@ -34,7 +34,13 @@ const funnels = {
     userProgress: {},
   },
   premium: {
-    steps: ['feature_blocked', 'premium_viewed', 'plan_selected', 'payment_started', 'purchase_completed'],
+    steps: [
+      'feature_blocked',
+      'premium_viewed',
+      'plan_selected',
+      'payment_started',
+      'purchase_completed',
+    ],
     userProgress: {},
   },
   engagement: {
@@ -123,10 +129,7 @@ export class UserBehaviorAnalytics {
       session.leftCount++;
       session.consecutiveLefts++;
       session.consecutiveRights = 0;
-      session.maxConsecutiveLefts = Math.max(
-        session.maxConsecutiveLefts,
-        session.consecutiveLefts
-      );
+      session.maxConsecutiveLefts = Math.max(session.maxConsecutiveLefts, session.consecutiveLefts);
       swipePatterns.totalSwipes.left++;
     } else if (direction === 'superLike') {
       session.superLikeCount++;
@@ -136,10 +139,7 @@ export class UserBehaviorAnalytics {
     }
 
     // Calculate average swipe time
-    const totalSwipeTime = session.swipes.reduce(
-      (sum, s) => sum + s.timeSinceLastSwipe,
-      0
-    );
+    const totalSwipeTime = session.swipes.reduce((sum, s) => sum + s.timeSinceLastSwipe, 0);
     session.averageSwipeTime = totalSwipeTime / session.swipes.length;
 
     // Analyze patterns
@@ -167,13 +167,8 @@ export class UserBehaviorAnalytics {
     // Detect "swipe fatigue" - when swipes get faster and more negative
     if (swipes.length >= 10) {
       const recentSwipes = swipes.slice(-10);
-      const recentAvgTime = recentSwipes.reduce(
-        (sum, s) => sum + s.timeSinceLastSwipe,
-        0
-      ) / 10;
-      const recentRightRatio = recentSwipes.filter(
-        s => s.direction === 'right'
-      ).length / 10;
+      const recentAvgTime = recentSwipes.reduce((sum, s) => sum + s.timeSinceLastSwipe, 0) / 10;
+      const recentRightRatio = recentSwipes.filter((s) => s.direction === 'right').length / 10;
 
       if (recentAvgTime < session.averageSwipeTime * 0.5 && recentRightRatio < 0.2) {
         patterns.push({
@@ -210,12 +205,12 @@ export class UserBehaviorAnalytics {
 
     // Detect "photo preference" - correlate with photo count
     const rightSwipesWithManyPhotos = swipes.filter(
-      s => s.direction === 'right' && s.profilePhotoCount >= 4
+      (s) => s.direction === 'right' && s.profilePhotoCount >= 4
     ).length;
     const rightSwipesWithFewPhotos = swipes.filter(
-      s => s.direction === 'right' && s.profilePhotoCount < 4
+      (s) => s.direction === 'right' && s.profilePhotoCount < 4
     ).length;
-    
+
     if (rightSwipesWithManyPhotos > rightSwipesWithFewPhotos * 2) {
       patterns.push({
         type: 'prefers_many_photos',
@@ -239,14 +234,12 @@ export class UserBehaviorAnalytics {
       currentSession: session,
       totalSessions: allSessions.length,
       totalSwipes: swipePatterns.totalSwipes,
-      overallRightRatio: 
-        swipePatterns.totalSwipes.right / 
-        (swipePatterns.totalSwipes.right + swipePatterns.totalSwipes.left) || 0,
+      overallRightRatio:
+        swipePatterns.totalSwipes.right /
+          (swipePatterns.totalSwipes.right + swipePatterns.totalSwipes.left) || 0,
       patterns: swipePatterns.patterns,
-      averageSessionLength: allSessions.reduce(
-        (sum, s) => sum + s.swipes.length,
-        0
-      ) / allSessions.length || 0,
+      averageSessionLength:
+        allSessions.reduce((sum, s) => sum + s.swipes.length, 0) / allSessions.length || 0,
     };
   }
 
@@ -287,9 +280,8 @@ export class UserBehaviorAnalytics {
 
     timeTracking.screenTimes[screenName].totalTime += timeSpent;
     timeTracking.screenTimes[screenName].visits++;
-    timeTracking.screenTimes[screenName].averageTime = 
-      timeTracking.screenTimes[screenName].totalTime / 
-      timeTracking.screenTimes[screenName].visits;
+    timeTracking.screenTimes[screenName].averageTime =
+      timeTracking.screenTimes[screenName].totalTime / timeTracking.screenTimes[screenName].visits;
 
     // Log to analytics
     AnalyticsService.logEvent('screen_time', {
@@ -336,13 +328,15 @@ export class UserBehaviorAnalytics {
       screenTimes: timeTracking.screenTimes,
       featureUsage: timeTracking.featureUsage,
       mostUsedScreen: (() => {
-        const sorted = Object.entries(timeTracking.screenTimes)
-          .sort((a, b) => b[1].totalTime - a[1].totalTime);
+        const sorted = Object.entries(timeTracking.screenTimes).sort(
+          (a, b) => b[1].totalTime - a[1].totalTime
+        );
         return sorted.length > 0 ? sorted[0]?.[0] : null;
       })(),
       mostUsedFeature: (() => {
-        const sorted = Object.entries(timeTracking.featureUsage)
-          .sort((a, b) => b[1].usageCount - a[1].usageCount);
+        const sorted = Object.entries(timeTracking.featureUsage).sort(
+          (a, b) => b[1].usageCount - a[1].usageCount
+        );
         return sorted.length > 0 ? sorted[0]?.[0] : null;
       })(),
     };
@@ -375,7 +369,7 @@ export class UserBehaviorAnalytics {
     }
 
     const userProgress = funnel.userProgress[userId];
-    
+
     if (!userProgress.completedSteps.includes(stepName)) {
       userProgress.completedSteps.push(stepName);
       userProgress.currentStep = stepName;
@@ -409,17 +403,19 @@ export class UserBehaviorAnalytics {
     const totalUsers = users.length;
 
     const stepCompletionRates = funnel.steps.map((step, index) => {
-      const usersAtStep = users.filter(u => u.completedSteps.includes(step)).length;
+      const usersAtStep = users.filter((u) => u.completedSteps.includes(step)).length;
       return {
         step,
         index,
         users: usersAtStep,
         rate: totalUsers > 0 ? usersAtStep / totalUsers : 0,
-        dropOffRate: index > 0 
-          ? 1 - (usersAtStep / (users.filter(u => 
-              u.completedSteps.includes(funnel.steps[index - 1])
-            ).length || 1))
-          : 0,
+        dropOffRate:
+          index > 0
+            ? 1 -
+              usersAtStep /
+                (users.filter((u) => u.completedSteps.includes(funnel.steps[index - 1])).length ||
+                  1)
+            : 0,
       };
     });
 
@@ -429,7 +425,7 @@ export class UserBehaviorAnalytics {
       steps: stepCompletionRates,
       completionRate: stepCompletionRates[stepCompletionRates.length - 1]?.rate || 0,
       biggestDropOff: stepCompletionRates.reduce(
-        (max, step) => step.dropOffRate > max.dropOffRate ? step : max,
+        (max, step) => (step.dropOffRate > max.dropOffRate ? step : max),
         { step: null, dropOffRate: 0 }
       ),
     };
@@ -541,15 +537,13 @@ export class UserBehaviorAnalytics {
     const test = abTests[testId];
     if (!test) return null;
 
-    const results = test.variants.map(variant => {
+    const results = test.variants.map((variant) => {
       const metrics = test.metrics[variant];
       return {
         variant,
         impressions: metrics.impressions,
         conversions: metrics.conversions,
-        conversionRate: metrics.impressions > 0 
-          ? metrics.conversions / metrics.impressions 
-          : 0,
+        conversionRate: metrics.impressions > 0 ? metrics.conversions / metrics.impressions : 0,
         events: metrics.events,
       };
     });
@@ -562,17 +556,17 @@ export class UserBehaviorAnalytics {
     if (!control) {
       return { results: [], significance: [] };
     }
-    const significanceResults = results.slice(1).map(variant => {
-      const lift = control.conversionRate > 0
-        ? (variant.conversionRate - control.conversionRate) / control.conversionRate
-        : 0;
-      
+    const significanceResults = results.slice(1).map((variant) => {
+      const lift =
+        control.conversionRate > 0
+          ? (variant.conversionRate - control.conversionRate) / control.conversionRate
+          : 0;
+
       return {
         variant: variant.variant,
         lift: lift * 100,
-        isSignificant: Math.abs(lift) > 0.05 && 
-          control.impressions > 100 && 
-          variant.impressions > 100,
+        isSignificant:
+          Math.abs(lift) > 0.05 && control.impressions > 100 && variant.impressions > 100,
       };
     });
 
@@ -582,9 +576,7 @@ export class UserBehaviorAnalytics {
       endDate: test.config.endDate,
       results,
       significanceResults,
-      winner: results.reduce((max, r) => 
-        r.conversionRate > max.conversionRate ? r : max
-      ),
+      winner: results.reduce((max, r) => (r.conversionRate > max.conversionRate ? r : max)),
     };
   }
 
@@ -595,7 +587,7 @@ export class UserBehaviorAnalytics {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32bit integer
     }
     return Math.abs(hash % 1000) / 1000;
@@ -615,7 +607,7 @@ export class UserBehaviorAnalytics {
         premium: this.getFunnelAnalytics('premium'),
         engagement: this.getFunnelAnalytics('engagement'),
       },
-      abTests: Object.keys(abTests).map(testId => this.getABTestResults(testId)),
+      abTests: Object.keys(abTests).map((testId) => this.getABTestResults(testId)),
     };
   }
 

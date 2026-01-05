@@ -236,6 +236,57 @@ export const useInAppPurchase = () => {
     }
   }, []);
 
+  // Restore iOS purchases
+  const restoreIosPurchases = useCallback(async (token) => {
+    const { getAvailablePurchases } = await import('react-native-iap');
+    const purchases = await getAvailablePurchases();
+
+    if (purchases.length === 0) {
+      Alert.alert('Info', 'No purchases found to restore');
+      return;
+    }
+
+    // Find the latest receipt
+    const latestPurchase = purchases.reduce((a, b) =>
+      new Date(a.transactionDate) > new Date(b.transactionDate) ? a : b
+    );
+
+    const result = await PaymentService.restoreApplePurchases(
+      latestPurchase.transactionReceipt,
+      token
+    );
+
+    if (result.success) {
+      Alert.alert('Success', 'Purchases restored successfully!');
+    } else {
+      Alert.alert('Info', 'No purchases to restore');
+    }
+  }, []);
+
+  // Restore Android purchases
+  const restoreAndroidPurchases = useCallback(async (token) => {
+    const { getAvailablePurchases } = await import('react-native-iap');
+    const purchases = await getAvailablePurchases();
+
+    if (purchases.length === 0) {
+      Alert.alert('Info', 'No purchases found to restore');
+      return;
+    }
+
+    const purchaseData = purchases.map((p) => ({
+      purchaseToken: p.purchaseToken,
+      productId: p.productId,
+    }));
+
+    const result = await PaymentService.restoreGooglePurchases(purchaseData, token);
+
+    if (result.success) {
+      Alert.alert('Success', 'Purchases restored successfully!');
+    } else {
+      Alert.alert('Info', 'No active purchases to restore');
+    }
+  }, []);
+
   // Restore purchases
   const restorePurchases = useCallback(async () => {
     try {
@@ -244,48 +295,9 @@ export const useInAppPurchase = () => {
       const token = await getAuthToken();
 
       if (Platform.OS === 'ios') {
-        const { getAvailablePurchases } = await import('react-native-iap');
-        const purchases = await getAvailablePurchases();
-
-        if (purchases.length > 0) {
-          // Find the latest receipt
-          const latestPurchase = purchases.reduce((a, b) =>
-            new Date(a.transactionDate) > new Date(b.transactionDate) ? a : b
-          );
-
-          const result = await PaymentService.restoreApplePurchases(
-            latestPurchase.transactionReceipt,
-            token
-          );
-
-          if (result.success) {
-            Alert.alert('Success', 'Purchases restored successfully!');
-          } else {
-            Alert.alert('Info', 'No purchases to restore');
-          }
-        } else {
-          Alert.alert('Info', 'No purchases found to restore');
-        }
+        await restoreIosPurchases(token);
       } else if (Platform.OS === 'android') {
-        const { getAvailablePurchases } = await import('react-native-iap');
-        const purchases = await getAvailablePurchases();
-
-        if (purchases.length > 0) {
-          const purchaseData = purchases.map((p) => ({
-            purchaseToken: p.purchaseToken,
-            productId: p.productId,
-          }));
-
-          const result = await PaymentService.restoreGooglePurchases(purchaseData, token);
-
-          if (result.success) {
-            Alert.alert('Success', 'Purchases restored successfully!');
-          } else {
-            Alert.alert('Info', 'No active purchases to restore');
-          }
-        } else {
-          Alert.alert('Info', 'No purchases found to restore');
-        }
+        await restoreAndroidPurchases(token);
       }
     } catch (err) {
       logger.error('Error restoring purchases', err);
@@ -294,7 +306,7 @@ export const useInAppPurchase = () => {
     } finally {
       setLoading(false);
     }
-  }, [getAuthToken]);
+  }, [getAuthToken, restoreIosPurchases, restoreAndroidPurchases]);
 
   // Get product by ID
   const getProduct = useCallback(
@@ -317,7 +329,10 @@ export const useInAppPurchase = () => {
       // For subscriptions, get the price from the first offer
       if (product.subscriptionOfferDetails && product.subscriptionOfferDetails.length > 0) {
         const offer = product.subscriptionOfferDetails[0];
-        if (offer?.pricingPhases?.pricingPhaseList && offer.pricingPhases.pricingPhaseList.length > 0) {
+        if (
+          offer?.pricingPhases?.pricingPhaseList &&
+          offer.pricingPhases.pricingPhaseList.length > 0
+        ) {
           const pricing = offer.pricingPhases.pricingPhaseList[0];
           return pricing?.formattedPrice || '';
         }

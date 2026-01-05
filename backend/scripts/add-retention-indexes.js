@@ -163,7 +163,9 @@ async function createIndexes() {
           console.log(`   ✅ Index '${indexDef.name}' created successfully`);
           totalCreated++;
         } catch (error) {
-          console.error(`   ❌ Failed to create index '${indexDef.name}': ${(error instanceof Error ? error.message : String(error))}`);
+          console.error(
+            `   ❌ Failed to create index '${indexDef.name}': ${error instanceof Error ? error.message : String(error)}`
+          );
           totalFailed++;
         }
       }
@@ -198,7 +200,7 @@ async function createIndexes() {
 
     console.log('✅ Migration completed successfully!\n');
   } catch (error) {
-    console.error('❌ Migration failed:', (error instanceof Error ? error.message : String(error)));
+    console.error('❌ Migration failed:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   } finally {
     await mongoose.disconnect();

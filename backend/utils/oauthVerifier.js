@@ -26,12 +26,10 @@ const verifyGoogleToken = async (idToken, clientId = undefined) => {
 
   // Get the client ID to verify against
   const expectedClientId = clientId || process.env.GOOGLE_CLIENT_ID;
-  
+
   // If no client ID configured, we'll still verify the token structure but skip audience check
   // This allows for development/testing scenarios
-  const verifyOptions = expectedClientId 
-    ? { idToken, audience: expectedClientId }
-    : { idToken };
+  const verifyOptions = expectedClientId ? { idToken, audience: expectedClientId } : { idToken };
 
   try {
     const ticket = await googleClient.verifyIdToken(verifyOptions);
@@ -66,7 +64,7 @@ const verifyGoogleToken = async (idToken, clientId = undefined) => {
     // Handle specific Google OAuth errors
     const error = err instanceof Error ? err : new Error(String(err));
     const errorMessage = error.message || '';
-    
+
     if (errorMessage.includes('Token used too late')) {
       throw new Error('Google OAuth token has expired. Please sign in again.');
     }
@@ -74,12 +72,16 @@ const verifyGoogleToken = async (idToken, clientId = undefined) => {
       throw new Error('Invalid Google OAuth token signature. Please sign in again.');
     }
     if (errorMessage.includes('Wrong recipient')) {
-      throw new Error('Google OAuth redirect URI mismatch. Check your Google Cloud Console configuration.');
+      throw new Error(
+        'Google OAuth redirect URI mismatch. Check your Google Cloud Console configuration.'
+      );
     }
     if (errorMessage.includes('invalid_client')) {
-      throw new Error('Google OAuth client configuration error. Check GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.');
+      throw new Error(
+        'Google OAuth client configuration error. Check GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.'
+      );
     }
-    
+
     console.error('Google token verification error:', error);
     throw new Error(`Google token verification failed: ${errorMessage}`);
   }
@@ -185,7 +187,7 @@ const verifyAppleToken = async (identityToken, appleId) => {
 
   try {
     const jwt = require('jsonwebtoken');
-    
+
     // Decode the token header to get the key ID
     const tokenParts = identityToken.split('.');
     if (tokenParts.length !== 3) {
@@ -205,9 +207,9 @@ const verifyAppleToken = async (identityToken, appleId) => {
     // Fetch Apple's public keys
     const keysResponse = await axios.get('https://appleid.apple.com/auth/keys');
     const keys = keysResponse.data.keys;
-    
+
     // Find the matching key
-    const key = keys.find(k => k.kid === kid);
+    const key = keys.find((k) => k.kid === kid);
     if (!key) {
       throw new Error('Apple public key not found - key may have rotated');
     }
@@ -254,15 +256,15 @@ const verifyAppleToken = async (identityToken, appleId) => {
  * @returns {Function} Converter function
  */
 function createJwkToPem() {
-  return function(jwk) {
+  return function (jwk) {
     // This is a simplified implementation for RSA keys
     // In production, use the jwk-to-pem package
     const { n, e } = jwk;
-    
+
     // Base64url decode
     const nBuffer = Buffer.from(n.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
     const eBuffer = Buffer.from(e.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
-    
+
     // Create key object
     const keyObject = crypto.createPublicKey({
       key: {
@@ -272,7 +274,7 @@ function createJwkToPem() {
       },
       format: 'jwk',
     });
-    
+
     return keyObject.export({ type: 'spki', format: 'pem' });
   };
 }

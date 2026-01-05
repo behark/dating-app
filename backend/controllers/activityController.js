@@ -1,5 +1,14 @@
 const User = require('../models/User');
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 
 // @route   POST /api/activity/update-online-status
 // @desc    Update user's online status
@@ -10,11 +19,13 @@ exports.updateOnlineStatus = async (req, res) => {
     const { isOnline } = req.body;
 
     if (typeof isOnline !== 'boolean') {
-      return sendValidationError(res, [{
-        field: 'isOnline',
-        message: 'isOnline must be a boolean',
-        value: isOnline
-      }]);
+      return sendValidationError(res, [
+        {
+          field: 'isOnline',
+          message: 'isOnline must be a boolean',
+          value: isOnline,
+        },
+      ]);
     }
 
     const updateData = {
@@ -79,8 +90,11 @@ exports.getOnlineStatus = async (req, res) => {
     if (user.isOnline) {
       activityStatus = 'online';
     } else if (user.lastActive) {
-      const lastActiveDate = user.lastActive instanceof Date ? user.lastActive : new Date(user.lastActive);
-      const minutesAgo = Math.floor((new Date().getTime() - lastActiveDate.getTime()) / (1000 * 60));
+      const lastActiveDate =
+        user.lastActive instanceof Date ? user.lastActive : new Date(user.lastActive);
+      const minutesAgo = Math.floor(
+        (new Date().getTime() - lastActiveDate.getTime()) / (1000 * 60)
+      );
       if (minutesAgo < 5) {
         activityStatus = 'active_now';
       } else if (minutesAgo < 60) {
@@ -139,7 +153,10 @@ exports.viewProfile = async (req, res) => {
     );
 
     if (existingView) {
-      const viewedAtDate = existingView.viewedAt instanceof Date ? existingView.viewedAt : new Date(existingView.viewedAt);
+      const viewedAtDate =
+        existingView.viewedAt instanceof Date
+          ? existingView.viewedAt
+          : new Date(existingView.viewedAt);
       const hoursSince = (new Date().getTime() - viewedAtDate.getTime()) / (1000 * 60 * 60);
       if (hoursSince < 24) {
         // Update timestamp of existing view
@@ -263,7 +280,16 @@ exports.getMultipleStatus = async (req, res) => {
     // SECURITY: Only return status for users who are matched with the requesting user
     const Match = require('../models/Match');
 
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
+    const {
+      sendSuccess,
+      sendError,
+      sendValidationError,
+      sendNotFound,
+      sendUnauthorized,
+      sendForbidden,
+      sendRateLimit,
+      asyncHandler,
+    } = require('../utils/responseHelpers');
     const matches = await Match.find({
       users: requestingUserId,
       status: 'active',

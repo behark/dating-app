@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
-import logger from '../utils/logger';
+import { ERROR_MESSAGES } from '../constants/constants';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
+import logger from '../utils/logger';
 
 export class SocialMediaService {
   static async getAuthToken() {
@@ -18,7 +19,7 @@ export class SocialMediaService {
     try {
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/social-media/connect-spotify`, {
@@ -56,7 +57,7 @@ export class SocialMediaService {
     try {
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/social-media/connect-instagram`, {
@@ -94,7 +95,7 @@ export class SocialMediaService {
     try {
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/social-media/disconnect-spotify`, {
@@ -130,7 +131,7 @@ export class SocialMediaService {
     try {
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/social-media/disconnect-instagram`, {
@@ -166,7 +167,7 @@ export class SocialMediaService {
     try {
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/social-media/${userId}/social-media`, {

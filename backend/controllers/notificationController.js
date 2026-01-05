@@ -1,8 +1,16 @@
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 const User = require('../models/User');
 
 const Swipe = require('../models/Swipe');
-
 
 // @route   PUT /api/notifications/preferences
 // @desc    Update user notification preferences
@@ -288,7 +296,11 @@ exports.sendBulkNotification = async (req, res) => {
         results.push({ userId, success: true });
       } catch (err) {
         failureCount++;
-        results.push({ userId, success: false, reason: (err instanceof Error ? err.message : String(err)) });
+        results.push({
+          userId,
+          success: false,
+          reason: err instanceof Error ? err.message : String(err),
+        });
       }
     }
 

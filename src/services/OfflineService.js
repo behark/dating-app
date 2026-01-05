@@ -58,9 +58,17 @@ class OfflineServiceClass {
       });
 
       // Get initial state
-      NetInfo.fetch().then((state) => {
-        this.isOnline = state.isConnected && state.isInternetReachable !== false;
-      });
+      NetInfo.fetch()
+        .then((state) => {
+          this.isOnline = state.isConnected && state.isInternetReachable !== false;
+          return null; // Explicit return to satisfy promise/always-return
+        })
+        .catch((error) => {
+          logger.error('Error fetching network status', error);
+          // Default to offline if we can't determine status
+          this.isOnline = false;
+          return null; // Explicit return to satisfy promise/always-return
+        });
     }
   }
 
@@ -167,7 +175,10 @@ class OfflineServiceClass {
         await this.executeAction(action);
         completedActions.push(action.id);
       } catch (error) {
-        logger.error('Error syncing action', error, { actionType: action.type, actionId: action.id });
+        logger.error('Error syncing action', error, {
+          actionType: action.type,
+          actionId: action.id,
+        });
         action.retryCount += 1;
 
         // Remove action if max retries exceeded

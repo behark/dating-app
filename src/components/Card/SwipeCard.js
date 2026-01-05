@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ProgressiveImage from '../Common/ProgressiveImage';
@@ -134,7 +135,12 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
     <PanGestureHandler onGestureEvent={gestureHandler}>
       <Animated.View style={[styles.card, cardStyle]} testID="swipe-card">
         <ProgressiveImage
-          source={{ uri: card.photoURL || process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL || 'https://via.placeholder.com/400' }}
+          source={{
+            uri:
+              card.photoURL ||
+              process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
+              'https://via.placeholder.com/400',
+          }}
           style={styles.image}
         />
 
@@ -148,7 +154,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
             colors={['rgba(102, 126, 234, 0.9)', 'rgba(118, 75, 162, 0.9)']}
             style={styles.infoButtonGradient}
           >
-            <Ionicons name="information-circle" size={24} color="#fff" />
+            <Ionicons name="information-circle" size={24} color={Colors.background.white} />
           </LinearGradient>
         </TouchableOpacity>
 
@@ -174,7 +180,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
                   <Ionicons
                     name={VerificationService.getVerificationBadgeInfo(card).iconName}
                     size={12}
-                    color="#fff"
+                    color={Colors.background.white}
                   />
                 </View>
               )}
@@ -195,14 +201,14 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
 
         {/* Like Label */}
         <Animated.View style={[styles.likeLabel, likeOpacity]}>
-          <LinearGradient colors={['#4ECDC4', '#44A08D']} style={styles.labelGradient}>
+          <LinearGradient colors={Colors.gradient.teal} style={styles.labelGradient}>
             <Text style={styles.likeText}>LIKE</Text>
           </LinearGradient>
         </Animated.View>
 
         {/* Nope Label */}
         <Animated.View style={[styles.nopeLabel, nopeOpacity]}>
-          <LinearGradient colors={['#FF6B6B', '#EE5A6F']} style={styles.labelGradient}>
+          <LinearGradient colors={Colors.gradient.red} style={styles.labelGradient}>
             <Text style={styles.nopeText}>NOPE</Text>
           </LinearGradient>
         </Animated.View>
@@ -217,8 +223,8 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH - 40,
     height: CARD_HEIGHT,
     borderRadius: 30,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
+    backgroundColor: Colors.background.white,
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -237,7 +243,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
     borderRadius: 25,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -270,14 +276,14 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 36,
     fontWeight: '800',
-    color: '#fff',
+    color: Colors.background.white,
     letterSpacing: 0.5,
     ...Platform.select({
       web: {
-        textShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
+        textShadow: `0px 2px 4px ${Colors.shadow.black50}`,
       },
       default: {
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowColor: Colors.shadow.black50,
         textShadowOffset: { width: 0, height: 2 },
         textShadowRadius: 4,
       },
@@ -286,14 +292,14 @@ const styles = StyleSheet.create({
   age: {
     fontSize: 32,
     fontWeight: '600',
-    color: '#fff',
+    color: Colors.background.white,
     opacity: 0.9,
     ...Platform.select({
       web: {
-        textShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
+        textShadow: `0px 2px 4px ${Colors.shadow.black50}`,
       },
       default: {
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowColor: Colors.shadow.black50,
         textShadowOffset: { width: 0, height: 2 },
         textShadowRadius: 4,
       },
@@ -307,18 +313,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: Colors.background.white,
   },
   distance: {
     fontSize: 14,
-    color: '#fff',
+    color: Colors.background.white,
     opacity: 0.8,
     ...Platform.select({
       web: {
-        textShadow: '0px 1px 2px rgba(0, 0, 0, 0.5)',
+        textShadow: `0px 1px 2px ${Colors.shadow.black50}`,
       },
       default: {
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowColor: Colors.shadow.black50,
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 2,
       },
@@ -326,15 +332,15 @@ const styles = StyleSheet.create({
   },
   bio: {
     fontSize: 17,
-    color: '#fff',
+    color: Colors.background.white,
     lineHeight: 24,
     opacity: 0.95,
     ...Platform.select({
       web: {
-        textShadow: '0px 1px 3px rgba(0, 0, 0, 0.5)',
+        textShadow: `0px 1px 3px ${Colors.shadow.black50}`,
       },
       default: {
-        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowColor: Colors.shadow.black50,
         textShadowOffset: { width: 0, height: 1 },
         textShadowRadius: 3,
       },
@@ -342,7 +348,7 @@ const styles = StyleSheet.create({
   },
   bioPlaceholder: {
     fontSize: 16,
-    color: '#fff',
+    color: Colors.background.white,
     opacity: 0.7,
     fontStyle: 'italic',
   },
@@ -351,7 +357,7 @@ const styles = StyleSheet.create({
     top: 60,
     right: 25,
     transform: [{ rotate: '15deg' }],
-    shadowColor: '#4ECDC4',
+    shadowColor: Colors.accent.teal,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 8,
@@ -367,7 +373,7 @@ const styles = StyleSheet.create({
   likeText: {
     fontSize: 36,
     fontWeight: '900',
-    color: '#fff',
+    color: Colors.background.white,
     letterSpacing: 2,
     ...Platform.select({
       web: {
@@ -385,7 +391,7 @@ const styles = StyleSheet.create({
     top: 60,
     left: 25,
     transform: [{ rotate: '-15deg' }],
-    shadowColor: '#FF6B6B',
+    shadowColor: Colors.accent.red,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 8,
@@ -394,7 +400,7 @@ const styles = StyleSheet.create({
   nopeText: {
     fontSize: 36,
     fontWeight: '900',
-    color: '#fff',
+    color: Colors.background.white,
     letterSpacing: 2,
     ...Platform.select({
       web: {

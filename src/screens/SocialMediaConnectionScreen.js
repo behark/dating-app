@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Colors } from '../constants/colors';
 import {
   ActivityIndicator,
   Alert,
@@ -231,7 +232,7 @@ export default function SocialMediaConnectionScreen() {
               disabled={loadingConnection.spotify}
             >
               {loadingConnection.spotify ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={Colors.background.white} />
               ) : (
                 <Text style={styles.connectButtonText}>Connect Spotify</Text>
               )}
@@ -290,7 +291,7 @@ export default function SocialMediaConnectionScreen() {
               disabled={loadingConnection.instagram}
             >
               {loadingConnection.instagram ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={Colors.background.white} />
               ) : (
                 <Text style={styles.connectButtonText}>Connect Instagram</Text>
               )}
@@ -313,34 +314,34 @@ export default function SocialMediaConnectionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background.lighter,
   },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     padding: 16,
-    borderBottomColor: '#eee',
+    borderBottomColor: Colors.text.lighter,
     borderBottomWidth: 1,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#000',
+    color: Colors.text.primary,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   section: {
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   socialMediaCard: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
-    borderColor: '#eee',
+    borderColor: Colors.text.lighter,
     borderWidth: 1,
   },
   cardHeader: {
@@ -361,15 +362,15 @@ const styles = StyleSheet.create({
   platformName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.text.primary,
     marginBottom: 2,
   },
   platformDescription: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   connectedBadge: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: Colors.status.successLight,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 6,
@@ -377,10 +378,10 @@ const styles = StyleSheet.create({
   connectedText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: Colors.status.successDark,
   },
   disconnectedBadge: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.lighter,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 6,
@@ -388,25 +389,25 @@ const styles = StyleSheet.create({
   disconnectedText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   accountInfo: {
     marginVertical: 12,
     paddingVertical: 12,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: Colors.background.light,
     borderTopWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Colors.background.light,
     borderBottomWidth: 1,
   },
   accountUsername: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 4,
   },
   verifiedBadge: {
     fontSize: 12,
-    color: '#2E7D32',
+    color: Colors.status.successDark,
     fontWeight: '600',
   },
   connectButton: {
@@ -418,12 +419,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   connectButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '600',
     fontSize: 14,
   },
   disconnectButton: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: Colors.status.errorLight,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -438,11 +439,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   privacyNotice: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: Colors.status.infoLight,
     margin: 16,
     padding: 16,
     borderRadius: 8,
-    borderLeftColor: '#2196F3',
+    borderLeftColor: Colors.status.info,
     borderLeftWidth: 4,
   },
   privacyTitle: {
@@ -453,7 +454,7 @@ const styles = StyleSheet.create({
   },
   privacyText: {
     fontSize: 13,
-    color: '#1565C0',
+    color: Colors.status.infoBlue,
     lineHeight: 18,
   },
 });

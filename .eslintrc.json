@@ -22,13 +22,7 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "plugins": [
-    "sonarjs",
-    "unicorn",
-    "promise",
-    "import",
-    "no-secrets"
-  ],
+  "plugins": ["sonarjs", "unicorn", "promise", "import", "no-secrets"],
   "rules": {
     "no-console": [
       "warn",

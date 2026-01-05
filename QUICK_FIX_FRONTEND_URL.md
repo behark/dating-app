@@ -21,6 +21,7 @@ But your actual frontend is: `https://dating-app-seven-peach.vercel.app`
 ### Method 2: Via Script
 
 Run this command:
+
 ```bash
 ./update_render_env_vars.sh
 ```
@@ -44,6 +45,7 @@ curl -X POST "https://api.render.com/v1/services/srv-d5cooc2li9vc73ct9j70/env-va
 ## ✅ Verification
 
 After updating, test that it works:
+
 ```bash
 curl -X OPTIONS https://dating-app-backend-x4yq.onrender.com/api/auth/login \
   -H "Origin: https://dating-app-seven-peach.vercel.app" \
@@ -52,6 +54,7 @@ curl -X OPTIONS https://dating-app-backend-x4yq.onrender.com/api/auth/login \
 ```
 
 Should show:
+
 ```
 < access-control-allow-origin: https://dating-app-seven-peach.vercel.app
 ```
@@ -59,6 +62,7 @@ Should show:
 ## 📝 Note
 
 The backend code already has a regex pattern that allows all `*.vercel.app` domains, so CORS might work even without this change. However, setting the exact URL ensures:
+
 - Email verification links work correctly
 - Password reset links work correctly
 - Payment redirects work correctly

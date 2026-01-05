@@ -200,6 +200,7 @@ EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=489822402223-ijgd0vvfbma9s22944go4e2gnqk92ipd.a
 ## 🔐 How to Generate Secure Secrets
 
 ### Using OpenSSL (Linux/Mac)
+
 ```bash
 # Generate 64-character hex string for JWT_SECRET
 openssl rand -hex 32
@@ -209,11 +210,13 @@ openssl rand -hex 16
 ```
 
 ### Using Node.js
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ### Using Python
+
 ```bash
 python -c "import secrets; print(secrets.token_hex(32))"
 ```
@@ -222,15 +225,15 @@ python -c "import secrets; print(secrets.token_hex(32))"
 
 ## 📍 Where to Find Values
 
-| Variable | Where to Get |
-|----------|--------------|
-| `MONGODB_URI` | MongoDB Atlas → Database → Connect → Drivers |
-| `GOOGLE_CLIENT_ID/SECRET` | Google Cloud Console → APIs & Services → Credentials |
-| `FIREBASE_*` (Client) | Firebase Console → Project Settings → General → Web app |
-| `FIREBASE_PRIVATE_KEY` | Firebase Console → Project Settings → Service Accounts → Generate New Private Key |
-| `STRIPE_*` | Stripe Dashboard → Developers → API Keys |
-| `OPENAI_API_KEY` | OpenAI Platform → API Keys |
-| `DD_API_KEY` | Datadog → Organization Settings → API Keys |
+| Variable                  | Where to Get                                                                      |
+| ------------------------- | --------------------------------------------------------------------------------- |
+| `MONGODB_URI`             | MongoDB Atlas → Database → Connect → Drivers                                      |
+| `GOOGLE_CLIENT_ID/SECRET` | Google Cloud Console → APIs & Services → Credentials                              |
+| `FIREBASE_*` (Client)     | Firebase Console → Project Settings → General → Web app                           |
+| `FIREBASE_PRIVATE_KEY`    | Firebase Console → Project Settings → Service Accounts → Generate New Private Key |
+| `STRIPE_*`                | Stripe Dashboard → Developers → API Keys                                          |
+| `OPENAI_API_KEY`          | OpenAI Platform → API Keys                                                        |
+| `DD_API_KEY`              | Datadog → Organization Settings → API Keys                                        |
 
 ---
 

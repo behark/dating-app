@@ -1,4 +1,13 @@
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 const GamificationService = require('../services/GamificationService');
 
 const SwipeStreak = require('../models/SwipeStreak');
@@ -6,7 +15,6 @@ const SwipeStreak = require('../models/SwipeStreak');
 const AchievementBadge = require('../models/AchievementBadge');
 
 const DailyReward = require('../models/DailyReward');
-
 
 class GamificationController {
   /**
@@ -340,7 +348,11 @@ class GamificationController {
   static async updateChallengeProgress(req, res) {
     try {
       const { userId, challengeId, progress } = req.body;
-      const result = await GamificationService.updateChallengeProgress(userId, challengeId, progress);
+      const result = await GamificationService.updateChallengeProgress(
+        userId,
+        challengeId,
+        progress
+      );
 
       res.json({
         success: true,

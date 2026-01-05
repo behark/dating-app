@@ -74,7 +74,8 @@ export class NotificationService {
         data,
       };
 
-      const expoPushUrl = process.env.EXPO_PUBLIC_EXPO_PUSH_URL || 'https://exp.host/--/api/v2/push/send';
+      const expoPushUrl =
+        process.env.EXPO_PUBLIC_EXPO_PUSH_URL || 'https://exp.host/--/api/v2/push/send';
       const response = await fetch(expoPushUrl, {
         method: 'POST',
         headers: {
@@ -86,7 +87,11 @@ export class NotificationService {
       });
 
       if (!response.ok) {
-        logger.error('Failed to send push notification', null, { toUserId, status: response.status, title });
+        logger.error('Failed to send push notification', null, {
+          toUserId,
+          status: response.status,
+          title,
+        });
       }
     } catch (error) {
       logger.error('Error sending push notification', error, { toUserId, title });

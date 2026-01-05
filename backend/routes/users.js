@@ -83,7 +83,9 @@ router.get('/:id', authenticate, async (req, res) => {
 
     // Get user profile
     const user = await User.findById(id)
-      .select('-password -refreshToken -emailVerificationToken -passwordResetToken -passwordResetExpires')
+      .select(
+        '-password -refreshToken -emailVerificationToken -passwordResetToken -passwordResetExpires'
+      )
       .maxTimeMS(10000)
       .lean();
 
@@ -105,9 +107,9 @@ router.get('/:id', authenticate, async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting user profile:', error);
-    return sendError(res, 500, { 
-      message: 'Failed to retrieve user profile', 
-      error: 'INTERNAL_ERROR' 
+    return sendError(res, 500, {
+      message: 'Failed to retrieve user profile',
+      error: 'INTERNAL_ERROR',
     });
   }
 });

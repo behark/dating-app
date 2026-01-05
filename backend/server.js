@@ -507,13 +507,13 @@ const io = new Server(server, {
     credentials: true,
   },
   // ===== HEARTBEAT/PING CONFIG =====
-  pingTimeout: 60000,          // Wait 60s for pong response before considering connection dead
-  pingInterval: 25000,         // Send ping every 25s to keep connection alive
+  pingTimeout: 60000, // Wait 60s for pong response before considering connection dead
+  pingInterval: 25000, // Send ping every 25s to keep connection alive
   // ===== CONNECTION CONFIG =====
   transports: ['websocket', 'polling'],
-  allowEIO3: true,             // Enable compatibility with Socket.io v3 clients
-  maxHttpBufferSize: 1e6,      // 1MB max message size
-  connectTimeout: 45000,       // 45s timeout for initial connection
+  allowEIO3: true, // Enable compatibility with Socket.io v3 clients
+  maxHttpBufferSize: 1e6, // 1MB max message size
+  connectTimeout: 45000, // 45s timeout for initial connection
 });
 
 // Track connected users for presence
@@ -775,7 +775,7 @@ const startServer = async () => {
     } else {
       console.log('✅ MongoDB connection established successfully');
       // Create indexes asynchronously without blocking server startup
-      createIndexes().catch(err => {
+      createIndexes().catch((err) => {
         console.error('Warning: Failed to create database indexes:', err.message);
       });
     }

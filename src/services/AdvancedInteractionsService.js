@@ -1,7 +1,8 @@
 import { API_BASE_URL } from '../config/api';
+import { ERROR_MESSAGES } from '../constants/constants';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 import { validateUserId } from '../utils/validators';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
 
 class AdvancedInteractionsService {
   constructor(authToken) {
@@ -40,7 +41,7 @@ class AdvancedInteractionsService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -69,7 +70,7 @@ class AdvancedInteractionsService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -103,7 +104,7 @@ class AdvancedInteractionsService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -132,7 +133,7 @@ class AdvancedInteractionsService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -168,7 +169,7 @@ class AdvancedInteractionsService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -197,7 +198,7 @@ class AdvancedInteractionsService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {

@@ -55,7 +55,11 @@ export class ApiUserRepository extends UserRepository {
       const data = await response.json();
 
       if (!response.ok) {
-        logger.error(`API Error [${endpoint}]`, null, { endpoint, status: response.status, message: data.message || response.statusText });
+        logger.error(`API Error [${endpoint}]`, null, {
+          endpoint,
+          status: response.status,
+          message: data.message || response.statusText,
+        });
         return null;
       }
 
@@ -148,10 +152,9 @@ export class ApiUserRepository extends UserRepository {
       return users.map((user) => {
         // Handle photos being either objects with url property or direct URL strings
         const firstPhoto = user.photos?.[0];
-        const photoURL = user.photoURL || 
-          (typeof firstPhoto === 'string' ? firstPhoto : firstPhoto?.url) || 
-          null;
-        
+        const photoURL =
+          user.photoURL || (typeof firstPhoto === 'string' ? firstPhoto : firstPhoto?.url) || null;
+
         const normalizedUser = {
           ...user,
           id: user._id || user.id,
@@ -168,7 +171,10 @@ export class ApiUserRepository extends UserRepository {
         return normalizedUser;
       });
     } catch (error) {
-      logger.error('ApiUserRepository: Error getting discoverable users', error, { userId, options });
+      logger.error('ApiUserRepository: Error getting discoverable users', error, {
+        userId,
+        options,
+      });
       return [];
     }
   }
@@ -280,7 +286,11 @@ export class ApiUserRepository extends UserRepository {
 
       return { success: false, isMatch: false };
     } catch (error) {
-      logger.error('ApiUserRepository: Error recording swipe', error, { swiperId, swipedUserId, direction });
+      logger.error('ApiUserRepository: Error recording swipe', error, {
+        swiperId,
+        swipedUserId,
+        direction,
+      });
       return { success: false, isMatch: false };
     }
   }

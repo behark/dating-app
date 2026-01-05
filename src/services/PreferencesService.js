@@ -28,7 +28,7 @@ export class PreferencesService {
           if (response.ok) {
             const data = await response.json();
             const userData = data.data?.user;
-            
+
             if (userData?.preferences) {
               return {
                 ...this.getDefaultPreferences(),
@@ -78,10 +78,10 @@ export class PreferencesService {
   static async updateUserPreferences(userId, preferences) {
     try {
       const authToken = await this.getAuthToken();
-      
+
       // Save locally as well for offline access
       await AsyncStorage.setItem(`preferences_${userId}`, JSON.stringify(preferences));
-      
+
       if (authToken) {
         const response = await fetch(`${API_URL}/profile/update`, {
           method: 'PUT',

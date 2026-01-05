@@ -10,7 +10,7 @@ const User = require('../models/User');
  * 2. When a LIKE is sent, checks if the target user has already liked the current user
  * 3. If mutual interest exists, creates a Match entry
  * 4. Returns isMatch flag to frontend for instant gratification
- * 
+ *
  * RACE CONDITION PROTECTION:
  * - Uses atomic MongoDB operations (findOneAndUpdate with upsert)
  * - Handles duplicate key errors gracefully
@@ -49,7 +49,19 @@ class SwipeService {
     } catch (error) {
       // Handle MongoDB duplicate key error (E11000) gracefully
       // This can still happen in edge cases with high concurrency
-      if ((error instanceof Error && 'code' in error ? (error instanceof Error && 'code' in error ? error.code : 'UNKNOWN_ERROR') : 'UNKNOWN_ERROR') === 11000 || (error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error))?.includes('duplicate key')) {
+      if (
+        (error instanceof Error && 'code' in error
+          ? error instanceof Error && 'code' in error
+            ? error.code
+            : 'UNKNOWN_ERROR'
+          : 'UNKNOWN_ERROR') === 11000 ||
+        (error instanceof Error
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : String(error)
+        )?.includes('duplicate key')
+      ) {
         const existingSwipe = await Swipe.findOne({ swiperId, swipedId: targetId }).lean();
         if (existingSwipe) {
           // Return the existing swipe - user already swiped

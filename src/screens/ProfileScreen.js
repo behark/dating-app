@@ -2,18 +2,21 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import BadgeShowcase from '../components/Gamification/BadgeShowcase';
+import { storage } from '../config/firebase';
+import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { ProfileService } from '../services/ProfileService';
 import logger from '../utils/logger';
@@ -188,7 +191,7 @@ const ProfileScreen = () => {
   };
 
   return (
-    <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+    <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -208,32 +211,42 @@ const ProfileScreen = () => {
               <Image source={{ uri: photoURL }} style={styles.image} />
             ) : (
               <LinearGradient colors={['#f093fb', '#f5576c']} style={styles.placeholderImage}>
-                <Ionicons name="camera" size={40} color="#fff" />
+                <Ionicons name="camera" size={40} color={Colors.background.white} />
                 <Text style={styles.placeholderText}>Tap to add photo</Text>
               </LinearGradient>
             )}
             <View style={styles.editBadge}>
-              <Ionicons name="images" size={16} color="#fff" />
+              <Ionicons name="images" size={16} color={Colors.background.white} />
             </View>
           </TouchableOpacity>
 
           <View style={styles.inputGroup}>
-            <Ionicons name="person-outline" size={20} color="#667eea" style={styles.inputIcon} />
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color={Colors.primary}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Your Name"
-              placeholderTextColor="#999"
+              placeholderTextColor={Colors.text.tertiary}
               value={name}
               onChangeText={setName}
             />
           </View>
 
           <View style={styles.inputGroup}>
-            <Ionicons name="calendar-outline" size={20} color="#667eea" style={styles.inputIcon} />
+            <Ionicons
+              name="calendar-outline"
+              size={20}
+              color={Colors.primary}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Age"
-              placeholderTextColor="#999"
+              placeholderTextColor={Colors.text.tertiary}
               value={age}
               onChangeText={setAge}
               keyboardType="numeric"
@@ -244,13 +257,13 @@ const ProfileScreen = () => {
             <Ionicons
               name="document-text-outline"
               size={20}
-              color="#667eea"
+              color={Colors.primary}
               style={styles.inputIcon}
             />
             <TextInput
               style={[styles.input, styles.bioInput]}
               placeholder="Tell us about yourself..."
-              placeholderTextColor="#999"
+              placeholderTextColor={Colors.text.tertiary}
               value={bio}
               onChangeText={setBio}
               multiline
@@ -259,11 +272,16 @@ const ProfileScreen = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Ionicons name="image-outline" size={20} color="#667eea" style={styles.inputIcon} />
+            <Ionicons
+              name="image-outline"
+              size={20}
+              color={Colors.primary}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={styles.input}
               placeholder="Or paste image URL here"
-              placeholderTextColor="#999"
+              placeholderTextColor={Colors.text.tertiary}
               value={photoURL}
               onChangeText={setPhotoURL}
               autoCapitalize="none"
@@ -277,8 +295,13 @@ const ProfileScreen = () => {
             disabled={loading}
             activeOpacity={0.8}
           >
-            <LinearGradient colors={['#667eea', '#764ba2']} style={styles.saveButtonGradient}>
-              <Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
+            <LinearGradient colors={Colors.gradient.primary} style={styles.saveButtonGradient}>
+              <Ionicons
+                name="checkmark-circle"
+                size={20}
+                color={Colors.background.white}
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Profile'}</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -292,7 +315,12 @@ const ProfileScreen = () => {
               onPress={() => navigation.navigate('Preferences')}
               activeOpacity={0.8}
             >
-              <Ionicons name="settings" size={20} color="#667eea" style={{ marginRight: 8 }} />
+              <Ionicons
+                name="settings"
+                size={20}
+                color={Colors.primary}
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.secondaryButtonText}>Preferences</Text>
             </TouchableOpacity>
 
@@ -313,7 +341,7 @@ const ProfileScreen = () => {
               <Ionicons
                 name="shield-checkmark"
                 size={20}
-                color="#4ECDC4"
+                color={Colors.accent.teal}
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.secondaryButtonText}>Verification</Text>
@@ -324,7 +352,12 @@ const ProfileScreen = () => {
               onPress={() => navigation.navigate('PhotoGallery')}
               activeOpacity={0.8}
             >
-              <Ionicons name="images" size={20} color="#FF6B6B" style={{ marginRight: 8 }} />
+              <Ionicons
+                name="images"
+                size={20}
+                color={Colors.accent.red}
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.secondaryButtonText}>Photo Gallery</Text>
             </TouchableOpacity>
 
@@ -336,7 +369,7 @@ const ProfileScreen = () => {
               <Ionicons
                 name="shield-checkmark-outline"
                 size={20}
-                color="#FF9800"
+                color={Colors.status.warning}
                 style={{ marginRight: 8 }}
               />
               <Text style={styles.secondaryButtonText}>Safety Tips</Text>
@@ -349,7 +382,12 @@ const ProfileScreen = () => {
               }
               activeOpacity={0.8}
             >
-              <Ionicons name="shield" size={20} color="#FF6B9D" style={{ marginRight: 8 }} />
+              <Ionicons
+                name="shield"
+                size={20}
+                color={Colors.accent.pink}
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.secondaryButtonText}>🛡️ Safety Center</Text>
             </TouchableOpacity>
 
@@ -358,15 +396,25 @@ const ProfileScreen = () => {
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.8}
             >
-              <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.premiumButtonGradient}>
-                <Ionicons name="diamond" size={20} color="#fff" style={{ marginRight: 8 }} />
+              <LinearGradient colors={Colors.gradient.gold} style={styles.premiumButtonGradient}>
+                <Ionicons
+                  name="diamond"
+                  size={20}
+                  color={Colors.background.white}
+                  style={{ marginRight: 8 }}
+                />
                 <Text style={styles.premiumButtonText}>Go Premium</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.logoutButton} onPress={logout} activeOpacity={0.8}>
-            <Ionicons name="log-out-outline" size={20} color="#FF6B6B" style={{ marginRight: 8 }} />
+            <Ionicons
+              name="log-out-outline"
+              size={20}
+              color={Colors.accent.red}
+              style={{ marginRight: 8 }}
+            />
             <Text style={styles.logoutButtonText}>Logout</Text>
           </TouchableOpacity>
         </View>
@@ -393,7 +441,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#fff',
+    color: Colors.background.white,
     marginBottom: 8,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
@@ -401,15 +449,15 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: Colors.text.white90,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     padding: 25,
     marginTop: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -425,7 +473,7 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 75,
     borderWidth: 4,
-    borderColor: '#667eea',
+    borderColor: Colors.primary,
   },
   placeholderImage: {
     width: 150,
@@ -434,10 +482,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 4,
-    borderColor: '#fff',
+    borderColor: Colors.background.white,
   },
   placeholderText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 14,
     marginTop: 8,
     fontWeight: '600',
@@ -446,15 +494,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: '35%',
-    backgroundColor: '#667eea',
+    backgroundColor: Colors.primary,
     borderRadius: 20,
     width: 40,
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#fff',
-    shadowColor: '#000',
+    borderColor: Colors.background.white,
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -463,12 +511,12 @@ const styles = StyleSheet.create({
   inputGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 15,
     marginBottom: 15,
     paddingHorizontal: 15,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: Colors.border.gray,
   },
   inputIcon: {
     marginRight: 10,
@@ -477,7 +525,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 15,
     fontSize: 16,
-    color: '#333',
+    color: Colors.text.dark,
   },
   bioInput: {
     height: 100,
@@ -486,7 +534,7 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: -10,
     marginBottom: 20,
     paddingHorizontal: 5,
@@ -497,7 +545,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 15,
     overflow: 'hidden',
-    shadowColor: '#667eea',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -510,7 +558,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 18,
     fontWeight: '700',
   },
@@ -522,15 +570,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderWidth: 2,
-    borderColor: '#e9ecef',
+    borderColor: Colors.border.gray,
     borderRadius: 15,
     paddingVertical: 15,
     marginBottom: 10,
   },
   secondaryButtonText: {
-    color: '#667eea',
+    color: Colors.primary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -538,7 +586,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     overflow: 'hidden',
     marginTop: 10,
-    shadowColor: '#FFD700',
+    shadowColor: Colors.accent.gold,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -551,7 +599,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   premiumButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -559,14 +607,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderWidth: 2,
-    borderColor: '#FF6B6B',
+    borderColor: Colors.accent.red,
     borderRadius: 15,
     paddingVertical: 15,
   },
   logoutButtonText: {
-    color: '#FF6B6B',
+    color: Colors.accent.red,
     fontSize: 16,
     fontWeight: '600',
   },

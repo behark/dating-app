@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
@@ -82,7 +83,7 @@ const StickerPickerModal = ({ visible, onClose, onSelectSticker, authToken }) =>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={28} color="#333" />
+            <Ionicons name="close" size={28} color={Colors.text.dark} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Choose a Sticker</Text>
           <View style={{ width: 28 }} />
@@ -113,7 +114,7 @@ const StickerPickerModal = ({ visible, onClose, onSelectSticker, authToken }) =>
         {/* Stickers Grid */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#667eea" />
+            <ActivityIndicator size="large" color={Colors.primary} />
           </View>
         ) : selectedPack && selectedPack.stickers ? (
           <FlatList
@@ -137,7 +138,7 @@ const StickerPickerModal = ({ visible, onClose, onSelectSticker, authToken }) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
   },
   header: {
     flexDirection: 'row',
@@ -146,40 +147,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: Colors.text.lighter,
     paddingTop: 16,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.dark,
   },
   packTabs: {
     paddingHorizontal: 8,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: Colors.text.lighter,
   },
   packTab: {
     marginHorizontal: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
   },
   packTabActive: {
-    backgroundColor: '#667eea',
-    borderColor: '#667eea',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   packTabText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   packTabTextActive: {
-    color: '#fff',
+    color: Colors.background.white,
   },
   loadingContainer: {
     flex: 1,
@@ -193,7 +194,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   columnWrapper: {
     justifyContent: 'space-between',
@@ -209,7 +210,7 @@ const styles = StyleSheet.create({
     height: ITEM_SIZE,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     marginBottom: 8,
     justifyContent: 'center',
     alignItems: 'center',

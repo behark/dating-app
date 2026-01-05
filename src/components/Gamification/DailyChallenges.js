@@ -1,15 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import {
-    Animated,
-    Easing,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Easing,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const DAILY_CHALLENGES = [
@@ -82,9 +83,9 @@ const DAILY_CHALLENGES = [
 ];
 
 const DIFFICULTY_COLORS = {
-  easy: { bg: '#E8F5E9', text: '#4CAF50' },
-  medium: { bg: '#FFF3E0', text: '#FF9800' },
-  hard: { bg: '#FFEBEE', text: '#F44336' },
+  easy: { bg: Colors.status.successLight, text: Colors.status.success },
+  medium: { bg: Colors.status.warningLight, text: Colors.status.warning },
+  hard: { bg: Colors.status.errorLight, text: Colors.status.error },
 };
 
 const DailyChallenges = ({
@@ -97,25 +98,25 @@ const DailyChallenges = ({
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [claimedChallenge, setClaimedChallenge] = useState(null);
-  
+
   // Animation values
-  const progressAnims = useRef(
-    DAILY_CHALLENGES.map(() => new Animated.Value(0))
-  ).current;
+  const progressAnims = useRef(DAILY_CHALLENGES.map(() => new Animated.Value(0))).current;
   const shineAnim = useRef(new Animated.Value(0)).current;
   const bounceAnim = useRef(new Animated.Value(1)).current;
-  const confettiAnims = useRef([...Array(20)].map(() => ({
-    x: new Animated.Value(0),
-    y: new Animated.Value(0),
-    opacity: new Animated.Value(0),
-  }))).current;
+  const confettiAnims = useRef(
+    [...Array(20)].map(() => ({
+      x: new Animated.Value(0),
+      y: new Animated.Value(0),
+      opacity: new Animated.Value(0),
+    }))
+  ).current;
 
   useEffect(() => {
     // Animate progress bars
     DAILY_CHALLENGES.forEach((challenge, index) => {
       const currentProgress = progress[challenge.id]?.current || 0;
       const percent = Math.min((currentProgress / challenge.target) * 100, 100);
-      
+
       Animated.timing(progressAnims[index], {
         toValue: percent,
         duration: 800,
@@ -153,12 +154,12 @@ const DailyChallenges = ({
   const handleClaimReward = (challenge) => {
     setClaimedChallenge(challenge);
     setShowClaimModal(true);
-    
+
     // Trigger confetti
     confettiAnims.forEach((anim, i) => {
       const angle = Math.random() * Math.PI * 2;
       const distance = 100 + Math.random() * 100;
-      
+
       Animated.parallel([
         Animated.timing(anim.x, {
           toValue: Math.cos(angle) * distance,
@@ -247,10 +248,7 @@ const DailyChallenges = ({
         {/* Completion shine effect */}
         {completed && !claimed && (
           <Animated.View
-            style={[
-              styles.shineEffect,
-              { transform: [{ translateX: shineTranslate }] },
-            ]}
+            style={[styles.shineEffect, { transform: [{ translateX: shineTranslate }] }]}
           />
         )}
 
@@ -258,29 +256,17 @@ const DailyChallenges = ({
           <View style={styles.challengeIconContainer}>
             <Text style={styles.challengeIcon}>{challenge.icon}</Text>
           </View>
-          
+
           <View style={styles.challengeInfo}>
             <View style={styles.challengeTitleRow}>
               <Text style={styles.challengeTitle}>{challenge.title}</Text>
-              <View
-                style={[
-                  styles.difficultyBadge,
-                  { backgroundColor: difficultyStyle.bg },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.difficultyText,
-                    { color: difficultyStyle.text },
-                  ]}
-                >
+              <View style={[styles.difficultyBadge, { backgroundColor: difficultyStyle.bg }]}>
+                <Text style={[styles.difficultyText, { color: difficultyStyle.text }]}>
                   {challenge.difficulty}
                 </Text>
               </View>
             </View>
-            <Text style={styles.challengeDescription}>
-              {challenge.description}
-            </Text>
+            <Text style={styles.challengeDescription}>{challenge.description}</Text>
           </View>
         </View>
 
@@ -292,7 +278,7 @@ const DailyChallenges = ({
                 styles.progressFill,
                 {
                   width: progressWidth,
-                  backgroundColor: completed ? '#4ECDC4' : '#667eea',
+                  backgroundColor: completed ? Colors.accent.teal : Colors.primary,
                 },
               ]}
             />
@@ -315,16 +301,13 @@ const DailyChallenges = ({
 
           {/* Claim button */}
           {completed && !claimed && (
-            <LinearGradient
-              colors={['#4ECDC4', '#44A08D']}
-              style={styles.claimButton}
-            >
+            <LinearGradient colors={Colors.gradient.teal} style={styles.claimButton}>
               <Text style={styles.claimButtonText}>Claim</Text>
             </LinearGradient>
           )}
           {claimed && (
             <View style={styles.claimedBadge}>
-              <Ionicons name="checkmark-circle" size={20} color="#4ECDC4" />
+              <Ionicons name="checkmark-circle" size={20} color={Colors.accent.teal} />
               <Text style={styles.claimedText}>Claimed</Text>
             </View>
           )}
@@ -341,12 +324,7 @@ const DailyChallenges = ({
       onRequestClose={() => setShowClaimModal(false)}
     >
       <View style={styles.modalOverlay}>
-        <Animated.View
-          style={[
-            styles.claimModalContent,
-            { transform: [{ scale: bounceAnim }] },
-          ]}
-        >
+        <Animated.View style={[styles.claimModalContent, { transform: [{ scale: bounceAnim }] }]}>
           {/* Confetti */}
           {confettiAnims.map((anim, i) => (
             <Animated.Text
@@ -355,10 +333,7 @@ const DailyChallenges = ({
                 styles.confetti,
                 {
                   opacity: anim.opacity,
-                  transform: [
-                    { translateX: anim.x },
-                    { translateY: anim.y },
-                  ],
+                  transform: [{ translateX: anim.x }, { translateY: anim.y }],
                 },
               ]}
             >
@@ -367,24 +342,18 @@ const DailyChallenges = ({
           ))}
 
           <Text style={styles.claimModalTitle}>🎉 Challenge Complete!</Text>
-          <Text style={styles.claimModalChallenge}>
-            {claimedChallenge?.title}
-          </Text>
+          <Text style={styles.claimModalChallenge}>{claimedChallenge?.title}</Text>
 
           <View style={styles.claimRewardsContainer}>
             <Text style={styles.claimRewardsTitle}>Rewards Earned:</Text>
             <View style={styles.claimRewardsRow}>
               <View style={styles.claimRewardItem}>
                 <Text style={styles.claimRewardEmoji}>⚡</Text>
-                <Text style={styles.claimRewardValue}>
-                  +{claimedChallenge?.xpReward} XP
-                </Text>
+                <Text style={styles.claimRewardValue}>+{claimedChallenge?.xpReward} XP</Text>
               </View>
               <View style={styles.claimRewardItem}>
                 <Text style={styles.claimRewardEmoji}>🪙</Text>
-                <Text style={styles.claimRewardValue}>
-                  +{claimedChallenge?.coinReward} Coins
-                </Text>
+                <Text style={styles.claimRewardValue}>+{claimedChallenge?.coinReward} Coins</Text>
               </View>
             </View>
           </View>
@@ -394,7 +363,7 @@ const DailyChallenges = ({
             onPress={() => setShowClaimModal(false)}
           >
             <LinearGradient
-              colors={['#667eea', '#764ba2']}
+              colors={Colors.gradient.primary}
               style={styles.claimModalButtonGradient}
             >
               <Text style={styles.claimModalButtonText}>Awesome!</Text>
@@ -418,21 +387,14 @@ const DailyChallenges = ({
           </View>
         </View>
         <View style={styles.timerContainer}>
-          <Ionicons name="time-outline" size={14} color="#999" />
-          <Text style={styles.timerText}>
-            {formatTimeRemaining(timeRemaining)}
-          </Text>
+          <Ionicons name="time-outline" size={14} color={Colors.text.tertiary} />
+          <Text style={styles.timerText}>{formatTimeRemaining(timeRemaining)}</Text>
         </View>
       </View>
 
       {/* Challenges list */}
-      <ScrollView
-        style={styles.challengesList}
-        showsVerticalScrollIndicator={false}
-      >
-        {DAILY_CHALLENGES.map((challenge, index) =>
-          renderChallengeCard(challenge, index)
-        )}
+      <ScrollView style={styles.challengesList} showsVerticalScrollIndicator={false}>
+        {DAILY_CHALLENGES.map((challenge, index) => renderChallengeCard(challenge, index))}
       </ScrollView>
 
       {/* Bonus progress */}
@@ -442,10 +404,8 @@ const DailyChallenges = ({
           style={styles.bonusGradient}
         >
           <View style={styles.bonusInfo}>
-            <Ionicons name="gift" size={20} color="#FFD700" />
-            <Text style={styles.bonusText}>
-              Complete all challenges for bonus rewards!
-            </Text>
+            <Ionicons name="gift" size={20} color={Colors.accent.gold} />
+            <Text style={styles.bonusText}>Complete all challenges for bonus rewards!</Text>
           </View>
           <View style={styles.bonusProgress}>
             <View
@@ -467,11 +427,11 @@ const DailyChallenges = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 16,
     padding: 20,
     marginVertical: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -491,10 +451,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   completionBadge: {
-    backgroundColor: '#E8F0FE',
+    backgroundColor: Colors.status.infoLight,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
@@ -502,7 +462,7 @@ const styles = StyleSheet.create({
   completionText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#667eea',
+    color: Colors.primary,
   },
   timerContainer: {
     flexDirection: 'row',
@@ -511,22 +471,22 @@ const styles = StyleSheet.create({
   },
   timerText: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   challengesList: {
     maxHeight: 400,
   },
   challengeCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     overflow: 'hidden',
   },
   completedCard: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: Colors.status.successLight,
     borderWidth: 1,
-    borderColor: '#4ECDC4',
+    borderColor: Colors.accent.teal,
   },
   claimedCard: {
     opacity: 0.7,
@@ -547,11 +507,11 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -572,7 +532,7 @@ const styles = StyleSheet.create({
   challengeTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   difficultyBadge: {
     paddingHorizontal: 6,
@@ -586,7 +546,7 @@ const styles = StyleSheet.create({
   },
   challengeDescription: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   progressSection: {
     flexDirection: 'row',
@@ -608,7 +568,7 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     minWidth: 40,
     textAlign: 'right',
   },
@@ -627,7 +587,7 @@ const styles = StyleSheet.create({
   },
   rewardValue: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     fontWeight: '500',
   },
   claimButton: {
@@ -637,7 +597,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   claimButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -649,7 +609,7 @@ const styles = StyleSheet.create({
   },
   claimedText: {
     fontSize: 12,
-    color: '#4ECDC4',
+    color: Colors.accent.teal,
     fontWeight: '600',
   },
   bonusContainer: {
@@ -668,7 +628,7 @@ const styles = StyleSheet.create({
   },
   bonusText: {
     fontSize: 12,
-    color: '#F59E0B',
+    color: Colors.status.warningOrange,
     fontWeight: '500',
   },
   bonusProgress: {
@@ -679,7 +639,7 @@ const styles = StyleSheet.create({
   },
   bonusProgressFill: {
     height: '100%',
-    backgroundColor: '#FFD700',
+    backgroundColor: Colors.accent.gold,
     borderRadius: 3,
   },
   modalOverlay: {
@@ -689,7 +649,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   claimModalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 24,
     padding: 32,
     alignItems: 'center',
@@ -703,12 +663,12 @@ const styles = StyleSheet.create({
   claimModalTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   claimModalChallenge: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 24,
   },
   claimRewardsContainer: {
@@ -717,7 +677,7 @@ const styles = StyleSheet.create({
   },
   claimRewardsTitle: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -736,7 +696,7 @@ const styles = StyleSheet.create({
   claimRewardValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   claimModalButton: {
     width: '100%',
@@ -748,7 +708,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   claimModalButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     fontWeight: '700',
   },

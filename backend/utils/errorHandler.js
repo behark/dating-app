@@ -50,5 +50,5 @@ function toError(error) {
 module.exports = {
   isError,
   getErrorMessage,
-  toError
+  toError,
 };

@@ -27,12 +27,15 @@
 Since the backend is working, the issue is likely in the frontend:
 
 ### Issue 1: API URL Not Resolved Correctly
+
 **Fixed:** Updated `src/config/api.js` to always use production URL for web platform
 
-### Issue 2: __DEV__ Variable in Web Builds
+### Issue 2: **DEV** Variable in Web Builds
+
 **Fixed:** Changed logic to check Platform.OS === 'web' first
 
 ### Issue 3: Network/Fetch Issues
+
 **Status:** Need to check browser console for actual errors
 
 ## 📋 Next Steps

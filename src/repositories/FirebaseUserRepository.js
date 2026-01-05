@@ -16,8 +16,8 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { UserRepository } from './UserRepository';
 import logger from '../utils/logger';
+import { UserRepository } from './UserRepository';
 
 // Simple in-memory cache for user profiles
 const userCache = new Map();
@@ -122,7 +122,10 @@ export class FirebaseUserRepository extends UserRepository {
       // Apply limit
       return availableUsers.slice(0, limit);
     } catch (error) {
-      logger.error('FirebaseUserRepository: Error getting discoverable users', error, { userId, options });
+      logger.error('FirebaseUserRepository: Error getting discoverable users', error, {
+        userId,
+        options,
+      });
       // Return empty array instead of throwing - allows UI to show "No users found"
       return [];
     }
@@ -228,7 +231,11 @@ export class FirebaseUserRepository extends UserRepository {
 
       return { success: true, isMatch: false };
     } catch (error) {
-      logger.error('FirebaseUserRepository: Error recording swipe', error, { swiperId, swipedUserId, direction });
+      logger.error('FirebaseUserRepository: Error recording swipe', error, {
+        swiperId,
+        swipedUserId,
+        direction,
+      });
       return { success: false, isMatch: false };
     }
   }

@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../constants/colors';
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -6,13 +7,13 @@ import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native
  * Error notification component with auto-dismiss
  * Displays user-friendly error messages with icons
  */
-export const ErrorNotification = ({ 
-  message, 
+export const ErrorNotification = ({
+  message,
   type = 'error', // 'error', 'warning', 'info', 'success'
-  visible, 
-  onDismiss, 
+  visible,
+  onDismiss,
   autoHideDuration = 5000,
-  position = 'top' // 'top' or 'bottom'
+  position = 'top', // 'top' or 'bottom'
 }) => {
   const slideAnim = useRef(new Animated.Value(position === 'top' ? -100 : 100)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -97,21 +98,21 @@ const getTypeConfig = (type) => {
   switch (type) {
     case 'success':
       return {
-        backgroundColor: '#E8F5E9',
-        iconColor: '#2E7D32',
+        backgroundColor: Colors.status.successLight,
+        iconColor: Colors.status.successDark,
         textColor: '#1B5E20',
         icon: 'checkmark-circle',
       };
     case 'warning':
       return {
-        backgroundColor: '#FFF3E0',
+        backgroundColor: Colors.status.warningLight,
         iconColor: '#F57C00',
         textColor: '#E65100',
         icon: 'warning',
       };
     case 'info':
       return {
-        backgroundColor: '#E3F2FD',
+        backgroundColor: Colors.status.infoLight,
         iconColor: '#1976D2',
         textColor: '#0D47A1',
         icon: 'information-circle',
@@ -119,7 +120,7 @@ const getTypeConfig = (type) => {
     case 'error':
     default:
       return {
-        backgroundColor: '#FFEBEE',
+        backgroundColor: Colors.status.errorLight,
         iconColor: '#D32F2F',
         textColor: '#B71C1C',
         icon: 'alert-circle',
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 8,

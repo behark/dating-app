@@ -1,7 +1,8 @@
 import { API_BASE_URL } from '../config/api';
-import { validateCoordinates, validateNumberRange, validateUserId } from '../utils/validators';
-import logger from '../utils/logger';
+import { ERROR_MESSAGES } from '../constants/constants';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
+import logger from '../utils/logger';
+import { validateCoordinates, validateNumberRange, validateUserId } from '../utils/validators';
 
 /**
  * DiscoveryService - User discovery and exploration functionality
@@ -58,10 +59,10 @@ class DiscoveryService {
         throw new Error('Radius must be between 1km and 100km');
       }
       if (!validateNumberRange(minAge, 18, 100) || !validateNumberRange(maxAge, 18, 100)) {
-        throw new Error('Age must be between 18 and 100');
+        throw new Error(ERROR_MESSAGES.INVALID_AGE_RANGE);
       }
       if (!validateNumberRange(limit, 1, 100)) {
-        throw new Error('Limit must be between 1 and 100');
+        throw new Error(ERROR_MESSAGES.INVALID_LIMIT_RANGE);
       }
 
       const queryParams = new URLSearchParams({
@@ -90,7 +91,7 @@ class DiscoveryService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || [];
     } catch (error) {
@@ -128,7 +129,7 @@ class DiscoveryService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || { topPicks: [] };
     } catch (error) {
@@ -149,7 +150,7 @@ class DiscoveryService {
         throw new Error('Hours back must be between 1 and 168 (1 week)');
       }
       if (!validateNumberRange(limit, 1, 100)) {
-        throw new Error('Limit must be between 1 and 100');
+        throw new Error(ERROR_MESSAGES.INVALID_LIMIT_RANGE);
       }
 
       const queryParams = new URLSearchParams({
@@ -171,7 +172,7 @@ class DiscoveryService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || { users: [] };
     } catch (error) {
@@ -204,10 +205,10 @@ class DiscoveryService {
         throw new Error('Radius must be between 1km and 100km');
       }
       if (!validateNumberRange(minAge, 18, 100) || !validateNumberRange(maxAge, 18, 100)) {
-        throw new Error('Age must be between 18 and 100');
+        throw new Error(ERROR_MESSAGES.INVALID_AGE_RANGE);
       }
       if (!validateNumberRange(limit, 1, 100)) {
-        throw new Error('Limit must be between 1 and 100');
+        throw new Error(ERROR_MESSAGES.INVALID_LIMIT_RANGE);
       }
 
       const queryParams = new URLSearchParams({
@@ -235,7 +236,7 @@ class DiscoveryService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || { users: [] };
     } catch (error) {
@@ -274,7 +275,7 @@ class DiscoveryService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -289,7 +290,7 @@ class DiscoveryService {
   async approveProfileVerification(userId) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_BASE_URL}/discovery/approve-verification`, {
@@ -313,7 +314,7 @@ class DiscoveryService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {

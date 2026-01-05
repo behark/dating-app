@@ -364,7 +364,7 @@ class AppErrorBoundary extends React.Component {
                     >
                       {action.id === 'retry' ? (
                         <LinearGradient
-                          colors={['#ffffff', '#f0f0f0']}
+                          colors={[Colors.background.white, Colors.background.light]}
                           style={styles.primaryButtonGradient}
                         >
                           <Ionicons
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
   },
   retryCountText: {
     fontSize: 12,
-    color: Colors.text?.white || '#fff',
+    color: Colors.text?.white || Colors.background.white,
     fontWeight: '600',
   },
   devErrorContainer: {
@@ -491,12 +491,12 @@ const styles = StyleSheet.create({
   devErrorTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: Colors.text?.white || '#fff',
+    color: Colors.text?.white || Colors.background.white,
     marginBottom: 8,
   },
   devErrorText: {
     fontSize: 12,
-    color: Colors.text?.white || '#fff',
+    color: Colors.text?.white || Colors.background.white,
     fontFamily: 'monospace',
     marginBottom: 8,
     lineHeight: 16,
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   primaryButton: {
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
   },
   secondaryButtonText: {
-    color: Colors.text?.white || '#fff',
+    color: Colors.text?.white || Colors.background.white,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
   maxRetriesText: {
     marginTop: 10,
     fontSize: 14,
-    color: Colors.text?.white || '#fff',
+    color: Colors.text?.white || Colors.background.white,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   reportButtonText: {
-    color: Colors.text?.white || '#fff',
+    color: Colors.text?.white || Colors.background.white,
     fontSize: 14,
     fontWeight: '600',
   },

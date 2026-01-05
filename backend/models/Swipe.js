@@ -61,25 +61,25 @@ swipeSchema.index({ swipedId: 1, action: 1, createdAt: -1 }, { name: 'who_liked_
 /**
  * RACE CONDITION FIX: Atomic swipe creation using findOneAndUpdate
  * This prevents duplicate swipes when user clicks rapidly
- * 
+ *
  * Uses MongoDB's atomic upsert with $setOnInsert to ensure only one swipe is created
  * even if multiple requests arrive simultaneously
- * 
+ *
  * @param {Object} swipeData - { swiperId, swipedId, action, isPriority }
  * @returns {Promise<{swipe: any, isNew: boolean, alreadyExists: boolean}>} { swipe, isNew } - The swipe document and whether it was newly created
  */
-swipeSchema.statics.createSwipeAtomic = async function(swipeData) {
+swipeSchema.statics.createSwipeAtomic = async function (swipeData) {
   const { swiperId, swipedId, action, isPriority = false } = swipeData;
-  
+
   // Use findOneAndUpdate with upsert to atomically create or find existing swipe
   // $setOnInsert only sets fields if this is a new document (insert)
   // @ts-ignore - Mongoose static method context
   const result = await this.findOneAndUpdate(
-    { 
-      swiperId: swiperId, 
-      swipedId: swipedId 
+    {
+      swiperId: swiperId,
+      swipedId: swipedId,
     },
-    { 
+    {
       $setOnInsert: {
         swiperId: swiperId,
         swipedId: swipedId,
@@ -87,21 +87,21 @@ swipeSchema.statics.createSwipeAtomic = async function(swipeData) {
         isPriority: isPriority,
         prioritySentAt: isPriority ? new Date() : undefined,
         createdAt: new Date(),
-      }
+      },
     },
-    { 
+    {
       upsert: true,
       new: true,
-      rawResult: true,  // Get the raw MongoDB result to check if upserted
+      rawResult: true, // Get the raw MongoDB result to check if upserted
       runValidators: true,
     }
   );
-  
+
   // Check if this was a new insert or existing document
   /** @type {any} */
   const typedResult = result;
   const isNew = typedResult.lastErrorObject?.upserted != null;
-  
+
   return {
     swipe: typedResult.value,
     isNew: isNew,
@@ -168,7 +168,7 @@ swipeSchema.statics.getMatches = function (userId) {
 swipeSchema.statics.getSwipeCountToday = async function (swiperId) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-// @ts-ignore - Mongoose static method context
+  // @ts-ignore - Mongoose static method context
 
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -181,8 +181,8 @@ swipeSchema.statics.getSwipeCountToday = async function (swiperId) {
 
 // Static method to check if user can swipe (freemium limit check)
 /**
- * @param {string} swiperId 
- * @param {boolean} isPremium 
+ * @param {string} swiperId
+ * @param {boolean} isPremium
  * @returns {Promise<{canSwipe: boolean, remaining: number, used?: number}>}
  */
 swipeSchema.statics.canSwipe = async function (swiperId, isPremium = false) {

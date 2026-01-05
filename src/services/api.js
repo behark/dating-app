@@ -98,7 +98,7 @@ const api = {
 
     try {
       const refreshToken = await this.getRefreshToken();
-      
+
       if (!refreshToken) {
         logger.debug('No refresh token available for token refresh');
         return null;
@@ -123,18 +123,19 @@ const api = {
       const data = await response.json();
       // Handle standardized response format: { success: true, data: { tokens: {...} } }
       const newAuthToken = data.data?.tokens?.accessToken || data.data?.authToken || data.authToken;
-      const newRefreshToken = data.data?.tokens?.refreshToken || data.data?.refreshToken || data.refreshToken;
+      const newRefreshToken =
+        data.data?.tokens?.refreshToken || data.data?.refreshToken || data.refreshToken;
 
       if (newAuthToken) {
         // Update tokens in memory and storage
         this._authToken = newAuthToken;
         await AsyncStorage.setItem(AUTH_TOKEN_KEY, newAuthToken);
-        
+
         if (newRefreshToken) {
           this._refreshToken = newRefreshToken;
           await AsyncStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
         }
-        
+
         logger.debug('Auth token refreshed successfully');
 
         // Resolve all queued requests with the new token
@@ -166,10 +167,10 @@ const api = {
    */
   async request(method, endpoint, data = null, options = {}, _isRetry = false) {
     const url = `${API_URL}${endpoint}`;
-    
+
     // Get auth token
     const authToken = await this.getAuthToken();
-    
+
     const requestOptions = {
       method,
       headers: {
@@ -185,59 +186,61 @@ const api = {
 
     try {
       const response = await fetch(url, requestOptions);
-      
+
       // Handle 401 Unauthorized - token may be expired, attempt refresh
       if (response.status === 401) {
         // Don't retry if this is already a retry or if hitting auth endpoints
         const isAuthEndpoint = endpoint.includes('/auth/');
-        
+
         if (!_isRetry && !isAuthEndpoint) {
           logger.debug('Received 401, attempting token refresh...');
-          
+
           // Try to refresh the token
           const newToken = await this.refreshAuthToken();
-          
+
           if (newToken) {
             // Retry the original request with the new token
             logger.debug('Token refreshed, retrying original request...');
             return this.request(method, endpoint, data, options, true);
           }
         }
-        
+
         // Token refresh failed or not applicable - clear tokens and throw
         this.clearAuthToken();
         const errorData = await response.json().catch(() => ({}));
         logger.apiError(endpoint, method, 401, 'Unauthorized - token expired or invalid');
-        throw new Error(getUserFriendlyMessage(errorData.message || 'Session expired. Please login again.'));
+        throw new Error(
+          getUserFriendlyMessage(errorData.message || 'Session expired. Please login again.')
+        );
       }
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         // Handle standardized error format: { success: false, message: '...', error: 'CODE' }
         const errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
         logger.apiError(endpoint, method, response.status, errorMessage);
-        
+
         // Create error object with additional info from standardized format
         const error = new Error(getUserFriendlyMessage(errorMessage));
         error.code = errorData.error;
         error.statusCode = response.status;
         error.validationErrors = errorData.errors;
-        
+
         throw error;
       }
-      
-      const responseData = await response.json();
-      
+
       // All responses now follow standardized format: { success: true, message: '...', data: {...}, pagination?: {...} }
       // Return the entire response to maintain access to success, message, pagination, etc.
-      return responseData;
+      return await response.json();
     } catch (error) {
       // Don't double-wrap errors we already threw
       if (error.message && !error.message.includes('HTTP')) {
         throw error;
       }
       logger.apiError(endpoint, method, 'NETWORK', error);
-      throw new Error(getUserFriendlyMessage(error.message || 'Network error. Please check your connection.'));
+      throw new Error(
+        getUserFriendlyMessage(error.message || 'Network error. Please check your connection.')
+      );
     }
   },
 

@@ -138,7 +138,12 @@ const blurCoordinates = (lat, lng, blurRadiusKm = DEFAULT_BLUR_RADIUS_KM) => {
  * @param {string} privacyLevel - User's location privacy setting
  * @returns {Object} Sanitized location data safe for API response
  */
-const sanitizeLocationForResponse = (userLocation, viewerLat, viewerLng, privacyLevel = 'visible_to_matches') => {
+const sanitizeLocationForResponse = (
+  userLocation,
+  viewerLat,
+  viewerLng,
+  privacyLevel = 'visible_to_matches'
+) => {
   // If location is hidden, return minimal info
   if (privacyLevel === 'hidden' || !userLocation || !userLocation.coordinates) {
     return {
@@ -217,14 +222,14 @@ const stripPreciseLocation = (user, options = {}) => {
       viewerLat,
       viewerLng,
       originalLocation.coordinates[1], // latitude
-      originalLocation.coordinates[0]  // longitude
+      originalLocation.coordinates[0] // longitude
     );
   }
 
   // Replace location with sanitized version
   userObj.location = {
     // Include city if allowed and available
-    city: includeCity ? (originalLocation?.city || null) : null,
+    city: includeCity ? originalLocation?.city || null : null,
     // Include country if available
     country: originalLocation?.country || null,
     // NEVER include coordinates array
@@ -254,12 +259,14 @@ const stripPreciseLocation = (user, options = {}) => {
 const sanitizeUsersForResponse = (users, viewerLat, viewerLng) => {
   if (!Array.isArray(users)) return users;
 
-  return users.map(user => stripPreciseLocation(user, {
-    viewerLat,
-    viewerLng,
-    includeDistance: true,
-    includeCity: true,
-  }));
+  return users.map((user) =>
+    stripPreciseLocation(user, {
+      viewerLat,
+      viewerLng,
+      includeDistance: true,
+      includeCity: true,
+    })
+  );
 };
 
 module.exports = {

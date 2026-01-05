@@ -3,16 +3,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { API_BASE_URL } from '../config/api';
+import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { calculateDistance } from '../utils/distanceCalculator';
 import logger from '../utils/logger';
@@ -91,7 +92,7 @@ const TopPicksScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#667eea" />
+          <ActivityIndicator size="large" color={Colors.primary} />
         </View>
       </View>
     );
@@ -101,7 +102,7 @@ const TopPicksScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         <View style={styles.emptyContainer}>
-          <Ionicons name="heart-outline" size={64} color="#ccc" />
+          <Ionicons name="heart-outline" size={64} color={Colors.text.light} />
           <Text style={styles.emptyText}>No Top Picks Yet</Text>
           <Text style={styles.emptySubText}>Check back later for personalized recommendations</Text>
         </View>
@@ -113,23 +114,21 @@ const TopPicksScreen = ({ navigation }) => {
   const compatibility = currentPick?.compatibilityScore || 0;
 
   let distance = null;
-  if (location && user?.location) {
-    if (user.location?.coordinates && user.location.coordinates.length >= 2) {
-      distance = calculateDistance(
-        location.latitude,
-        location.longitude,
-        user.location.coordinates[1],
-        user.location.coordinates[0]
-      );
-    }
+  if (location && user?.location?.coordinates && user.location.coordinates.length >= 2) {
+    distance = calculateDistance(
+      location.latitude,
+      location.longitude,
+      user.location.coordinates[1],
+      user.location.coordinates[0]
+    );
   }
 
   return (
-    <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+    <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={28} color="#fff" />
+          <Ionicons name="chevron-back" size={28} color={Colors.background.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Top Picks</Text>
         <Text style={styles.counter}>
@@ -140,12 +139,15 @@ const TopPicksScreen = ({ navigation }) => {
       {/* Main Card */}
       <View style={styles.cardContainer}>
         {user?.photos?.[0] && (
-          <Image source={{ uri: user.photos[0]?.url || user.photos[0] }} style={styles.profileImage} />
+          <Image
+            source={{ uri: user.photos[0]?.url || user.photos[0] }}
+            style={styles.profileImage}
+          />
         )}
 
         {user?.isProfileVerified && (
           <View style={styles.verifiedBadge}>
-            <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+            <Ionicons name="checkmark-circle" size={24} color={Colors.status.success} />
           </View>
         )}
 
@@ -161,7 +163,7 @@ const TopPicksScreen = ({ navigation }) => {
             </Text>
             {distance && (
               <View style={styles.distanceRow}>
-                <Ionicons name="location" size={14} color="#fff" />
+                <Ionicons name="location" size={14} color={Colors.background.white} />
                 <Text style={styles.distanceText}>{distance.toFixed(1)} km away</Text>
               </View>
             )}
@@ -196,31 +198,31 @@ const TopPicksScreen = ({ navigation }) => {
           <View style={styles.breakdown}>
             {currentPick.scoreBreakdown.interestCompatibility > 0 && (
               <View style={styles.breakdownItem}>
-                <Ionicons name="star" size={16} color="#FFD700" />
+                <Ionicons name="star" size={16} color={Colors.accent.gold} />
                 <Text style={styles.breakdownText}>Similar interests and passions</Text>
               </View>
             )}
             {currentPick.scoreBreakdown.locationCompatibility > 0 && (
               <View style={styles.breakdownItem}>
-                <Ionicons name="location" size={16} color="#FFD700" />
+                <Ionicons name="location" size={16} color={Colors.accent.gold} />
                 <Text style={styles.breakdownText}>In your preferred location</Text>
               </View>
             )}
             {currentPick.scoreBreakdown.ageCompatibility > 0 && (
               <View style={styles.breakdownItem}>
-                <Ionicons name="checkmark-circle" size={16} color="#FFD700" />
+                <Ionicons name="checkmark-circle" size={16} color={Colors.accent.gold} />
                 <Text style={styles.breakdownText}>Matches your age preference</Text>
               </View>
             )}
             {currentPick.scoreBreakdown.engagementScore > 0 && (
               <View style={styles.breakdownItem}>
-                <Ionicons name="flame" size={16} color="#FFD700" />
+                <Ionicons name="flame" size={16} color={Colors.accent.gold} />
                 <Text style={styles.breakdownText}>Active and engaged user</Text>
               </View>
             )}
             {currentPick.scoreBreakdown.profileQuality > 0 && (
               <View style={styles.breakdownItem}>
-                <Ionicons name="image" size={16} color="#FFD700" />
+                <Ionicons name="image" size={16} color={Colors.accent.gold} />
                 <Text style={styles.breakdownText}>Complete, high-quality profile</Text>
               </View>
             )}
@@ -235,7 +237,11 @@ const TopPicksScreen = ({ navigation }) => {
           disabled={selectedIndex === 0}
           style={[styles.navButton, selectedIndex === 0 && styles.navButtonDisabled]}
         >
-          <Ionicons name="chevron-back" size={24} color={selectedIndex === 0 ? '#ccc' : '#fff'} />
+          <Ionicons
+            name="chevron-back"
+            size={24}
+            color={selectedIndex === 0 ? Colors.text.light : Colors.background.white}
+          />
         </TouchableOpacity>
 
         <View style={styles.dots}>
@@ -255,7 +261,9 @@ const TopPicksScreen = ({ navigation }) => {
           <Ionicons
             name="chevron-forward"
             size={24}
-            color={selectedIndex === topPicks.length - 1 ? '#ccc' : '#fff'}
+            color={
+              selectedIndex === topPicks.length - 1 ? Colors.text.light : Colors.background.white
+            }
           />
         </TouchableOpacity>
       </View>
@@ -263,7 +271,7 @@ const TopPicksScreen = ({ navigation }) => {
       {/* Action Buttons */}
       <View style={styles.actionButtons}>
         <TouchableOpacity style={styles.passButton}>
-          <Ionicons name="close" size={24} color="#fff" />
+          <Ionicons name="close" size={24} color={Colors.background.white} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.viewButton} onPress={handleViewProfile}>
@@ -277,7 +285,7 @@ const TopPicksScreen = ({ navigation }) => {
             handleNext();
           }}
         >
-          <Ionicons name="heart" size={24} color="#fff" />
+          <Ionicons name="heart" size={24} color={Colors.background.white} />
         </TouchableOpacity>
       </View>
     </LinearGradient>
@@ -299,11 +307,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: Colors.background.white,
   },
   counter: {
     fontSize: 16,
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '600',
   },
   cardContainer: {
@@ -311,9 +319,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     height: 400,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -327,7 +335,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 20,
     padding: 6,
   },
@@ -349,7 +357,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: Colors.background.white,
   },
   distanceRow: {
     flexDirection: 'row',
@@ -359,7 +367,7 @@ const styles = StyleSheet.create({
   },
   distanceText: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: Colors.text.white90,
     fontWeight: '500',
   },
   occupation: {
@@ -393,7 +401,7 @@ const styles = StyleSheet.create({
   scoreValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFD700',
+    color: Colors.accent.gold,
   },
   scoreBar: {
     flex: 1,
@@ -404,7 +412,7 @@ const styles = StyleSheet.create({
   },
   scoreBarFill: {
     height: '100%',
-    backgroundColor: '#FFD700',
+    backgroundColor: Colors.accent.gold,
     borderRadius: 3,
   },
   breakdownSection: {
@@ -418,7 +426,7 @@ const styles = StyleSheet.create({
   breakdownTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#fff',
+    color: Colors.background.white,
     marginBottom: 10,
   },
   breakdown: {
@@ -431,7 +439,7 @@ const styles = StyleSheet.create({
   },
   breakdownText: {
     fontSize: 13,
-    color: '#fff',
+    color: Colors.background.white,
   },
   navigation: {
     flexDirection: 'row',
@@ -462,7 +470,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   dotActive: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     width: 24,
   },
   loadingContainer: {
@@ -478,12 +486,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#ccc',
+    color: Colors.text.light,
     marginTop: 12,
   },
   emptySubText: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 6,
   },
   actionButtons: {
@@ -507,13 +515,13 @@ const styles = StyleSheet.create({
   viewButton: {
     flex: 1,
     paddingVertical: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: Colors.background.white90,
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
   },
   viewButtonText: {
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: 'bold',
     fontSize: 14,
   },
@@ -521,7 +529,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
     justifyContent: 'center',
     alignItems: 'center',
   },

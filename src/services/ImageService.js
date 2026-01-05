@@ -1,8 +1,9 @@
-import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { doc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
-import { storage, db } from '../config/firebase';
+import * as ImagePicker from 'expo-image-picker';
+import { arrayRemove, arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { db, storage } from '../config/firebase';
+import { ERROR_MESSAGES } from '../constants/constants';
 import logger from '../utils/logger';
 
 export class ImageService {
@@ -177,11 +178,11 @@ export class ImageService {
       if (imageData.isPrimary) {
         const userDoc = await getDoc(userRef);
         if (!userDoc.exists()) {
-          throw new Error('User not found');
+          throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
         }
         const userData = userDoc.data();
         if (!userData) {
-          throw new Error('User data not found');
+          throw new Error(ERROR_MESSAGES.USER_DATA_NOT_FOUND);
         }
         const remainingPhotos = userData.photos?.filter((p) => p.id !== imageId) || [];
 
@@ -216,11 +217,11 @@ export class ImageService {
       const userRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userRef);
       if (!userDoc.exists()) {
-        throw new Error('User not found');
+        throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
       }
       const userData = userDoc.data();
       if (!userData) {
-        throw new Error('User data not found');
+        throw new Error(ERROR_MESSAGES.USER_DATA_NOT_FOUND);
       }
 
       const updatedPhotos =
@@ -249,11 +250,11 @@ export class ImageService {
       const userRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userRef);
       if (!userDoc.exists()) {
-        throw new Error('User not found');
+        throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
       }
       const userData = userDoc.data();
       if (!userData) {
-        throw new Error('User data not found');
+        throw new Error(ERROR_MESSAGES.USER_DATA_NOT_FOUND);
       }
 
       // Reorder photos based on new order

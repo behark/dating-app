@@ -68,6 +68,7 @@ module.exports = ModelNameModel;
 ```
 
 This pattern:
+
 1. ✅ Imports type definitions from `types/index.d.ts`
 2. ✅ Provides TypeScript with proper type information
 3. ✅ Enables IntelliSense and type checking
@@ -78,11 +79,13 @@ This pattern:
 ## 📊 Files Modified
 
 ### Type Definitions (`backend/types/index.d.ts`)
+
 - ✅ Added 9 new model interface definitions
 - ✅ Added Document and Model interfaces for each
 - ✅ Added common static method signatures
 
 ### Model Files (`backend/models/`)
+
 1. ✅ `AchievementBadge.js`
 2. ✅ `Block.js`
 3. ✅ `DailyReward.js`
@@ -98,6 +101,7 @@ This pattern:
 ## 🎯 Custom Methods Now Type-Safe
 
 ### User Model Methods
+
 - ✅ `user.comparePassword()` / `user.matchPassword()`
 - ✅ `user.generateAuthToken()`
 - ✅ `user.generateRefreshToken()`
@@ -106,6 +110,7 @@ This pattern:
 - ✅ `User.findNearby()`
 
 ### Match Model Methods
+
 - ✅ `Match.matchExists()`
 - ✅ `Match.createMatch()`
 - ✅ `Match.getUserMatches()`
@@ -115,6 +120,7 @@ This pattern:
 - ✅ `match.markConversationStarted()`
 
 ### Subscription Model Methods
+
 - ✅ `Subscription.getOrCreate()`
 - ✅ `Subscription.activateTrial()`
 - ✅ `Subscription.upgradeToPremium()`
@@ -123,6 +129,7 @@ This pattern:
 - ✅ `subscription.hasFeature()`
 
 ### PaymentTransaction Model Methods
+
 - ✅ `PaymentTransaction.getUserTransactions()`
 - ✅ `PaymentTransaction.findByProviderId()`
 - ✅ `PaymentTransaction.getUserTotalSpend()`
@@ -132,6 +139,7 @@ This pattern:
 - ✅ `paymentTransaction.processRefund()`
 
 ### Swipe Model Methods
+
 - ✅ `Swipe.getSwipedUserIds()`
 - ✅ `Swipe.checkMatch()`
 - ✅ `Swipe.createSwipeAtomic()`
@@ -147,12 +155,15 @@ This pattern:
 If you still see TS2339 errors, they likely fall into these categories:
 
 ### 1. Dynamic Property Access
+
 **Pattern:**
+
 ```javascript
 const value = obj[dynamicKey]; // TS2339: Property does not exist
 ```
 
 **Fix:**
+
 ```javascript
 // Option 1: Type assertion
 const value = (obj as any)[dynamicKey];
@@ -169,13 +180,16 @@ interface MyInterface {
 ```
 
 ### 2. Mongoose Query Results
+
 **Pattern:**
+
 ```javascript
 const user = await User.findOne({ email });
 user.customProperty; // TS2339: Property does not exist
 ```
 
 **Fix:**
+
 ```javascript
 // Type assertion
 const user = await User.findOne({ email }) as UserDocument | null;
@@ -190,13 +204,16 @@ if (user && 'customProperty' in user) {
 ```
 
 ### 3. Populated Fields
+
 **Pattern:**
+
 ```javascript
 const match = await Match.findById(id).populate('users');
 match.users[0].name; // TS2339: Property 'name' does not exist
 ```
 
 **Fix:**
+
 ```javascript
 // Type assertion for populated fields
 const match = await Match.findById(id).populate('users') as MatchDocument & {
@@ -205,12 +222,15 @@ const match = await Match.findById(id).populate('users') as MatchDocument & {
 ```
 
 ### 4. Optional Chaining with Unknown Types
+
 **Pattern:**
+
 ```javascript
 const value = obj?.nested?.property; // TS2339 if types unclear
 ```
 
 **Fix:**
+
 ```javascript
 // Add proper type definitions or use type assertion
 const value = (obj as any)?.nested?.property;
@@ -221,6 +241,7 @@ const value = (obj as any)?.nested?.property;
 ## 📝 Next Steps for Remaining Errors
 
 1. **Run TypeScript Compiler:**
+
    ```bash
    npx tsc --noEmit
    ```
@@ -236,14 +257,15 @@ const value = (obj as any)?.nested?.property;
    - **Missing properties:** Add to interface definitions
 
 4. **Common Fixes:**
+
    ```javascript
    // For Mongoose documents
    /** @type {UserDocument} */
    const user = await User.findById(id);
-   
+
    // For dynamic properties
    const value = (obj as Record<string, any>)[key];
-   
+
    // For populated fields
    const match = await Match.findById(id).populate('users') as MatchDocument & {
      users: UserDocument[];
@@ -267,14 +289,15 @@ const value = (obj as any)?.nested?.property;
 ✅ **21/21 models** now have proper type definitions  
 ✅ **All custom methods** are now type-safe  
 ✅ **Type definitions** added to `types/index.d.ts`  
-✅ **JSDoc comments** added to all model exports  
+✅ **JSDoc comments** added to all model exports
 
 **Remaining TS2339 errors** should now be:
+
 - Dynamic property access (needs type assertions)
 - Populated fields (needs extended types)
 - Missing interface properties (needs interface updates)
 
 ---
 
-*Document generated after adding type definitions to all models*  
-*Date: 2026-01-05*
+_Document generated after adding type definitions to all models_  
+_Date: 2026-01-05_

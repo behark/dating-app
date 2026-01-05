@@ -1,10 +1,18 @@
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 const Message = require('../models/Message');
 
 const User = require('../models/User');
 
 const UserActivity = require('../models/UserActivity');
-
 
 /**
  * Send a GIF message

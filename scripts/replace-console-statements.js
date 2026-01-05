@@ -1,7 +1,7 @@
 /**
  * Script to replace console.log/error/warn with logger
  * Run with: node scripts/replace-console-statements.js
- * 
+ *
  * This script helps identify remaining console statements
  * Manual replacement is still needed for context-specific logging
  */
@@ -15,11 +15,11 @@ const filesToProcess = [];
 // Find all JS/TS files with console statements
 function findFiles(dir) {
   const files = fs.readdirSync(dir);
-  
-  files.forEach(file => {
+
+  files.forEach((file) => {
     const filePath = path.join(dir, file);
     const stat = fs.statSync(filePath);
-    
+
     if (stat.isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
       findFiles(filePath);
     } else if (/\.(js|jsx|ts|tsx)$/.test(file)) {
@@ -44,8 +44,10 @@ filesToProcess.forEach((file, index) => {
   console.log(`${index + 1}. ${status} ${file.relativePath}`);
 });
 
-console.log(`\n✅ Files already using logger: ${filesToProcess.filter(f => f.hasLogger).length}`);
-console.log(`⚠️  Files needing logger import: ${filesToProcess.filter(f => !f.hasLogger).length}`);
+console.log(`\n✅ Files already using logger: ${filesToProcess.filter((f) => f.hasLogger).length}`);
+console.log(
+  `⚠️  Files needing logger import: ${filesToProcess.filter((f) => !f.hasLogger).length}`
+);
 
 // Export for use in other scripts
 module.exports = { filesToProcess };

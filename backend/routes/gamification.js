@@ -95,7 +95,10 @@ router.post('/achievements/check', GamificationController.checkAchievements);
 router.post('/achievements/unlock', GamificationController.unlockAchievement);
 
 // Get achievement progress
-router.get('/achievements/:userId/:achievementId/progress', GamificationController.getAchievementProgress);
+router.get(
+  '/achievements/:userId/:achievementId/progress',
+  GamificationController.getAchievementProgress
+);
 
 // Get recent achievements
 router.get('/achievements/:userId/recent', GamificationController.getRecentAchievements);

@@ -1,7 +1,7 @@
 /**
  * Request Timeout Middleware
  * Prevents 504 Gateway Timeout errors by handling long-running requests gracefully
- * 
+ *
  * This middleware sets timeouts that are SHORTER than Nginx's proxy_read_timeout
  * to ensure the application can respond before the load balancer kills the connection.
  */
@@ -20,15 +20,15 @@ const ROUTE_TIMEOUTS = {
   '/api/matches': DISCOVERY_TIMEOUT,
   '/api/swipe': DISCOVERY_TIMEOUT,
   '/api/ai': DISCOVERY_TIMEOUT,
-  
+
   // Upload routes need more time
   '/api/upload': UPLOAD_TIMEOUT,
   '/api/profile/photo': UPLOAD_TIMEOUT,
   '/api/media': UPLOAD_TIMEOUT,
-  
+
   // Auth routes should be fast
   '/api/auth': 15000,
-  
+
   // Default for other routes
   default: DEFAULT_TIMEOUT,
 };
@@ -51,10 +51,7 @@ const getTimeoutForRoute = (path) => {
  * This prevents the load balancer from returning a 504 Gateway Timeout
  */
 const requestTimeout = (options = {}) => {
-  const { 
-    onTimeout = null,
-    logTimeouts = true 
-  } = options;
+  const { onTimeout = null, logTimeouts = true } = options;
 
   return (req, res, next) => {
     const timeout = getTimeoutForRoute(req.path);
@@ -65,7 +62,9 @@ const requestTimeout = (options = {}) => {
       timedOut = true;
 
       if (logTimeouts) {
-        console.error(`[TIMEOUT] Request timeout after ${timeout}ms: ${req.method} ${req.originalUrl}`);
+        console.error(
+          `[TIMEOUT] Request timeout after ${timeout}ms: ${req.method} ${req.originalUrl}`
+        );
         console.error(`[TIMEOUT] Request ID: ${req.requestId || 'unknown'}`);
         console.error(`[TIMEOUT] User ID: ${req.user?.id || 'unauthenticated'}`);
       }
@@ -108,7 +107,7 @@ const requestTimeout = (options = {}) => {
 
     // Override res.json to check for timeout
     const originalJson = res.json.bind(res);
-    res.json = function(data) {
+    res.json = function (data) {
       if (timedOut) {
         console.warn('[TIMEOUT] Response attempted after timeout, ignoring');
         return res;
@@ -165,21 +164,18 @@ const withQueryTimeout = (query, timeout = 30000) => {
  * Sends data in chunks to avoid timeout on large responses
  */
 const streamResponse = (res, dataGenerator, options = {}) => {
-  const { 
-    batchSize = 50,
-    delayBetweenBatches = 10 
-  } = options;
+  const { batchSize = 50, delayBetweenBatches = 10 } = options;
 
   // Use an async IIFE wrapped in Promise to handle async iteration
   const processStream = async () => {
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Transfer-Encoding', 'chunked');
-    
+
     res.write('{"success":true,"data":[');
-    
+
     let first = true;
     let count = 0;
-    
+
     for await (const item of dataGenerator) {
       if (!first) {
         res.write(',');
@@ -187,13 +183,13 @@ const streamResponse = (res, dataGenerator, options = {}) => {
       first = false;
       res.write(JSON.stringify(item));
       count++;
-      
+
       // Small delay between batches to prevent memory pressure
       if (count % batchSize === 0) {
         await new Promise((resolve) => setTimeout(resolve, delayBetweenBatches));
       }
     }
-    
+
     res.write(`],"count":${count}}`);
     res.end();
     return count;

@@ -1,12 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { memo, useEffect, useRef } from 'react';
-import {
-    Animated,
-    Easing,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Colors } from '../constants/colors';
 
 const TYPING_ANIMATIONS = {
   dots: 'dots',
@@ -28,28 +23,30 @@ const AnimatedTypingIndicator = ({
   const dot1Anim = useRef(new Animated.Value(0)).current;
   const dot2Anim = useRef(new Animated.Value(0)).current;
   const dot3Anim = useRef(new Animated.Value(0)).current;
-  
+
   // Animation values for wave
   const waveAnims = useRef([...Array(5)].map(() => new Animated.Value(0))).current;
-  
+
   // Animation values for pulse
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(0.5)).current;
-  
+
   // Animation values for bounce
   const bounceAnims = useRef([...Array(3)].map(() => new Animated.Value(0))).current;
-  
+
   // Animation values for hearts
-  const heartAnims = useRef([...Array(3)].map(() => ({
-    scale: new Animated.Value(0),
-    opacity: new Animated.Value(0),
-    y: new Animated.Value(0),
-  }))).current;
+  const heartAnims = useRef(
+    [...Array(3)].map(() => ({
+      scale: new Animated.Value(0),
+      opacity: new Animated.Value(0),
+      y: new Animated.Value(0),
+    }))
+  ).current;
 
   // Entrance animation
   const containerAnim = useRef(new Animated.Value(0)).current;
 
-  const colors = customColors || ['#667eea', '#764ba2'];
+  const colors = customColors || Colors.gradient.primary;
 
   useEffect(() => {
     // Entrance animation
@@ -312,10 +309,7 @@ const AnimatedTypingIndicator = ({
       {bounceAnims.map((anim, index) => (
         <Animated.View
           key={index}
-          style={[
-            styles.bounceDot,
-            { transform: [{ translateY: anim }] },
-          ]}
+          style={[styles.bounceDot, { transform: [{ translateY: anim }] }]}
         />
       ))}
     </View>
@@ -331,10 +325,7 @@ const AnimatedTypingIndicator = ({
             styles.heart,
             {
               opacity: anim.opacity,
-              transform: [
-                { scale: anim.scale },
-                { translateY: anim.y },
-              ],
+              transform: [{ scale: anim.scale }, { translateY: anim.y }],
               left: 50 + index * 12,
             },
           ]}
@@ -377,13 +368,9 @@ const AnimatedTypingIndicator = ({
         },
       ]}
     >
-      {showName && !compact && (
-        <Text style={styles.userName}>{userName} is typing</Text>
-      )}
-      
-      <View style={styles.indicatorWrapper}>
-        {renderAnimation()}
-      </View>
+      {showName && !compact && <Text style={styles.userName}>{userName} is typing</Text>}
+
+      <View style={styles.indicatorWrapper}>{renderAnimation()}</View>
     </Animated.View>
   );
 };
@@ -404,20 +391,17 @@ export const HeaderTypingIndicator = memo(({ isTyping, userName }) => {
 
   return (
     <Animated.View style={[styles.headerIndicator, { opacity: fadeAnim }]}>
-      <AnimatedTypingIndicator
-        userName={userName}
-        animationType="dots"
-        showName={false}
-        compact
-      />
+      <AnimatedTypingIndicator userName={userName} animationType="dots" showName={false} compact />
       <Text style={styles.headerTypingText}>typing...</Text>
     </Animated.View>
   );
 });
 
+HeaderTypingIndicator.displayName = 'HeaderTypingIndicator';
+
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderRadius: 20,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -432,7 +416,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 11,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginBottom: 4,
   },
   indicatorWrapper: {
@@ -448,7 +432,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#667eea',
+    backgroundColor: Colors.primary,
   },
   waveContainer: {
     flexDirection: 'row',
@@ -460,7 +444,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 20,
     borderRadius: 2,
-    backgroundColor: '#667eea',
+    backgroundColor: Colors.primary,
   },
   pulseContainer: {
     borderRadius: 12,
@@ -472,7 +456,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   pulseText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 2,
@@ -487,7 +471,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#667eea',
+    backgroundColor: Colors.primary,
   },
   heartsContainer: {
     flexDirection: 'row',
@@ -497,7 +481,7 @@ const styles = StyleSheet.create({
   },
   typingText: {
     fontSize: 12,
-    color: '#FF6B6B',
+    color: Colors.accent.red,
     fontStyle: 'italic',
   },
   heart: {

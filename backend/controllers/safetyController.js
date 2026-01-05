@@ -1,10 +1,18 @@
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 const User = require('../models/User');
 
 const Report = require('../models/Report');
 
 const Block = require('../models/Block');
-
 
 // Report a user for abuse
 exports.reportUser = async (req, res) => {
@@ -85,7 +93,7 @@ exports.reportUser = async (req, res) => {
         message: 'UpdatedUser not found',
       });
     }
-    
+
     if (uniqueReporterCount >= AUTO_SUSPEND_THRESHOLD && !updatedUser.suspended) {
       await User.findByIdAndUpdate(reportedUserId, {
         suspended: true,
@@ -95,9 +103,11 @@ exports.reportUser = async (req, res) => {
         suspensionType: 'auto',
         needsReview: true,
       });
-      
+
       // Log for admin review - these auto-suspensions should be reviewed quickly
-      console.warn(`[SAFETY] Auto-suspended user ${reportedUserId} - ${uniqueReporterCount} unique reporters. Needs manual review.`);
+      console.warn(
+        `[SAFETY] Auto-suspended user ${reportedUserId} - ${uniqueReporterCount} unique reporters. Needs manual review.`
+      );
     }
 
     res.status(201).json({
@@ -641,9 +651,10 @@ exports.getAccountStatus = async (req, res) => {
 
     if (user.suspended) {
       visibilityStatus = 'suspended';
-      visibilityMessage = user.suspensionType === 'auto'
-        ? 'Your account has been temporarily restricted due to user reports. Our team will review this shortly. If you believe this is a mistake, please contact support.'
-        : 'Your account has been suspended. Please contact support for more information.';
+      visibilityMessage =
+        user.suspensionType === 'auto'
+          ? 'Your account has been temporarily restricted due to user reports. Our team will review this shortly. If you believe this is a mistake, please contact support.'
+          : 'Your account has been suspended. Please contact support for more information.';
     } else if (!user.isActive) {
       visibilityStatus = 'inactive';
       visibilityMessage = 'Your profile is currently hidden because your account is inactive';
@@ -710,7 +721,8 @@ exports.appealSuspension = async (req, res) => {
     if (user.suspensionType !== 'auto') {
       return res.status(400).json({
         success: false,
-        message: 'Manual suspensions cannot be appealed through this system. Please contact support.',
+        message:
+          'Manual suspensions cannot be appealed through this system. Please contact support.',
       });
     }
 
@@ -722,7 +734,9 @@ exports.appealSuspension = async (req, res) => {
     });
 
     // Log for admin review
-    console.log(`[SAFETY] Suspension appeal submitted by user ${userId}: ${reason.substring(0, 100)}...`);
+    console.log(
+      `[SAFETY] Suspension appeal submitted by user ${userId}: ${reason.substring(0, 100)}...`
+    );
 
     res.json({
       success: true,

@@ -1,7 +1,8 @@
 import { API_BASE_URL } from '../config/api';
+import { ERROR_MESSAGES } from '../constants/constants';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 import { validateUserId } from '../utils/validators';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
 
 export class AIService {
   constructor(authToken) {
@@ -15,7 +16,7 @@ export class AIService {
   async getSmartPhotoSelection(userId) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_BASE_URL}/ai/smart-photos/${userId}`, {
@@ -90,7 +91,7 @@ export class AIService {
   async getCompatibilityScore(userId, targetUserId) {
     try {
       if (!validateUserId(userId) || !validateUserId(targetUserId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_BASE_URL}/ai/compatibility/${userId}/${targetUserId}`, {
@@ -209,7 +210,7 @@ export class AIService {
   async getPersonalizedMatches(userId, options = {}) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const { limit = 10, location = true, interests = true, values = true } = options;
@@ -257,7 +258,7 @@ export class AIService {
   async getProfileImprovementSuggestions(userId) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_BASE_URL}/ai/profile-suggestions/${userId}`, {
@@ -293,7 +294,7 @@ export class AIService {
   async getConversationInsights(userId) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_BASE_URL}/ai/conversation-insights/${userId}`, {

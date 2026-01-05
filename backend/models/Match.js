@@ -213,7 +213,7 @@ matchSchema.statics.unmatch = async function (matchId, userId) {
   await match.save();
 
   return match;
-// @ts-ignore - Mongoose static method context
+  // @ts-ignore - Mongoose static method context
 };
 
 // Static method to get match count for a user

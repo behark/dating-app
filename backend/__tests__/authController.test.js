@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const authController = require('../controllers/authController');
+const { closeRedis } = require('../config/redis');
 
 // Mock nodemailer
 jest.mock('nodemailer', () => ({
@@ -221,13 +222,13 @@ describe('authController.refreshToken', () => {
   test('Should return 500 if JWT_REFRESH_SECRET not set', async () => {
     const old = { ...process.env };
     delete process.env.JWT_REFRESH_SECRET;
-    
+
     const req = { body: { refreshToken: 'abc' } };
     const res = createRes();
 
     await authController.refreshToken(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
-    
+
     process.env = old;
   });
 
@@ -289,14 +290,14 @@ describe('authController.resetPassword and forgotPassword', () => {
       passwordResetTokenExpiry: undefined,
       save: jest.fn().mockResolvedValue(true),
     };
-    
+
     User.findOne = jest.fn(async () => mockUser);
 
-    const req = { 
-      body: { 
+    const req = {
+      body: {
         token: crypto.randomBytes(32).toString('hex'),
-        newPassword: 'newPassword123'
-      } 
+        newPassword: 'newPassword123',
+      },
     };
     const res = createRes();
 
@@ -304,4 +305,9 @@ describe('authController.resetPassword and forgotPassword', () => {
     // Either 200 or 400 depending on token validity - just verify it responds
     expect(res.status).toHaveBeenCalled();
   });
+});
+
+// Cleanup: Close Redis connection after all tests to prevent Jest from hanging
+afterAll(async () => {
+  await closeRedis();
 });

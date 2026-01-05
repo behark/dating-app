@@ -273,10 +273,12 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    blockedUsers: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    }],
+    blockedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
     blockedCount: {
       type: Number,
       default: 0,
@@ -673,7 +675,7 @@ userSchema.index({
 
 // TD-003: Indexes for retention queries
 // FIX: Removed { name: 'createdAt_desc' } to avoid conflict with existing DB index
-userSchema.index({ createdAt: -1 }); 
+userSchema.index({ createdAt: -1 });
 
 // Compound index for retention eligible users query
 userSchema.index({ createdAt: 1, _id: 1 }, { name: 'createdAt_id_retention' });

@@ -1,4 +1,13 @@
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 const SuperLike = require('../models/SuperLike');
 
 const Rewind = require('../models/Rewind');
@@ -10,7 +19,6 @@ const User = require('../models/User');
 const Swipe = require('../models/Swipe');
 
 const UserActivity = require('../models/UserActivity');
-
 
 // SUPER LIKES
 

@@ -9,6 +9,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { Colors } from '../constants/colors';
 import { db, storage } from '../config/firebase';
 import logger from '../utils/logger';
 
@@ -269,7 +270,7 @@ export class PhotoVerificationService {
     if (!verified) {
       return {
         icon: 'checkmark-circle-outline',
-        color: '#ccc',
+        color: Colors.text.light,
         label: 'Not verified',
         description: 'Submit a photo to get verified',
       };
@@ -277,7 +278,7 @@ export class PhotoVerificationService {
 
     return {
       icon: 'checkmark-circle',
-      color: '#4CAF50',
+      color: Colors.status.success,
       label: 'Verified',
       description: 'This user has verified their identity',
     };
@@ -367,19 +368,19 @@ export class PhotoVerificationService {
         title: 'Verification Pending',
         description: 'Your photo is being reviewed by our safety team',
         actionText: 'Submitted',
-        color: '#4CAF50',
+        color: Colors.status.success,
       },
       approved: {
         title: 'Verified ✓',
         description: 'Your identity has been verified',
         actionText: 'Verified',
-        color: '#4CAF50',
+        color: Colors.status.success,
       },
       rejected: {
         title: 'Verification Failed',
         description: 'Please check requirements and try again',
         actionText: 'Resubmit',
-        color: '#FF6B6B',
+        color: Colors.accent.red,
       },
       expired: {
         title: 'Verification Expired',
@@ -391,7 +392,7 @@ export class PhotoVerificationService {
         title: 'Error',
         description: 'Something went wrong. Please try again.',
         actionText: 'Retry',
-        color: '#FF6B6B',
+        color: Colors.accent.red,
       },
     };
 

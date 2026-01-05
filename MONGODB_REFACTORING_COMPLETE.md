@@ -11,20 +11,27 @@ Successfully refactored the codebase to use a **single centralized MongoDB conne
 ### 1. `backend/server.js`
 
 **Before:**
+
 - Had its own `connectDB()` function with duplicate connection logic
 - Created connection with its own settings
 - Managed connection state separately
 
 **After:**
+
 - ✅ Uses centralized `connectDB()` from `config/database.js`
 - ✅ Imports `createIndexes` and `gracefulShutdown` from database config
 - ✅ All connection logic is now centralized
 - ✅ Automatically creates indexes after connection
 
 **Key Changes:**
+
 ```javascript
 // Added import
-const { connectDB: connectDatabase, gracefulShutdown: dbGracefulShutdown, createIndexes } = require('./config/database');
+const {
+  connectDB: connectDatabase,
+  gracefulShutdown: dbGracefulShutdown,
+  createIndexes,
+} = require('./config/database');
 
 // Simplified connectDB wrapper
 const connectDB = async () => {
@@ -49,16 +56,19 @@ await createIndexes();
 ### 2. `backend/worker.js`
 
 **Before:**
+
 - Had its own `connectDB()` function
 - Used different connection settings (maxPoolSize: 5)
 - Managed connection separately
 
 **After:**
+
 - ✅ Uses centralized `connectDB()` from `config/database.js`
 - ✅ Uses same connection pool settings as main server
 - ✅ Uses centralized graceful shutdown
 
 **Key Changes:**
+
 ```javascript
 // Added import
 const { connectDB, gracefulShutdown: dbGracefulShutdown } = require('./config/database');
@@ -80,11 +90,13 @@ await dbGracefulShutdown(signal);
 ## ✅ Benefits
 
 ### 1. **Single Connection Instance** 🎯
+
 - All parts of the application (server, worker) use the **same MongoDB connection**
 - Follows MongoDB best practices
 - Prevents connection pool exhaustion
 
 ### 2. **Consistent Configuration** ⚙️
+
 - All connections use the same pool settings:
   - `maxPoolSize: 50`
   - `minPoolSize: 10`
@@ -92,18 +104,21 @@ await dbGracefulShutdown(signal);
   - Same retry logic
 
 ### 3. **Centralized Management** 🏗️
+
 - Connection logic in one place (`config/database.js`)
 - Easier to maintain and update
 - Consistent error handling
 - Unified connection monitoring
 
 ### 4. **Better Resource Usage** 💰
+
 - No duplicate connections
 - Efficient connection pooling
 - Lower memory usage
 - Better performance
 
 ### 5. **Automatic Index Creation** 📊
+
 - Indexes are created automatically after connection
 - No need to run scripts manually
 - Ensures optimal query performance
@@ -153,6 +168,7 @@ These scripts run independently and don't need to share the main application con
 ### How to Verify It's Working
 
 1. **Check Logs:**
+
    ```
    MongoDB Connected: <host>
    ✅ MongoDB connection established successfully
@@ -217,6 +233,7 @@ The MongoDB Atlas recommendation **"Use one MongoClient instance per application
 Your application now follows MongoDB's best practice of using one MongoClient instance per application. All connections are centralized, consistent, and properly managed.
 
 **Benefits:**
+
 - ✅ Single connection instance
 - ✅ Better resource usage
 - ✅ Easier maintenance

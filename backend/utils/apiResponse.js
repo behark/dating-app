@@ -49,7 +49,12 @@ function success({ data = null, message = 'Success', pagination = null } = {}) {
  * @param {*} [options.data] - Additional error data
  * @returns {ApiResponse} Standardized error response
  */
-function error({ message = 'An error occurred', error: errorCode = null, errors = null, data = null } = {}) {
+function error({
+  message = 'An error occurred',
+  error: errorCode = null,
+  errors = null,
+  data = null,
+} = {}) {
   const response = {
     success: false,
     message,

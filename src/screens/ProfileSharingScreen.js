@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Colors } from '../constants/colors';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import SocialFeaturesService from '../services/SocialFeaturesService';
@@ -185,24 +186,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9F9F9',
   },
   headerSection: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
+    borderBottomColor: Colors.text.lighter,
   },
   screenTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   optionsSection: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     marginTop: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -210,7 +211,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 12,
   },
   shareOption: {
@@ -219,7 +220,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.lighter,
     marginBottom: 10,
   },
   shareIcon: {
@@ -232,15 +233,15 @@ const styles = StyleSheet.create({
   shareTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 2,
   },
   shareDescription: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   historySection: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     marginTop: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -251,11 +252,11 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 10,
     borderLeftWidth: 3,
-    borderLeftColor: '#FF6B9D',
+    borderLeftColor: Colors.accent.pink,
   },
   expiredCard: {
     opacity: 0.6,
-    borderLeftColor: '#CCC',
+    borderLeftColor: Colors.text.light,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -266,11 +267,11 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   cardDate: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 2,
   },
   viewCount: {
@@ -279,43 +280,43 @@ const styles = StyleSheet.create({
   viewCountNumber: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FF6B9D',
+    color: Colors.accent.pink,
   },
   viewCountLabel: {
     fontSize: 11,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   cardStatus: {
     marginBottom: 10,
   },
   activeText: {
-    color: '#4CAF50',
+    color: Colors.status.success,
     fontWeight: '600',
     fontSize: 12,
   },
   expiredText: {
-    color: '#F44336',
+    color: Colors.status.error,
     fontWeight: '600',
     fontSize: 12,
   },
   expiresText: {
     fontSize: 11,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 2,
   },
   deactivateButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: Colors.status.error,
     borderRadius: 6,
     paddingVertical: 6,
     alignItems: 'center',
   },
   deactivateButtonText: {
-    color: '#FFF',
+    color: Colors.background.white,
     fontWeight: '600',
     fontSize: 12,
   },
   infoSection: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     marginTop: 12,
     marginBottom: 20,
     paddingHorizontal: 16,
@@ -323,17 +324,17 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#2196F3',
+    borderLeftColor: Colors.status.info,
   },
   infoTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   infoText: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     lineHeight: 18,
   },
 });

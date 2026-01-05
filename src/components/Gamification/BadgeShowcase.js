@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Colors } from '../constants/colors';
 import { StyleSheet, Text, View } from 'react-native';
 
 const BadgeShowcase = ({ badges = [] }) => {
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 16,
   },
   section: {
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 12,
   },
   badgeGrid: {
@@ -89,17 +90,17 @@ const styles = StyleSheet.create({
     width: '30%',
     alignItems: 'center',
     marginBottom: 16,
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 8,
     padding: 12,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
   lockedBadge: {
     opacity: 0.6,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: Colors.background.light,
   },
   badgeIcon: {
     fontSize: 40,
@@ -108,26 +109,26 @@ const styles = StyleSheet.create({
   badgeName: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     textAlign: 'center',
   },
   lockedText: {
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   lockedLabel: {
     fontSize: 10,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 4,
     fontStyle: 'italic',
   },
   unlockedDate: {
     fontSize: 9,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 4,
   },
   emptyText: {
     textAlign: 'center',
-    color: '#999',
+    color: Colors.text.tertiary,
     paddingVertical: 20,
   },
 });

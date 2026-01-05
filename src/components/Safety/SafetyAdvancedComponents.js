@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Colors } from '../constants/colors';
 import {
   View,
   Text,
@@ -95,7 +96,7 @@ export const DatePlansSharing = ({ userId, onPlanShared }) => {
       </TouchableOpacity>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#FF6B9D" />
+        <ActivityIndicator size="large" color={Colors.accent.pink} />
       ) : (
         <View>
           {activePlans.length === 0 ? (
@@ -491,7 +492,7 @@ export const PhotoVerificationAdvanced = ({ userId, onVerificationComplete }) =>
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#FFF" />
+              <ActivityIndicator color={Colors.background.white} />
             ) : (
               <Text style={styles.buttonText}>📸 Start Verification</Text>
             )}
@@ -598,7 +599,7 @@ export const BackgroundCheck = ({ userId, isPremium }) => {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#FFF" />
+              <ActivityIndicator color={Colors.background.white} />
             ) : (
               <Text style={styles.buttonText}>Start Background Check</Text>
             )}
@@ -622,40 +623,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.lighter,
   },
   title: {
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 4,
-    color: '#000',
+    color: Colors.text.primary,
   },
   subtitle: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 16,
   },
   primaryButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.accent.pink,
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 12,
   },
   secondaryButton: {
-    backgroundColor: '#EEE',
+    backgroundColor: Colors.text.lighter,
     padding: 14,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 12,
   },
   secondaryButtonText: {
-    color: '#333',
+    color: Colors.text.dark,
     fontWeight: '600',
     fontSize: 14,
   },
   buttonText: {
-    color: '#FFF',
+    color: Colors.background.white,
     fontWeight: '600',
     fontSize: 14,
   },
@@ -666,20 +667,20 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   planCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#FF6B9D',
+    borderLeftColor: Colors.accent.pink,
   },
   planHeader: {
     flexDirection: 'row',
@@ -690,16 +691,16 @@ const styles = StyleSheet.create({
   matchName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.text.primary,
   },
   statusBadge: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.accent.pink,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
   },
   statusText: {
-    color: '#FFF',
+    color: Colors.background.white,
     fontSize: 10,
     fontWeight: '700',
   },
@@ -708,18 +709,18 @@ const styles = StyleSheet.create({
   },
   detailRow: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   formContainer: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.lighter,
   },
   formTitle: {
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 20,
-    color: '#000',
+    color: Colors.text.primary,
   },
   inputGroup: {
     marginBottom: 16,
@@ -728,12 +729,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333',
+    color: Colors.text.dark,
   },
   input: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderWidth: 1,
-    borderColor: '#DDD',
+    borderColor: Colors.border.light,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
@@ -743,61 +744,61 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   dateButton: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderWidth: 1,
-    borderColor: '#DDD',
+    borderColor: Colors.border.light,
     borderRadius: 8,
     padding: 12,
   },
   checkInContainer: {
     padding: 16,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.lighter,
   },
   timerDisplay: {
     alignItems: 'center',
     padding: 32,
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     marginVertical: 20,
   },
   timerText: {
     fontSize: 48,
     fontWeight: '700',
-    color: '#FF6B9D',
+    color: Colors.accent.pink,
     marginBottom: 8,
   },
   timerLabel: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   activeButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.accent.pink,
   },
   expiredText: {
-    color: '#FF6B6B',
+    color: Colors.accent.red,
     fontSize: 13,
     textAlign: 'center',
     marginTop: 12,
   },
   sosContainer: {
     padding: 16,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.lighter,
   },
   sosButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.accent.pink,
     padding: 20,
     borderRadius: 12,
     alignItems: 'center',
     marginVertical: 16,
     borderWidth: 2,
-    borderColor: '#FF6B9D',
+    borderColor: Colors.accent.pink,
   },
   sosButtonActive: {
-    backgroundColor: '#FF6B6B',
-    borderColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
+    borderColor: Colors.accent.red,
   },
   sosButtonText: {
-    color: '#FFF',
+    color: Colors.background.white,
     fontWeight: '700',
     fontSize: 16,
   },
@@ -807,17 +808,17 @@ const styles = StyleSheet.create({
     padding: 16,
     marginVertical: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#FF6B9D',
+    borderLeftColor: Colors.accent.pink,
   },
   sosActiveTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FF6B9D',
+    color: Colors.accent.pink,
     marginBottom: 4,
   },
   sosActiveText: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   historyContainer: {
     marginTop: 20,
@@ -826,87 +827,87 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#000',
+    color: Colors.text.primary,
   },
   sosHistoryCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#FF6B9D',
+    borderLeftColor: Colors.accent.pink,
   },
   sosTime: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginBottom: 4,
   },
   sosLocation: {
     fontSize: 13,
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   resolveButton: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: Colors.background.light,
     padding: 8,
     borderRadius: 6,
     alignItems: 'center',
   },
   resolveButtonText: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     fontWeight: '600',
   },
   verificationContainer: {
     padding: 16,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.lighter,
   },
   description: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     marginVertical: 16,
     lineHeight: 20,
   },
   verifiedCard: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: Colors.status.successLight,
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
     marginVertical: 16,
     borderWidth: 2,
-    borderColor: '#4CAF50',
+    borderColor: Colors.status.success,
   },
   verifiedText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#4CAF50',
+    color: Colors.status.success,
     marginBottom: 8,
   },
   verifiedDate: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   pendingCard: {
-    backgroundColor: '#FFF3E0',
+    backgroundColor: Colors.status.warningLight,
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
     marginVertical: 16,
     borderWidth: 2,
-    borderColor: '#FF9800',
+    borderColor: Colors.status.warning,
   },
   pendingText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FF9800',
+    color: Colors.status.warning,
     marginBottom: 8,
   },
   pendingDate: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   benefitsCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 16,
     marginTop: 16,
@@ -915,21 +916,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#000',
+    color: Colors.text.primary,
   },
   benefit: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 8,
   },
   checkContainer: {
     padding: 16,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.lighter,
   },
   premiumLock: {
     alignItems: 'center',
     padding: 32,
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     marginVertical: 16,
   },
@@ -940,15 +941,15 @@ const styles = StyleSheet.create({
   lockText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 4,
   },
   lockSubtext: {
     fontSize: 13,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   checkResultCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 16,
     marginVertical: 16,
@@ -956,7 +957,7 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#4CAF50',
+    color: Colors.status.success,
     marginBottom: 12,
   },
   checkResult: {
@@ -964,19 +965,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
+    borderBottomColor: Colors.text.lighter,
   },
   checkLabel: {
     fontSize: 13,
-    color: '#333',
+    color: Colors.text.dark,
   },
   checkValue: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#4CAF50',
+    color: Colors.status.success,
   },
   inProgressCard: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: Colors.status.infoLight,
     borderRadius: 12,
     padding: 16,
     marginVertical: 16,
@@ -989,10 +990,10 @@ const styles = StyleSheet.create({
   },
   inProgressSubtext: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   infoCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 16,
     marginTop: 16,
@@ -1001,11 +1002,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#000',
+    color: Colors.text.primary,
   },
   infoItem: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 8,
   },
 });

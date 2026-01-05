@@ -34,7 +34,7 @@ const initializeWebSocket = (httpServer) => {
     'http://localhost:8081',
     'http://localhost:19006',
     /\.vercel\.app$/,
-    /\.onrender\.com$/,  // Support Render.com deployments
+    /\.onrender\.com$/, // Support Render.com deployments
   ].filter(Boolean);
 
   const io = new Server(httpServer, {
@@ -95,7 +95,11 @@ const initializeWebSocket = (httpServer) => {
       socket.userName = user.name;
       next();
     } catch (error) {
-      next(new Error(`Authentication failed: ${(error instanceof Error ? error.message : String(error))}`));
+      next(
+        new Error(
+          `Authentication failed: ${error instanceof Error ? error.message : String(error)}`
+        )
+      );
     }
   });
 

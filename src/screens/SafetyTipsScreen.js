@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
@@ -40,14 +41,14 @@ export default function SafetyTipsScreen({ navigation }) {
 
   const getCategoryColor = (category) => {
     const colors = {
-      privacy: '#667eea',
-      verification: '#4CAF50',
-      meeting: '#FF9800',
-      online: '#2196F3',
-      warning: '#FF6B6B',
+      privacy: Colors.primary,
+      verification: Colors.status.success,
+      meeting: Colors.status.warning,
+      online: Colors.status.info,
+      warning: Colors.accent.red,
       emergency: '#C62828',
     };
-    return colors[category] || '#667eea';
+    return colors[category] || Colors.primary;
   };
 
   const SafetyTipCard = ({ item }) => {
@@ -89,17 +90,17 @@ export default function SafetyTipsScreen({ navigation }) {
   };
 
   return (
-    <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+    <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={28} color="#fff" />
+          <Ionicons name="arrow-back" size={28} color={Colors.background.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Safety Tips</Text>
         <View style={{ width: 28 }} />
       </View>
 
       <View style={styles.introBox}>
-        <Ionicons name="shield-checkmark" size={32} color="#667eea" />
+        <Ionicons name="shield-checkmark" size={32} color={Colors.primary} />
         <Text style={styles.introTitle}>Stay Safe While Dating Online</Text>
         <Text style={styles.introText}>
           Your safety is our priority. Here are essential tips for a secure dating experience.
@@ -129,11 +130,11 @@ export default function SafetyTipsScreen({ navigation }) {
             </Text>
             <View style={styles.resourceButtons}>
               <TouchableOpacity style={[styles.resourceButton, styles.emergencyButton]}>
-                <Ionicons name="call" size={20} color="#fff" />
+                <Ionicons name="call" size={20} color={Colors.background.white} />
                 <Text style={styles.resourceButtonText}>Call Police</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.resourceButton, styles.supportButton]}>
-                <Ionicons name="chatbubbles" size={20} color="#fff" />
+                <Ionicons name="chatbubbles" size={20} color={Colors.background.white} />
                 <Text style={styles.resourceButtonText}>Crisis Text</Text>
               </TouchableOpacity>
             </View>
@@ -223,23 +224,23 @@ export default function SafetyTipsScreen({ navigation }) {
           <Text style={styles.guidelineText}>We maintain a safe community by prohibiting:</Text>
           <View style={styles.guidelinesList}>
             <View style={styles.guidelineItem}>
-              <Ionicons name="close-circle" size={20} color="#FF6B6B" />
+              <Ionicons name="close-circle" size={20} color={Colors.accent.red} />
               <Text style={styles.guidelineItemText}>Harassment, abuse, or threats</Text>
             </View>
             <View style={styles.guidelineItem}>
-              <Ionicons name="close-circle" size={20} color="#FF6B6B" />
+              <Ionicons name="close-circle" size={20} color={Colors.accent.red} />
               <Text style={styles.guidelineItemText}>Explicit or inappropriate content</Text>
             </View>
             <View style={styles.guidelineItem}>
-              <Ionicons name="close-circle" size={20} color="#FF6B6B" />
+              <Ionicons name="close-circle" size={20} color={Colors.accent.red} />
               <Text style={styles.guidelineItemText}>Scams or financial exploitation</Text>
             </View>
             <View style={styles.guidelineItem}>
-              <Ionicons name="close-circle" size={20} color="#FF6B6B" />
+              <Ionicons name="close-circle" size={20} color={Colors.accent.red} />
               <Text style={styles.guidelineItemText}>Fraud or false information</Text>
             </View>
             <View style={styles.guidelineItem}>
-              <Ionicons name="close-circle" size={20} color="#FF6B6B" />
+              <Ionicons name="close-circle" size={20} color={Colors.accent.red} />
               <Text style={styles.guidelineItemText}>Solicitation or spam</Text>
             </View>
           </View>
@@ -273,26 +274,26 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
   },
   introBox: {
     margin: 16,
     padding: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 16,
     alignItems: 'center',
   },
   introTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginTop: 12,
     marginBottom: 6,
     textAlign: 'center',
   },
   introText: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 18,
   },
@@ -301,7 +302,7 @@ const styles = StyleSheet.create({
     maxHeight: 400,
   },
   tipCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 12,
     padding: 14,
     marginBottom: 8,
@@ -325,14 +326,14 @@ const styles = StyleSheet.create({
   tipTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     flex: 1,
   },
   tipContent: {
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: Colors.text.lighter,
   },
   tipsListContainer: {
     marginLeft: 0,
@@ -352,7 +353,7 @@ const styles = StyleSheet.create({
   },
   tipText: {
     fontSize: 12,
-    color: '#555',
+    color: Colors.text.medium,
     flex: 1,
     lineHeight: 16,
   },
@@ -389,12 +390,12 @@ const styles = StyleSheet.create({
   resourceTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 6,
   },
   resourceText: {
     fontSize: 12,
-    color: '#555',
+    color: Colors.text.medium,
     marginBottom: 10,
     lineHeight: 16,
   },
@@ -415,16 +416,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#C62828',
   },
   supportButton: {
-    backgroundColor: '#FF9800',
+    backgroundColor: Colors.status.warning,
   },
   resourceButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '600',
     marginLeft: 6,
     fontSize: 12,
   },
   reportingGuide: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 12,
     padding: 14,
     marginBottom: 16,
@@ -432,7 +433,7 @@ const styles = StyleSheet.create({
   reportingTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 12,
   },
   stepItem: {
@@ -444,20 +445,20 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#667eea',
+    backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
     flexShrink: 0,
   },
   stepNumberText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '700',
     fontSize: 12,
   },
   stepText: {
     fontSize: 12,
-    color: '#555',
+    color: Colors.text.medium,
     flex: 1,
     lineHeight: 16,
   },
@@ -467,13 +468,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 12,
     marginTop: 16,
   },
   practiceCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 12,
     padding: 12,
     marginBottom: 10,
@@ -486,12 +487,12 @@ const styles = StyleSheet.create({
   practiceTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 4,
   },
   practiceText: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     lineHeight: 16,
     flex: 1,
   },
@@ -500,11 +501,11 @@ const styles = StyleSheet.create({
   },
   guidelineText: {
     fontSize: 12,
-    color: '#555',
+    color: Colors.text.medium,
     marginBottom: 10,
   },
   guidelinesList: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 12,
     padding: 12,
   },
@@ -515,13 +516,13 @@ const styles = StyleSheet.create({
   },
   guidelineItemText: {
     fontSize: 12,
-    color: '#555',
+    color: Colors.text.medium,
     marginLeft: 8,
     flex: 1,
     lineHeight: 16,
   },
   footerText: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 12,
     padding: 14,
     marginBottom: 16,
@@ -529,12 +530,12 @@ const styles = StyleSheet.create({
   footerTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 6,
   },
   footerDescription: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     lineHeight: 16,
   },
 });

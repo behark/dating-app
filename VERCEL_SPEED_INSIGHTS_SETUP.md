@@ -13,13 +13,17 @@ Vercel Speed Insights has been successfully integrated into your Expo/React Nati
 ## 📋 What Was Done:
 
 ### 1. ✅ Package Installation
+
 ```bash
 npm install @vercel/speed-insights
 ```
+
 - Installed version: `@vercel/speed-insights@1.3.1`
 
 ### 2. ✅ Code Integration
+
 Added Speed Insights to `App.js`:
+
 - **Conditional import** for web platform only (doesn't affect native apps)
 - **React component** imported from `@vercel/speed-insights/react`
 - **Rendered conditionally** in `AppContent` component
@@ -29,6 +33,7 @@ Added Speed Insights to `App.js`:
 **Location:** `App.js`
 
 **Import (web only):**
+
 ```javascript
 // Vercel Speed Insights (web only)
 let SpeedInsights;
@@ -42,6 +47,7 @@ if (Platform.OS === 'web') {
 ```
 
 **Usage:**
+
 ```javascript
 function AppContent() {
   const { isDark } = useTheme();
@@ -71,6 +77,7 @@ function AppContent() {
 ## 🚀 Next Steps:
 
 ### 1. Deploy to Vercel
+
 ```bash
 # Build for web
 npm run web:build
@@ -80,6 +87,7 @@ vercel --prod
 ```
 
 ### 2. Verify in Vercel Dashboard
+
 1. Go to your Vercel project dashboard
 2. Navigate to **"Speed Insights"** section
 3. After deployment, visit your site and navigate between pages
@@ -116,6 +124,7 @@ vercel --prod
 ## 🔍 Troubleshooting:
 
 ### No Data Showing?
+
 1. ✅ Make sure you've deployed to Vercel (not just running locally)
 2. ✅ Visit your deployed site and navigate between pages
 3. ✅ Wait at least 30 seconds after visiting
@@ -123,6 +132,7 @@ vercel --prod
 5. ✅ Verify you're using the latest `@vercel/speed-insights` package
 
 ### Import Errors?
+
 - The code includes error handling - if Speed Insights fails to load, it won't break your app
 - Check that `@vercel/speed-insights` is in your `package.json`
 

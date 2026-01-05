@@ -1,12 +1,13 @@
 import { API_URL as API_BASE_URL } from '../config/api';
+import { ERROR_MESSAGES } from '../constants/constants';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 import {
-  validateUserId,
   validateCoordinates,
-  validateNumberRange,
   validateNotEmpty,
+  validateNumberRange,
+  validateUserId,
 } from '../utils/validators';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
 
 export class PremiumService {
   static PREMIUM_FEATURES = {
@@ -27,7 +28,7 @@ export class PremiumService {
   static async checkPremiumStatus(userId, token) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       if (!token) {
@@ -59,10 +60,12 @@ export class PremiumService {
           features: {},
         };
       }
-      return data.data || {
-        isPremium: false,
-        features: {},
-      };
+      return (
+        data.data || {
+          isPremium: false,
+          features: {},
+        }
+      );
     } catch (error) {
       logger.error('Error checking premium status:', error);
       return { isPremium: false, features: {} };
@@ -75,7 +78,7 @@ export class PremiumService {
   static async startTrialSubscription(userId, token) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_BASE_URL}/premium/subscription/trial/start`, {
@@ -92,7 +95,7 @@ export class PremiumService {
       }
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || { success: true };
     } catch (error) {
@@ -107,7 +110,7 @@ export class PremiumService {
   static async upgradeToPremium(userId, planType = 'monthly', token) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
       if (!['monthly', 'yearly'].includes(planType)) {
         throw new Error('Plan type must be monthly or yearly');
@@ -131,7 +134,7 @@ export class PremiumService {
       }
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || { success: true };
     } catch (error) {
@@ -146,7 +149,7 @@ export class PremiumService {
   static async cancelSubscription(userId, token) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_BASE_URL}/premium/subscription/cancel`, {
@@ -163,7 +166,7 @@ export class PremiumService {
       }
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || { success: true };
     } catch (error) {
@@ -178,7 +181,7 @@ export class PremiumService {
   static async getReceivedLikes(userId, token) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_BASE_URL}/premium/likes/received`, {
@@ -233,7 +236,7 @@ export class PremiumService {
       }
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || { success: true };
     } catch (error) {
@@ -248,7 +251,7 @@ export class PremiumService {
   static async getPassportStatus(userId, token) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_BASE_URL}/premium/passport/status`, {
@@ -279,7 +282,7 @@ export class PremiumService {
   static async disablePassport(userId, token) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_BASE_URL}/premium/passport/disable`, {
@@ -296,7 +299,7 @@ export class PremiumService {
       }
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || { success: true };
     } catch (error) {
@@ -311,7 +314,7 @@ export class PremiumService {
   static async getAdvancedFilterOptions(userId, token) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_BASE_URL}/premium/filters/options`, {
@@ -359,7 +362,7 @@ export class PremiumService {
       }
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || { success: true };
     } catch (error) {
@@ -395,7 +398,7 @@ export class PremiumService {
       }
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || { success: true };
     } catch (error) {
@@ -427,7 +430,7 @@ export class PremiumService {
       }
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || { success: true };
     } catch (error) {
@@ -442,7 +445,7 @@ export class PremiumService {
   static async getBoostAnalytics(userId, token) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_BASE_URL}/premium/analytics/boosts`, {
@@ -504,7 +507,7 @@ export class PremiumService {
       }
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || { success: true };
     } catch (error) {

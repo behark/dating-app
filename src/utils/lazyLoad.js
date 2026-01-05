@@ -7,6 +7,7 @@
  */
 
 import { Component } from 'react';
+import { Colors } from '../constants/colors';
 import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
 import logger from './logger';
 
@@ -45,7 +46,7 @@ export function createLazyComponent(importFn, LoadingComponent = null) {
         return (
           LoadingComponent || (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#667eea" />
+              <ActivityIndicator size="large" color={Colors.primary} />
             </View>
           )
         );
@@ -75,13 +76,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
   },
   errorText: {
     color: '#ff6b6b',

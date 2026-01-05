@@ -9,6 +9,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { Colors } from '../constants/colors';
 import logger from '../utils/logger';
 
 export class SafetyService {
@@ -104,11 +105,11 @@ export class SafetyService {
 
   static async getReportCategories() {
     return [
-      { id: 'inappropriate_photos', label: '📸 Inappropriate Photos', color: '#FF6B6B' },
+      { id: 'inappropriate_photos', label: '📸 Inappropriate Photos', color: Colors.accent.red },
       { id: 'fake_profile', label: '👤 Fake Profile', color: '#FFD93D' },
       { id: 'harassment', label: '💬 Harassment/Abuse', color: '#6BCB77' },
       { id: 'scam', label: '⚠️ Scam', color: '#4D96FF' },
-      { id: 'offensive_behavior', label: '😠 Offensive Behavior', color: '#FF6B9D' },
+      { id: 'offensive_behavior', label: '😠 Offensive Behavior', color: Colors.accent.pink },
       { id: 'other', label: '📋 Other', color: '#9D84B7' },
     ];
   }
@@ -131,11 +132,18 @@ export class SafetyService {
       };
 
       const docRef = await addDoc(collection(db, 'verifications'), verification);
-      logger.info('Verification submitted', { verificationId: docRef.id, userId, method });
+      logger.info('Verification submitted', {
+        verificationId: docRef.id,
+        userId,
+        method: livenessCheck.method || 'basic',
+      });
 
       return { success: true, verificationId: docRef.id };
     } catch (error) {
-      logger.error('Error submitting verification', error, { userId, method });
+      logger.error('Error submitting verification', error, {
+        userId,
+        method: livenessCheck.method || 'basic',
+      });
       return { success: false, error: error.message };
     }
   }
@@ -392,7 +400,11 @@ export class SafetyService {
       };
 
       const docRef = await addDoc(collection(db, 'datePlans'), datePlan);
-      logger.info('Date plan shared', { datePlanId: docRef.id, userId, matchUserId: datePlanData.matchUserId });
+      logger.info('Date plan shared', {
+        datePlanId: docRef.id,
+        userId,
+        matchUserId: datePlanData.matchUserId,
+      });
 
       // Notify friends that plan was shared
       for (const friendId of friendIds) {
@@ -410,7 +422,10 @@ export class SafetyService {
 
       return { success: true, datePlanId: docRef.id };
     } catch (error) {
-      logger.error('Error sharing date plan', error, { userId, matchUserId: datePlanData.matchUserId });
+      logger.error('Error sharing date plan', error, {
+        userId,
+        matchUserId: datePlanData.matchUserId,
+      });
       return { success: false, error: error.message };
     }
   }
@@ -427,17 +442,19 @@ export class SafetyService {
       );
       const docs = await getDocs(q);
 
-      return docs.docs.map((doc) => {
-        const docData = doc.data();
-        if (!docData) {
-          return null;
-        }
-        return {
-          id: doc.id,
-          ...docData,
-          dateTime: docData.dateTime?.toDate?.() || new Date(docData.dateTime),
-        };
-      }).filter(Boolean);
+      return docs.docs
+        .map((doc) => {
+          const docData = doc.data();
+          if (!docData) {
+            return null;
+          }
+          return {
+            id: doc.id,
+            ...docData,
+            dateTime: docData.dateTime?.toDate?.() || new Date(docData.dateTime),
+          };
+        })
+        .filter(Boolean);
     } catch (error) {
       logger.error('Error getting date plans', error, { userId });
       return [];
@@ -452,17 +469,19 @@ export class SafetyService {
       const q = query(collection(db, 'datePlans'), where('sharedWith', 'array-contains', userId));
       const docs = await getDocs(q);
 
-      return docs.docs.map((doc) => {
-        const docData = doc.data();
-        if (!docData) {
-          return null;
-        }
-        return {
-          id: doc.id,
-          ...docData,
-          dateTime: docData.dateTime?.toDate?.() || new Date(docData.dateTime),
-        };
-      }).filter(Boolean);
+      return docs.docs
+        .map((doc) => {
+          const docData = doc.data();
+          if (!docData) {
+            return null;
+          }
+          return {
+            id: doc.id,
+            ...docData,
+            dateTime: docData.dateTime?.toDate?.() || new Date(docData.dateTime),
+          };
+        })
+        .filter(Boolean);
     } catch (error) {
       logger.error('Error getting shared date plans', error, { userId });
       return [];
@@ -854,7 +873,11 @@ export class SafetyService {
       };
 
       const docRef = await addDoc(collection(db, 'advancedVerifications'), verification);
-      logger.info('Advanced verification submitted', { verificationId: docRef.id, userId, type: verification.type });
+      logger.info('Advanced verification submitted', {
+        verificationId: docRef.id,
+        userId,
+        type: verification.type,
+      });
 
       return { success: true, verificationId: docRef.id };
     } catch (error) {

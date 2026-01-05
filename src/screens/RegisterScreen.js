@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Colors } from '../constants/colors';
 import {
   ActivityIndicator,
   Alert,
@@ -225,7 +226,7 @@ export const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
   },
   scrollContent: {
     flexGrow: 1,
@@ -238,12 +239,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   form: {
     flex: 1,
@@ -255,15 +256,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333',
+    color: Colors.text.dark,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
   },
   rowInputs: {
     flexDirection: 'row',
@@ -280,18 +281,18 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderRadius: 8,
     alignItems: 'center',
     backgroundColor: '#f9f9f9',
   },
   genderOptionActive: {
-    backgroundColor: '#FF6B6B',
-    borderColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
+    borderColor: Colors.accent.red,
   },
   genderOptionText: {
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   genderOptionTextActive: {
     color: 'white',
@@ -300,7 +301,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderRadius: 8,
     paddingRight: 12,
   },
@@ -308,7 +309,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
   },
   passwordToggle: {
     fontSize: 18,
@@ -316,12 +317,12 @@ const styles = StyleSheet.create({
   },
   helperText: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 4,
   },
   registerBtn: {
     paddingVertical: 14,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 20,
@@ -342,11 +343,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   loginLinkText: {
-    color: '#666',
+    color: Colors.text.secondary,
     fontSize: 14,
   },
   loginLinkButton: {
-    color: '#FF6B6B',
+    color: Colors.accent.red,
     fontSize: 14,
     fontWeight: 'bold',
   },

@@ -1,4 +1,13 @@
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 /**
  * Privacy Controller
  * Handles GDPR and CCPA compliance endpoints
@@ -15,7 +24,6 @@ const Report = require('../models/Report');
 const Block = require('../models/Block');
 
 const UserActivity = require('../models/UserActivity');
-
 
 /**
  * Export all user data (GDPR Article 20 - Data Portability)

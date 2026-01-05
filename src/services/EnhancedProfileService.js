@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
-import logger from '../utils/logger';
+import { ERROR_MESSAGES } from '../constants/constants';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
+import logger from '../utils/logger';
 
 export class EnhancedProfileService {
   static async getAuthToken() {
@@ -43,7 +44,7 @@ export class EnhancedProfileService {
     try {
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/profile/prompts/update`, {
@@ -81,7 +82,7 @@ export class EnhancedProfileService {
     try {
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/profile/education`, {
@@ -119,7 +120,7 @@ export class EnhancedProfileService {
     try {
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/profile/occupation`, {
@@ -157,7 +158,7 @@ export class EnhancedProfileService {
     try {
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/profile/height`, {
@@ -195,7 +196,7 @@ export class EnhancedProfileService {
     try {
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/profile/ethnicity`, {

@@ -75,8 +75,16 @@ class ErrorBoundary extends React.Component {
                 onPress={this.handleRetry}
                 activeOpacity={0.8}
               >
-                <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={styles.retryButtonGradient}>
-                  <Ionicons name="refresh" size={20} color={Colors.text.white} style={styles.refreshIcon} />
+                <LinearGradient
+                  colors={[Colors.primary, Colors.primaryDark]}
+                  style={styles.retryButtonGradient}
+                >
+                  <Ionicons
+                    name="refresh"
+                    size={20}
+                    color={Colors.text.white}
+                    style={styles.refreshIcon}
+                  />
                   <Text style={styles.retryButtonText}>Try Again</Text>
                 </LinearGradient>
               </TouchableOpacity>

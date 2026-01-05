@@ -154,8 +154,8 @@ userActivitySchema.statics.getActivitySummary = async function (userId, days = 7
   const userObjectId = mongoose.Types.ObjectId.isValid(userId)
     ? mongoose.Types.ObjectId.createFromHexString
       ? mongoose.Types.ObjectId.createFromHexString(userId)
-      // @ts-ignore - Mongoose static method context
-      : new mongoose.Types.ObjectId(userId)
+      : // @ts-ignore - Mongoose static method context
+        new mongoose.Types.ObjectId(userId)
     : userId;
 
   return await this.aggregate([

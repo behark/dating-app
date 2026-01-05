@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Colors } from '../constants/colors';
 import { View, StyleSheet, Text } from 'react-native';
 
 const SingleSlider = ({
@@ -9,7 +10,7 @@ const SingleSlider = ({
   onChange,
   label,
   unit = '',
-  color = '#667eea',
+  color = Colors.primary,
 }) => {
   const trackWidth = 280;
   const thumbSize = 24;
@@ -36,7 +37,7 @@ const SingleSlider = ({
 
       <View style={styles.sliderContainer}>
         {/* Track Background */}
-        <View style={[styles.track, { backgroundColor: '#e9ecef' }]} />
+        <View style={[styles.track, { backgroundColor: Colors.border.gray }]} />
 
         {/* Active Range Track */}
         <View
@@ -111,12 +112,12 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   value: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#667eea',
+    color: Colors.primary,
   },
   sliderContainer: {
     width: '100%',
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
     marginLeft: -12,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3,
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
   thumbLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
   },
   inputArea: {
     position: 'absolute',
@@ -174,12 +175,12 @@ const styles = StyleSheet.create({
   },
   minLabel: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     fontWeight: '500',
   },
   maxLabel: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     fontWeight: '500',
   },
 });

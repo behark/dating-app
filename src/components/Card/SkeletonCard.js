@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Colors } from '../constants/colors';
 import { Animated, Dimensions, Platform, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
     height: CARD_HEIGHT,
     borderRadius: 20,
     marginHorizontal: 10,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
