@@ -76,6 +76,14 @@ export class LocationService {
 
       logger.debug('User location updated successfully', { userId });
     } catch (error) {
+      // Handle ERR_BLOCKED_BY_CLIENT (ad blockers) gracefully
+      if (error.message?.includes('ERR_BLOCKED_BY_CLIENT') || error.code === 'permission-denied') {
+        logger.warn('Firestore write blocked (likely by ad blocker or privacy extension)', {
+          userId,
+        });
+        // Don't throw - allow app to continue functioning
+        return;
+      }
       logger.error('Error updating user location', error, { userId });
     }
   }
