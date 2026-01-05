@@ -1,197 +1,124 @@
 # Render Environment Variables Status Report
 
-**Generated:** $(date)  
-**Service:** dating-app-backend  
-**Service URL:** https://dating-app-backend-x4yq.onrender.com
+## Summary
 
-## 🔍 Current Status
+Checked all environment variables on Render deployment using the API.
 
-### ✅ Variables Configured in render.yaml
+## ✅ Variables Present (7/11)
 
-Based on your `render.yaml` file, these variables are configured:
+- ✅ `DD_API_KEY` - Datadog APM configured
+- ✅ `DD_SITE` - Datadog site: datadoghq.eu
+- ✅ `DD_ENV` - Datadog environment: prod
+- ✅ `MONGODB_URI` - MongoDB connection configured
+- ✅ `JWT_SECRET` - JWT secret configured
+- ✅ `NODE_ENV` - Set to: production
+- ✅ `PORT` - Set to: 10000
 
-1. **NODE_ENV** = `production` ✅
-2. **PORT** = `10000` ✅ (Note: Render auto-sets PORT, this may be redundant)
-3. **FIREBASE_PROJECT_ID** = `my-project-de65d` ✅
-4. **CORS_ORIGIN** = `https://dating-app-beharks-projects.vercel.app` ✅
-5. **JWT_SECRET** = `AUTO_GENERATED` by Render ✅
-6. **ENCRYPTION_KEY** = `AUTO_GENERATED` by Render ✅
+## ❌ Variables Missing (4/11)
 
-### ❌ Critical Missing Variables
+- ❌ `SENTRY_DSN` - **MISSING** (needs to be added)
+- ❌ `FIREBASE_PROJECT_ID` - **MISSING** (needs to be added)
+- ❌ `FIREBASE_PRIVATE_KEY` - **MISSING** (needs to be added)
+- ❌ `FIREBASE_CLIENT_EMAIL` - **MISSING** (needs to be added)
 
-**MONGODB_URI** - **MUST BE SET MANUALLY**
+## All Environment Variables Found
 
-- Status: ❌ MISSING
-- Impact: **CRITICAL** - Backend cannot connect to database
-- Action: Set in Render Dashboard → Environment tab
-- Note: Marked as `sync: false` in render.yaml (correct for security)
-
-### ⚠️ Important Missing Variables
-
-Based on your logs showing "Firebase credentials not configured" and "Stripe not configured":
-
-1. **FIREBASE_PRIVATE_KEY** - Firebase Admin SDK private key
-2. **FIREBASE_CLIENT_EMAIL** - Firebase service account email
-3. **REDIS_HOST** or **REDIS_URL** - Redis connection (for caching/queues)
-4. **STORAGE_PROVIDER** - Either 's3' or 'cloudinary'
-5. **CLOUDINARY_CLOUD_NAME** - If using Cloudinary
-6. **CLOUDINARY_API_KEY** - If using Cloudinary
-7. **CLOUDINARY_API_SECRET** - If using Cloudinary
-8. **STRIPE_SECRET_KEY** - For payment processing
-9. **GOOGLE_CLIENT_ID** - For Google OAuth
-10. **GOOGLE_CLIENT_SECRET** - For Google OAuth
-
-## 📋 How to Check/Set Variables via Render CLI
-
-Unfortunately, **Render CLI cannot directly list environment variables** for security reasons. However, you can:
-
-### Option 1: Set Variables via CLI (if supported in your version)
-
-```bash
-# Note: This may not be available in all Render CLI versions
-# Check your CLI version: render --version
+```
+CORS_ORIGIN                    = https://dating-app-seven-peach.vercel.app
+DD_AGENT_HOST                  = localhost
+DD_API_KEY                     = ***c572156901
+DD_ENV                         = prod
+DD_SITE                        = datadoghq.eu
+FRONTEND_URL                   = https://dating-app-seven-peach.vercel.app
+GOOGLE_CLIENT_ID               = 489822402223-ijgd0vvfbma9s22944go4e2gnqk92ipd.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET           = ***S3J3FuJc2O
+HASH_SALT                      = 26c086428abd03155ee8119774cd5892b400165f004ecab0d4386e2a42e351c3
+JWT_REFRESH_SECRET             = ***caf9e075e5
+JWT_SECRET                     = ***0fa9a1ba68
+MONGODB_URI                    = ***w=majority
+NODE_ENV                       = production
+PORT                           = 10000
 ```
 
-### Option 2: Check via Render Dashboard
+## Values to Add
 
-1. Go to: https://dashboard.render.com/web/srv-d5cooc2li9vc73ct9j70
-2. Click on "Environment" tab
-3. View all set variables
-
-### Option 3: Check Service Logs
-
-```bash
-# Check recent logs for environment variable errors
-render logs -r srv-d5cooc2li9vc73ct9j70 --limit 50 -o text | grep -i "not configured\|missing\|error"
+### 1. SENTRY_DSN
+```
+Key: SENTRY_DSN
+Value: https://e21c92d839607c2d0f9378d08ca96903@o4510655194726400.ingest.de.sentry.io/4510655204687952
 ```
 
-## 🚨 Immediate Actions Required
-
-### 1. Set MONGODB_URI (CRITICAL)
-
-```bash
-# Via Render Dashboard:
-# 1. Go to: https://dashboard.render.com/web/srv-d5cooc2li9vc73ct9j70
-# 2. Environment tab → Add:
-#    Key: MONGODB_URI
-#    Value: mongodb+srv://username:password@cluster.mongodb.net/dating-app?retryWrites=true&w=majority
+### 2. FIREBASE_PROJECT_ID
+```
+Key: FIREBASE_PROJECT_ID
+Value: my-project-de65d
 ```
 
-### 2. Set Firebase Credentials (if using Firebase)
-
-```bash
-# Get from Firebase Console → Project Settings → Service Accounts
-# Add to Render Dashboard:
-# - FIREBASE_PRIVATE_KEY (full key with \n replaced as actual newlines)
-# - FIREBASE_CLIENT_EMAIL
+### 3. FIREBASE_CLIENT_EMAIL
+```
+Key: FIREBASE_CLIENT_EMAIL
+Value: firebase-adminsdk-fbsvc@my-project-de65d.iam.gserviceaccount.com
 ```
 
-### 3. Set Redis (if using Redis)
-
-```bash
-# Option A: Use Redis URL (Upstash, Redis Cloud, etc.)
-# REDIS_URL=redis://:password@host:port
-
-# Option B: Use individual settings
-# REDIS_HOST=your-redis-host
-# REDIS_PORT=6379
-# REDIS_PASSWORD=your-password
+### 4. FIREBASE_PRIVATE_KEY
+```
+Key: FIREBASE_PRIVATE_KEY
+Value: -----BEGIN PRIVATE KEY-----
+MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCxzbWTH3CshXAB
+obaHpSF2oGizv4JYSdUXoX8aoCEnwKx4bS20lc0ZUmFIM/MAnFB+TNwpwU2ENWKT
+rJ/v1irlS7xQSSyL9ZR4rJEYUrbF4iB4t2it2frNi7GLr1KryfMjHPRxWLbjSdiZ
+Jt9fjbj3eMhbNkZlWIj95cSNtcw/ggDvEjwx47dZ9YxAaAAQU27jyT5MuNWOU0hm
+6R9ZZ6oLz9kn2T/1BOF7zjkgVDIr5sx4s7KbZNcjtRapw+yQnwjwrkc15ZhAjzIZ
+rBTJZ3FaR8u2Q3mMdmPM3bbyWT2an/UH6QaoMeeeNA5XML6JooLKTRFoAGR3qs/z
+DgLfnj2FAgMBAAECggEALa45n7Zcpt5Tg//NmvT4b3dP3xptPQyfBEa4FpmcWw+7
+3+bA7tvryT0qhDfgj0AZyBEsIUgqB7UFggZAQwillaqLE59xI/Ywsn43euXJUnbB
+u/H3IW9W6dchgs9E8KDeaB+Ix9QwjJ2M2fAsRGrvYhk0dIaxuFjyPTT6diQGeSwa
+NCkQznlHLES+PNm6vDx8Mi/BCXWU/76RTuDN/6ym7EUg4wFxHcw1FxyGZVQHMdJh
+3FH0QSKn8DlsNLHpJejX0kqDFugpW8D6cG07wnEHaRJ3Po5SBo3GNIFecbKZWaUc
+yeU/qmKDZCE4NaCxZYCGV0zlyXrR1pZKtk/Tgonc0wKBgQDaYWe2rNX4p0OSkyQN
+Pjk2GrlxTs+ZjDrFuzCxhqFULBzb9POiWFitPLo7MGdjkJSJKzD3H+6AUpAbsRUN
+3gKpJY06Rw4DPnD8vNkBvi0LZk7CI9n7ueHuim5OK5wM8U6cetcTWahiwtcYIlS9
++oJkj8/svmn8LkC8D6tnbuyfUwKBgQDQbtu+2qEGfck47LhxBAePS2CXnUluhtHF
+tOzBh7eV/6CLRaN/oDHy/D0mRLo1D+2vQ7EM+aaJAfmHJubmTXFIN6a8IbgRQgf6
+HvyQTumi0kJsTL7iaFgKVvHJI6amMYRlFjYHaYl7/5ADHApCrdLn+Z/QoYUlVD7P
+SRXQTp+MxwKBgQDQyYPhMUm53CFMyAUV7EHCqrZV0KXHBj1Cwv+BG1ivIyXMXlt5
+AcJ2jrL22AZhON/qbTL5crwST92bvCiHA5XDpjVqXHjXPSHFYcCQXASw+3WdQ62r
+cELET/G6JxOhhCxGi2OKCpRlKCeB2YDvycxU3PJMRJkMFCSsKMcVswXkJQKBgQDL
+WPxmLOIgdSOVt80R5X6CnGV2RWtYu4t4uVSqUwAXBTfZ6GzknKNejhwSc8a+8fVP
+oljfcci5rgWFh7yJP1CfxjuTG8p6e9NQgF6jY3mo8jz/b7hjJq2OGNj3BSMWzQR/
+orW/cYVCRkh34ClaeD9lNjJm1s4RZymIDaOMgMhEDQKBgQDMA/9C7pLs+b+ZZV68
+5tzHTrzxsoIl5KFexs6oJyjGCCqR90sV5rBhFiNYqQmRksJUQDgxsXe5Rk1sYUnc
+5SUbRp3SALNmol6AOq3uCIPYxxLfOyqeoVTvEVj6cNWoctskhYTOg1EmYXMc9vFQ
+GyQTaxrxQvbCRE4ixbaDjlejtg==
+-----END PRIVATE KEY-----
 ```
 
-## 📝 Complete Environment Variables Checklist
+## How to Add Missing Variables
 
-### Critical (Must Have)
+### Option 1: Via Render Dashboard (Recommended)
 
-- [x] NODE_ENV
-- [x] PORT
-- [x] JWT_SECRET (auto-generated)
-- [x] ENCRYPTION_KEY (auto-generated)
-- [x] CORS_ORIGIN
-- [ ] **MONGODB_URI** ← SET THIS FIRST
+1. Go to: https://dashboard.render.com
+2. Select: `dating-app-backend` service
+3. Go to: **Environment** tab
+4. Click: **Add Environment Variable**
+5. Add each of the 4 missing variables above
+6. Click: **Save Changes**
+7. Service will automatically redeploy
 
-### Database & Cache
+### Option 2: Via Render API
 
-- [ ] REDIS_HOST or REDIS_URL
-- [ ] REDIS_PORT (if not using REDIS_URL)
-- [ ] REDIS_PASSWORD (if required)
+The API calls are having issues. Use the dashboard method instead.
 
-### Firebase
+## Next Steps
 
-- [x] FIREBASE_PROJECT_ID
-- [ ] FIREBASE_PRIVATE_KEY
-- [ ] FIREBASE_CLIENT_EMAIL
-- [ ] FIREBASE_CLIENT_ID (optional)
+1. Add the 4 missing variables via Render Dashboard
+2. Wait for service to redeploy (2-5 minutes)
+3. Verify variables are set by running the check script again
+4. Test Sentry and Firebase initialization
 
-### Storage
+## Impact of Missing Variables
 
-- [ ] STORAGE_PROVIDER (s3 or cloudinary)
-- [ ] CLOUDINARY_CLOUD_NAME (if cloudinary)
-- [ ] CLOUDINARY_API_KEY (if cloudinary)
-- [ ] CLOUDINARY_API_SECRET (if cloudinary)
-- [ ] AWS_ACCESS_KEY_ID (if s3)
-- [ ] AWS_SECRET_ACCESS_KEY (if s3)
-- [ ] AWS_REGION (if s3)
-- [ ] AWS_S3_BUCKET (if s3)
+- **SENTRY_DSN**: Sentry error monitoring won't work
+- **FIREBASE_***: Firebase features (push notifications, Firestore) won't work (falls back to MongoDB)
 
-### Payments
-
-- [ ] STRIPE_SECRET_KEY
-- [ ] STRIPE_PUBLISHABLE_KEY (optional)
-- [ ] STRIPE_WEBHOOK_SECRET (if using webhooks)
-
-### OAuth
-
-- [ ] GOOGLE_CLIENT_ID
-- [ ] GOOGLE_CLIENT_SECRET
-- [ ] FACEBOOK_APP_ID (optional)
-- [ ] FACEBOOK_APP_SECRET (optional)
-
-### Optional Services
-
-- [ ] OPENAI_API_KEY (for AI features)
-- [ ] TWILIO_ACCOUNT_SID (for phone verification)
-- [ ] TWILIO_AUTH_TOKEN
-- [ ] SENTRY_DSN (for error tracking)
-- [ ] SMTP_HOST (for emails)
-- [ ] SMTP_USER
-- [ ] SMTP_PASS
-- [ ] EXPO_ACCESS_TOKEN (for push notifications)
-
-## 🔧 Quick Fix Script
-
-Run this to see what's missing:
-
-```bash
-node check-render-env-vars.js
-```
-
-## 📊 Current Deployment Status
-
-From logs analysis:
-
-- ✅ Build successful
-- ✅ Dependencies installed
-- ⚠️ Firebase not configured (using MongoDB fallback)
-- ⚠️ Stripe not configured (payment features disabled)
-- ❌ Service may be failing due to missing MONGODB_URI
-
-## 🎯 Next Steps
-
-1. **IMMEDIATE**: Set `MONGODB_URI` in Render Dashboard
-2. **HIGH PRIORITY**: Set Firebase credentials if using Firebase features
-3. **HIGH PRIORITY**: Set Redis if using caching/queues
-4. **MEDIUM PRIORITY**: Set storage provider (Cloudinary/S3)
-5. **MEDIUM PRIORITY**: Set Stripe keys if using payments
-6. **LOW PRIORITY**: Set optional services as needed
-
-## 🔗 Useful Links
-
-- Render Dashboard: https://dashboard.render.com/web/srv-d5cooc2li9vc73ct9j70
-- Service Logs: Check via dashboard or `render logs -r srv-d5cooc2li9vc73ct9j70`
-- MongoDB Atlas: https://www.mongodb.com/cloud/atlas
-- Firebase Console: https://console.firebase.google.com
-- Upstash Redis: https://upstash.com (free Redis)
-
----
-
-**Note**: Environment variables set in Render Dashboard are encrypted and not accessible via CLI for security reasons. Always check the dashboard to see what's actually set.
+The app will still work, but these features will be disabled.

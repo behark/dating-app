@@ -1,0 +1,318 @@
+================================================================================
+RENDER ENVIRONMENT VARIABLES - COMPLETE & CORRECTED LIST
+================================================================================
+Based on backend/utils/validateEnv.js validation requirements
+================================================================================
+
+═══════════════════════════════════════════════════════════════════════════════
+🔴 CRITICAL - Server WILL NOT START without these (MUST ADD)
+═══════════════════════════════════════════════════════════════════════════════
+
+According to backend/utils/validateEnv.js, these are CRITICAL_ENV_VARS:
+
+1. JWT_SECRET
+   ✅ ALREADY IN render.yaml (auto-generated)
+   Status: Will be auto-set by Render
+
+2. JWT_REFRESH_SECRET
+   ✅ ALREADY IN render.yaml (auto-generated)
+   Status: Will be auto-set by Render
+
+3. HASH_SALT
+   ❌ MISSING FROM render.yaml - MUST ADD MANUALLY
+   Value: 70469227d741de630071f83d317f90a6a1af44422889c6a3d180d9adc1a81a9f
+   Min Length: 16 characters (this one is 64 chars ✅)
+
+═══════════════════════════════════════════════════════════════════════════════
+🟠 IMPORTANT - Required in Production (will cause errors if missing)
+═══════════════════════════════════════════════════════════════════════════════
+
+According to backend/utils/validateEnv.js, these are IMPORTANT_ENV_VARS:
+
+1. MONGODB_URI
+   ❌ sync: false in render.yaml - MUST ADD MANUALLY
+   Value: mongodb+srv://beharkabashi19_db_user:Behar123.@cluster0.jvmgujl.mongodb.net/dating-app?appName=Cluster0
+
+2. FRONTEND_URL
+   ✅ ALREADY IN render.yaml
+   Value: https://dating-app-beharks-projects.vercel.app
+   Status: Will be auto-set by Render
+
+3. NODE_ENV
+   ✅ ALREADY IN render.yaml
+   Value: production
+   Status: Will be auto-set by Render
+
+4. PORT
+   ✅ ALREADY IN render.yaml
+   Value: 10000
+   Status: Will be auto-set by Render
+
+═══════════════════════════════════════════════════════════════════════════════
+🟡 RECOMMENDED - For Firebase (if using Firebase features)
+═══════════════════════════════════════════════════════════════════════════════
+
+FIREBASE_PROJECT_ID
+✅ ALREADY IN render.yaml
+Value: my-project-de65d
+Status: Will be auto-set by Render
+
+FIREBASE_PRIVATE_KEY
+❌ sync: false in render.yaml - MUST ADD MANUALLY
+Value: [Get from Firebase Console → Service Accounts → Generate New Private Key]
+⚠️ Keep the \n characters in the value
+
+FIREBASE_CLIENT_EMAIL
+❌ sync: false in render.yaml - MUST ADD MANUALLY
+Value: firebase-adminsdk@my-project-de65d.iam.gserviceaccount.com
+⚠️ Get actual value from Firebase service account JSON
+
+═══════════════════════════════════════════════════════════════════════════════
+🟡 RECOMMENDED - For Full Functionality
+═══════════════════════════════════════════════════════════════════════════════
+
+ENCRYPTION_KEY
+✅ ALREADY IN render.yaml (auto-generated)
+Status: Will be auto-set by Render
+Note: Falls back to JWT_SECRET if not set, but better to have explicitly
+
+CORS_ORIGIN
+✅ ALREADY IN render.yaml
+Value: https://dating-app-beharks-projects.vercel.app
+Status: Will be auto-set by Render
+
+JWT_EXPIRES_IN
+✅ ALREADY IN render.yaml
+Value: 7d
+Status: Will be auto-set by Render
+
+JWT_REFRESH_EXPIRES_IN
+✅ ALREADY IN render.yaml
+Value: 30d
+Status: Will be auto-set by Render
+
+SENTRY_DSN
+✅ ALREADY IN render.yaml
+Value: https://e21c92d839607c2d0f9378d08ca96903@o4510655194726400.ingest.de.sentry.io/4510655204687952
+Status: Will be auto-set by Render
+
+DD_SITE
+✅ ALREADY IN render.yaml
+Value: datadoghq.eu
+Status: Will be auto-set by Render
+
+DD_ENV
+✅ ALREADY IN render.yaml
+Value: prod
+Status: Will be auto-set by Render
+
+DD_AGENT_HOST
+✅ ALREADY IN render.yaml
+Value: localhost
+Status: Will be auto-set by Render
+
+═══════════════════════════════════════════════════════════════════════════════
+🟢 OPTIONAL - Additional Features
+═══════════════════════════════════════════════════════════════════════════════
+
+DD_API_KEY
+❌ sync: false in render.yaml - Add if using Datadog
+Value: 0714d04b31b454298a11efc572156901
+
+DATADOG_API_KEY
+❌ Not in render.yaml - Add if using Datadog
+Value: 0714d04b31b454298a11efc572156901
+
+GOOGLE_CLIENT_ID
+❌ Not in render.yaml - Add for Google OAuth
+Value: YOUR_GOOGLE_CLIENT_ID (get from Google Cloud Console)
+
+GOOGLE_CLIENT_SECRET
+❌ Not in render.yaml - Add for Google OAuth
+Value: YOUR_GOOGLE_CLIENT_SECRET (get from Google Cloud Console)
+
+STORAGE_PROVIDER
+❌ Not in render.yaml - Add for file uploads
+Value: cloudinary
+
+CLOUDINARY_CLOUD_NAME
+❌ Not in render.yaml - Add for Cloudinary
+Value: placeholder (replace with real value)
+
+CLOUDINARY_API_KEY
+❌ Not in render.yaml - Add for Cloudinary
+Value: placeholder (replace with real value)
+
+CLOUDINARY_API_SECRET
+❌ Not in render.yaml - Add for Cloudinary
+Value: placeholder (replace with real value)
+
+CLOUDINARY_UPLOAD_PRESET
+❌ Not in render.yaml - Add for Cloudinary
+Value: dating-app-uploads
+
+SMTP_HOST
+❌ Not in render.yaml - Add for email
+Value: smtp.gmail.com
+
+SMTP_PORT
+❌ Not in render.yaml - Add for email
+Value: 587
+
+SMTP_SECURE
+❌ Not in render.yaml - Add for email
+Value: false
+
+SMTP_USER
+❌ Not in render.yaml - Add for email
+Value: your-email@gmail.com (replace)
+
+SMTP_PASS
+❌ Not in render.yaml - Add for email
+Value: your-app-password (replace)
+
+EMAIL_FROM
+❌ Not in render.yaml - Add for email
+Value: noreply@yourdatingapp.com (replace)
+
+REDIS_URL
+❌ Not in render.yaml - Add for caching (optional)
+Value: redis://:password@host:port (replace)
+
+FACEBOOK_APP_ID
+❌ Not in render.yaml - Add for Facebook OAuth
+Value: placeholder (replace)
+
+FACEBOOK_APP_SECRET
+❌ Not in render.yaml - Add for Facebook OAuth
+Value: placeholder (replace)
+
+OPENAI_API_KEY
+❌ Not in render.yaml - Add for AI features
+Value: your-openai-api-key (replace)
+
+OPENAI_MODEL
+❌ Not in render.yaml - Add for AI features
+Value: gpt-4
+
+TWILIO_ACCOUNT_SID
+❌ Not in render.yaml - Add for SMS verification
+Value: your-twilio-account-sid (replace)
+
+TWILIO_AUTH_TOKEN
+❌ Not in render.yaml - Add for SMS verification
+Value: your-twilio-auth-token (replace)
+
+TWILIO_PHONE_NUMBER
+❌ Not in render.yaml - Add for SMS verification
+Value: +1234567890 (replace)
+
+TWILIO_VERIFY_SERVICE_SID
+❌ Not in render.yaml - Add for SMS verification
+Value: your-verify-service-sid (replace)
+
+STRIPE_SECRET_KEY
+❌ Not in render.yaml - Add for payments
+Value: sk_live_... (replace)
+
+STRIPE_PUBLISHABLE_KEY
+❌ Not in render.yaml - Add for payments
+Value: pk_live_... (replace)
+
+EXPO_ACCESS_TOKEN
+❌ Not in render.yaml - Add for push notifications
+Value: your-expo-access-token (replace)
+
+ENABLE_PREMIUM_FEATURES
+❌ Not in render.yaml - Optional feature flag
+Value: true
+
+ENABLE_AI_MATCHING
+❌ Not in render.yaml - Optional feature flag
+Value: false
+
+ENABLE_VIDEO_PROFILES
+❌ Not in render.yaml - Optional feature flag
+Value: false
+
+ENABLE_VOICE_MESSAGES
+❌ Not in render.yaml - Optional feature flag
+Value: true
+
+ENABLE_VIDEO_CALLS
+❌ Not in render.yaml - Optional feature flag
+Value: false
+
+RATE_LIMIT_WINDOW_MS
+❌ Not in render.yaml - Optional rate limiting
+Value: 60000
+
+RATE_LIMIT_MAX_REQUESTS
+❌ Not in render.yaml - Optional rate limiting
+Value: 100
+
+FREE_DAILY_SWIPE_LIMIT
+❌ Not in render.yaml - Optional limits
+Value: 100
+
+PREMIUM_DAILY_SWIPE_LIMIT
+❌ Not in render.yaml - Optional limits
+Value: 500
+
+LOG_LEVEL
+❌ Not in render.yaml - Optional logging
+Value: info
+
+ENABLE_SWAGGER
+❌ Not in render.yaml - Optional API docs
+Value: false
+
+DEBUG
+❌ Not in render.yaml - Optional debug mode
+Value: false
+
+MODERATION_SERVICE
+❌ Not in render.yaml - Optional moderation
+Value: cloudinary
+
+═══════════════════════════════════════════════════════════════════════════════
+📋 SUMMARY - What You MUST Add
+═══════════════════════════════════════════════════════════════════════════════
+
+🔴 ABSOLUTE MINIMUM (Server won't start without):
+   1. MONGODB_URI
+   2. HASH_SALT
+
+🟠 FOR FIREBASE (If using Firebase features):
+   3. FIREBASE_PRIVATE_KEY
+   4. FIREBASE_CLIENT_EMAIL
+
+🟡 RECOMMENDED (For full functionality):
+   5. DD_API_KEY (already have value)
+   6. GOOGLE_CLIENT_ID & GOOGLE_CLIENT_SECRET (already have values)
+   7. STORAGE_PROVIDER + Cloudinary config (need real values)
+   8. SMTP config for email (need real values)
+
+🟢 OPTIONAL (Nice to have):
+   - All other variables listed above
+
+═══════════════════════════════════════════════════════════════════════════════
+✅ ALREADY CONFIGURED (Don't add - auto-set by render.yaml)
+═══════════════════════════════════════════════════════════════════════════════
+
+NODE_ENV=production
+PORT=10000
+JWT_SECRET=[Auto-generated]
+JWT_REFRESH_SECRET=[Auto-generated]
+ENCRYPTION_KEY=[Auto-generated]
+FIREBASE_PROJECT_ID=my-project-de65d
+CORS_ORIGIN=https://dating-app-beharks-projects.vercel.app
+FRONTEND_URL=https://dating-app-beharks-projects.vercel.app
+JWT_EXPIRES_IN=7d
+JWT_REFRESH_EXPIRES_IN=30d
+DD_SITE=datadoghq.eu
+DD_ENV=prod
+DD_AGENT_HOST=localhost
+SENTRY_DSN=https://e21c92d839607c2d0f9378d08ca96903@o4510655194726400.ingest.de.sentry.io/4510655204687952
+
+═══════════════════════════════════════════════════════════════════════════════
