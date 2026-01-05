@@ -193,6 +193,9 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:8081',
   'http://localhost:19006',
+  // Allow all Vercel preview deployments for this project
+  /^https:\/\/dating-app-.*\.vercel\.app$/,
+  /^https:\/\/dating-.*-beharks-projects\.vercel\.app$/,
 ].filter(Boolean);
 
 // Add regex patterns only in non-production environments for development
