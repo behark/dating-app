@@ -7,37 +7,44 @@ const { trackDatabaseQuery } = require('../middleware/performanceMonitoring');
 
 /**
  * Mongoose plugin to track query performance
+ * @param {import('mongoose').Schema} schema
  */
 function performancePlugin(schema) {
   // Store start time before query execution
-  schema.pre(['find', 'findOne', 'findOneAndUpdate', 'findOneAndDelete', 'save', 'updateOne', 'updateMany', 'deleteOne', 'deleteMany', 'aggregate'], function () {
-    this._startTime = Date.now();
+  const allOperations = ['find', 'findOne', 'findOneAndUpdate', 'findOneAndDelete', 'save', 'updateOne', 'updateMany', 'deleteOne', 'deleteMany', 'aggregate'];
+  allOperations.forEach((op) => {
+    // @ts-ignore - Mongoose pre hook typing
+    schema.pre(op, /** @this {any} */ function () {
+      this._startTime = Date.now();
+    });
   });
 
   // Track find operations
-  schema.post(['find', 'findOne', 'findOneAndUpdate', 'findOneAndDelete'], function (docs) {
-    // @ts-ignore - Mongoose query context typing
+  const findOperations = ['find', 'findOne', 'findOneAndUpdate', 'findOneAndDelete'];
+  /** @this {any} @param {any} docs */
+  const findPostHook = function (docs) {
     const startTime = this._startTime || Date.now();
     const duration = Date.now() - startTime;
-    // @ts-ignore - Mongoose query context typing
     const collectionName = this.model?.collection?.name || schema.options.collection || 'unknown';
 
     trackDatabaseQuery(
-      // @ts-ignore - Mongoose query context typing
       this.op || 'find',
       collectionName,
       duration,
       true,
       {
-        // @ts-ignore - Mongoose query context typing
         query: this.getQuery ? this.getQuery() : {},
         resultCount: Array.isArray(docs) ? docs.length : docs ? 1 : 0,
       }
     );
+  };
+  findOperations.forEach((op) => {
+    // @ts-ignore - Mongoose post hook typing
+    schema.post(op, findPostHook);
   });
 
   // Track save operations
-  schema.post('save', function (doc) {
+  schema.post('save', /** @this {any} @param {any} doc */ function (doc) {
     const startTime = this._startTime || Date.now();
     const duration = Date.now() - startTime;
     const collectionName = this.collection?.name || schema.options.collection || 'unknown';
@@ -55,7 +62,9 @@ function performancePlugin(schema) {
   });
 
   // Track update operations
-  schema.post(['updateOne', 'updateMany', 'findOneAndUpdate'], function (result) {
+  const updateOperations = ['updateOne', 'updateMany', 'findOneAndUpdate'];
+  /** @this {any} @param {any} result */
+  const updatePostHook = function (result) {
     const startTime = this._startTime || Date.now();
     const duration = Date.now() - startTime;
     const collectionName = this.model?.collection?.name || schema.options.collection || 'unknown';
@@ -71,10 +80,16 @@ function performancePlugin(schema) {
         matchedCount: result?.matchedCount || 0,
       }
     );
+  };
+  updateOperations.forEach((op) => {
+    // @ts-ignore - Mongoose post hook typing
+    schema.post(op, updatePostHook);
   });
 
   // Track delete operations
-  schema.post(['deleteOne', 'deleteMany', 'findOneAndDelete'], function (result) {
+  const deleteOperations = ['deleteOne', 'deleteMany', 'findOneAndDelete'];
+  /** @this {any} @param {any} result */
+  const deletePostHook = function (result) {
     const startTime = this._startTime || Date.now();
     const duration = Date.now() - startTime;
     const collectionName = this.model?.collection?.name || schema.options.collection || 'unknown';
@@ -89,10 +104,14 @@ function performancePlugin(schema) {
         deletedCount: result?.deletedCount || 0,
       }
     );
+  };
+  deleteOperations.forEach((op) => {
+    // @ts-ignore - Mongoose post hook typing
+    schema.post(op, deletePostHook);
   });
 
   // Track aggregate operations
-  schema.post('aggregate', function (result) {
+  schema.post('aggregate', /** @this {any} @param {any} result */ function (result) {
     const startTime = this._startTime || Date.now();
     const duration = Date.now() - startTime;
     const collectionName = this.model?.collection?.name || schema.options.collection || 'unknown';

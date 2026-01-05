@@ -136,6 +136,7 @@ exports.getAverageResponseTimes = async (req, res) => {
     const end = endDate ? new Date(endDate) : new Date();
 
     // @ts-ignore - Static method exists on schema but TypeScript doesn't recognize it
+    // @ts-ignore - Static method defined in schema
     const averages = await PerformanceMetric.getAverageResponseTimes(start, end);
 
     res.json({

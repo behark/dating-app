@@ -17,8 +17,8 @@ exports.authenticate = async (req, res, next) => {
 
     // Ensure JWT_SECRET is set
     if (!process.env.JWT_SECRET) {
-      const logger = require('../services/LoggingService').logger;
-      logger.error('JWT_SECRET is not configured', {
+      const jwtLogger = require('../services/LoggingService').logger;
+      jwtLogger.error('JWT_SECRET is not configured', {
         ip: req.ip,
         path: req.path,
       });
@@ -43,8 +43,8 @@ exports.authenticate = async (req, res, next) => {
       }
     } catch (redisError) {
       // Redis unavailable - check MongoDB fallback
-      const logger = require('../services/LoggingService').logger;
-      logger.warn('Redis unavailable for blacklist check, using MongoDB fallback', {
+      const redisLogger = require('../services/LoggingService').logger;
+      redisLogger.warn('Redis unavailable for blacklist check, using MongoDB fallback', {
         error: redisError instanceof Error ? redisError.message : String(redisError),
       });
       
@@ -61,7 +61,7 @@ exports.authenticate = async (req, res, next) => {
       } catch (mongoError) {
         // If MongoDB check also fails, log error but continue
         // This prevents a single point of failure from blocking all requests
-        logger.error('MongoDB blacklist check failed', {
+        redisLogger.error('MongoDB blacklist check failed', {
           error: mongoError instanceof Error ? mongoError.message : String(mongoError),
         });
       }
@@ -95,8 +95,8 @@ exports.authenticate = async (req, res, next) => {
       });
     }
     // Don't expose error details in production
-    const logger = require('../services/LoggingService').logger;
-    logger.warn('Invalid token', {
+    const tokenLogger = require('../services/LoggingService').logger;
+    tokenLogger.warn('Invalid token', {
       error: error instanceof Error ? error.message : String(error),
       ip: req.ip,
       path: req.path,

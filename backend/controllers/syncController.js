@@ -463,6 +463,7 @@ exports.getConflicts = async (req, res) => {
   try {
     const userId = req.user._id;
 
+    // @ts-ignore - Custom static method defined on schema
     const conflicts = await OfflineAction.getConflicts(userId);
 
     res.json({
@@ -532,7 +533,7 @@ exports.resolveConflict = async (req, res) => {
       result = await executeActionByType(userId, action.type, action.data, action.timestamp);
     } else if (resolution === 'use_server') {
       // Mark as resolved, keep server data
-      result = { success: true, data: action.conflict.serverData };
+      result = { success: true, data: action.conflict?.serverData };
     } else if (resolution === 'merge' && mergedData) {
       // Merge data and execute
       result = await executeActionByType(userId, action.type, mergedData, action.timestamp);
@@ -545,8 +546,10 @@ exports.resolveConflict = async (req, res) => {
 
     // Update action
     action.status = result.success ? 'synced' : 'failed';
-    action.conflict.resolved = true;
-    action.conflict.resolution = resolution;
+    if (action.conflict) {
+      action.conflict.resolved = true;
+      action.conflict.resolution = resolution;
+    }
     action.syncedAt = new Date();
     if (result.error) {
       action.error = {

@@ -88,6 +88,7 @@ notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // Auto-d
 
 // Static method: Get unread count for user
 notificationSchema.statics.getUnreadCount = async function (userId) {
+  // @ts-ignore - Mongoose static method context
   return this.countDocuments({
     userId,
     isRead: false,
@@ -97,6 +98,7 @@ notificationSchema.statics.getUnreadCount = async function (userId) {
 
 // Static method: Mark all as read for user
 notificationSchema.statics.markAllAsRead = async function (userId) {
+  // @ts-ignore - Mongoose static method context
   return this.updateMany(
     {
       userId,
@@ -113,8 +115,11 @@ notificationSchema.statics.markAllAsRead = async function (userId) {
 
 // Instance method: Mark as read
 notificationSchema.methods.markAsRead = async function () {
+  // @ts-ignore - Mongoose instance method context
   this.isRead = true;
+  // @ts-ignore - Mongoose instance method context
   this.readAt = new Date();
+  // @ts-ignore - Mongoose instance method context
   return this.save();
 };
 

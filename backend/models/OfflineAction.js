@@ -99,6 +99,7 @@ offlineActionSchema.index({ userId: 1, actionId: 1 }, { unique: true }); // Prev
 
 // Static method: Get pending actions for user
 offlineActionSchema.statics.getPendingActions = async function (userId) {
+  // @ts-ignore - Mongoose static method context
   return this.find({
     userId,
     status: 'pending',
@@ -109,6 +110,7 @@ offlineActionSchema.statics.getPendingActions = async function (userId) {
 
 // Static method: Get conflicts for user
 offlineActionSchema.statics.getConflicts = async function (userId) {
+  // @ts-ignore - Mongoose static method context
   return this.find({
     userId,
     status: 'conflict',

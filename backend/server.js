@@ -628,15 +628,15 @@ io.use(async (socket, next) => {
       }
 
       // JWT authentication (required in production)
-      const jwt = require('jsonwebtoken');
-      const jwtSecret = process.env.JWT_SECRET || '';
-      if (!jwtSecret) {
+      const jwtProd = require('jsonwebtoken');
+      const jwtSecretProd = process.env.JWT_SECRET || '';
+      if (!jwtSecretProd) {
         logger.error('JWT_SECRET not configured for Socket.io authentication');
         return next(new Error('JWT_SECRET not configured'));
       }
       
       try {
-        const decoded = /** @type {any} */ (jwt.verify(token, jwtSecret));
+        const decoded = /** @type {any} */ (jwtProd.verify(token, jwtSecretProd));
         /** @type {any} */ (socket).userId = decoded.userId || decoded.id;
       } catch (jwtError) {
         logger.warn('Socket.io JWT verification failed', {
@@ -649,13 +649,13 @@ io.use(async (socket, next) => {
       // Development mode: Allow JWT or direct userId (with warning)
       if (token) {
         // JWT authentication (preferred)
-        const jwt = require('jsonwebtoken');
-        const jwtSecret = process.env.JWT_SECRET || '';
-        if (!jwtSecret) {
+        const jwtDev = require('jsonwebtoken');
+        const jwtSecretDev = process.env.JWT_SECRET || '';
+        if (!jwtSecretDev) {
           return next(new Error('JWT_SECRET not configured'));
         }
         try {
-          const decoded = /** @type {any} */ (jwt.verify(token, jwtSecret));
+          const decoded = /** @type {any} */ (jwtDev.verify(token, jwtSecretDev));
           /** @type {any} */ (socket).userId = decoded.userId || decoded.id;
         } catch (jwtError) {
           // Fall through to userId check if JWT fails in dev
@@ -926,23 +926,23 @@ io.on('connection', (socket) => {
       logger.error('WebSocket error sending message', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
-        userId: senderId,
-        matchId,
+        userId: extSocket.userId,
+        matchId: data?.matchId,
       });
       socket.emit('error', { message: 'Failed to send message' });
     }
   });
 
   // Handle typing indicators
-  socket.on('typing_start', (matchId) => {
-    socket.to(matchId).emit('user_typing', {
+  socket.on('typing_start', (typingMatchId) => {
+    socket.to(typingMatchId).emit('user_typing', {
       userId: extSocket.userId,
       isTyping: true,
     });
   });
 
-  socket.on('typing_stop', (matchId) => {
-    socket.to(matchId).emit('user_typing', {
+  socket.on('typing_stop', (typingMatchId) => {
+    socket.to(typingMatchId).emit('user_typing', {
       userId: extSocket.userId,
       isTyping: false,
     });
@@ -951,14 +951,14 @@ io.on('connection', (socket) => {
   // Handle read receipts
   socket.on('message_read', async (data) => {
     try {
-      const { messageId, matchId } = data;
-      const userId = extSocket.userId;
+      const { messageId: readMessageId, matchId: readMatchId } = data;
+      const readUserId = extSocket.userId;
 
       // Update message as read in database
       const message = await Message.findOneAndUpdate(
         {
-          _id: messageId,
-          receiverId: userId,
+          _id: readMessageId,
+          receiverId: readUserId,
         },
         {
           isRead: true,
@@ -969,9 +969,9 @@ io.on('connection', (socket) => {
 
       if (message) {
         // Emit read receipt to the sender
-        io.to(matchId).emit('message_read_receipt', {
+        io.to(readMatchId).emit('message_read_receipt', {
           messageId: message._id,
-          readBy: userId,
+          readBy: readUserId,
           readAt: message.readAt,
         });
       }
@@ -979,9 +979,9 @@ io.on('connection', (socket) => {
       logger.error('WebSocket error handling message_read', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
-        userId,
-        messageId,
-        matchId,
+        userId: extSocket.userId,
+        messageId: data?.messageId,
+        matchId: data?.matchId,
       });
       socket.emit('error', { message: 'Failed to mark message as read' });
     }

@@ -60,3 +60,5 @@ client_secret_*.json
 
 # Test connection scripts (temporary)
 test-*-connection.js
+backend/.env.production
+.env.local
