@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const safetyController = require('../controllers/safetyController');
 const safetyAdvancedController = require('../controllers/safetyAdvancedController');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, isAdmin } = require('../middleware/auth');
 
 // ============================================================
 // EXISTING SAFETY ENDPOINTS
@@ -12,10 +12,10 @@ const { authenticateToken } = require('../middleware/auth');
 router.post('/report', authenticateToken, safetyController.reportUser);
 
 // Get reports (admin only)
-router.get('/reports', authenticateToken, safetyController.getReports);
+router.get('/reports', authenticateToken, isAdmin, safetyController.getReports);
 
 // Review report (admin only)
-router.put('/reports/:reportId/review', authenticateToken, safetyController.reviewReport);
+router.put('/reports/:reportId/review', authenticateToken, isAdmin, safetyController.reviewReport);
 
 // Block user
 router.post('/block', authenticateToken, safetyController.blockUser);
@@ -33,16 +33,16 @@ router.get('/blocked/:otherUserId', authenticateToken, safetyController.checkIfB
 router.post('/flag', authenticateToken, safetyController.flagContent);
 
 // Get safety score (admin)
-router.get('/safety-score/:userId', authenticateToken, safetyController.getSafetyScore);
+router.get('/safety-score/:userId', authenticateToken, isAdmin, safetyController.getSafetyScore);
 
 // Get safety tips (public)
 router.get('/tips', safetyController.getSafetyTips);
 
 // Suspend user (admin)
-router.put('/suspend/:userId', authenticateToken, safetyController.suspendUser);
+router.put('/suspend/:userId', authenticateToken, isAdmin, safetyController.suspendUser);
 
 // Unsuspend user (admin)
-router.put('/unsuspend/:userId', authenticateToken, safetyController.unsuspendUser);
+router.put('/unsuspend/:userId', authenticateToken, isAdmin, safetyController.unsuspendUser);
 
 // Get current user's account status (for shadow-lock transparency)
 router.get('/account-status', authenticateToken, safetyController.getAccountStatus);

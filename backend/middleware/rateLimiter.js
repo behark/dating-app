@@ -51,8 +51,12 @@ const createRateLimiter = (options = {}) => {
       // Log error without sensitive data
       const safeError = error instanceof Error ? error.message : String(error);
       console.error('Rate limiter error:', safeError);
-      // On error, allow the request (fail open)
-      next();
+      // SECURITY: Fail closed - deny request when rate limiter errors
+      // This prevents brute force attacks during Redis outages
+      return res.status(503).json({
+        success: false,
+        message: 'Service temporarily unavailable. Please try again.',
+      });
     }
   };
 };
