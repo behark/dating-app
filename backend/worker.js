@@ -5,6 +5,7 @@
 
 require('dotenv').config();
 const mongoose = require('mongoose');
+const { connectDB, gracefulShutdown: dbGracefulShutdown } = require('./config/database');
 const { initRedis } = require('./config/redis');
 const { initializeProcessors, scheduleRecurringJobs } = require('./services/JobProcessors');
 
@@ -13,21 +14,20 @@ let isShuttingDown = false;
 
 /**
  * Connect to MongoDB
+ * Uses centralized connection from config/database.js
+ * This ensures we use one MongoClient instance per application (MongoDB best practice)
  */
-const connectDB = async () => {
-  // Support both MONGODB_URI and MONGODB_URL for compatibility
-  const mongoURI = process.env.MONGODB_URI || process.env.MONGODB_URL;
-
-  if (!mongoURI) {
-    throw new Error('MONGODB_URI or MONGODB_URL is required');
+const connectWorkerDB = async () => {
+  try {
+    const connection = await connectDB();
+    if (!connection) {
+      throw new Error('Failed to connect to MongoDB');
+    }
+    console.log('Worker connected to MongoDB');
+  } catch (error) {
+    console.error('Worker MongoDB connection failed:', error.message);
+    throw error;
   }
-
-  await mongoose.connect(mongoURI, {
-    maxPoolSize: 5,
-    serverSelectionTimeoutMS: 5000,
-  });
-
-  console.log('Worker connected to MongoDB');
 };
 
 /**
@@ -41,8 +41,8 @@ const startWorker = async () => {
   console.log('========================================');
 
   try {
-    // Connect to databases
-    await connectDB();
+    // Connect to databases using centralized connection
+    await connectWorkerDB();
     await initRedis();
 
     console.log('Database connections established');
@@ -79,8 +79,8 @@ const shutdown = async (signal) => {
     const { closeRedis } = require('./config/redis');
     await closeRedis();
 
-    // Close MongoDB
-    await mongoose.connection.close();
+    // Close MongoDB using centralized graceful shutdown
+    await dbGracefulShutdown(signal);
 
     console.log('Worker shut down gracefully');
     process.exit(0);

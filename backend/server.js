@@ -42,6 +42,9 @@ const {
 } = require('./services/MonitoringService');
 const { logger, auditLogger, morganFormat } = require('./services/LoggingService');
 
+// Database connection - use centralized connection
+const { connectDB: connectDatabase, gracefulShutdown: dbGracefulShutdown, createIndexes } = require('./config/database');
+
 // Import models
 const Message = require('./models/Message');
 const Swipe = require('./models/Swipe');
@@ -88,11 +91,15 @@ datadogService.init();
 
 // Register health checks
 healthCheckService.registerCheck('mongodb', async () => {
-  const state = mongoose.connection.readyState;
-  if (state !== 1) throw new Error('MongoDB not connected');
+  const { getConnectionStatus } = require('./config/database');
+  const status = getConnectionStatus();
+  
+  if (status.readyState !== 1) {
+    throw new Error(`MongoDB not connected. State: ${status.states}`);
+  }
   
   // Get pool stats if available
-  let poolInfo = { maxPoolSize: 50, status: 'ok' };
+  let poolInfo = { maxPoolSize: 50, status: 'ok', ...status.pool };
   try {
     const client = mongoose.connection.getClient();
     if (client && client.topology && client.topology.description) {
@@ -396,81 +403,17 @@ app.use((error, req, res, next) => {
   });
 });
 
-// MongoDB connection
-let isConnected = false;
-let connectionPromise = null;
-
+// MongoDB connection - using centralized connection from config/database.js
+// This ensures we use one MongoClient instance per application (MongoDB best practice)
 const connectDB = async () => {
-  if (isConnected && mongoose.connection.readyState === 1) {
-    return true;
+  try {
+    const connection = await connectDatabase();
+    // connectDatabase returns the connection object or null
+    return connection !== null;
+  } catch (error) {
+    console.error('MongoDB connection failed:', error.message);
+    return false;
   }
-
-  // If there's already a connection attempt in progress, wait for it
-  if (connectionPromise) {
-    return connectionPromise;
-  }
-
-  connectionPromise = (async () => {
-    try {
-      // Support both MONGODB_URI and MONGODB_URL for compatibility
-      const mongoURI = process.env.MONGODB_URI || process.env.MONGODB_URL;
-
-      if (!mongoURI) {
-        console.warn('MONGODB_URI or MONGODB_URL not set - database features will be unavailable');
-        return false;
-      }
-
-      console.log('Attempting MongoDB connection...');
-
-      // Serverless-optimized connection settings
-      const conn = await mongoose.connect(mongoURI, {
-        bufferCommands: false,
-        maxPoolSize: 50, // Increased for better concurrency
-        minPoolSize: 10, // Keep minimum connections warm
-        serverSelectionTimeoutMS: 10000,
-        socketTimeoutMS: 45000,
-        maxIdleTimeMS: 30000, // Close idle connections after 30s
-        waitQueueTimeoutMS: 10000, // Timeout for waiting in queue
-        family: 4, // Use IPv4, skip trying IPv6
-      });
-
-      isConnected = true;
-      console.log(`MongoDB Connected: ${conn.connection.host}`);
-
-      // Handle connection events
-      mongoose.connection.on('error', (error) => {
-        console.error('MongoDB connection error:', error);
-        isConnected = false;
-        connectionPromise = null;
-      });
-
-      mongoose.connection.on('disconnected', () => {
-        console.log('MongoDB disconnected');
-        isConnected = false;
-        connectionPromise = null;
-      });
-
-      // Graceful shutdown
-      process.on('SIGINT', async () => {
-        await mongoose.connection.close();
-        console.log('MongoDB connection closed through app termination');
-        process.exit(0);
-      });
-
-      return true;
-    } catch (error) {
-      console.error('MongoDB connection failed:', error.message);
-      isConnected = false;
-      connectionPromise = null;
-      // Don't exit in serverless environment
-      if (process.env.NODE_ENV !== 'production') {
-        process.exit(1);
-      }
-      return false;
-    }
-  })();
-
-  return connectionPromise;
 };
 
 // Socket.io setup
@@ -584,7 +527,7 @@ io.on('connection', (socket) => {
       socket.emit('joined_room', { matchId });
     } catch (error) {
       console.error('[WS] Error joining room:', error);
-      socket.emit('error', { message: 'Failed to join room' }););
+      socket.emit('error', { message: 'Failed to join room' });
     }
   });
 
@@ -767,6 +710,8 @@ const startServer = async () => {
       console.warn('⚠️  Some features may not work until MongoDB is connected');
     } else {
       console.log('✅ MongoDB connection established successfully');
+      // Create indexes after successful connection
+      await createIndexes();
     }
 
     // Configure keep-alive for better HTTP/1.1 connection reuse
@@ -782,7 +727,7 @@ const startServer = async () => {
     // Setup graceful shutdown
     gracefulShutdown(server, async () => {
       console.log('Closing database connections...');
-      await mongoose.connection.close();
+      await dbGracefulShutdown('SIGTERM');
       console.log('Database connections closed');
     });
   } catch (error) {

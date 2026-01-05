@@ -16,9 +16,21 @@ let SpeedInsights;
 if (Platform.OS === 'web') {
   try {
     // eslint-disable-next-line import/no-unresolved
-    SpeedInsights = require('@vercel/speed-insights/react').SpeedInsights;
+    const speedInsightsModule = require('@vercel/speed-insights/react');
+    SpeedInsights = speedInsightsModule.SpeedInsights || speedInsightsModule.default;
   } catch (error) {
     console.warn('Speed Insights not available:', error);
+  }
+}
+
+// Vercel Analytics (web only)
+let Analytics;
+if (Platform.OS === 'web') {
+  try {
+    // eslint-disable-next-line import/no-unresolved
+    Analytics = require('@vercel/analytics/react').Analytics;
+  } catch (error) {
+    console.warn('Vercel Analytics not available:', error);
   }
 }
 // Only import gesture handler on native platforms
@@ -34,7 +46,10 @@ function AppContent() {
       <AppNavigator />
       <NetworkStatusBanner />
       <StatusBar style={isDark ? 'light' : 'dark'} />
+      {/* Vercel Speed Insights - Web only */}
       {Platform.OS === 'web' && SpeedInsights && <SpeedInsights />}
+      {/* Vercel Analytics - Web only */}
+      {Platform.OS === 'web' && Analytics && <Analytics />}
     </>
   );
 }

@@ -9,6 +9,11 @@ export interface ApiResponse<T = any> {
   message?: string;
   data?: T;
   error?: string;
+  errors?: Array<{
+    field: string;
+    message: string;
+    value?: any;
+  }>;
 }
 
 // User Types
@@ -28,12 +33,27 @@ export interface User {
   subscriptionEnd?: string;
   createdAt?: string;
   updatedAt?: string;
+  // Enhanced profile fields
+  locationPrivacy?: 'hidden' | 'visible_to_matches' | 'visible_to_all';
+  preferredGender?: 'male' | 'female' | 'other' | 'any';
+  preferredAgeRange?: { min: number; max: number };
+  preferredDistance?: number;
+  isActive?: boolean;
+  isVerified?: boolean;
+  isProfileVerified?: boolean;
+  lastActive?: string;
+  // OAuth providers
+  googleId?: string;
+  facebookId?: string;
+  appleId?: string;
 }
 
 export interface Photo {
   url: string;
   order: number;
   moderationStatus?: 'pending' | 'approved' | 'rejected';
+  isMain?: boolean;
+  uploadedAt?: string;
 }
 
 export interface Location {
@@ -70,8 +90,9 @@ export interface DiscoveryOptions {
   radius?: number;
   minAge?: number;
   maxAge?: number;
-  gender?: 'male' | 'female' | 'any';
+  gender?: 'male' | 'female' | 'other' | 'any';
   sortBy?: 'recentActivity' | 'distance' | 'compatibility';
+  excludeIds?: string[];
   limit?: number;
   skip?: number;
 }
@@ -127,7 +148,14 @@ export interface Message {
 export interface Match {
   _id: string;
   users: string[];
+  user1?: string;
+  user2?: string;
+  matchInitiator?: string;
+  matchType?: 'regular' | 'superlike';
+  status?: 'active' | 'unmatched' | 'blocked';
   createdAt: string;
+  lastActivity?: string;
+  conversationStarted?: boolean;
   lastMessage?: Message;
   unreadCount?: number;
 }
@@ -174,26 +202,7 @@ export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
 
 // Export all types
 export type {
-  ApiResponse,
-  User,
-  Photo,
-  Location,
-  AuthTokens,
-  LoginCredentials,
-  SignupData,
-  GoogleAuthData,
-  DiscoveryOptions,
-  DiscoveryResult,
-  SubscriptionTier,
-  PaymentStatus,
-  PremiumFeatures,
-  Message,
-  Match,
-  ServiceMethod,
-  AppError,
-  NavigationParams,
-  ScreenProps,
-  ApiConfig,
-  ValidationResult,
-  LogLevel,
+    ApiConfig, ApiResponse, AppError, AuthTokens, DiscoveryOptions,
+    DiscoveryResult, GoogleAuthData, Location, LogLevel, LoginCredentials, Match, Message, NavigationParams, PaymentStatus, Photo, PremiumFeatures, ScreenProps, ServiceMethod, SignupData, SubscriptionTier, User, ValidationResult
 };
+

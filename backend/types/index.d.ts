@@ -49,20 +49,67 @@ export interface PaginatedResponse<T> extends ApiResponse<T> {
 // User Types
 // ============================================================
 
+export interface IVideo {
+  url: string;
+  thumbnailUrl?: string;
+  duration?: number;
+  order?: number;
+  moderationStatus?: 'pending' | 'approved' | 'rejected';
+  uploadedAt?: Date;
+}
+
+export interface IProfilePrompt {
+  promptId: string;
+  answer: string;
+}
+
+export interface IEducation {
+  school?: string;
+  degree?: string;
+  fieldOfStudy?: string;
+  graduationYear?: number;
+}
+
+export interface IOccupation {
+  jobTitle?: string;
+  company?: string;
+  industry?: string;
+}
+
+export interface IHeight {
+  value?: number;
+  unit?: 'cm' | 'ft';
+}
+
+export interface ISocialMedia {
+  spotify?: {
+    id?: string;
+    username?: string;
+    profileUrl?: string;
+    isVerified?: boolean;
+  };
+  instagram?: {
+    id?: string;
+    username?: string;
+    profileUrl?: string;
+    isVerified?: boolean;
+  };
+}
+
 export interface IUser {
   email: string;
   password?: string;
   name: string;
   age?: number;
-  gender?: 'male' | 'female' | 'other' | 'non-binary' | 'prefer-not-to-say';
+  gender?: 'male' | 'female' | 'other';
   bio?: string;
   photos: IPhoto[];
   interests: string[];
   location?: ILocation;
-  locationPrivacy?: 'visible' | 'hidden' | 'visible_to_matches';
+  locationPrivacy?: 'hidden' | 'visible_to_matches' | 'visible_to_all';
   subscription?: ISubscription;
   preferredAgeRange?: IAgeRange;
-  preferredGender?: string;
+  preferredGender?: 'male' | 'female' | 'other' | 'any';
   preferredDistance?: number;
   profileCompleteness?: number;
   lastActive?: Date;
@@ -75,6 +122,38 @@ export interface IUser {
   phoneVerificationCode?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  // Enhanced profile fields
+  videos?: IVideo[];
+  profilePrompts?: IProfilePrompt[];
+  education?: IEducation;
+  occupation?: IOccupation;
+  height?: IHeight;
+  ethnicity?: string[];
+  socialMedia?: ISocialMedia;
+  // OAuth providers
+  googleId?: string;
+  facebookId?: string;
+  appleId?: string;
+  oauthProviders?: string[];
+  // Phone
+  phoneNumber?: string;
+  isPhoneVerified?: boolean;
+  // Account status
+  isActive?: boolean;
+  isVerified?: boolean;
+  suspended?: boolean;
+  needsReview?: boolean;
+  // Profile verification
+  isProfileVerified?: boolean;
+  verificationStatus?: 'unverified' | 'pending' | 'verified' | 'rejected';
+  verificationMethod?: 'photo' | 'video' | 'id' | 'none';
+  // Activity & engagement
+  isOnline?: boolean;
+  isPremium?: boolean;
+  activityScore?: number;
+  totalSwipes?: number;
+  totalMatches?: number;
+  responseRate?: number;
 }
 
 export interface UserDocument extends IUser, Document {
@@ -98,7 +177,7 @@ export interface IPhoto {
   url: string;
   isMain?: boolean;
   order?: number;
-  status?: 'pending' | 'approved' | 'rejected';
+  moderationStatus?: 'pending' | 'approved' | 'rejected';
   uploadedAt?: Date;
 }
 
@@ -142,7 +221,12 @@ export interface SwipeModel extends Model<SwipeDocument> {
 }
 
 export interface IMatch {
-  users: [Types.ObjectId, Types.ObjectId];
+  users: Types.ObjectId[];
+  user1?: Types.ObjectId;
+  user2?: Types.ObjectId;
+  matchInitiator?: Types.ObjectId;
+  matchType?: 'regular' | 'superlike';
+  status?: 'active' | 'unmatched' | 'blocked';
   createdAt?: Date;
   lastActivity?: Date;
   conversationStarted?: boolean;
@@ -162,11 +246,12 @@ export interface IMessage {
   receiverId: Types.ObjectId;
   content: string;
   isEncrypted?: boolean;
-  isRead?: boolean;
+  read?: boolean;
   readAt?: Date;
-  messageType?: 'text' | 'image' | 'gif' | 'voice' | 'video';
+  type?: 'text' | 'image' | 'gif' | 'sticker' | 'voice' | 'video_call';
   mediaUrl?: string;
   createdAt?: Date;
+  metadata?: Record<string, any>;
 }
 
 export interface MessageDocument extends IMessage, Document {
@@ -216,8 +301,11 @@ export interface DiscoveryOptions {
   excludeIds?: (string | Types.ObjectId)[];
   minAge?: number;
   maxAge?: number;
-  preferredGender?: string;
-  preferredDistance?: number;
+  gender?: 'male' | 'female' | 'other' | 'any';
+  radius?: number;
+  sortBy?: 'recentActivity' | 'distance' | 'compatibility';
+  limit?: number;
+  skip?: number;
 }
 
 export interface DiscoveryResult {

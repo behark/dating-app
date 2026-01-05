@@ -52,6 +52,11 @@ const IMPORTANT_ENV_VARS = [
     description: 'Server port',
     default: '3000',
   },
+  {
+    name: 'FRONTEND_URL',
+    description: 'Frontend URL for CORS configuration',
+    requiredInProduction: true,
+  },
 ];
 
 /**
@@ -115,7 +120,14 @@ function validateEnvironment() {
     const altValue = envVar.alternative ? process.env[envVar.alternative] : null;
 
     if (!value && !altValue) {
-      if (envVar.default) {
+      // In production, required variables should be errors
+      if (envVar.requiredInProduction && process.env.NODE_ENV === 'production') {
+        errors.push({
+          var: envVar.name,
+          message: `${envVar.description} is required in production but not set`,
+          hint: `Set ${envVar.name} in your production environment variables`,
+        });
+      } else if (envVar.default) {
         warnings.push({
           var: envVar.name,
           message: `${envVar.description} not set, using default: ${envVar.default}`,

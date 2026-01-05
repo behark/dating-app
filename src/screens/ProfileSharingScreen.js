@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import SocialFeaturesService from '../services/SocialFeaturesService';
 import logger from '../utils/logger';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 
 const ProfileSharingScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
@@ -22,6 +23,10 @@ const ProfileSharingScreen = ({ navigation }) => {
       setSharedProfiles(data.sharedProfiles || []);
     } catch (error) {
       logger.error('Error fetching shared profiles:', error);
+      Alert.alert(
+        'Error',
+        getUserFriendlyMessage(error.message || 'Failed to load shared profiles. Please try again.')
+      );
     } finally {
       setLoading(false);
     }
@@ -42,10 +47,13 @@ const ProfileSharingScreen = ({ navigation }) => {
       }
 
       fetchSharedProfiles();
-      alert('Profile shared successfully!');
+      Alert.alert('Success', 'Profile shared successfully!');
     } catch (error) {
       logger.error('Error creating share link:', error);
-      alert('Failed to create share link');
+      Alert.alert(
+        'Error',
+        getUserFriendlyMessage(error.message || 'Failed to create share link. Please try again.')
+      );
     }
   };
 
@@ -53,10 +61,13 @@ const ProfileSharingScreen = ({ navigation }) => {
     try {
       await SocialFeaturesService.deactivateShareLink(shareToken);
       fetchSharedProfiles();
-      alert('Share link deactivated');
+      Alert.alert('Success', 'Share link deactivated');
     } catch (error) {
       logger.error('Error deactivating link:', error);
-      alert('Failed to deactivate link');
+      Alert.alert(
+        'Error',
+        getUserFriendlyMessage(error.message || 'Failed to deactivate link. Please try again.')
+      );
     }
   };
 

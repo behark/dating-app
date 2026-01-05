@@ -1,8 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { Alert } from 'react-native';
 import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../config/api';
 import api from '../services/api';
 import logger from '../utils/logger';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 import { useAuth } from './AuthContext';
 
 const ChatContext = createContext();
@@ -262,6 +264,12 @@ export const ChatProvider = ({ children }) => {
       }
     } catch (error) {
       logger.error('Error loading conversations:', error);
+      // Show user-friendly error message
+      Alert.alert(
+        'Error',
+        getUserFriendlyMessage(error.message || 'Failed to load conversations. Please try again.'),
+        [{ text: 'OK' }]
+      );
     }
   }, [user?.uid]);
 
@@ -284,6 +292,14 @@ export const ChatProvider = ({ children }) => {
         }
       } catch (error) {
         logger.error('Error loading messages:', error);
+        // Only show error for first page load, not for pagination
+        if (page === 1) {
+          Alert.alert(
+            'Error',
+            getUserFriendlyMessage(error.message || 'Failed to load messages. Please try again.'),
+            [{ text: 'OK' }]
+          );
+        }
       }
     },
     [user?.uid]
