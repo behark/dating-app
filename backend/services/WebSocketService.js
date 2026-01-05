@@ -80,7 +80,7 @@ const initializeWebSocket = (httpServer) => {
       const userId = socket.handshake.auth.userId || socket.handshake.query.userId;
 
       if (token) {
-        // JWT authentication
+        // JWT authentication (required in production)
         const jwtSecret = process.env.JWT_SECRET || '';
         if (!jwtSecret) {
           return next(new Error('JWT_SECRET not configured'));
@@ -88,12 +88,14 @@ const initializeWebSocket = (httpServer) => {
         const decoded = jwt.verify(token, jwtSecret);
         // @ts-ignore - Adding custom property to socket
         socket.userId = decoded.userId || decoded.id;
-      } else if (userId) {
-        // Direct userId (for development/testing)
+      } else if (userId && process.env.NODE_ENV !== 'production') {
+        // Direct userId ONLY allowed in development/testing
+        // SECURITY: This path is disabled in production
+        console.warn(`[WS] Development-only auth used for userId: ${userId}`);
         // @ts-ignore - Adding custom property to socket
         socket.userId = userId;
       } else {
-        return next(new Error('Authentication required'));
+        return next(new Error('Authentication required - provide a valid JWT token'));
       }
 
       // Verify user exists
