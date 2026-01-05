@@ -339,6 +339,15 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
               </>
             )}
 
+            {isLogin && (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('ForgotPassword')}
+                style={styles.forgotPasswordButton}
+              >
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity onPress={() => setIsLogin(!isLogin)} style={styles.switchButton}>
               <Text style={styles.switchText}>
                 {isLogin ? "Don't have an account? " : 'Already have an account? '}
@@ -498,6 +507,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 10,
+  },
+  forgotPasswordButton: {
+    marginTop: 15,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  forgotPasswordText: {
+    color: Colors.primary,
+    fontSize: 15,
+    fontWeight: '600',
   },
   switchButton: {
     marginTop: 10,

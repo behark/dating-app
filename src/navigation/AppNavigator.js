@@ -119,6 +119,54 @@ const ViewProfileScreen = createLazyScreen(() => import('../screens/ViewProfileS
   displayName: 'ViewProfileScreen',
 });
 
+const EditProfileScreen = createLazyScreen(() => import('../screens/EditProfileScreen'), {
+  loadingMessage: 'Loading editor...',
+  displayName: 'EditProfileScreen',
+});
+
+const EmailVerificationScreen = createLazyScreen(() => import('../screens/EmailVerificationScreen'), {
+  loadingMessage: 'Loading verification...',
+  displayName: 'EmailVerificationScreen',
+});
+
+const ForgotPasswordScreen = createLazyScreen(() => import('../screens/ForgotPasswordScreen'), {
+  loadingMessage: 'Loading...',
+  displayName: 'ForgotPasswordScreen',
+});
+
+const CreateEventScreen = createLazyScreen(() => import('../screens/CreateEventScreen'), {
+  loadingMessage: 'Loading...',
+  displayName: 'CreateEventScreen',
+});
+
+const EventDetailScreen = createLazyScreen(() => import('../screens/EventDetailScreen'), {
+  loadingMessage: 'Loading event...',
+  displayName: 'EventDetailScreen',
+});
+
+const CreateGroupDateScreen = createLazyScreen(() => import('../screens/CreateGroupDateScreen'), {
+  loadingMessage: 'Loading...',
+  displayName: 'CreateGroupDateScreen',
+});
+
+const GroupDateDetailScreen = createLazyScreen(() => import('../screens/GroupDateDetailScreen'), {
+  loadingMessage: 'Loading group date...',
+  displayName: 'GroupDateDetailScreen',
+});
+
+const MatchAnimationScreen = createLazyScreen(() => import('../screens/MatchAnimationScreen'), {
+  loadingMessage: 'Loading...',
+  displayName: 'MatchAnimationScreen',
+});
+
+const AddEmergencyContactScreen = createLazyScreen(
+  () => import('../screens/AddEmergencyContactScreen'),
+  {
+    loadingMessage: 'Loading...',
+    displayName: 'AddEmergencyContactScreen',
+  }
+);
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -439,6 +487,78 @@ const AppNavigator = () => {
                 presentation: 'card',
               }}
             />
+            <Stack.Screen
+              name="EditProfile"
+              component={EditProfileScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="VerifyEmail"
+              component={EmailVerificationScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="ForgotPassword"
+              component={ForgotPasswordScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="CreateEvent"
+              component={CreateEventScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="EventDetail"
+              component={EventDetailScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="CreateGroupDate"
+              component={CreateGroupDateScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="GroupDateDetail"
+              component={GroupDateDetailScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="MatchAnimation"
+              component={MatchAnimationScreen}
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+              }}
+            />
+            <Stack.Screen
+              name="AddEmergencyContact"
+              component={AddEmergencyContactScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
           </>
         ) : (
           <>
@@ -448,6 +568,22 @@ const AppNavigator = () => {
               component={LoginScreen}
               options={{
                 presentation: 'modal',
+              }}
+            />
+            <Stack.Screen
+              name="ForgotPassword"
+              component={ForgotPasswordScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="VerifyEmail"
+              component={EmailVerificationScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
               }}
             />
           </>
