@@ -1,20 +1,19 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Alert,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
-import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 import logger from '../utils/logger';
 
 // Profile Components
@@ -22,8 +21,8 @@ import InteractivePhotoGallery from '../components/Profile/InteractivePhotoGalle
 import ProfileCompletionProgress from '../components/Profile/ProfileCompletionProgress';
 import ProfileVideoIntroduction from '../components/Profile/ProfileVideoIntroduction';
 import {
-  VerificationBadgeGroup,
-  VerificationStatus,
+    VerificationBadgeGroup,
+    VerificationStatus,
 } from '../components/Profile/VerificationBadge';
 
 // Gamification Components
@@ -83,9 +82,10 @@ const EnhancedProfileScreen = () => {
 
   const loadProfile = async () => {
     try {
-      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-      if (userDoc.exists()) {
-        const data = userDoc.data();
+      // Use backend API to get profile
+      const response = await api.get('/profile/me');
+      if (response.success && response.data) {
+        const data = response.data;
         setProfileData({
           name: data.name || '',
           age: data.age?.toString() || '',
@@ -134,16 +134,20 @@ const EnhancedProfileScreen = () => {
 
   const handleVideoChange = async (videoUrl) => {
     try {
-      await setDoc(
-        doc(db, 'users', currentUser.uid),
-        { videoIntro: videoUrl, updatedAt: new Date() },
-        { merge: true }
-      );
-      setProfileData((prev) => ({ ...prev, videoIntro: videoUrl }));
+      // Use backend API to update profile
+      const response = await api.put('/profile/update', { 
+        videoIntro: videoUrl 
+      });
+      
+      if (response.success) {
+        setProfileData((prev) => ({ ...prev, videoIntro: videoUrl }));
 
-      // Award XP for adding video
-      await GamificationService.trackAction(currentUser.uid, 'update_profile', { field: 'video' });
-      Alert.alert('Success', 'Video introduction updated!');
+        // Award XP for adding video
+        await GamificationService.trackAction(currentUser.uid, 'update_profile', { field: 'video' });
+        Alert.alert('Success', 'Video introduction updated!');
+      } else {
+        throw new Error(response.message || 'Failed to update video');
+      }
     } catch (error) {
       logger.error('Error updating video:', error);
       Alert.alert('Error', 'Failed to update video');
@@ -152,12 +156,13 @@ const EnhancedProfileScreen = () => {
 
   const handlePhotosChange = async (newPhotos) => {
     try {
-      await setDoc(
-        doc(db, 'users', currentUser.uid),
-        { photos: newPhotos, updatedAt: new Date() },
-        { merge: true }
-      );
-      setProfileData((prev) => ({ ...prev, photos: newPhotos }));
+      // Use backend API to update photos
+      const response = await api.put('/profile/update', { 
+        photos: newPhotos 
+      });
+      
+      if (response.success) {
+        setProfileData((prev) => ({ ...prev, photos: newPhotos }));
     } catch (error) {
       logger.error('Error updating photos:', error);
     }

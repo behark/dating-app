@@ -1,8 +1,7 @@
 import * as Location from 'expo-location';
-import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { calculateDistance as calcDist } from '../utils/distanceCalculator';
 import logger from '../utils/logger';
+import api from './api';
 
 const LOCATION_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -64,24 +63,22 @@ export class LocationService {
     try {
       if (!location) return;
 
-      await updateDoc(doc(db, 'users', userId), {
-        location: {
-          latitude: location.latitude,
-          longitude: location.longitude,
-          accuracy: location.accuracy,
-          updatedAt: new Date(),
-        },
-        lastLocationUpdate: new Date(),
+      // Use backend API to update location
+      const response = await api.put('/discover/location', {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        accuracy: location.accuracy,
       });
 
-      logger.debug('User location updated successfully', { userId });
+      if (response.success) {
+        logger.debug('User location updated successfully via API', { userId });
+      } else {
+        logger.warn('Failed to update location via API', { userId, error: response.message });
+      }
     } catch (error) {
-      // Handle ERR_BLOCKED_BY_CLIENT (ad blockers) gracefully
-      if (error.message?.includes('ERR_BLOCKED_BY_CLIENT') || error.code === 'permission-denied') {
-        logger.warn('Firestore write blocked (likely by ad blocker or privacy extension)', {
-          userId,
-        });
-        // Don't throw - allow app to continue functioning
+      // Handle network errors gracefully
+      if (error.message?.includes('ERR_BLOCKED_BY_CLIENT') || error.message?.includes('Network')) {
+        logger.warn('Location update blocked or network error', { userId });
         return;
       }
       logger.error('Error updating user location', error, { userId });
@@ -90,9 +87,14 @@ export class LocationService {
 
   static async updateLocationPrivacy(userId, privacyLevel) {
     try {
-      await updateDoc(doc(db, 'users', userId), {
+      // Use profile API to update privacy settings
+      const response = await api.put('/profile/update', {
         locationPrivacy: privacyLevel, // 'hidden', 'visible_to_matches', 'visible_to_all'
       });
+
+      if (!response.success) {
+        logger.warn('Failed to update location privacy', { userId, privacyLevel });
+      }
     } catch (error) {
       logger.error('Error updating location privacy', error, { userId, privacyLevel });
     }
@@ -100,10 +102,11 @@ export class LocationService {
 
   static async getLocationPrivacy(userId) {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        return userData?.locationPrivacy || 'visible_to_matches';
+      // Get privacy setting from user profile via API
+      const response = await api.get('/profile');
+      
+      if (response.success && response.data) {
+        return response.data.locationPrivacy || 'visible_to_matches';
       }
       return 'visible_to_matches';
     } catch (error) {
@@ -153,40 +156,26 @@ export class LocationService {
 
   static async getNearbyUsers(currentUserId, maxDistanceKm = 50) {
     try {
-      const currentUserDoc = await getDoc(doc(db, 'users', currentUserId));
-      if (!currentUserDoc.exists()) {
-        logger.warn('Current user not found', { currentUserId });
-        return [];
-      }
-      const currentUserData = currentUserDoc.data();
-      if (!currentUserData?.location) {
-        logger.warn('Current user has no location data', { currentUserId });
-        return [];
-      }
-
-      const currentLocation = currentUserData.location;
-
-      // Note: For production, implement server-side geospatial queries using MongoDB $geoNear
-      // or Firebase GeoFire. Client-side filtering is used here for development.
-      // Backend should handle geospatial queries at /api/discovery/explore endpoint
-      const usersSnapshot = await getDocs(collection(db, 'users'));
-      const nearbyUsers = [];
-
-      usersSnapshot.forEach((doc) => {
-        const userData = doc.data();
-        if (userData && userData.location && doc.id !== currentUserId) {
-          const distance = this.calculateDistance(currentLocation, userData.location);
-          if (distance !== null && distance <= maxDistanceKm) {
-            nearbyUsers.push({
-              id: doc.id,
-              ...userData,
-              distance: Math.round(distance * 10) / 10, // Round to 1 decimal place
-            });
-          }
-        }
+      // Use backend discovery API which handles geospatial queries
+      const response = await api.get('/discover/explore', {
+        params: {
+          maxDistance: maxDistanceKm,
+        },
       });
 
-      return nearbyUsers.sort((a, b) => a.distance - b.distance);
+      if (!response.success) {
+        logger.warn('Failed to get nearby users from API', { currentUserId, error: response.message });
+        return [];
+      }
+
+      // Backend returns profiles array with distance calculated
+      const profiles = response.data?.profiles || response.profiles || [];
+      
+      return profiles.map(profile => ({
+        id: profile._id || profile.id,
+        ...profile,
+        distance: profile.distance != null ? Math.round(profile.distance * 10) / 10 : null,
+      })).sort((a, b) => (a.distance || 0) - (b.distance || 0));
     } catch (error) {
       logger.error('Error getting nearby users', error, { currentUserId, maxDistanceKm });
       return [];

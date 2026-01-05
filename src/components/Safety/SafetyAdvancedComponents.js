@@ -515,17 +515,21 @@ export const PhotoVerificationAdvanced = ({ userId, onVerificationComplete }) =>
 export const BackgroundCheck = ({ userId, isPremium }) => {
   const [checkStatus, setCheckStatus] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [backgroundCheckId, setBackgroundCheckId] = useState(null);
 
   useEffect(() => {
-    loadCheckStatus();
-  }, [userId]);
+    if (backgroundCheckId) {
+      loadCheckStatus();
+    }
+  }, [backgroundCheckId]);
 
   const loadCheckStatus = async () => {
+    if (!backgroundCheckId) {
+      return; // No check initiated yet
+    }
     try {
       setLoading(true);
-      // Note: getBackgroundCheckStatus now requires backgroundCheckId, not userId
-      // This needs to be updated to use the actual backgroundCheckId from initiateBackgroundCheck
-      const status = await SafetyService.getBackgroundCheckStatus(backgroundCheckId || '');
+      const status = await SafetyService.getBackgroundCheckStatus(backgroundCheckId);
       setCheckStatus(status);
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -547,11 +551,13 @@ export const BackgroundCheck = ({ userId, isPremium }) => {
       });
 
       if (result.success) {
+        const newCheckId = result.backgroundCheckId;
+        setBackgroundCheckId(newCheckId);
         Alert.alert(
           'Check Initiated',
           "Background check has been initiated. You'll receive results within 24-48 hours."
         );
-        loadCheckStatus();
+        // loadCheckStatus will be called via useEffect when backgroundCheckId is set
       }
     } catch (error) {
       Alert.alert('Error', error.message);

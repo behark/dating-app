@@ -1,61 +1,35 @@
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  setDoc,
-  updateDoc,
-  where,
-} from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { Colors } from '../constants/colors';
-import { db, storage } from '../config/firebase';
 import logger from '../utils/logger';
+import api from './api';
 
 export class PhotoVerificationService {
   // Submit a photo for verification
   static async submitVerificationPhoto(userId, photoUri, metadata = {}) {
     try {
-      // Upload photo to Firebase Storage
-      const fileName = `verifications/${userId}/${Date.now()}.jpg`;
-      const response = await fetch(photoUri);
-      const blob = await response.blob();
-
-      const storageRef = ref(storage, fileName);
-      await uploadBytes(storageRef, blob);
-      const photoUrl = await getDownloadURL(storageRef);
-
-      // Create verification record
-      const verificationData = {
-        userId,
-        photoUrl,
-        status: 'pending', // 'pending', 'approved', 'rejected'
-        reason: '', // Reason for rejection if rejected
-        submittedAt: new Date(),
-        reviewedAt: null,
-        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Expires in 1 year
+      // Use backend API for verification submission
+      const response = await api.post('/safety/photo-verification/advanced', {
+        photoUri,
         livenessCheck: {
-          method: 'basic', // 'basic', 'selfie_match', 'advanced'
-          timestamp: new Date(),
-          passed: false,
-          confidence: 0,
+          method: metadata.method || 'basic',
+          timestamp: new Date().toISOString(),
+          passed: metadata.passed || false,
+          confidence: metadata.confidence || 0,
+          faceDetected: metadata.faceDetected || false,
           ...metadata,
         },
-        attempts: 1,
-      };
-
-      const verificationRef = doc(collection(db, 'verifications'), userId);
-      await setDoc(verificationRef, verificationData, { merge: true });
-
-      // Update user verification status
-      await updateDoc(doc(db, 'users', userId), {
-        verificationSubmittedAt: new Date(),
-        photoVerified: false,
       });
 
-      logger.info('Verification photo submitted', { userId, photoUrl });
-      return { success: true, photoUrl };
+      if (!response.success) {
+        logger.error('Error submitting verification photo via API', new Error(response.message), { userId });
+        return { success: false, error: response.message || 'Failed to submit verification' };
+      }
+
+      logger.info('Verification photo submitted via API', { userId, verificationId: response.data?.verificationId });
+      return { 
+        success: true, 
+        verificationId: response.data?.verificationId,
+        photoUrl: response.data?.photoUrl 
+      };
     } catch (error) {
       logger.error('Error submitting verification photo', error, { userId });
       return { success: false, error: error.message };
@@ -65,9 +39,10 @@ export class PhotoVerificationService {
   // Get current verification status
   static async getVerificationStatus(userId) {
     try {
-      const verificationDoc = await getDoc(doc(db, 'verifications', userId));
+      // Use account status endpoint which includes verification info
+      const response = await api.get('/safety/account-status');
 
-      if (!verificationDoc.exists()) {
+      if (!response.success) {
         return {
           verified: false,
           status: 'not_submitted',
@@ -77,27 +52,27 @@ export class PhotoVerificationService {
         };
       }
 
-      const data = verificationDoc.data();
+      const data = response.data || response;
 
       // Check if verification expired
-      if (data.expiresAt && new Date() > data.expiresAt.toDate()) {
+      if (data.verificationExpiresAt && new Date() > new Date(data.verificationExpiresAt)) {
         return {
           verified: false,
           status: 'expired',
-          submittedAt: data.submittedAt,
-          expiresAt: data.expiresAt,
+          submittedAt: data.verificationSubmittedAt,
+          expiresAt: data.verificationExpiresAt,
           reason: 'Verification expired. Please submit a new photo.',
         };
       }
 
       return {
-        verified: data.status === 'approved',
-        status: data.status,
-        submittedAt: data.submittedAt,
-        reviewedAt: data.reviewedAt,
-        expiresAt: data.expiresAt,
-        reason: data.reason || null,
-        photoUrl: data.photoUrl || null,
+        verified: data.isPhotoVerified || data.photoVerified || false,
+        status: data.verificationStatus || (data.isPhotoVerified ? 'approved' : 'not_submitted'),
+        submittedAt: data.verificationSubmittedAt,
+        reviewedAt: data.verificationReviewedAt,
+        expiresAt: data.verificationExpiresAt,
+        reason: data.verificationRejectionReason || null,
+        photoUrl: data.verificationPhotoUrl || null,
       };
     } catch (error) {
       logger.error('Error getting verification status', error, { userId });
@@ -120,15 +95,17 @@ export class PhotoVerificationService {
     }
   }
 
-  // Basic liveness detection (simulated)
+  // Basic liveness detection (simulated - would integrate with ML service)
   static async performLivenessCheck(photoUri) {
     try {
       // In a real app, this would use a ML model or API service like AWS Rekognition
       // For now, we'll simulate basic checks
 
-      // Fetch the image
+      // Fetch the image to validate it exists
       const response = await fetch(photoUri);
-      const blob = await response.blob();
+      if (!response.ok) {
+        throw new Error('Failed to fetch photo');
+      }
 
       // Basic validations
       const checks = {
@@ -167,11 +144,13 @@ export class PhotoVerificationService {
       // Compare current photo with profile photo to ensure it's the same person
       // Uses facial recognition
 
+      // Validate photos exist
       const currentResponse = await fetch(currentPhotoUri);
-      const currentBlob = await currentResponse.blob();
-
       const profileResponse = await fetch(profilePhotoUri);
-      const profileBlob = await profileResponse.blob();
+
+      if (!currentResponse.ok || !profileResponse.ok) {
+        throw new Error('Failed to fetch photos for comparison');
+      }
 
       // In production, use AWS Rekognition or similar service:
       // const { FaceMatches } = await rekognition.compareFaces({
@@ -208,57 +187,36 @@ export class PhotoVerificationService {
     }
   }
 
-  // Get pending verifications (for admin)
+  // Get pending verifications (for admin) - would need admin API endpoint
   static async getPendingVerifications() {
     try {
-      const q = query(collection(db, 'verifications'), where('status', '==', 'pending'));
-      const docs = await getDocs(q);
-      return docs.docs.map((doc) => ({
-        userId: doc.id,
-        ...doc.data(),
-      }));
+      // This would need an admin endpoint like GET /admin/verifications/pending
+      logger.warn('getPendingVerifications: Admin endpoint not available');
+      return [];
     } catch (error) {
       logger.error('Error getting pending verifications', error);
       return [];
     }
   }
 
-  // Approve verification (admin)
+  // Approve verification (admin) - would need admin API endpoint
   static async approveVerification(userId) {
     try {
-      await updateDoc(doc(db, 'verifications', userId), {
-        status: 'approved',
-        reviewedAt: new Date(),
-      });
-
-      await updateDoc(doc(db, 'users', userId), {
-        photoVerified: true,
-        verificationApprovedAt: new Date(),
-      });
-
-      logger.info('Verification approved', { userId });
-      return { success: true };
+      // This would need an admin endpoint like PUT /admin/verifications/:userId/approve
+      logger.warn('approveVerification: Admin endpoint not available');
+      return { success: false, error: 'Admin endpoint not available' };
     } catch (error) {
       logger.error('Error approving verification', error, { userId });
       return { success: false, error: error.message };
     }
   }
 
-  // Reject verification (admin)
+  // Reject verification (admin) - would need admin API endpoint
   static async rejectVerification(userId, reason = 'Photo does not meet requirements') {
     try {
-      await updateDoc(doc(db, 'verifications', userId), {
-        status: 'rejected',
-        reason,
-        reviewedAt: new Date(),
-      });
-
-      await updateDoc(doc(db, 'users', userId), {
-        photoVerified: false,
-      });
-
-      logger.info('Verification rejected', { userId, reason });
-      return { success: true };
+      // This would need an admin endpoint like PUT /admin/verifications/:userId/reject
+      logger.warn('rejectVerification: Admin endpoint not available');
+      return { success: false, error: 'Admin endpoint not available' };
     } catch (error) {
       logger.error('Error rejecting verification', error, { userId });
       return { success: false, error: error.message };

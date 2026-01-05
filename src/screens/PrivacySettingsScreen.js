@@ -341,6 +341,12 @@ const PrivacySettingsScreen = ({ navigation }) => {
           <Text style={styles.footerText}>
             Your privacy is important to us. For more information, please review our Privacy Policy.
           </Text>
+          <TouchableOpacity
+            style={styles.policyLink}
+            onPress={() => navigation.navigate('PrivacyPolicy')}
+          >
+            <Text style={styles.policyLinkText}>View Full Privacy Policy</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </LinearGradient>
@@ -495,6 +501,17 @@ const styles = StyleSheet.create({
     color: Colors.text.tertiary,
     textAlign: 'center',
     lineHeight: 18,
+    marginBottom: 12,
+  },
+  policyLink: {
+    marginTop: 8,
+    paddingVertical: 8,
+  },
+  policyLinkText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
 

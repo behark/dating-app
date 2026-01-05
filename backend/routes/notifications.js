@@ -24,4 +24,13 @@ router.put('/enable', notificationController.enableNotifications);
 // Disable all notifications
 router.put('/disable', notificationController.disableNotifications);
 
+// Get notifications list
+router.get('/', notificationController.getNotifications);
+
+// Mark notification as read
+router.put('/:id/read', notificationController.markNotificationAsRead);
+
+// Mark all notifications as read
+router.put('/read-all', notificationController.markAllAsRead);
+
 module.exports = router;

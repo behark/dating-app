@@ -76,6 +76,9 @@ const socialFeaturesRoutes = require('./routes/socialFeatures');
 const privacyRoutes = require('./routes/privacy');
 const metricsRoutes = require('./routes/metrics');
 const usersRoutes = require('./routes/users');
+const syncRoutes = require('./routes/sync');
+const featureFlagsRoutes = require('./routes/featureFlags');
+const betaRoutes = require('./routes/beta');
 
 // Analytics metrics middleware
 const {
@@ -418,6 +421,9 @@ app.use('/api/social', socialFeaturesRoutes);
 app.use('/api/privacy', privacyRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/sync', syncRoutes);
+app.use('/api/feature-flags', featureFlagsRoutes);
+app.use('/api/beta', betaRoutes);
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {

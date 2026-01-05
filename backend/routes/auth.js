@@ -6,6 +6,7 @@ const {
   verifyEmail,
   forgotPassword,
   resetPassword,
+  logout,
   deleteAccount,
   refreshToken,
   googleAuth,
@@ -99,6 +100,9 @@ router.post(
   handleValidationErrors,
   refreshToken
 );
+
+// Logout
+router.post('/logout', authenticate, logout);
 
 // Delete Account
 router.delete('/delete-account', authenticate, deleteAccount);

@@ -420,6 +420,58 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
+// @route   POST /api/auth/logout
+// @desc    Logout user and blacklist token
+// @access  Private
+exports.logout = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'No token provided',
+      });
+    }
+
+    const jwt = require('jsonwebtoken');
+    const { getRedis } = require('../config/redis');
+
+    try {
+      // Decode token to get expiry
+      const decoded = jwt.decode(token);
+      if (decoded && decoded.exp) {
+        // Calculate TTL (time until token expires)
+        const ttl = decoded.exp - Math.floor(Date.now() / 1000);
+        
+        if (ttl > 0) {
+          // Add token to blacklist with TTL = token expiry
+          const redisClient = await getRedis();
+          if (redisClient) {
+            await redisClient.setex(`blacklist:${token}`, ttl, '1');
+          }
+        }
+      }
+    } catch (redisError) {
+      // If Redis is unavailable, log warning but don't fail logout
+      // User can still logout, token will just expire naturally
+      console.warn('Redis unavailable for token blacklisting:', redisError);
+    }
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error during logout',
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
 // @route   DELETE /api/auth/delete-account
 // @desc    Delete user account
 // @access  Private

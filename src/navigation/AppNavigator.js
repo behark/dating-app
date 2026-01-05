@@ -88,6 +88,16 @@ const AIInsightsScreen = createLazyScreen(() => import('../screens/AIInsightsScr
   displayName: 'AIInsightsScreen',
 });
 
+const PrivacyPolicyScreen = createLazyScreen(() => import('../screens/PrivacyPolicyScreen'), {
+  loadingMessage: 'Loading privacy policy...',
+  displayName: 'PrivacyPolicyScreen',
+});
+
+const TermsOfServiceScreen = createLazyScreen(() => import('../screens/TermsOfServiceScreen'), {
+  loadingMessage: 'Loading terms of service...',
+  displayName: 'TermsOfServiceScreen',
+});
+
 const VerificationScreen = createLazyScreen(() => import('../screens/VerificationScreen'), {
   loadingMessage: 'Loading verification...',
   displayName: 'VerificationScreen',
@@ -301,6 +311,22 @@ const AppNavigator = () => {
             <Stack.Screen
               name="PrivacySettings"
               component={PrivacySettingsScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="PrivacyPolicy"
+              component={PrivacyPolicyScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="TermsOfService"
+              component={TermsOfServiceScreen}
               options={{
                 headerShown: false,
                 presentation: 'card',

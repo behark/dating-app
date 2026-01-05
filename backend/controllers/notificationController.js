@@ -9,7 +9,7 @@ const {
   asyncHandler,
 } = require('../utils/responseHelpers');
 const User = require('../models/User');
-
+const Notification = require('../models/Notification');
 const Swipe = require('../models/Swipe');
 
 // @route   PUT /api/notifications/preferences
@@ -207,16 +207,18 @@ exports.sendNotification = async (req, res) => {
       `[NOTIFICATION] To: ${toUserId}, Type: ${type}, Title: ${title}, Message: ${message}`
     );
 
-    // Store notification in database if needed
-    // await Notification.create({
-    //   toUserId,
-    //   type,
-    //   title,
-    //   message,
-    //   data,
-    //   read: false,
-    //   createdAt: new Date()
-    // });
+    // Store notification in database
+    const notification = await Notification.create({
+      userId: toUserId,
+      type,
+      title,
+      message,
+      data: data || {},
+      isRead: false,
+      priority: data?.priority || 'normal',
+      actionUrl: data?.actionUrl || null,
+      imageUrl: data?.imageUrl || null,
+    });
 
     res.json({
       success: true,
@@ -408,6 +410,131 @@ exports.disableNotifications = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error disabling notifications',
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+// @route   GET /api/notifications
+// @desc    Get user's notifications
+// @access  Private
+exports.getNotifications = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { type, isRead, limit = 50, skip = 0 } = req.query;
+
+    // Build query
+    const query = {
+      userId,
+      $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }], // Only non-expired
+    };
+
+    if (type) {
+      query.type = type;
+    }
+
+    if (isRead !== undefined) {
+      query.isRead = isRead === 'true';
+    }
+
+    // Get notifications
+    const notifications = await Notification.find(query)
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip(parseInt(skip))
+      .lean();
+
+    // Get total count for pagination
+    const total = await Notification.countDocuments(query);
+
+    // Get unread count
+    const unreadCount = await Notification.getUnreadCount(userId);
+
+    res.json({
+      success: true,
+      data: {
+        notifications,
+        pagination: {
+          total,
+          limit: parseInt(limit),
+          skip: parseInt(skip),
+          hasMore: skip + notifications.length < total,
+        },
+        unreadCount,
+      },
+    });
+  } catch (error) {
+    console.error('Get notifications error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching notifications',
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+// @route   PUT /api/notifications/:id/read
+// @desc    Mark notification as read
+// @access  Private
+exports.markNotificationAsRead = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { id } = req.params;
+
+    const notification = await Notification.findOne({
+      _id: id,
+      userId, // Ensure user owns this notification
+    });
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: 'Notification not found',
+      });
+    }
+
+    if (!notification.isRead) {
+      notification.isRead = true;
+      notification.readAt = new Date();
+      await notification.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Notification marked as read',
+      data: { notification },
+    });
+  } catch (error) {
+    console.error('Mark notification as read error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error marking notification as read',
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
+
+// @route   PUT /api/notifications/read-all
+// @desc    Mark all notifications as read
+// @access  Private
+exports.markAllAsRead = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const result = await Notification.markAllAsRead(userId);
+
+    res.json({
+      success: true,
+      message: 'All notifications marked as read',
+      data: {
+        updatedCount: result.modifiedCount,
+      },
+    });
+  } catch (error) {
+    console.error('Mark all notifications as read error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error marking all notifications as read',
       error: error instanceof Error ? error.message : String(error),
     });
   }
