@@ -40,8 +40,13 @@ const getApiUrl = () => {
     return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
   }
 
-  // Default to localhost in development, production otherwise
-  return __DEV__ ? DEVELOPMENT_API_URL : PRODUCTION_API_URL;
+  // Default to production URL (for web builds, __DEV__ might not be reliable)
+  // Check if we're in a browser environment (web) - if so, always use production
+  if (Platform.OS === 'web') {
+    return PRODUCTION_API_URL;
+  }
+  // For native platforms, use __DEV__ check
+  return typeof __DEV__ !== 'undefined' && __DEV__ ? DEVELOPMENT_API_URL : PRODUCTION_API_URL;
 };
 
 /**
