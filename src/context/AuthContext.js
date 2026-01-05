@@ -3,7 +3,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
 import PropTypes from 'prop-types';
-import { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Alert, Platform } from 'react-native';
 import { API_URL } from '../config/api';
 import { ERROR_MESSAGES } from '../constants/constants';
@@ -11,18 +11,16 @@ import api from '../services/api';
 import { LocationService } from '../services/LocationService';
 import { NotificationService } from '../services/NotificationService';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
-import { extractGoogleUserInfo, decodeJWT } from '../utils/jwt';
-import {
-  storeAuthToken,
-  storeRefreshToken,
-  getAuthToken,
-  getRefreshToken,
-  removeAuthToken,
-  removeRefreshToken,
-  clearAllTokens,
-} from '../utils/secureStorage';
-import { setUser as setSentryUser, clearUser as clearSentryUser } from '../utils/sentry';
+import { decodeJWT, extractGoogleUserInfo } from '../utils/jwt';
 import logger from '../utils/logger';
+import {
+    clearAllTokens,
+    getAuthToken,
+    getRefreshToken,
+    storeAuthToken,
+    storeRefreshToken
+} from '../utils/secureStorage';
+import { clearUser as clearSentryUser, setUser as setSentryUser } from '../utils/sentry';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -313,11 +311,22 @@ export const AuthProvider = ({ children }) => {
       if (id_token) {
         signInWithGoogle(id_token).catch((error) => {
           logger.error('Google sign-in error:', error);
-          // Error is already handled in signInWithGoogle and will be thrown to the caller
+          // Show error to user instead of silently failing
+          Alert.alert(
+            'Google Sign-In Failed',
+            error.message || 'Failed to sign in with Google. Please try again.',
+            [{ text: 'OK' }]
+          );
         });
       }
     } else if (response?.type === 'error') {
       logger.error('Google OAuth error:', response.error);
+      // Show error to user
+      Alert.alert(
+        'Google Sign-In Error',
+        response.error?.message || 'An error occurred during Google sign-in.',
+        [{ text: 'OK' }]
+      );
     } else if (response?.type === 'cancel') {
       logger.debug('Google sign-in cancelled by user');
     }
