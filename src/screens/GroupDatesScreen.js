@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     FlatList,
     RefreshControl,
     StyleSheet,
@@ -11,6 +12,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import SocialFeaturesService from '../services/SocialFeaturesService';
 import logger from '../utils/logger';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 import { getUserId, userIdsMatch } from '../utils/userIdUtils';
 
 const GroupDatesScreen = ({ navigation }) => {
@@ -31,6 +33,10 @@ const GroupDatesScreen = ({ navigation }) => {
       setGroupDates(data.groupDates || []);
     } catch (error) {
       logger.error('Error fetching group dates:', error);
+      Alert.alert(
+        'Error',
+        getUserFriendlyMessage(error.message || 'Failed to load group dates. Please try again.')
+      );
     } finally {
       setLoading(false);
     }
@@ -52,7 +58,10 @@ const GroupDatesScreen = ({ navigation }) => {
       fetchGroupDates();
     } catch (error) {
       logger.error('Error joining group date:', error);
-      alert(error.response?.data?.message || 'Failed to join group date');
+      Alert.alert(
+        'Error',
+        getUserFriendlyMessage(error.message || 'Failed to join group date. Please try again.')
+      );
     }
   };
 

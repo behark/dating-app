@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     FlatList,
     RefreshControl,
     StyleSheet,
@@ -11,6 +12,8 @@ import {
 import { useAuth } from '../context/AuthContext';
 import SocialFeaturesService from '../services/SocialFeaturesService';
 import logger from '../utils/logger';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { getUserId, userIdsMatch } from '../utils/userIdUtils';
 
 const EventsScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
@@ -35,6 +38,10 @@ const EventsScreen = ({ navigation }) => {
       setEvents(data.events || []);
     } catch (error) {
       logger.error('Error fetching events:', error);
+      Alert.alert(
+        'Error',
+        getUserFriendlyMessage(error.message || 'Failed to load events. Please try again.')
+      );
     } finally {
       setLoading(false);
     }
@@ -54,10 +61,13 @@ const EventsScreen = ({ navigation }) => {
     try {
       await SocialFeaturesService.registerForEvent(eventId, getUserId(currentUser));
       fetchEvents();
-      alert('Successfully registered for event!');
+      Alert.alert('Success', 'Successfully registered for event!');
     } catch (error) {
       logger.error('Error registering for event:', error);
-      alert(error.response?.data?.message || 'Failed to register for event');
+      Alert.alert(
+        'Error',
+        getUserFriendlyMessage(error.message || 'Failed to register for event. Please try again.')
+      );
     }
   };
 
