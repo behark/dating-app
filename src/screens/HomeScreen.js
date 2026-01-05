@@ -173,7 +173,8 @@ const HomeScreen = ({ navigation }) => {
   // Cleanup repository cache on unmount
   useEffect(() => {
     return () => {
-      // Repository handles its own cache cleanup
+      // Stop periodic location updates to prevent memory leak
+      LocationService.stopPeriodicLocationUpdates();
     };
   }, []);
 
