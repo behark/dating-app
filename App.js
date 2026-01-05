@@ -115,8 +115,7 @@ export default function App() {
       console.warn('⚠️  Sentry DSN not configured - error tracking disabled');
     }
 
-    // Suppress Radix UI Dialog accessibility warning from Vercel Analytics
-    // This is a third-party library issue, not our code
+    // Suppress known warnings on web that are expected/harmless
     if (Platform.OS === 'web' && typeof console !== 'undefined') {
       const originalWarn = console.warn;
       console.warn = (...args) => {
@@ -128,6 +127,13 @@ export default function App() {
           message.includes('screen reader')
         ) {
           return; // Suppress this specific warning
+        }
+        // Filter out Animated useNativeDriver warning on web (expected, native module doesn't exist on web)
+        if (
+          message.includes('useNativeDriver') &&
+          message.includes('native animated module is missing')
+        ) {
+          return; // Suppress - this is expected on web
         }
         originalWarn.apply(console, args);
       };
