@@ -650,6 +650,200 @@ const getActiveDatePlans = async (req, res) => {
   }
 };
 
+/**
+ * Get date plans shared with user
+ * GET /api/safety/date-plans/shared
+ */
+const getSharedDatePlans = async (req, res) => {
+  try {
+    const { userId } = req.user;
+
+    // In production, fetch date plans where userId is in sharedWith array
+    const sharedPlans = [];
+
+    return res.status(200).json({
+      success: true,
+      data: sharedPlans,
+    });
+  } catch (error) {
+    console.error('Error getting shared date plans:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to get shared date plans',
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
+    });
+  }
+};
+
+/**
+ * Update date plan status
+ * PUT /api/safety/date-plan/:datePlanId
+ */
+const updateDatePlan = async (req, res) => {
+  try {
+    const { datePlanId } = req.params;
+    const { userId } = req.user;
+    const { status, notes } = req.body;
+
+    // Validate status
+    const validStatuses = ['active', 'completed', 'cancelled'];
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
+      });
+    }
+
+    // In production, update the date plan in database
+    const updatedPlan = {
+      datePlanId,
+      status: status || 'active',
+      notes: notes || '',
+      updatedAt: new Date(),
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: 'Date plan updated',
+      data: updatedPlan,
+    });
+  } catch (error) {
+    console.error('Error updating date plan:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update date plan',
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
+    });
+  }
+};
+
+/**
+ * Get active check-ins for user
+ * GET /api/safety/checkin/active
+ */
+const getActiveCheckIns = async (req, res) => {
+  try {
+    const { userId } = req.user;
+
+    // In production, fetch from database where status is 'active' and not expired
+    const activeCheckIns = [];
+
+    return res.status(200).json({
+      success: true,
+      data: activeCheckIns,
+    });
+  } catch (error) {
+    console.error('Error getting active check-ins:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to get active check-ins',
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
+    });
+  }
+};
+
+/**
+ * Get photo verification status
+ * GET /api/safety/photo-verification/status
+ */
+const getPhotoVerificationStatus = async (req, res) => {
+  try {
+    const { userId } = req.user;
+
+    // In production, fetch from database
+    // Check user's verification status
+    const user = await User.findById(userId);
+    
+    const verificationStatus = {
+      verified: user?.isVerified || false,
+      status: user?.isVerified ? 'verified' : 'not_submitted',
+      submittedAt: user?.verificationSubmittedAt || null,
+      verifiedAt: user?.verifiedAt || null,
+    };
+
+    return res.status(200).json({
+      success: true,
+      data: verificationStatus,
+    });
+  } catch (error) {
+    console.error('Error getting photo verification status:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to get verification status',
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
+    });
+  }
+};
+
+/**
+ * Update background check results (admin/internal use)
+ * PUT /api/safety/background-check/:backgroundCheckId
+ */
+const updateBackgroundCheck = async (req, res) => {
+  try {
+    const { backgroundCheckId } = req.params;
+    const { userId } = req.user;
+    const { status, results, checks } = req.body;
+
+    // Validate status
+    const validStatuses = ['pending', 'in_progress', 'completed', 'failed'];
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
+      });
+    }
+
+    // In production, update the background check in database
+    const updatedCheck = {
+      backgroundCheckId,
+      status: status || 'in_progress',
+      results: results || {},
+      checks: checks || {},
+      updatedAt: new Date(),
+      completedAt: status === 'completed' ? new Date() : null,
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: 'Background check updated',
+      data: updatedCheck,
+    });
+  } catch (error) {
+    console.error('Error updating background check:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update background check',
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
+    });
+  }
+};
+
 module.exports = {
   shareDatePlan,
   startCheckIn,
@@ -660,9 +854,14 @@ module.exports = {
   resolveSOS,
   initiateBackgroundCheck,
   getBackgroundCheckStatus,
+  updateBackgroundCheck,
   addEmergencyContact,
   getEmergencyContacts,
   deleteEmergencyContact,
   submitAdvancedPhotoVerification,
+  getPhotoVerificationStatus,
   getActiveDatePlans,
+  getSharedDatePlans,
+  updateDatePlan,
+  getActiveCheckIns,
 };
