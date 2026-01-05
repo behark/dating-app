@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Colors } from '../constants/colors';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
+import { Colors } from '../constants/colors';
 import { VerificationService } from '../services/VerificationService';
 import { useAuth } from '../context/AuthContext';
 import logger from '../utils/logger';

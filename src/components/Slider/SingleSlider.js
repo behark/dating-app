@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Colors } from '../../constants/colors';
 import { View, StyleSheet, Text } from 'react-native';
+import { Colors } from '../../constants/colors';
 
 const SingleSlider = ({
   min = 0,

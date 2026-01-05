@@ -56,13 +56,14 @@ superLikeSchema.index({ recipientId: 1, isViewed: 1, createdAt: -1 });
 // Prevent duplicate super likes between same users
 superLikeSchema.pre('save', async function (next) {
   if (this.isNew) {
-    const existingSuper = await this.constructor.findOne({
+    const existingSuper = await (/** @type {any} */ (this.constructor)).findOne({
       senderId: this.senderId,
       recipientId: this.recipientId,
     });
 
     if (existingSuper) {
       const error = new Error('You have already sent a super like to this user');
+      // @ts-ignore
       error.statusCode = 400;
       return next(error);
     }
@@ -90,6 +91,7 @@ superLikeSchema.statics.getRemainingForToday = async function (userId) {
  */
 
 /** @type {SuperLikeModel} */
+// @ts-ignore
 const SuperLikeModel = mongoose.model('SuperLike', superLikeSchema);
 
 module.exports = SuperLikeModel;

@@ -183,14 +183,22 @@ const getSignedUrl = async (path, expiresInSeconds = 3600) => {
   }
 
   try {
+    const keyPairId = process.env.CLOUDFRONT_KEY_PAIR_ID;
+    const privateKey = process.env.CLOUDFRONT_PRIVATE_KEY;
+
+    if (!keyPairId || !privateKey) {
+      console.warn('CloudFront credentials not configured - returning unsigned URL');
+      return getCdnUrl(path);
+    }
+
     const url = getCdnUrl(path);
     const dateLessThan = new Date(Date.now() + expiresInSeconds * 1000).toISOString();
 
     return getSignedUrl({
       url,
       dateLessThan,
-      keyPairId: process.env.CLOUDFRONT_KEY_PAIR_ID,
-      privateKey: process.env.CLOUDFRONT_PRIVATE_KEY,
+      keyPairId,
+      privateKey,
     });
   } catch (error) {
     console.error('Error generating signed URL:', error);
@@ -207,6 +215,16 @@ const invalidateCache = async (paths) => {
     return;
   }
 
+  const distributionId = CDN_CONFIG.cloudfront.distributionId;
+  if (!distributionId) {
+    console.warn('CDN invalidation skipped - CloudFront distribution ID not configured');
+    return;
+  }
+
+  if (!paths || !Array.isArray(paths) || paths.length === 0) {
+    throw new Error('Invalid paths: must be a non-empty array');
+  }
+
   try {
     const { CloudFrontClient, CreateInvalidationCommand } = require('@aws-sdk/client-cloudfront');
 
@@ -215,7 +233,7 @@ const invalidateCache = async (paths) => {
     });
 
     const command = new CreateInvalidationCommand({
-      DistributionId: CDN_CONFIG.cloudfront.distributionId,
+      DistributionId: distributionId,
       InvalidationBatch: {
         CallerReference: `invalidation-${Date.now()}`,
         Paths: {
@@ -226,11 +244,11 @@ const invalidateCache = async (paths) => {
     });
 
     const response = await client.send(command);
-    console.log('CDN invalidation created:', response?.Invalidation.Id);
+    console.log('CDN invalidation created:', response?.Invalidation?.Id);
     return response;
   } catch (error) {
     console.error('CDN invalidation error:', error);
-    throw error;
+    throw error instanceof Error ? error : new Error(String(error));
   }
 };
 

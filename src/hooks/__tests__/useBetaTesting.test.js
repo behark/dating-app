@@ -3,7 +3,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { act, renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react';
 import { betaTestingService } from '../../services/BetaTestingService';
 import { featureFlagService } from '../../services/FeatureFlagService';
 import { useBetaTesting } from '../useBetaTesting';

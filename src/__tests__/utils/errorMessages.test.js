@@ -8,6 +8,10 @@ import {
   extractErrorMessage,
 } from '../../utils/errorMessages';
 
+// Constants to avoid duplicate strings
+const UNEXPECTED_ERROR_TEXT = 'unexpected error';
+const DEFAULT_ERROR_MESSAGE = 'An unexpected error occurred.';
+
 describe('Error Messages', () => {
   describe('getHttpErrorMessage', () => {
     it('should return user-friendly message for known status codes', () => {
@@ -53,14 +57,14 @@ describe('Error Messages', () => {
 
     it('should clean up technical error messages', () => {
       const result = getUserFriendlyMessage('Error: Failed to connect');
-      expect(result).toContain('Failed to connect');
+      expect(result).toContain('Unable to connect');
       expect(result).not.toContain('Error:');
     });
 
     it('should handle empty/null errors', () => {
-      expect(getUserFriendlyMessage(null)).toContain('unexpected error');
-      expect(getUserFriendlyMessage('')).toContain('unexpected error');
-      expect(getUserFriendlyMessage(undefined)).toContain('unexpected error');
+      expect(getUserFriendlyMessage(null)).toContain(UNEXPECTED_ERROR_TEXT);
+      expect(getUserFriendlyMessage('')).toContain(UNEXPECTED_ERROR_TEXT);
+      expect(getUserFriendlyMessage(undefined)).toContain(UNEXPECTED_ERROR_TEXT);
     });
   });
 
@@ -85,9 +89,9 @@ describe('Error Messages', () => {
     });
 
     it('should return default for invalid inputs', () => {
-      expect(extractErrorMessage(null)).toBe('An unexpected error occurred.');
-      expect(extractErrorMessage(undefined)).toBe('An unexpected error occurred.');
-      expect(extractErrorMessage({})).toBe('An unexpected error occurred.');
+      expect(extractErrorMessage(null)).toBe(DEFAULT_ERROR_MESSAGE);
+      expect(extractErrorMessage(undefined)).toBe(DEFAULT_ERROR_MESSAGE);
+      expect(extractErrorMessage({})).toBe(DEFAULT_ERROR_MESSAGE);
     });
   });
 });

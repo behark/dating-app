@@ -13,11 +13,14 @@ function fixImportPaths(filePath) {
     // Check if file is in a subdirectory (like components/Card/, components/Chat/, etc.)
     const relativePath = path.relative(process.cwd(), filePath);
     const depth = relativePath.split(path.sep).length;
-    
+
     // If file is in src/components/SomeSubdir/, it needs ../../constants/colors
     // If file is in src/components/, it needs ../constants/colors
     if (relativePath.includes('components/') && relativePath.split('/').length > 2) {
-      content = content.replace(/from ['"]\.\.\/constants\/colors['"]/g, "from '../../constants/colors'");
+      content = content.replace(
+        /from ['"]\.\.\/constants\/colors['"]/g,
+        "from '../../constants/colors'"
+      );
       modified = true;
     }
   }
@@ -40,11 +43,9 @@ function processDirectory(dirPath) {
 
     if (stat.isDirectory() && !file.startsWith('.') && file !== 'node_modules') {
       processedCount += processDirectory(filePath);
-    } else if (file.endsWith('.js') || file.endsWith('.jsx')) {
-      if (fixImportPaths(filePath)) {
-        processedCount++;
-        console.log(`Fixed: ${filePath}`);
-      }
+    } else if ((file.endsWith('.js') || file.endsWith('.jsx')) && fixImportPaths(filePath)) {
+      processedCount++;
+      console.log(`Fixed: ${filePath}`);
     }
   }
 

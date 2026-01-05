@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../constants/colors';
 import { useCallback, useEffect, useRef } from 'react';
 import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Colors } from '../constants/colors';
 import { useOffline } from '../hooks/useOffline';
 
 // useNativeDriver is not supported on web

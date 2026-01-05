@@ -18,12 +18,12 @@ router.use(authenticate);
  */
 router.get('/dashboard', isAdmin, async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
-
+    const startDate = /** @type {string} */ (req.query.startDate);
+    const endDate = /** @type {string} */ (req.query.endDate);
     const start = startDate ? new Date(startDate) : null;
     const end = endDate ? new Date(endDate) : new Date();
 
-    const dashboard = await analyticsMetricsService.getDashboardMetrics(start, end);
+    const dashboard = await analyticsMetricsService.getDashboardMetrics(/** @type {any} */ (start), end);
 
     res.json({
       success: true,
@@ -46,7 +46,7 @@ router.get('/dashboard', isAdmin, async (req, res) => {
  */
 router.get('/dau', isAdmin, async (req, res) => {
   try {
-    const { date } = req.query;
+    const date = /** @type {string} */ (req.query.date);
     const targetDate = date ? new Date(date) : new Date();
 
     const dau = await analyticsMetricsService.getDailyActiveUsers(targetDate);
@@ -104,7 +104,8 @@ router.get('/active-users', isAdmin, async (req, res) => {
  */
 router.get('/retention', isAdmin, async (req, res) => {
   try {
-    const { cohortDate, days } = req.query;
+    const cohortDate = /** @type {string} */ (req.query.cohortDate);
+    const days = /** @type {string} */ (req.query.days);
 
     const targetDate = cohortDate
       ? new Date(cohortDate)
@@ -134,7 +135,7 @@ router.get('/retention', isAdmin, async (req, res) => {
  */
 router.get('/retention/rolling', isAdmin, async (req, res) => {
   try {
-    const { days } = req.query;
+    const days = /** @type {string} */ (req.query.days);
     const lookbackDays = days ? parseInt(days) : 30;
 
     const retention = await analyticsMetricsService.getRollingRetention(lookbackDays);
@@ -160,7 +161,8 @@ router.get('/retention/rolling', isAdmin, async (req, res) => {
  */
 router.get('/matches', isAdmin, async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const startDate = /** @type {string} */ (req.query.startDate);
+    const endDate = /** @type {string} */ (req.query.endDate);
 
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
@@ -194,7 +196,8 @@ router.get('/matches', isAdmin, async (req, res) => {
  */
 router.get('/messages', isAdmin, async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const startDate = /** @type {string} */ (req.query.startDate);
+    const endDate = /** @type {string} */ (req.query.endDate);
 
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
@@ -228,7 +231,8 @@ router.get('/messages', isAdmin, async (req, res) => {
  */
 router.get('/premium', isAdmin, async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const startDate = /** @type {string} */ (req.query.startDate);
+    const endDate = /** @type {string} */ (req.query.endDate);
 
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
@@ -262,7 +266,8 @@ router.get('/premium', isAdmin, async (req, res) => {
  */
 router.get('/photos', isAdmin, async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
+    const startDate = /** @type {string} */ (req.query.startDate);
+    const endDate = /** @type {string} */ (req.query.endDate);
 
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
@@ -319,12 +324,14 @@ router.post('/crash', async (req, res) => {
  */
 router.get('/export', isAdmin, async (req, res) => {
   try {
-    const { type, startDate, endDate } = req.query;
+    const type = /** @type {string} */ (req.query.type);
+    const startDate = /** @type {string} */ (req.query.startDate);
+    const endDate = /** @type {string} */ (req.query.endDate);
 
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
 
-    const dashboard = await analyticsMetricsService.getDashboardMetrics(start, end);
+    const dashboard = await analyticsMetricsService.getDashboardMetrics(/** @type {any} */ (start), end);
 
     // Convert to CSV format
     const csvRows = [

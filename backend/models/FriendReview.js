@@ -122,7 +122,7 @@ friendReviewSchema.index({ isVerified: 1, moderationStatus: 1 });
 friendReviewSchema.index({ createdAt: -1 });
 
 friendReviewSchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
+  this.updatedAt = new Date();
   next();
 });
 
@@ -132,6 +132,7 @@ friendReviewSchema.pre('save', function (next) {
  */
 
 /** @type {FriendReviewModel} */
+// @ts-ignore
 const FriendReviewModel = mongoose.model('FriendReview', friendReviewSchema);
 
 module.exports = FriendReviewModel;

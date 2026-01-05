@@ -13,6 +13,7 @@ const Subscription = require('../models/Subscription');
 const PaymentTransaction = require('../models/PaymentTransaction');
 
 class GooglePlayService {
+  /** @type {import('googleapis').androidpublisher_v3.Androidpublisher | null} */
   static androidPublisher = null;
 
   /**
@@ -44,7 +45,7 @@ class GooglePlayService {
    */
   static async validateSubscription(purchaseToken, productId) {
     try {
-      const publisher = await this.getAndroidPublisher();
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
 
       const response = await publisher.purchases.subscriptions.get({
         packageName: paymentConfig.google.packageName,
@@ -57,8 +58,8 @@ class GooglePlayService {
       return {
         valid: true,
         orderId: subscription.orderId,
-        purchaseTime: new Date(parseInt(subscription.startTimeMillis)),
-        expiryTime: new Date(parseInt(subscription.expiryTimeMillis)),
+        purchaseTime: new Date(parseInt(subscription.startTimeMillis || '0')),
+        expiryTime: new Date(parseInt(subscription.expiryTimeMillis || '0')),
         autoRenewing: subscription.autoRenewing,
         paymentState: subscription.paymentState,
         cancelReason: subscription.cancelReason,
@@ -70,7 +71,7 @@ class GooglePlayService {
         },
         acknowledgementState: subscription.acknowledgementState,
         linkedPurchaseToken: subscription.linkedPurchaseToken,
-        isActive: parseInt(subscription.expiryTimeMillis) > Date.now(),
+        isActive: parseInt(subscription.expiryTimeMillis || '0') > Date.now(),
       };
     } catch (error) {
       console.error('Error validating Google subscription:', error);
@@ -91,7 +92,7 @@ class GooglePlayService {
    */
   static async validateProduct(purchaseToken, productId) {
     try {
-      const publisher = await this.getAndroidPublisher();
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
 
       const response = await publisher.purchases.products.get({
         packageName: paymentConfig.google.packageName,
@@ -104,7 +105,7 @@ class GooglePlayService {
       return {
         valid: true,
         orderId: purchase.orderId,
-        purchaseTime: new Date(parseInt(purchase.purchaseTimeMillis)),
+        purchaseTime: new Date(parseInt(purchase.purchaseTimeMillis || '0')),
         purchaseState: purchase.purchaseState,
         consumptionState: purchase.consumptionState,
         developerPayload: purchase.developerPayload,
@@ -122,7 +123,7 @@ class GooglePlayService {
    */
   static async acknowledgeSubscription(purchaseToken, productId, developerPayload) {
     try {
-      const publisher = await this.getAndroidPublisher();
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
 
       await publisher.purchases.subscriptions.acknowledge({
         packageName: paymentConfig.google.packageName,
@@ -145,7 +146,7 @@ class GooglePlayService {
    */
   static async acknowledgeProduct(purchaseToken, productId, developerPayload) {
     try {
-      const publisher = await this.getAndroidPublisher();
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
 
       await publisher.purchases.products.acknowledge({
         packageName: paymentConfig.google.packageName,
@@ -168,7 +169,7 @@ class GooglePlayService {
    */
   static async consumeProduct(purchaseToken, productId) {
     try {
-      const publisher = await this.getAndroidPublisher();
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
 
       await publisher.purchases.products.consume({
         packageName: paymentConfig.google.packageName,
@@ -188,7 +189,7 @@ class GooglePlayService {
    */
   static async cancelSubscription(purchaseToken, productId) {
     try {
-      const publisher = await this.getAndroidPublisher();
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
 
       await publisher.purchases.subscriptions.cancel({
         packageName: paymentConfig.google.packageName,
@@ -208,7 +209,7 @@ class GooglePlayService {
    */
   static async refundSubscription(purchaseToken, productId) {
     try {
-      const publisher = await this.getAndroidPublisher();
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
 
       await publisher.purchases.subscriptions.refund({
         packageName: paymentConfig.google.packageName,
@@ -228,7 +229,7 @@ class GooglePlayService {
    */
   static async revokeSubscription(purchaseToken, productId) {
     try {
-      const publisher = await this.getAndroidPublisher();
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
 
       await publisher.purchases.subscriptions.revoke({
         packageName: paymentConfig.google.packageName,
@@ -274,7 +275,7 @@ class GooglePlayService {
       const subscription = await Subscription.findOne({ userId });
       if (subscription) {
         subscription.endDate = validation.expiryTime;
-        subscription.autoRenew = validation.autoRenewing;
+        subscription.autoRenew = validation.autoRenewing ?? false;
         await subscription.save();
       }
 
@@ -284,8 +285,8 @@ class GooglePlayService {
         provider: 'google',
         type: 'subscription',
         status: 'completed',
-        amount: validation?.priceInfo.priceAmount,
-        currency: validation?.priceInfo.priceCurrencyCode,
+        amount: validation?.priceInfo?.priceAmount,
+        currency: validation?.priceInfo?.priceCurrencyCode,
         providerTransactionId: validation.orderId,
         subscriptionPlan: planType,
         metadata: {
@@ -409,6 +410,7 @@ class GooglePlayService {
    * Restore purchases
    */
   static async restorePurchases(userId, purchases) {
+    /** @type {{ subscriptions: any[], products: any[] }} */
     const restored = {
       subscriptions: [],
       products: [],
@@ -422,7 +424,7 @@ class GooglePlayService {
             purchase.purchaseToken,
             purchase.productId
           );
-          if (result.success && result?.subscription.isActive) {
+          if (result.success && result?.subscription?.isActive) {
             restored.subscriptions.push(result.subscription);
           }
         }
@@ -627,7 +629,9 @@ class GooglePlayService {
 
     const subscription = await Subscription.findOne({ userId });
     if (subscription) {
-      subscription.status = 'grace_period';
+      /** @type {any} */
+      const status = 'grace_period';
+      subscription.status = status;
       // Still allow access during grace period
       await subscription.save();
     }
@@ -663,7 +667,9 @@ class GooglePlayService {
 
     const subscription = await Subscription.findOne({ userId });
     if (subscription) {
-      subscription.status = 'paused';
+      /** @type {any} */
+      const pausedStatus = 'paused';
+      subscription.status = pausedStatus;
       subscription.features = {
         unlimitedSwipes: false,
         seeWhoLikedYou: false,

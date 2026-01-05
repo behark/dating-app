@@ -36,7 +36,7 @@ describe('API Helpers', () => {
     it('should handle successful response', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().resolvedValue({ success: true, data: { user: { id: '123' } } }),
+        json: jest.fn().mockResolvedValue({ success: true, data: { user: { id: '123' } } }),
       };
 
       const result = await handleApiResponse(mockResponse);
@@ -49,7 +49,7 @@ describe('API Helpers', () => {
         status: 401,
         statusText: 'Unauthorized',
         url: '/api/test',
-        json: jest.fn().resolvedValue({ message: 'Authentication failed' }),
+        json: jest.fn().mockResolvedValue({ message: 'Authentication failed' }),
       };
 
       await expect(handleApiResponse(mockResponse)).rejects.toThrow();
@@ -61,7 +61,7 @@ describe('API Helpers', () => {
         status: 500,
         statusText: 'Internal Server Error',
         url: '/api/test',
-        json: jest.fn().rejectedValue(new Error('Not JSON')),
+        json: jest.fn().mockRejectedValue(new Error('Not JSON')),
       };
 
       await expect(handleApiResponse(mockResponse)).rejects.toThrow();
@@ -70,7 +70,7 @@ describe('API Helpers', () => {
     it('should validate response structure', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().resolvedValue({ success: false, message: 'Request failed' }),
+        json: jest.fn().mockResolvedValue({ success: false, message: 'Request failed' }),
       };
 
       await expect(handleApiResponse(mockResponse)).rejects.toThrow();
@@ -79,7 +79,7 @@ describe('API Helpers', () => {
     it('should return safe default for null data', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().resolvedValue({ success: true, data: null }),
+        json: jest.fn().mockResolvedValue({ success: true, data: null }),
       };
 
       const result = await handleApiResponse(mockResponse, { requireData: false });
@@ -116,7 +116,7 @@ describe('API Helpers', () => {
     it('should make authenticated request', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().resolvedValue({ success: true, data: { result: 'success' } }),
+        json: jest.fn().mockResolvedValue({ success: true, data: { result: 'success' } }),
       };
 
       global.fetch.mockResolvedValue(mockResponse);

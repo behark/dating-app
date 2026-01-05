@@ -173,7 +173,7 @@ exports.sendNotification = async (req, res) => {
     }
 
     // Check quiet hours
-    if (prefs.quietHours?.enabled) {
+    if (prefs.quietHours?.enabled && prefs.quietHours.start && prefs.quietHours.end) {
       const now = new Date();
       const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 

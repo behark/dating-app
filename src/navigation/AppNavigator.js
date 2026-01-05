@@ -1,9 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../constants/colors';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useEffect } from 'react';
+import { Colors } from '../constants/colors';
 import { createLazyScreen, usePreloadScreens } from '../components/LazyScreen';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';

@@ -73,9 +73,11 @@ router.get(
  * @access  Private (requires authentication)
  */
 router.get('/:id', authenticate, async (req, res) => {
+  /** @type {import('../types').AuthenticatedRequest} */
+  const authReq = req;
   try {
     const { id } = req.params;
-    const currentUserId = req.user?.id;
+    const currentUserId = authReq.user?.id;
 
     if (!id) {
       return sendError(res, 400, { message: 'User ID is required', error: 'VALIDATION_ERROR' });
@@ -90,14 +92,14 @@ router.get('/:id', authenticate, async (req, res) => {
       .lean();
 
     if (!user) {
-      return sendNotFound(res, { message: 'User not found', error: 'USER_NOT_FOUND' });
+      return sendNotFound(res, 'User');
     }
 
     // Check if current user has blocked this user or vice versa
     if (currentUserId) {
       const currentUser = await User.findById(currentUserId).select('blockedUsers').lean();
-      if (currentUser?.blockedUsers?.includes(id) || user.blockedUsers?.includes(currentUserId)) {
-        return sendNotFound(res, { message: 'User not found', error: 'USER_NOT_FOUND' });
+      if (currentUser?.blockedUsers?.some(blockedId => blockedId.toString() === id) || user.blockedUsers?.some(blockedId => blockedId.toString() === currentUserId)) {
+        return sendNotFound(res, 'User');
       }
     }
 

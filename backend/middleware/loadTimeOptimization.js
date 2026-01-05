@@ -11,15 +11,8 @@ const { COMPRESSION_CONFIG, HTTP_CONFIG } = require('../config/performance');
  */
 const compressionMiddleware = compression({
   ...COMPRESSION_CONFIG,
-  // Enable BR compression for browsers that support it
-  brotli: {
-    enabled: true,
-    zlib: {
-      params: {
-        [require('zlib').constants.BROTLI_PARAM_QUALITY]: 4,
-      },
-    },
-  },
+  // Note: Brotli compression is handled at the nginx/server level
+  // The compression middleware handles gzip/deflate automatically
 });
 
 /**

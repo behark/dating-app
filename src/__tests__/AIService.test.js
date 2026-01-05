@@ -1,3 +1,34 @@
+// Mock Firebase before imports
+jest.mock('../config/firebase', () => ({
+  app: {},
+  db: {},
+  storage: {},
+  auth: {
+    currentUser: null,
+  },
+}));
+
+// Mock SafetyService Firebase dependency
+jest.mock('firebase/app', () => ({
+  initializeApp: jest.fn(),
+  getApps: jest.fn(() => []),
+}));
+
+jest.mock('firebase/auth', () => ({
+  getAuth: jest.fn(() => ({
+    currentUser: null,
+  })),
+  initializeAuth: jest.fn(),
+}));
+
+jest.mock('firebase/firestore', () => ({
+  getFirestore: jest.fn(() => ({})),
+}));
+
+jest.mock('firebase/storage', () => ({
+  getStorage: jest.fn(() => ({})),
+}));
+
 import { AIService } from '../services/AIService';
 import { SafetyService } from '../services/SafetyService';
 
@@ -232,6 +263,7 @@ describe('AIService', () => {
 describe('SafetyService - Advanced Features', () => {
   const userId = 'user_123';
   const friendIds = ['friend_1', 'friend_2'];
+  const TEST_LOCATION = 'Coffee Shop';
 
   describe('shareDatePlan', () => {
     test('should share date plan successfully', async () => {
@@ -239,7 +271,7 @@ describe('SafetyService - Advanced Features', () => {
         matchUserId: 'match_123',
         matchName: 'John',
         matchPhotoUrl: 'https://example.com/photo.jpg',
-        location: 'Coffee Shop',
+        location: TEST_LOCATION,
         address: '123 Main St',
         dateTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
         notes: 'First date',
@@ -254,7 +286,7 @@ describe('SafetyService - Advanced Features', () => {
       const datePlanData = {
         matchUserId: 'match_123',
         matchName: 'John',
-        location: 'Coffee Shop',
+        location: TEST_LOCATION,
         dateTime: new Date(Date.now() - 60 * 60 * 1000), // Past date
       };
 
@@ -393,7 +425,7 @@ describe('SafetyService - Advanced Features', () => {
   describe('Validation', () => {
     test('should validate date plan', () => {
       const validPlan = {
-        location: 'Coffee Shop',
+        location: TEST_LOCATION,
         dateTime: new Date(Date.now() + 60 * 60 * 1000),
       };
 

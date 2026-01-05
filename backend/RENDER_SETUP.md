@@ -13,22 +13,27 @@ REDIS_URL=redis://default:pPjl1LpcwRC3hw9iIm5Ku3deXgTLGA0A@redis-18372.c99.us-ea
 ## 📝 Step-by-Step Instructions
 
 ### 1. Go to Render Dashboard
+
 - Visit: https://dashboard.render.com
 - Log in to your account
 
 ### 2. Select Your Backend Service
+
 - Click on your backend service (e.g., "dating-app-backend")
 
 ### 3. Navigate to Environment
+
 - In the left sidebar, click **"Environment"**
 
 ### 4. Add Environment Variable
+
 - Click **"Add Environment Variable"** button
 - **Key**: `REDIS_URL`
 - **Value**: `redis://default:pPjl1LpcwRC3hw9iIm5Ku3deXgTLGA0A@redis-18372.c99.us-east-1-4.ec2.cloud.redislabs.com:18372`
 - Click **"Save Changes"**
 
 ### 5. Redeploy
+
 - After saving, Render will automatically redeploy your service
 - Or manually trigger a redeploy from the "Manual Deploy" section
 
@@ -59,6 +64,7 @@ If you see this, Redis is working! 🎉
 ## 📋 Summary
 
 **What to add to Render:**
+
 - **Key**: `REDIS_URL`
 - **Value**: `redis://default:pPjl1LpcwRC3hw9iIm5Ku3deXgTLGA0A@redis-18372.c99.us-east-1-4.ec2.cloud.redislabs.com:18372`
 

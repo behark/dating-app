@@ -3,7 +3,9 @@
 ## 📋 Our Workflow
 
 ### Step 1: You Report Issues
+
 For each page/screen, tell me:
+
 - **Page Name**: Which screen/page is broken?
 - **What's Not Working**: Specific issue description
 - **Expected Behavior**: What should happen?
@@ -12,7 +14,9 @@ For each page/screen, tell me:
 - **Error Messages**: Any console errors or network errors?
 
 ### Step 2: I Investigate & Fix
+
 I will:
+
 1. ✅ Locate the relevant file(s)
 2. ✅ Read and understand the code
 3. ✅ Identify the root cause
@@ -21,6 +25,7 @@ I will:
 6. ✅ Document what was fixed
 
 ### Step 3: You Test
+
 - Test the fix on Vercel after deployment
 - Confirm it works or report if there are still issues
 
@@ -29,12 +34,14 @@ I will:
 ## 🗺️ App Structure Overview
 
 ### Main Navigation Tabs
+
 1. **Discover** (HomeScreen) - Main swipe/discovery
 2. **Matches** (MatchesScreen) - List of matches
 3. **Social** (GroupDatesScreen) - Group dating features
 4. **Profile** (ProfileScreen) - User's profile
 
 ### Key Screens to Test
+
 - [ ] Login/Register flows
 - [ ] Home/Discover screen (swiping)
 - [ ] Matches screen
@@ -138,6 +145,7 @@ When you report an issue, I will:
 ## 🚀 Ready to Start!
 
 **Just tell me:**
+
 - Which page/screen has issues
 - What's not working
 - Any error messages you see
@@ -149,11 +157,14 @@ I'll investigate and fix it! 🎯
 ## 📊 Progress Tracker
 
 ### Fixed Issues
+
 - [ ] Issue #1: [Description]
 - [ ] Issue #2: [Description]
 
 ### In Progress
+
 - [ ] Issue #X: [Description]
 
 ### Verified
+
 - [ ] Issue #X: [Description] ✅

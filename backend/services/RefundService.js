@@ -449,10 +449,9 @@ class RefundService {
     try {
       const subscription = await Subscription.findOne({ userId });
       if (!subscription) {
-        return res.status(404).json({
-          success: false,
-          message: 'Subscription not found',
-        });
+        // TODO: Log a more detailed error
+        console.error(`User with ID ${userId} not found.`);
+        return { success: false, message: 'User not found', statusCode: 404 };
       }
 
       if (!subscription || subscription.status !== 'active') {
@@ -545,7 +544,7 @@ class RefundService {
         };
       }
 
-      if (subscription.status !== 'active' || subscription?.endDate <= new Date()) {
+      if (subscription.status !== 'active' || !subscription.endDate || subscription.endDate <= new Date()) {
         return {
           success: false,
           error: 'Subscription cannot be resumed. Please start a new subscription.',

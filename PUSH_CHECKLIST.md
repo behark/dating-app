@@ -1,6 +1,7 @@
 # ✅ Pre-Push Checklist for Vercel Deployment
 
 ## 🗑️ Files Already Removed (by cleanup script)
+
 - ✅ All `.backup.*` files (21 files)
 - ✅ All `.tmp` files (9 files)
 - ✅ Test connection scripts (`test-redis-connection.js`, `test-mongodb-connection.js`)
@@ -9,6 +10,7 @@
 ## 📋 Files to Review
 
 ### ✅ KEEP These (Useful for deployment):
+
 - `backend/__tests__/setup.js` - Jest setup (needed for tests)
 - `backend/__tests__/global-teardown.js` - Jest teardown (needed for tests)
 - `backend/REDIS_SETUP.md` - Documentation (helpful)
@@ -22,10 +24,12 @@
 - `scripts/replace-colors.js` - Utility script (can keep)
 
 ### ⚠️ Optional to Remove (if you want cleaner repo):
+
 - `CLEANUP_BEFORE_PUSH.md` - This file (you can delete after reading)
 - `coverage/` - Test coverage reports (already in .gitignore, but if tracked, remove)
 
 ### ❓ Check These:
+
 - `backend/constants/` - Check if this is new or should be committed
 - `src/constants/Theme.js` - Check if this is needed
 - `src/constants/constants.js` - Check if this is needed
@@ -36,11 +40,13 @@
 ## 🚀 Ready to Push?
 
 ### Step 1: Review remaining files
+
 ```bash
 git status
 ```
 
 ### Step 2: Add files you want to commit
+
 ```bash
 # Add all modified files
 git add .
@@ -54,11 +60,13 @@ git add scripts/cleanup-before-push.sh
 ```
 
 ### Step 3: Commit
+
 ```bash
 git commit -m "Fix: Add Redis mock for tests, replace hardcoded colors, add cleanup scripts"
 ```
 
 ### Step 4: Push
+
 ```bash
 git push origin main
 ```
@@ -68,6 +76,7 @@ git push origin main
 ## ✅ What's Safe to Push
 
 All these are safe:
+
 - ✅ Source code changes (all `.js` files in `src/`, `backend/`)
 - ✅ Configuration files (`.json`, `.js` config files)
 - ✅ Documentation (`.md` files)

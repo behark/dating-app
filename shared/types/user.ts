@@ -95,7 +95,7 @@ export interface PassportMode {
   };
   lastChanged?: Date | string;
   changeHistory?: Array<{
-    location: any;
+    location: ILocation;
     city?: string;
     country?: string;
     changedAt: Date | string;
@@ -119,8 +119,8 @@ export interface PrivacySettings {
   locationHistoryEnabled?: boolean;
   changeHistory?: Array<{
     field: string;
-    oldValue: any;
-    newValue: any;
+    oldValue: unknown;
+    newValue: unknown;
     changedAt: Date | string;
   }>;
 }
@@ -176,7 +176,7 @@ export interface IUser {
   phoneVerified?: boolean;
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  
+
   // Enhanced profile fields
   videos?: IVideo[];
   profilePrompts?: IProfilePrompt[];
@@ -185,28 +185,28 @@ export interface IUser {
   height?: IHeight;
   ethnicity?: string[];
   socialMedia?: ISocialMedia;
-  
+
   // OAuth providers
   googleId?: string;
   facebookId?: string;
   appleId?: string;
   oauthProviders?: string[];
-  
+
   // Phone
   phoneNumber?: string;
   isPhoneVerified?: boolean;
-  
+
   // Account status
   isActive?: boolean;
   isVerified?: boolean;
   suspended?: boolean;
   needsReview?: boolean;
-  
+
   // Profile verification
   isProfileVerified?: boolean;
   verificationStatus?: 'unverified' | 'pending' | 'verified' | 'rejected';
   verificationMethod?: 'photo' | 'video' | 'id' | 'none';
-  
+
   // Activity & engagement
   isOnline?: boolean;
   isPremium?: boolean;
@@ -214,20 +214,20 @@ export interface IUser {
   totalSwipes?: number;
   totalMatches?: number;
   responseRate?: number;
-  
+
   // Profile views
   profileViewCount?: number;
   profileViewedBy?: Array<{
     userId: string;
     viewedAt: Date | string;
   }>;
-  
+
   // Boost tracking
   activeBoostId?: string;
-  
+
   // Online status
   lastOnlineAt?: Date | string;
-  
+
   // Safety & Privacy
   passportMode?: PassportMode;
   privacySettings?: PrivacySettings;
@@ -236,18 +236,18 @@ export interface IUser {
   blockedCount?: number;
   reportCount?: number;
   suspensionType?: string;
-  
+
   // Premium features
   stripeCustomerId?: string;
-  boostAnalytics?: any;
+  boostAnalytics?: Record<string, unknown>;
   superLikesBalance?: number;
   boostsBalance?: number;
   rewindsBalance?: number;
   receivedLikes?: ReceivedLike[] | string[];
-  advancedFilters?: any;
-  adsPreferences?: any;
+  advancedFilters?: Record<string, unknown>;
+  adsPreferences?: Record<string, unknown>;
   language?: string;
-  
+
   // Populated fields
   matches?: string[];
 }

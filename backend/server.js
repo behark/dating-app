@@ -6,7 +6,7 @@ const { createServer } = require('http');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const helmet = require('helmet');
+const helmet = require('helmet').default || require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
@@ -106,8 +106,10 @@ healthCheckService.registerCheck('mongodb', async () => {
   let poolInfo = { maxPoolSize: 50, status: 'ok', ...status.pool };
   try {
     const client = mongoose.connection.getClient();
-    if (client && client.topology && client.topology.description) {
-      const serverDescription = client.topology.description;
+    // @ts-ignore - topology is an internal property that may not be in types
+    const topology = client?.topology;
+    if (topology?.description) {
+      const serverDescription = topology.description;
       let totalConnections = 0;
       if (serverDescription.servers) {
         serverDescription.servers.forEach((server) => {
@@ -118,8 +120,9 @@ healthCheckService.registerCheck('mongodb', async () => {
       }
       poolInfo = {
         maxPoolSize: 50,
-        currentConnections: totalConnections,
-        utilizationPercent: Math.round((totalConnections / 50) * 100),
+        totalConnections: totalConnections,
+        availableConnections: 50 - totalConnections,
+        waitQueueSize: 0,
         status: totalConnections > 45 ? 'warning' : 'ok',
       };
     }
@@ -304,8 +307,8 @@ app.get('/api/test-sentry', (req, res) => {
             userId: 'test-user',
           });
 
-          // Send a metric
-          Sentry.metrics.count('test_counter', 1);
+          // Send a metric (increment is the correct API for counters)
+          Sentry.metrics.increment('test_counter', 1);
         }
       );
     }
@@ -528,11 +531,15 @@ io.use(async (socket, next) => {
     if (token) {
       // JWT authentication
       const jwt = require('jsonwebtoken');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      socket.userId = decoded.userId || decoded.id;
+      const jwtSecret = process.env.JWT_SECRET || '';
+      if (!jwtSecret) {
+        return next(new Error('JWT_SECRET not configured'));
+      }
+      const decoded = /** @type {any} */ (jwt.verify(token, jwtSecret));
+      /** @type {any} */ (socket).userId = decoded.userId || decoded.id;
     } else if (userId) {
       // Direct userId (for development/testing)
-      socket.userId = userId;
+      /** @type {any} */ (socket).userId = userId;
     } else {
       return next(new Error('Authentication required'));
     }
@@ -547,7 +554,9 @@ io.use(async (socket, next) => {
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
-  const userId = socket.userId;
+  /** @type {any} */
+  const extSocket = socket;
+  const userId = extSocket.userId;
   console.log(`[WS] User ${userId} connected (socket: ${socket.id})`);
 
   // Track connection
@@ -559,7 +568,7 @@ io.on('connection', (socket) => {
   // ===== HEARTBEAT HANDLER =====
   socket.on('heartbeat', () => {
     // Client is alive, update last seen
-    socket.lastHeartbeat = Date.now();
+    /** @type {any} */ (socket).lastHeartbeat = Date.now();
   });
 
   // Join room based on matchId
@@ -599,7 +608,7 @@ io.on('connection', (socket) => {
   socket.on('send_message', async (data) => {
     try {
       const { matchId, content, type = 'text' } = data;
-      const senderId = socket.userId;
+      const senderId = extSocket.userId;
 
       // Validate input
       if (!matchId || !content || !senderId) {
@@ -646,7 +655,7 @@ io.on('connection', (socket) => {
       try {
         const receiverUser = await User.findById(receiverId);
         if (receiverUser?.notificationPreferences?.messageNotifications !== false) {
-          const senderName = message.senderId?.name || 'Someone';
+          const senderName = /** @type {any} */ (message.senderId)?.name || 'Someone';
           const messagePreview = content.length > 50 ? `${content.substring(0, 50)}...` : content;
           console.log(
             `[NOTIFICATION] Message from ${senderName} to ${receiverId}: ${messagePreview}`
@@ -685,14 +694,14 @@ io.on('connection', (socket) => {
   // Handle typing indicators
   socket.on('typing_start', (matchId) => {
     socket.to(matchId).emit('user_typing', {
-      userId: socket.userId,
+      userId: extSocket.userId,
       isTyping: true,
     });
   });
 
   socket.on('typing_stop', (matchId) => {
     socket.to(matchId).emit('user_typing', {
-      userId: socket.userId,
+      userId: extSocket.userId,
       isTyping: false,
     });
   });
@@ -701,7 +710,7 @@ io.on('connection', (socket) => {
   socket.on('message_read', async (data) => {
     try {
       const { messageId, matchId } = data;
-      const userId = socket.userId;
+      const userId = extSocket.userId;
 
       // Update message as read in database
       const message = await Message.findOneAndUpdate(
@@ -785,7 +794,7 @@ const startServer = async () => {
 
     // Listen on 0.0.0.0 to allow Render's load balancer to connect
     // Using 0.0.0.0 instead of default (localhost) makes the server accessible from outside the container
-    server.listen(PORT, '0.0.0.0', () => {
+    server.listen(Number(PORT), '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`Socket.io enabled`);

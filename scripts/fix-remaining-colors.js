@@ -4,21 +4,18 @@ const fs = require('fs');
 const path = require('path');
 
 // Additional color replacements
+// Constants for repeated replacement strings
+const SOCIAL_BUTTERFLY_COLOR = 'Colors.gamification.socialButterfly';
+const COLORS_IMPORT_PATH = '../constants/colors';
+
 const colorReplacements = [
-  // Status light colors
-  { pattern: /['"]#E8F5E9['"]/g, replacement: 'Colors.status.successLight' },
-  { pattern: /['"]#FFF3E0['"]/g, replacement: 'Colors.status.warningLight' },
-  { pattern: /['"]#FFEBEE['"]/g, replacement: 'Colors.status.errorLight' },
-  { pattern: /['"]#E3F2FD['"]/g, replacement: 'Colors.status.infoLight' },
-  { pattern: /['"]#E8F0FE['"]/g, replacement: 'Colors.status.infoLight' },
-  // Status dark colors
-  { pattern: /['"]#2E7D32['"]/g, replacement: 'Colors.status.successDark' },
+  // Blue variants
   { pattern: /['"]#1565C0['"]/g, replacement: 'Colors.status.infoBlue' },
   { pattern: /['"]#F59E0B['"]/g, replacement: 'Colors.status.warningOrange' },
   // Purple variants
-  { pattern: /['"]#9C27B0['"]/g, replacement: 'Colors.gamification.socialButterfly' },
-  { pattern: /['"]#7B1FA2['"]/g, replacement: 'Colors.gamification.socialButterfly' },
-  { pattern: /['"]#BA68C8['"]/g, replacement: 'Colors.gamification.socialButterfly' },
+  { pattern: /['"]#9C27B0['"]/g, replacement: SOCIAL_BUTTERFLY_COLOR },
+  { pattern: /['"]#7B1FA2['"]/g, replacement: SOCIAL_BUTTERFLY_COLOR },
+  { pattern: /['"]#BA68C8['"]/g, replacement: SOCIAL_BUTTERFLY_COLOR },
   // Gold/yellow variants
   { pattern: /['"]#FFF8E1['"]/g, replacement: 'Colors.status.warningLight' },
   { pattern: /['"]#F57F17['"]/g, replacement: 'Colors.status.warningDark' },
@@ -51,19 +48,19 @@ function fixColorsInFile(filePath) {
       const lastImportIndex = content.lastIndexOf(importMatch[0]);
       const insertIndex = content.indexOf('\n', lastImportIndex) + 1;
 
-      let importPath = '../constants/colors';
+      let importPath = COLORS_IMPORT_PATH;
       if (filePath.includes('/screens/')) {
-        importPath = '../constants/colors';
+        importPath = COLORS_IMPORT_PATH;
       } else if (filePath.includes('/components/')) {
-        importPath = '../constants/colors';
+        importPath = COLORS_IMPORT_PATH;
       } else if (filePath.includes('/services/')) {
-        importPath = '../constants/colors';
+        importPath = COLORS_IMPORT_PATH;
       }
 
-      content =
-        content.slice(0, insertIndex) +
-        `import { Colors } from '${importPath}';\n` +
-        content.slice(insertIndex);
+      content = `${content.slice(
+        0,
+        insertIndex
+      )}import { Colors } from '${importPath}';\n${content.slice(insertIndex)}`;
     }
   }
 

@@ -15,11 +15,23 @@ const handleValidationErrors = (req, res, next) => {
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
-      errors: errors.array().map((err) => ({
-        field: err.path || err.param,
-        message: err.msg,
-        value: err.value,
-      })),
+      // @ts-ignore - express-validator union type handling
+      errors: errors.array().map((err) => {
+        // Handle different error types from express-validator
+        if ('path' in err) {
+          return {
+            field: err.path,
+            message: err.msg,
+            value: err.value,
+          };
+        }
+        // AlternativeValidationError or other types
+        return {
+          field: 'unknown',
+          message: err.msg,
+          value: undefined,
+        };
+      }),
     });
   }
   next();

@@ -74,6 +74,7 @@ reportSchema.index({ createdAt: -1 });
  */
 
 /** @type {ReportModel} */
+// @ts-ignore
 const ReportModel = mongoose.model('Report', reportSchema);
 
 module.exports = ReportModel;

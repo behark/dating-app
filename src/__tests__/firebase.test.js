@@ -1,4 +1,4 @@
-import { auth } from '../src/config/firebase';
+import { auth } from '../config/firebase';
 
 // Mock Firebase auth module
 jest.mock('firebase/auth', () => ({

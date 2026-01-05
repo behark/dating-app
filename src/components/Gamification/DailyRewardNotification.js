@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Colors } from '../../constants/colors';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import GamificationService from '../../services/GamificationService';
+import { Colors } from '../../constants/colors';
+import { GamificationService } from '../../services/GamificationService';
 import logger from '../../utils/logger';
 
 const DailyRewardNotification = ({ userId, onRewardClaimed }) => {

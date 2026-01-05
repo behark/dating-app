@@ -186,6 +186,9 @@ const decryptMessage = (encryptedMessage, userKey) => {
  */
 const generateConversationKey = (userId1, userId2) => {
   const masterKey = process.env.ENCRYPTION_KEY || process.env.JWT_SECRET;
+  if (!masterKey) {
+    throw new Error('ENCRYPTION_KEY or JWT_SECRET environment variable is required');
+  }
   // Sort user IDs to ensure consistent key generation regardless of order
   const sortedIds = [userId1, userId2].sort().join(':');
 

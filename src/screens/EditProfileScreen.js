@@ -1,5 +1,4 @@
 import * as ImagePicker from 'expo-image-picker';
-import { Colors } from '../constants/colors';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { ProfileService } from '../services/ProfileService';
 import logger from '../utils/logger';

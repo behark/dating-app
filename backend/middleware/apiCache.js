@@ -30,6 +30,8 @@ const generateCacheKey = (type, params = {}) => {
 /**
  * API Response Cache Middleware
  * Caches GET responses with configurable TTL
+ * @param {string} type - Cache type
+ * @param {number|null} ttlOverride - Override TTL in seconds
  */
 const apiCache = (type, ttlOverride = null) => {
   return async (req, res, next) => {

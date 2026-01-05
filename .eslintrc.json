@@ -109,8 +109,8 @@
       }
     },
     {
-      "files": ["src/**/*.{ts,tsx}"],
-      "env": { "browser": true },
+      "files": ["src/**/*.{ts,tsx}", "shared/**/*.ts"],
+      "env": { "browser": true, "node": true },
       "parser": "@typescript-eslint/parser",
       "extends": [
         "plugin:react/recommended",
@@ -141,8 +141,45 @@
       }
     },
     {
+      "files": ["e2e/**/*.ts"],
+      "env": { "browser": true, "node": true },
+      "parser": "@typescript-eslint/parser",
+      "extends": [
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended",
+        "plugin:react/jsx-runtime",
+        "plugin:@typescript-eslint/recommended"
+      ],
+      "plugins": ["react", "react-hooks", "react-native", "@typescript-eslint"],
+      "rules": {
+        "import/named": "off",
+        "no-console": "off",
+        "react/react-in-jsx-scope": "off",
+        "react/prop-types": "off",
+        "react/jsx-uses-vars": "error",
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn",
+        "react-native/no-unused-styles": "warn",
+        "react-native/no-inline-styles": "warn",
+        "react-native/no-color-literals": "warn",
+        "@typescript-eslint/no-unused-vars": [
+          "warn",
+          {
+            "argsIgnorePattern": "^_",
+            "varsIgnorePattern": "^_"
+          }
+        ],
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/no-explicit-any": "warn",
+        "@typescript-eslint/no-non-null-assertion": "warn"
+      }
+    },
+    {
       "files": ["**/__tests__/**/*.*", "**/*.{spec,test}.*"],
-      "env": { "jest": true }
+      "env": { "jest": true },
+      "rules": {
+        "react/display-name": "off"
+      }
     }
   ]
 }

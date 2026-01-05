@@ -44,7 +44,7 @@ describe('API Services Integration Tests', () => {
     it('should explore users with validation', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().resolvedValue({
+        json: jest.fn().mockResolvedValue({
           success: true,
           data: { users: [], total: 0 },
         }),
@@ -79,7 +79,7 @@ describe('API Services Integration Tests', () => {
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
-        json: jest.fn().resolvedValue({ message: 'Server error' }),
+        json: jest.fn().mockResolvedValue({ message: 'Server error' }),
       };
       global.fetch.mockResolvedValue(mockResponse);
 
@@ -94,7 +94,7 @@ describe('API Services Integration Tests', () => {
     it('should get smart photo selection with validation', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().resolvedValue({
+        json: jest.fn().mockResolvedValue({
           success: true,
           data: { recommendations: [], analysis: {} },
         }),
@@ -115,7 +115,7 @@ describe('API Services Integration Tests', () => {
     it('should check premium status with validation', async () => {
       const mockResponse = {
         ok: true,
-        json: jest.fn().resolvedValue({
+        json: jest.fn().mockResolvedValue({
           success: true,
           data: { isPremium: false, features: {} },
         }),

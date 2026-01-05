@@ -195,7 +195,7 @@ eventSchema.index({ visibility: 1, status: 1 });
 eventSchema.index({ createdAt: -1 });
 
 eventSchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
+  this.updatedAt = new Date();
   next();
 });
 
@@ -205,6 +205,7 @@ eventSchema.pre('save', function (next) {
  */
 
 /** @type {EventModel} */
+// @ts-ignore
 const EventModel = mongoose.model('Event', eventSchema);
 
 module.exports = EventModel;

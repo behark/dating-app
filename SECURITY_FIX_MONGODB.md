@@ -9,6 +9,7 @@ MongoDB credentials were found in git history. Here's what you need to do:
 ### 1. Change MongoDB Password NOW (Most Important!)
 
 **Go to MongoDB Atlas:**
+
 1. Login to https://cloud.mongodb.com
 2. Go to: Database Access → Your user (`beharkabashi19_db_user`)
 3. Click "Edit" → "Edit Password"
@@ -16,6 +17,7 @@ MongoDB credentials were found in git history. Here's what you need to do:
 5. Save
 
 **Then update everywhere:**
+
 - Render.com environment variables (MONGODB_URI)
 - Local `.env` file
 - Any other places using this password
@@ -25,9 +27,11 @@ MongoDB credentials were found in git history. Here's what you need to do:
 The credentials are in git history. We have two options:
 
 #### Option A: Remove from Current Files (If Still There)
+
 If credentials are in current files, we'll remove them.
 
 #### Option B: Rewrite Git History (Advanced)
+
 If credentials are only in history, we need to rewrite git history using `git filter-branch` or BFG Repo-Cleaner.
 
 ---
@@ -35,11 +39,13 @@ If credentials are only in history, we need to rewrite git history using `git fi
 ## 🔍 Current Status
 
 **Good News:**
+
 - ✅ `.env` file is NOT in git (it's in .gitignore)
 - ✅ Test scripts were deleted before commit
 - ✅ No credentials found in the latest commit
 
 **Bad News:**
+
 - ⚠️ Credentials were in an earlier commit (d3adfad)
 - ⚠️ They're still in git history
 
@@ -56,8 +62,9 @@ If credentials are only in history, we need to rewrite git history using `git fi
 ## 📝 After Changing Password
 
 Update these places:
+
 - Render.com: `MONGODB_URI` environment variable
-- Local `.env`: `MONGODB_URI` 
+- Local `.env`: `MONGODB_URI`
 - Any deployment configs
 
 ---

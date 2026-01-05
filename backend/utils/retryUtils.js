@@ -3,7 +3,7 @@
  * Provides robust retry logic with exponential backoff and circuit breaker protection
  */
 
-const logger = require('../services/LoggingService');
+const { logger } = require('../services/LoggingService');
 
 // Circuit breaker states
 const CIRCUIT_BREAKER_STATES = {
@@ -157,9 +157,10 @@ const retryWithBackoff = async (fn, options = {}) => {
 
       // Don't retry on the last attempt
       if (attempt === maxRetries) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
         logger.error(
           `[RETRY] All ${maxRetries + 1} attempts failed for ${context}:`,
-          error.message
+          errorMessage
         );
         throw error;
       }
@@ -172,9 +173,10 @@ const retryWithBackoff = async (fn, options = {}) => {
         delay = delay * (0.5 + Math.random() * 0.5);
       }
 
-      logger.warn(
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(
         `[RETRY] Attempt ${attempt + 1}/${maxRetries + 1} failed for ${context}. Retrying in ${Math.round(delay)}ms:`,
-        error.message
+        errorMessage
       );
 
       // Call onRetry callback if provided
@@ -231,7 +233,7 @@ const retryableFetch = async (url, options = {}) => {
   } catch (error) {
     clearTimeout(timeoutId);
 
-    if (error.name === 'AbortError') {
+    if (error instanceof Error && error.name === 'AbortError') {
       throw new Error(`Request timeout after ${timeout}ms`);
     }
 
@@ -262,7 +264,7 @@ const resetAllCircuitBreakers = () => {
     breaker.successCount = 0;
     breaker.state = CIRCUIT_BREAKER_STATES.CLOSED;
   }
-  logger.info('[CIRCUIT_BREAKER] All circuit breakers reset');
+  logger.error('[CIRCUIT_BREAKER] All circuit breakers reset');
 };
 
 module.exports = {

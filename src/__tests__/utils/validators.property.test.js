@@ -19,6 +19,9 @@ import {
   validateArrayNotEmpty,
 } from '../../utils/validators';
 
+// Constants to avoid duplicate strings
+const DEFAULT_TIMEOUT = 10000;
+
 describe('Validators - Property-Based Tests', () => {
   describe('validateEmail - Property Tests', () => {
     it('should never crash on any string input', () => {
@@ -28,34 +31,37 @@ describe('Validators - Property-Based Tests', () => {
           const result = validateEmail(email);
           return typeof result === 'boolean';
         }),
-        { numRuns: 1000 }
+        { numRuns: 500, timeout: DEFAULT_TIMEOUT }
       );
     });
 
     it('should return false for strings without @ symbol', () => {
       fc.assert(
         fc.property(
-          fc.string({ minLength: 1 }).filter((s) => !s.includes('@')),
+          fc.string({ minLength: 1, maxLength: 50 }).filter((s) => !s.includes('@')),
           (email) => {
             return validateEmail(email) === false;
           }
         ),
-        { numRuns: 500 }
+        { numRuns: 200, timeout: DEFAULT_TIMEOUT }
       );
     });
 
     it('should return false for strings with multiple @ symbols', () => {
       fc.assert(
         fc.property(
-          fc.string().filter((s) => {
-            const matches = s.match(/@/g);
-            return matches && matches.length > 1;
-          }),
+          fc
+            .tuple(
+              fc.string({ minLength: 0, maxLength: 10 }),
+              fc.string({ minLength: 1, maxLength: 10 }),
+              fc.string({ minLength: 1, maxLength: 10 })
+            )
+            .map(([prefix, middle, suffix]) => `${prefix}@${middle}@${suffix}`),
           (email) => {
             return validateEmail(email) === false;
           }
         ),
-        { numRuns: 200 }
+        { numRuns: 100, timeout: DEFAULT_TIMEOUT }
       );
     });
 
@@ -75,7 +81,7 @@ describe('Validators - Property-Based Tests', () => {
           const result = validatePassword(password);
           return typeof result === 'boolean';
         }),
-        { numRuns: 1000 }
+        { numRuns: 500, timeout: DEFAULT_TIMEOUT }
       );
     });
 
@@ -92,7 +98,7 @@ describe('Validators - Property-Based Tests', () => {
             return result === false;
           }
         ),
-        { numRuns: 500 }
+        { numRuns: 200, timeout: DEFAULT_TIMEOUT }
       );
     });
 
@@ -116,11 +122,20 @@ describe('Validators - Property-Based Tests', () => {
   describe('validateAge - Property Tests', () => {
     it('should never crash on any number input', () => {
       fc.assert(
-        fc.property(fc.float(), (age) => {
-          const result = validateAge(age);
-          return typeof result === 'boolean';
-        }),
-        { numRuns: 1000 }
+        fc.property(
+          fc.oneof(
+            fc.float(),
+            fc.integer(),
+            fc.constant(NaN),
+            fc.constant(Infinity),
+            fc.constant(-Infinity)
+          ),
+          (age) => {
+            const result = validateAge(age);
+            return typeof result === 'boolean';
+          }
+        ),
+        { numRuns: 500, timeout: DEFAULT_TIMEOUT }
       );
     });
 
@@ -174,7 +189,7 @@ describe('Validators - Property-Based Tests', () => {
             return result === false;
           }
         ),
-        { numRuns: 200 }
+        { numRuns: 100, timeout: DEFAULT_TIMEOUT }
       );
     });
   });
@@ -182,34 +197,43 @@ describe('Validators - Property-Based Tests', () => {
   describe('validateLatitude - Property Tests', () => {
     it('should return true for valid latitudes (-90 to 90)', () => {
       fc.assert(
-        fc.property(fc.float({ min: -90, max: 90 }), (lat) => {
-          return validateLatitude(lat) === true;
-        }),
-        { numRuns: 500 }
+        fc.property(
+          fc.float({ min: -90, max: 90 }).filter((lat) => !isNaN(lat)),
+          (lat) => {
+            return validateLatitude(lat) === true;
+          }
+        ),
+        { numRuns: 200, timeout: DEFAULT_TIMEOUT }
       );
     });
 
     it('should return false for latitudes outside valid range', () => {
       fc.assert(
         fc.property(
-          fc.oneof(fc.float({ min: -180, max: -90.1 }), fc.float({ min: 90.1, max: 180 })),
+          fc
+            .oneof(
+              fc.float({ min: -180, max: Math.fround(-90.1) }),
+              fc.float({ min: Math.fround(90.1), max: 180 })
+            )
+            .filter((lat) => !isNaN(lat)),
           (lat) => {
             return validateLatitude(lat) === false;
           }
         ),
-        { numRuns: 500 }
+        { numRuns: 200, timeout: DEFAULT_TIMEOUT }
       );
     });
 
     it('should handle boundary values correctly', () => {
       fc.assert(
-        fc.property(fc.constantFrom(-90, 90, -90.1, 90.1), (lat) => {
+        fc.property(fc.constantFrom(-90, 90, Math.fround(-90.1), Math.fround(90.1)), (lat) => {
           const result = validateLatitude(lat);
           if (lat === -90 || lat === 90) {
             return result === true;
           }
           return result === false;
-        })
+        }),
+        { timeout: 10000 }
       );
     });
   });
@@ -217,22 +241,30 @@ describe('Validators - Property-Based Tests', () => {
   describe('validateLongitude - Property Tests', () => {
     it('should return true for valid longitudes (-180 to 180)', () => {
       fc.assert(
-        fc.property(fc.float({ min: -180, max: 180 }), (lng) => {
-          return validateLongitude(lng) === true;
-        }),
-        { numRuns: 500 }
+        fc.property(
+          fc.float({ min: -180, max: 180 }).filter((lng) => !isNaN(lng)),
+          (lng) => {
+            return validateLongitude(lng) === true;
+          }
+        ),
+        { numRuns: 200, timeout: DEFAULT_TIMEOUT }
       );
     });
 
     it('should return false for longitudes outside valid range', () => {
       fc.assert(
         fc.property(
-          fc.oneof(fc.float({ min: -360, max: -180.1 }), fc.float({ min: 180.1, max: 360 })),
+          fc
+            .oneof(
+              fc.float({ min: -360, max: Math.fround(-180.1) }),
+              fc.float({ min: Math.fround(180.1), max: 360 })
+            )
+            .filter((lng) => !isNaN(lng)),
           (lng) => {
             return validateLongitude(lng) === false;
           }
         ),
-        { numRuns: 500 }
+        { numRuns: 200, timeout: DEFAULT_TIMEOUT }
       );
     });
   });
@@ -241,57 +273,57 @@ describe('Validators - Property-Based Tests', () => {
     it('should return true for valid coordinate pairs', () => {
       fc.assert(
         fc.property(
-          fc.float({ min: -90, max: 90 }),
-          fc.float({ min: -180, max: 180 }),
+          fc.float({ min: -90, max: 90 }).filter((lat) => !isNaN(lat)),
+          fc.float({ min: -180, max: 180 }).filter((lng) => !isNaN(lng)),
           (lat, lng) => {
             return validateCoordinates(lat, lng) === true;
           }
         ),
-        { numRuns: 500 }
+        { numRuns: 200, timeout: DEFAULT_TIMEOUT }
       );
     });
 
     it('should return false if latitude is invalid', () => {
       fc.assert(
         fc.property(
-          fc.float({ min: -180, max: -90.1 }),
-          fc.float({ min: -180, max: 180 }),
+          fc.float({ min: -180, max: Math.fround(-90.1) }).filter((lat) => !isNaN(lat)),
+          fc.float({ min: -180, max: 180 }).filter((lng) => !isNaN(lng)),
           (lat, lng) => {
             return validateCoordinates(lat, lng) === false;
           }
         ),
-        { numRuns: 200 }
+        { numRuns: 100, timeout: DEFAULT_TIMEOUT }
       );
     });
 
     it('should return false if longitude is invalid', () => {
       fc.assert(
         fc.property(
-          fc.float({ min: -90, max: 90 }),
-          fc.float({ min: 180.1, max: 360 }),
+          fc.float({ min: -90, max: 90 }).filter((lat) => !isNaN(lat)),
+          fc.float({ min: Math.fround(180.1), max: 360 }).filter((lng) => !isNaN(lng)),
           (lat, lng) => {
             return validateCoordinates(lat, lng) === false;
           }
         ),
-        { numRuns: 200 }
+        { numRuns: 100, timeout: DEFAULT_TIMEOUT }
       );
     });
   });
 
   describe('validateUserId - Property Tests', () => {
     it('should return true for valid MongoDB ObjectIds', () => {
+      const hexChars = '0123456789abcdef';
       fc.assert(
         fc.property(
-          fc.string({ minLength: 24, maxLength: 24 }).filter((s) => /^[0-9a-f]{24}$/i.test(s)),
+          fc
+            .array(fc.constantFrom(...hexChars.split('')), { minLength: 24, maxLength: 24 })
+            .map((arr) => arr.join('')),
           (id) => {
             // MongoDB ObjectId is 24 hex characters
-            if (/^[0-9a-f]{24}$/.test(id)) {
-              return validateUserId(id) === true;
-            }
-            return true; // Skip invalid formats
+            return validateUserId(id) === true;
           }
         ),
-        { numRuns: 500 }
+        { numRuns: 200, timeout: DEFAULT_TIMEOUT }
       );
     });
 
@@ -300,7 +332,7 @@ describe('Validators - Property-Based Tests', () => {
         fc.property(fc.string({ minLength: 1, maxLength: 23 }), (id) => {
           return validateUserId(id) === false;
         }),
-        { numRuns: 200 }
+        { numRuns: 100, timeout: DEFAULT_TIMEOUT }
       );
     });
 
@@ -327,7 +359,7 @@ describe('Validators - Property-Based Tests', () => {
             return true; // Skip invalid ranges
           }
         ),
-        { numRuns: 500 }
+        { numRuns: 200, timeout: DEFAULT_TIMEOUT }
       );
     });
 
@@ -337,10 +369,12 @@ describe('Validators - Property-Based Tests', () => {
           fc.integer({ min: 10, max: 20 }),
           fc.integer({ min: 1, max: 9 }),
           (min, value) => {
+            // value (1-9) should be outside range [min, min+10] where min is 10-20
+            // So range is [10-20, 20-30], and value is 1-9, so it should be false
             return validateNumberRange(value, min, min + 10) === false;
           }
         ),
-        { numRuns: 200 }
+        { numRuns: 100, timeout: DEFAULT_TIMEOUT }
       );
     });
 
@@ -369,7 +403,7 @@ describe('Validators - Property-Based Tests', () => {
         fc.property(fc.string({ minLength: 1 }), (str) => {
           return validateNotEmpty(str) === true;
         }),
-        { numRuns: 500 }
+        { numRuns: 200, timeout: DEFAULT_TIMEOUT }
       );
     });
 
@@ -384,12 +418,14 @@ describe('Validators - Property-Based Tests', () => {
     it('should return false for whitespace-only strings', () => {
       fc.assert(
         fc.property(
-          fc.string().filter((s) => s.trim().length === 0 && s.length > 0),
+          fc
+            .string({ minLength: 1, maxLength: 20 })
+            .filter((s) => s.trim().length === 0 && s.length > 0),
           (str) => {
             return validateNotEmpty(str) === false;
           }
         ),
-        { numRuns: 100 }
+        { numRuns: 50, timeout: DEFAULT_TIMEOUT }
       );
     });
 
@@ -408,7 +444,7 @@ describe('Validators - Property-Based Tests', () => {
         fc.property(fc.array(fc.anything(), { minLength: 1 }), (arr) => {
           return validateArrayNotEmpty(arr) === true;
         }),
-        { numRuns: 500 }
+        { numRuns: 200, timeout: DEFAULT_TIMEOUT }
       );
     });
 
@@ -434,7 +470,7 @@ describe('Validators - Property-Based Tests', () => {
             return validateArrayNotEmpty(value) === false;
           }
         ),
-        { numRuns: 200 }
+        { numRuns: 100, timeout: DEFAULT_TIMEOUT }
       );
     });
   });

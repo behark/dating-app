@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../../constants/colors';
 import { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
@@ -13,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Colors } from '../../constants/colors';
 import MediaMessagesService from '../../services/MediaMessagesService';
 import logger from '../../utils/logger';
 

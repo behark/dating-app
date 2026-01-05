@@ -980,10 +980,7 @@ class GamificationService {
       /** @type {any} */
       const user = await User.findById(userId);
       if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found',
-        });
+        throw new Error('User not found');
       }
       user.gamification.dailyBonusClaimed = true;
       user.gamification.lastBonusDate = new Date();

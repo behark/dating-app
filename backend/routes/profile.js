@@ -20,10 +20,16 @@ const router = express.Router();
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    // @ts-ignore - express-validator union type handling
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
-      errors: errors.array().map((err) => ({ field: err.param, message: err.msg })),
+      errors: errors.array().map((err) => {
+        if ('path' in err) {
+          return { field: err.path, message: err.msg };
+        }
+        return { field: 'unknown', message: err.msg };
+      }),
     });
   }
   next();

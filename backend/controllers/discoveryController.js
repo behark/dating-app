@@ -425,7 +425,9 @@ const getLocationPrivacy = async (req, res) => {
       success: true,
       data: {
         locationPrivacy: user.locationPrivacy || 'visible_to_matches',
-        locationHistoryEnabled: user.locationHistoryEnabled || false,
+        // @ts-ignore - locationHistoryEnabled may not be in UserDocument type
+        locationHistoryEnabled:
+          'locationHistoryEnabled' in user ? user.locationHistoryEnabled : false,
       },
     });
   } catch (error) {

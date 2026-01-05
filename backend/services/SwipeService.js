@@ -24,11 +24,11 @@ class SwipeService {
    * @param {string} swiperId - The user performing the swipe
    * @param {string} targetId - The user being swiped on
    * @param {string} action - The swipe action ('like', 'pass', 'superlike')
-   * @param {Object} options - Additional options
-   * @param {boolean} options.isPriority - Whether this is a priority like (premium feature)
-   * @returns {Object} Result with swipe data and match information
+   * @param {Object} [options] - Additional options
+   * @param {boolean} [options.isPriority] - Whether this is a priority like (premium feature)
+   * @returns {Promise<Object>} Result with swipe data and match information
    */
-  static async processSwipe(swiperId, targetId, action, options = {}) {
+  static async processSwipe(swiperId, targetId, action, options = { isPriority: false }) {
     const { isPriority = false } = options;
 
     // Validate that user isn't swiping on themselves
@@ -38,14 +38,15 @@ class SwipeService {
 
     // RACE CONDITION FIX: Use atomic createSwipeAtomic instead of find-then-save
     // This prevents duplicate swipes even with rapid clicks
+    /** @type {any} */
     let swipeResult;
     try {
-      swipeResult = await Swipe.createSwipeAtomic({
+      swipeResult = await Swipe.createSwipeAtomic(/** @type {any} */ ({
         swiperId,
         swipedId: targetId,
         action,
         isPriority,
-      });
+      }));
     } catch (error) {
       // Handle MongoDB duplicate key error (E11000) gracefully
       // This can still happen in edge cases with high concurrency
@@ -143,7 +144,7 @@ class SwipeService {
    * @param {string} swiperId - The user who just swiped
    * @param {string} targetId - The user who was swiped on
    * @param {string} action - The swipe action
-   * @returns {Object} Match result with isMatch flag and match data
+   * @returns {Promise<Object>} Match result with isMatch flag and match data
    */
   static async checkAndCreateMatch(swiperId, targetId, action) {
     // Check if target user has already liked the current user
@@ -210,7 +211,7 @@ class SwipeService {
    *
    * @param {string} userId - The user to get pending likes for
    * @param {Object} options - Query options
-   * @returns {Array} List of users who liked this user
+   * @returns {Promise<Array>} List of users who liked this user
    */
   static async getPendingLikes(userId, options = {}) {
     const { limit = 50, skip = 0 } = options;
@@ -255,7 +256,7 @@ class SwipeService {
    *
    * @param {string} swipeId - The swipe to undo
    * @param {string} userId - The user requesting the undo
-   * @returns {Object} Result of the undo operation
+   * @returns {Promise<Object>} Result of the undo operation
    */
   static async undoSwipe(swipeId, userId) {
     const swipe = await Swipe.findById(swipeId);
@@ -270,9 +271,9 @@ class SwipeService {
 
     // If there was a match, we need to undo it too
     if (swipe.action === 'like' || swipe.action === 'superlike') {
-      const existingMatch = await Match.matchExists(userId, swipe.swipedId);
-      if (existingMatch) {
-        await Match.unmatch(existingMatch._id, userId);
+      const existingMatch = await Match.matchExists(userId, swipe.swipedId.toString());
+      if (existingMatch && typeof existingMatch === 'object') {
+        await Match.unmatch(/** @type {any} */ (existingMatch)._id, userId);
 
         // Decrement match counts
         await Promise.all([
@@ -316,7 +317,7 @@ class SwipeService {
    * Get swipe statistics for a user
    *
    * @param {string} userId - The user to get stats for
-   * @returns {Object} Swipe statistics
+   * @returns {Promise<Object>} Swipe statistics
    */
   static async getSwipeStats(userId) {
     const [
@@ -351,7 +352,7 @@ class SwipeService {
         likes: totalLikesReceived,
       },
       matches: totalMatches,
-      matchRate: parseFloat(matchRate),
+      matchRate: parseFloat(String(matchRate)),
     };
   }
 }

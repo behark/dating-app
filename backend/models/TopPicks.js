@@ -109,6 +109,7 @@ topPicksSchema.statics.recalculateForUser = async function (userId) {
 };
 
 // Static method to mark as seen
+/** @this {import('../types/index').TopPicksDocument} */
 topPicksSchema.methods.markAsSeen = function () {
   this.isSeen = true;
   this.seenAt = new Date();
@@ -121,6 +122,7 @@ topPicksSchema.methods.markAsSeen = function () {
  */
 
 /** @type {TopPicksModel} */
+// @ts-ignore
 const TopPicksModel = mongoose.model('TopPicks', topPicksSchema);
 
 module.exports = TopPicksModel;

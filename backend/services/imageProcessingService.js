@@ -13,8 +13,8 @@ const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
   },
 });
 
@@ -144,7 +144,7 @@ const processProfileImage = async (file, userId) => {
 
     // Validate format
     const format = metadata.format?.toLowerCase();
-    if (!ALLOWED_FORMATS.includes(format)) {
+    if (!format || !ALLOWED_FORMATS.includes(format)) {
       throw new Error(`Invalid image format: ${format}`);
     }
 

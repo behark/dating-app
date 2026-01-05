@@ -2,11 +2,11 @@
 export { useResponsive, useBreakpoint, useResponsiveValue, BREAKPOINTS } from './useResponsive';
 export { useOffline } from './useOffline';
 
-// Re-export default as well
-import useResponsive from './useResponsive';
-import useOffline from './useOffline';
+// Re-export default exports (imported separately to avoid no-named-as-default warning)
+import useResponsiveDefault from './useResponsive';
+import useOfflineDefault from './useOffline';
 
 export default {
-  useResponsive,
-  useOffline,
+  useResponsive: useResponsiveDefault,
+  useOffline: useOfflineDefault,
 };

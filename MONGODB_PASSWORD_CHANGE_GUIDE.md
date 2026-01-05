@@ -55,6 +55,7 @@
 ## 💻 STEP 3: Update Local .env
 
 Edit `backend/.env`:
+
 ```bash
 MONGODB_URI=mongodb+srv://beharkabashi19_db_user:NEW_PASSWORD@cluster0.jvmgujl.mongodb.net/dating-app?appName=Cluster0
 ```
@@ -64,6 +65,7 @@ MONGODB_URI=mongodb+srv://beharkabashi19_db_user:NEW_PASSWORD@cluster0.jvmgujl.m
 ## 🧪 STEP 4: Test New Connection
 
 After updating, test the connection:
+
 ```bash
 cd backend
 node -e "require('mongoose').connect(process.env.MONGODB_URI).then(() => console.log('✅ Connected!')).catch(e => console.error('❌ Error:', e.message))"

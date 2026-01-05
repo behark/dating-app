@@ -808,13 +808,17 @@ class AnalyticsMetricsService {
    * TD-002: Now uses Redis caching - individual metrics also cached
    */
   async getDashboardMetrics(startDate = null, endDate = new Date()) {
+    /** @type {Date} */
+    let start;
     if (!startDate) {
-      startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30);
+      start = new Date();
+      start.setDate(start.getDate() - 30);
+    } else {
+      start = startDate;
     }
 
     // Cache key based on date range
-    const cacheKey = `dashboard_${startDate.toISOString()}_${endDate.toISOString()}`;
+    const cacheKey = `dashboard_${start.toISOString()}_${endDate.toISOString()}`;
 
     // Check Redis cache for full dashboard
     const cachedResult = await this.getFromCache(cacheKey);
@@ -835,17 +839,17 @@ class AnalyticsMetricsService {
       this.getDailyActiveUsers(),
       this.getWeeklyActiveUsers(),
       this.getMonthlyActiveUsers(),
-      this.getMatchRate(startDate, endDate),
-      this.getSwipeToMatchConversion(startDate, endDate),
-      this.getMessageResponseRate(startDate, endDate),
-      this.getPremiumConversionRate(startDate, endDate),
+      this.getMatchRate(start, endDate),
+      this.getSwipeToMatchConversion(start, endDate),
+      this.getMessageResponseRate(start, endDate),
+      this.getPremiumConversionRate(start, endDate),
       this.getRetentionRate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
     ]);
 
     const result = {
       generatedAt: new Date().toISOString(),
       period: {
-        start: startDate.toISOString(),
+        start: start.toISOString(),
         end: endDate.toISOString(),
       },
       engagement: {

@@ -134,7 +134,7 @@ groupDateSchema.index({ startTime: 1 });
 groupDateSchema.index({ 'currentParticipants.userId': 1 });
 
 groupDateSchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
+  this.updatedAt = new Date();
   next();
 });
 
@@ -144,6 +144,7 @@ groupDateSchema.pre('save', function (next) {
  */
 
 /** @type {GroupDateModel} */
+// @ts-ignore
 const GroupDateModel = mongoose.model('GroupDate', groupDateSchema);
 
 module.exports = GroupDateModel;

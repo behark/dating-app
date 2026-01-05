@@ -76,7 +76,7 @@ const swipeStreakSchema = new mongoose.Schema({
 
 // Update the updatedAt field before saving
 swipeStreakSchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
+  this.updatedAt = new Date();
   next();
 });
 
@@ -92,6 +92,7 @@ swipeStreakSchema.index({ lastSwipeDate: -1 });
  */
 
 /** @type {SwipeStreakModel} */
+// @ts-ignore
 const SwipeStreakModel = mongoose.model('SwipeStreak', swipeStreakSchema);
 
 module.exports = SwipeStreakModel;

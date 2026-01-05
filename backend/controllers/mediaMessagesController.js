@@ -199,7 +199,10 @@ const transcribeVoiceMessage = async (req, res) => {
     }
 
     if (!message.voiceMessage) {
-      message.voiceMessage = {};
+      return res.status(400).json({
+        success: false,
+        message: 'Message does not have a voice message',
+      });
     }
 
     // In production, integrate with speech-to-text API (Google Cloud Speech, Azure Speech, etc.)

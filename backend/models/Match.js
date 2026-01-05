@@ -108,11 +108,12 @@ matchSchema.pre('save', function (next) {
     // Use compatible ObjectId constructor
     this.users = sortedUsers.map((u) => {
       if (mongoose.Types.ObjectId.isValid(u)) {
-        return mongoose.Types.ObjectId.createFromHexString
+        const objId = mongoose.Types.ObjectId.createFromHexString
           ? mongoose.Types.ObjectId.createFromHexString(u)
           : new mongoose.Types.ObjectId(u);
+        return objId;
       }
-      return u;
+      return typeof u === 'string' ? new mongoose.Types.ObjectId(u) : u;
     });
     if (this.users.length >= 2) {
       this.user1 = this.users[0];
@@ -124,9 +125,10 @@ matchSchema.pre('save', function (next) {
 });
 
 // Static method to check if a match exists between two users
+/** @this {import('../types/index').MatchModel} */
+// @ts-ignore
 matchSchema.statics.matchExists = async function (userId1, userId2) {
   const sortedIds = [userId1.toString(), userId2.toString()].sort();
-  // @ts-ignore - Mongoose static method context
   return this.findOne({
     user1: sortedIds[0],
     user2: sortedIds[1],
@@ -135,6 +137,8 @@ matchSchema.statics.matchExists = async function (userId1, userId2) {
 };
 
 // Static method to create a new match
+/** @this {import('../types/index').MatchModel} */
+// @ts-ignore
 matchSchema.statics.createMatch = async function (
   userId1,
   userId2,
@@ -143,7 +147,6 @@ matchSchema.statics.createMatch = async function (
 ) {
   const sortedIds = [userId1.toString(), userId2.toString()].sort();
 
-  // @ts-ignore - Mongoose static method context
   // Check if match already exists
   const existingMatch = await this.findOne({
     user1: sortedIds[0],
@@ -155,7 +158,7 @@ matchSchema.statics.createMatch = async function (
     if (existingMatch.status === 'unmatched') {
       existingMatch.status = 'active';
       existingMatch.matchInitiator = initiatorId;
-      existingMatch.matchType = matchType;
+      existingMatch.matchType = (matchType === 'superlike' || matchType === 'regular') ? matchType : 'regular';
       existingMatch.unmatchedBy = undefined;
       existingMatch.unmatchedAt = undefined;
       await existingMatch.save();
@@ -175,6 +178,8 @@ matchSchema.statics.createMatch = async function (
 };
 
 // Static method to get all matches for a user
+/** @this {import('../types/index').MatchModel} */
+// @ts-ignore
 matchSchema.statics.getUserMatches = async function (userId, options = {}) {
   const { status = 'active', limit = 50, skip = 0, sortBy = 'createdAt', sortOrder = -1 } = options;
 
@@ -184,18 +189,19 @@ matchSchema.statics.getUserMatches = async function (userId, options = {}) {
   };
 
   const sort = {};
-  // @ts-ignore - Mongoose static method context
   sort[sortBy] = sortOrder;
 
   return this.find(query)
     .populate('users', 'name photos age bio lastActive isOnline')
-    .sort(sort)
+    .sort(/** @type {any} */ (sort))
     .skip(skip)
     .limit(limit);
 };
 // @ts-ignore - Mongoose static method context
 
 // Static method to unmatch
+/** @this {import('../types/index').MatchModel} */
+// @ts-ignore
 matchSchema.statics.unmatch = async function (matchId, userId) {
   const match = await this.findById(matchId);
 
@@ -217,6 +223,8 @@ matchSchema.statics.unmatch = async function (matchId, userId) {
 };
 
 // Static method to get match count for a user
+/** @this {import('../types/index').MatchModel} */
+// @ts-ignore
 matchSchema.statics.getMatchCount = async function (userId, status = 'active') {
   return this.countDocuments({
     users: userId,
@@ -230,6 +238,7 @@ matchSchema.methods.getOtherUser = function (userId) {
 };
 
 // Instance method to update conversation status
+/** @this {import('../types/index').MatchDocument} */
 matchSchema.methods.markConversationStarted = async function (messageBy) {
   if (!this.conversationStarted) {
     this.conversationStarted = true;
@@ -237,7 +246,11 @@ matchSchema.methods.markConversationStarted = async function (messageBy) {
     this.firstMessageBy = messageBy;
   }
   this.lastActivityAt = new Date();
-  this.messageCount += 1;
+  if (typeof this.messageCount === 'number') {
+    this.messageCount += 1;
+  } else {
+    this.messageCount = 1;
+  }
   await this.save();
 };
 
@@ -247,6 +260,7 @@ matchSchema.methods.markConversationStarted = async function (messageBy) {
  */
 
 /** @type {MatchModel} */
+// @ts-ignore
 const MatchModel = mongoose.model('Match', matchSchema);
 
 module.exports = MatchModel;

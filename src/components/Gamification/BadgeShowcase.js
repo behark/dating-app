@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Colors } from '../../constants/colors';
 import { StyleSheet, Text, View } from 'react-native';
+import { Colors } from '../../constants/colors';
 
 const BadgeShowcase = ({ badges = [] }) => {
   const [unlockedBadges, setUnlockedBadges] = useState([]);

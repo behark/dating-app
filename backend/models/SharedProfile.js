@@ -92,7 +92,7 @@ sharedProfileSchema.index({ sharedByUserId: 1 });
 sharedProfileSchema.index({ createdAt: -1 });
 
 sharedProfileSchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
+  this.updatedAt = new Date();
   next();
 });
 
@@ -105,6 +105,7 @@ sharedProfileSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
  */
 
 /** @type {SharedProfileModel} */
+// @ts-ignore
 const SharedProfileModel = mongoose.model('SharedProfile', sharedProfileSchema);
 
 module.exports = SharedProfileModel;

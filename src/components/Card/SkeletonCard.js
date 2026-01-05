@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { Colors } from '../../constants/colors';
 import { Animated, Dimensions, Platform, StyleSheet, View } from 'react-native';
+import { Colors } from '../../constants/colors';
 import { useTheme } from '../../context/ThemeContext';
 
 // useNativeDriver is not supported on web

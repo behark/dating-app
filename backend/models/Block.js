@@ -35,6 +35,7 @@ blockSchema.index({ blockedUserId: 1 });
  */
 
 /** @type {BlockModel} */
+// @ts-ignore
 const BlockModel = mongoose.model('Block', blockSchema);
 
 module.exports = BlockModel;

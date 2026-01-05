@@ -224,11 +224,21 @@ exports.uploadPhotos = async (req, res) => {
       uploadedAt: new Date(),
     }));
 
-    user.photos = [...user.photos, ...newPhotos];
+    user.photos = [...user.photos, ...newPhotos].map((photo) => {
+      const modStatus = photo.moderationStatus || 'pending';
+      return {
+        ...photo,
+        moderationStatus: (modStatus === 'pending' || modStatus === 'approved' || modStatus === 'rejected') ? modStatus : 'pending',
+      };
+    });
 
     // Keep only 6 most recent photos
     user.photos = user.photos
-      .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
+      .sort((a, b) => {
+        const dateA = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
+        const dateB = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
+        return dateB - dateA;
+      })
       .slice(0, 6);
 
     // Re-order photos
@@ -286,14 +296,20 @@ exports.reorderPhotos = async (req, res) => {
 
     // Update photo orders
     user.photos.forEach((photo) => {
-      const newOrder = orderMap.get(photo._id.toString());
-      if (newOrder !== undefined) {
-        photo.order = newOrder;
+      if (photo._id) {
+        const newOrder = orderMap.get(photo._id.toString());
+        if (newOrder !== undefined) {
+          photo.order = newOrder;
+        }
       }
     });
 
     // Sort by order
-    user.photos.sort((a, b) => a?.order - b.order);
+    user.photos.sort((a, b) => {
+      const orderA = a?.order ?? 0;
+      const orderB = b?.order ?? 0;
+      return orderA - orderB;
+    });
 
     await user.save();
 
@@ -330,7 +346,7 @@ exports.deletePhoto = async (req, res) => {
       });
     }
 
-    user.photos = user.photos.filter((photo) => photo._id.toString() !== photoId);
+    user.photos = user.photos.filter((photo) => photo._id?.toString() !== photoId);
 
     await user.save();
 
@@ -375,7 +391,7 @@ exports.approvePhoto = async (req, res) => {
       });
     }
 
-    const photo = user.photos.find((p) => p._id.toString() === photoId);
+    const photo = user.photos.find((p) => p._id && p._id.toString() === photoId);
     if (!photo) {
       return res.status(404).json({
         success: false,
@@ -425,7 +441,7 @@ exports.rejectPhoto = async (req, res) => {
       });
     }
 
-    const photo = user.photos.find((p) => p._id.toString() === photoId);
+    const photo = user.photos.find((p) => p._id && p._id.toString() === photoId);
     if (!photo) {
       return res.status(404).json({
         success: false,

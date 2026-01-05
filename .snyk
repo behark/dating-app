@@ -1,14 +1,128 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.28.0
-
-# Ignore vulnerabilities that are false positives or acceptable risks
-# Format: SNYK-<LANGUAGE>-<PACKAGE>-<ID>
-# Example: SNYK-JS-EXPRESS-12345678
-
+version: v1.25.1
 patch: {}
-
-ignore: {}
-
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-JS-INFLIGHT-6095116:
+    - '*':
+        reason: >-
+          Transitive dependency with no fix available. Low risk - requires local
+          access.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:49:48.205Z
+  'snyk:lic:npm:lightningcss:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:50:50.284Z
+  'snyk:lic:npm:lightningcss-win32-x64-msvc:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:50:53.294Z
+  'snyk:lic:npm:lightningcss-win32-arm64-msvc:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:50:57.302Z
+  'snyk:lic:npm:lightningcss-linux-x64-musl:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:51:02.643Z
+  'snyk:lic:npm:lightningcss-linux-x64-gnu:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:51:06.248Z
+  'snyk:lic:npm:lightningcss-linux-arm64-musl:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:51:09.373Z
+  'snyk:lic:npm:lightningcss-linux-arm64-gnu:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:51:15.215Z
+  'snyk:lic:npm:lightningcss-linux-arm-gnueabihf:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:51:19.862Z
+  'snyk:lic:npm:lightningcss-freebsd-x64:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:51:24.127Z
+  'snyk:lic:npm:lightningcss-darwin-x64:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:51:27.518Z
+  'snyk:lic:npm:lightningcss-darwin-arm64:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:51:31.194Z
+  'snyk:lic:npm:lightningcss-android-arm64:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:51:35.631Z
+  'snyk:lic:npm:vercel:analytics:MPL-2.0':
+    - '*':
+        reason: License compliance issue. Acceptable for private projects.
+        expires: 2025-12-31T00:00:00.000Z
+        created: 2026-01-05T15:51:39.363Z
+  'snyk:lic:npm:img:sharp-libvips-linuxmusl-x64:LGPL-3.0':
+    - '*':
+        reason: >-
+          License compliance issue from sharp dependency. Acceptable for private
+          projects.
+        expires: '2025-12-31T23:59:59.999Z'
+  'snyk:lic:npm:img:sharp-libvips-linuxmusl-arm64:LGPL-3.0':
+    - '*':
+        reason: >-
+          License compliance issue from sharp dependency. Acceptable for private
+          projects.
+        expires: '2025-12-31T23:59:59.999Z'
+  'snyk:lic:npm:img:sharp-libvips-linux-x64:LGPL-3.0':
+    - '*':
+        reason: >-
+          License compliance issue from sharp dependency. Acceptable for private
+          projects.
+        expires: '2025-12-31T23:59:59.999Z'
+  'snyk:lic:npm:img:sharp-libvips-linux-s390x:LGPL-3.0':
+    - '*':
+        reason: >-
+          License compliance issue from sharp dependency. Acceptable for private
+          projects.
+        expires: '2025-12-31T23:59:59.999Z'
+  'snyk:lic:npm:img:sharp-libvips-linux-arm64:LGPL-3.0':
+    - '*':
+        reason: >-
+          License compliance issue from sharp dependency. Acceptable for private
+          projects.
+        expires: '2025-12-31T23:59:59.999Z'
+  'snyk:lic:npm:img:sharp-libvips-linux-arm:LGPL-3.0':
+    - '*':
+        reason: >-
+          License compliance issue from sharp dependency. Acceptable for private
+          projects.
+        expires: '2025-12-31T23:59:59.999Z'
+  'snyk:lic:npm:img:sharp-libvips-darwin-x64:LGPL-3.0':
+    - '*':
+        reason: >-
+          License compliance issue from sharp dependency. Acceptable for private
+          projects.
+        expires: '2025-12-31T23:59:59.999Z'
+  'snyk:lic:npm:img:sharp-libvips-darwin-arm64:LGPL-3.0':
+    - '*':
+        reason: >-
+          License compliance issue from sharp dependency. Acceptable for private
+          projects.
+        expires: '2025-12-31T23:59:59.999Z'
 exclude:
   global:
     - node_modules

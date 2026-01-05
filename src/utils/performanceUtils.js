@@ -4,8 +4,8 @@
  */
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { Colors } from '../constants/colors';
 import { ActivityIndicator, InteractionManager, View } from 'react-native';
+import { Colors } from '../constants/colors';
 
 // ==================== LAZY LOADING ====================
 

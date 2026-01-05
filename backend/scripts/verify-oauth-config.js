@@ -53,7 +53,10 @@ for (const [provider, config] of Object.entries(checks)) {
   if (missingRequired.length > 0) {
     hasErrors = true;
     console.log(`  ${colors.red('✗')} Missing required: ${missingRequired.join(', ')}`);
-    config.issues.push(`Missing: ${missingRequired.join(', ')}`);
+    if (Array.isArray(config.issues)) {
+      // @ts-ignore - issues array exists on config objects
+      config.issues.push(`Missing: ${missingRequired.join(', ')}`);
+    }
   } else {
     console.log(`  ${colors.green('✓')} All required environment variables set`);
   }

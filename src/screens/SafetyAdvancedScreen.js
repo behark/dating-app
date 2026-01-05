@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Colors } from '../constants/colors';
 import {
   Alert,
   ScrollView,
@@ -9,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Colors } from '../constants/colors';
 import {
   BackgroundCheck,
   CheckInTimer,

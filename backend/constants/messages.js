@@ -18,13 +18,13 @@ const ERROR_MESSAGES = {
   INVALID_VERIFICATION_TOKEN: 'Invalid or expired verification token',
   INVALID_RESET_TOKEN: 'Invalid or expired reset token',
   INVALID_CSRF_TOKEN: 'Invalid CSRF token',
-  
+
   // User Errors
   USER_NOT_FOUND: 'User not found',
   USER_NOT_FOUND_OR_INACTIVE: 'User not found or inactive',
   USER_NOT_FOUND_OR_NO_EMAIL: 'User not found or no email',
   EMAIL_ALREADY_EXISTS: 'User with this email already exists',
-  
+
   // Access Errors
   ACCESS_DENIED: 'Access denied',
   ACCESS_DENIED_OWN_DATA: 'Access denied. You can only access your own data.',
@@ -32,14 +32,14 @@ const ERROR_MESSAGES = {
   ACCESS_DENIED_CONVERSATION: 'Access denied to this conversation',
   MESSAGE_NOT_FOUND_OR_ACCESS_DENIED: 'Message not found or access denied',
   MATCH_NOT_FOUND_OR_ACCESS_DENIED: 'Match not found or access denied',
-  
+
   // Resource Errors
   NOT_FOUND: 'Resource not found',
   MATCH_NOT_FOUND: 'Match not found',
   MESSAGE_NOT_FOUND: 'Message not found',
   CONVERSATION_NOT_FOUND: 'Conversation not found',
   PROFILE_NOT_FOUND: 'Profile not found',
-  
+
   // Server Errors
   INTERNAL_SERVER_ERROR: 'Internal server error',
   INTERNAL_ERROR_DISCOVERY: 'Internal server error during user discovery',
@@ -52,7 +52,7 @@ const ERROR_MESSAGES = {
   INTERNAL_ERROR_UNMATCH: 'Internal server error while unmatching',
   INTERNAL_ERROR_SWIPE_STATS: 'Internal server error while retrieving swipe statistics',
   INTERNAL_ERROR_PENDING_LIKES: 'Internal server error while retrieving pending likes',
-  
+
   // Validation Errors
   INVALID_REQUEST: 'Invalid request',
   MISSING_REQUIRED_FIELDS: 'Missing required fields',
@@ -76,18 +76,18 @@ const SUCCESS_MESSAGES = {
   ADVANCED_FILTERS_UPDATED: 'Advanced filters updated successfully',
   ADS_PREFERENCES_UPDATED: 'Ads preferences updated successfully',
   NOTIFICATION_PREFERENCES_UPDATED: 'Notification preferences updated successfully',
-  
+
   // Deletion
   PHOTO_DELETED: 'Photo deleted successfully',
   MESSAGE_DELETED: 'Message deleted successfully',
   ACCOUNT_DELETED: 'Account deleted successfully',
-  
+
   // Auth
   EMAIL_VERIFIED: 'Email verified successfully',
   PASSWORD_RESET: 'Password reset successfully',
   PASSWORD_RESET_EMAIL_SENT: 'If email exists, a password reset link has been sent',
   LOGGED_OUT: 'Logged out successfully',
-  
+
   // Generic
   OPERATION_SUCCESSFUL: 'Operation completed successfully',
 };

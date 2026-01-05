@@ -113,13 +113,14 @@ export interface IUser {
   preferredDistance?: number;
   profileCompleteness?: number;
   lastActive?: Date;
-  emailVerified?: boolean;
-  phoneVerified?: boolean;
+  isEmailVerified?: boolean;
+  isPhoneVerified?: boolean;
   emailVerificationToken?: string;
   emailVerificationTokenExpiry?: Date;
   passwordResetToken?: string;
   passwordResetTokenExpiry?: Date;
   phoneVerificationCode?: string;
+  phoneVerificationCodeExpiry?: Date;
   createdAt?: Date;
   updatedAt?: Date;
   // Enhanced profile fields
@@ -137,16 +138,17 @@ export interface IUser {
   oauthProviders?: string[];
   // Phone
   phoneNumber?: string;
-  isPhoneVerified?: boolean;
   // Account status
   isActive?: boolean;
   isVerified?: boolean;
   suspended?: boolean;
+  suspendedAt?: Date;
   needsReview?: boolean;
   // Profile verification
   isProfileVerified?: boolean;
   verificationStatus?: 'unverified' | 'pending' | 'verified' | 'rejected';
   verificationMethod?: 'photo' | 'video' | 'id' | 'none';
+  verificationDate?: Date;
   // Activity & engagement
   isOnline?: boolean;
   isPremium?: boolean;
@@ -237,11 +239,14 @@ export interface IUser {
   superLikesBalance?: number;
   boostsBalance?: number;
   rewindsBalance?: number;
-  receivedLikes?: Array<{
-    fromUserId: Types.ObjectId;
-    action: string;
-    receivedAt: Date;
-  } | Types.ObjectId>;
+  receivedLikes?: Array<
+    | {
+        fromUserId: Types.ObjectId;
+        action: string;
+        receivedAt: Date;
+      }
+    | Types.ObjectId
+  >;
   advancedFilters?: any;
   adsPreferences?: any;
   language?: string;
@@ -321,7 +326,10 @@ export interface SwipeModel extends Model<SwipeDocument> {
   hasSwiped(swiperId: string, swipedId: string): Promise<SwipeDocument | null>;
   getMatches(userId: string): Promise<any[]>;
   getSwipeCountToday(swiperId: string): Promise<number>;
-  canSwipe(swiperId: string, isPremium?: boolean): Promise<{ canSwipe: boolean; remaining?: number; used?: number }>;
+  canSwipe(
+    swiperId: string,
+    isPremium?: boolean
+  ): Promise<{ canSwipe: boolean; remaining?: number; used?: number }>;
 }
 
 export interface IMatch {
@@ -334,6 +342,12 @@ export interface IMatch {
   createdAt?: Date;
   lastActivity?: Date;
   conversationStarted?: boolean;
+  unmatchedBy?: Types.ObjectId;
+  unmatchedAt?: Date;
+  firstMessageBy?: Types.ObjectId;
+  firstMessageAt?: Date;
+  messageCount?: number;
+  lastActivityAt?: Date;
 }
 
 export interface MatchDocument extends IMatch, Document {
@@ -344,7 +358,12 @@ export interface MatchDocument extends IMatch, Document {
 
 export interface MatchModel extends Model<MatchDocument> {
   matchExists(userId1: string, userId2: string): Promise<boolean>;
-  createMatch(userId1: string, userId2: string, matchInitiator?: string, matchType?: string): Promise<{
+  createMatch(
+    userId1: string,
+    userId2: string,
+    matchInitiator?: string,
+    matchType?: string
+  ): Promise<{
     match: MatchDocument;
     isNew: boolean;
     reactivated: boolean;
@@ -364,10 +383,11 @@ export interface IMessage {
   receiverId: Types.ObjectId;
   content: string;
   isEncrypted?: boolean;
-  read?: boolean;
+  isRead?: boolean;
   readAt?: Date;
   type?: 'text' | 'image' | 'gif' | 'sticker' | 'voice' | 'video_call' | 'system';
   mediaUrl?: string;
+  replyTo?: Types.ObjectId;
   createdAt?: Date;
   metadata?: Record<string, any>;
   // Media message fields
@@ -546,7 +566,16 @@ export interface ValidationSchema {
 
 export interface IUserActivity {
   userId: Types.ObjectId;
-  activityType: 'login' | 'logout' | 'swipe' | 'match' | 'message' | 'profile_view' | 'profile_update' | 'super_like' | 'video_call';
+  activityType:
+    | 'login'
+    | 'logout'
+    | 'swipe'
+    | 'match'
+    | 'message'
+    | 'profile_view'
+    | 'profile_update'
+    | 'super_like'
+    | 'video_call';
   metadata?: any;
   relatedUserId?: Types.ObjectId;
   createdAt?: Date;
@@ -559,7 +588,11 @@ export interface UserActivityDocument extends IUserActivity, Document {
 export interface UserActivityModel extends Model<UserActivityDocument> {
   getRecentlyActiveUsers(hours?: number, limit?: number): Promise<Types.ObjectId[]>;
   logActivity(userId: string, activityType: string, metadata?: any): Promise<UserActivityDocument>;
-  getUserRecentActivity(userId: string, limit?: number, days?: number): Promise<UserActivityDocument[]>;
+  getUserRecentActivity(
+    userId: string,
+    limit?: number,
+    days?: number
+  ): Promise<UserActivityDocument[]>;
   getActivitySummary(userId: string, days?: number): Promise<any>;
 }
 
@@ -677,9 +710,10 @@ export interface ISubscription {
   userId: Types.ObjectId;
   tierId?: Types.ObjectId;
   tier: 'free' | 'gold' | 'platinum' | 'unlimited';
-  status: 'active' | 'cancelled' | 'expired' | 'past_due';
+  status: 'active' | 'cancelled' | 'expired' | 'past_due' | 'trial';
   startDate?: Date;
   endDate?: Date;
+  renewalDate?: Date;
   autoRenew: boolean;
   stripeSubscriptionId?: string;
   stripeCustomerId?: string;
@@ -687,9 +721,16 @@ export interface ISubscription {
   trialEndsAt?: Date;
   planType?: string;
   paymentMethod?: string;
+  paymentId?: string;
+  transactionId?: string;
   features?: any;
   superLikesUsedToday?: number;
   profileBoostsUsedThisMonth?: number;
+  trial?: {
+    startDate?: Date;
+    endDate?: Date;
+    isUsed?: boolean;
+  };
 }
 
 export interface SubscriptionDocument extends ISubscription, Document {
@@ -705,7 +746,11 @@ export interface SubscriptionDocument extends ISubscription, Document {
 export interface SubscriptionModel extends Model<SubscriptionDocument> {
   getOrCreate(userId: string): Promise<SubscriptionDocument>;
   activateTrial(userId: string): Promise<SubscriptionDocument>;
-  upgradeToPremium(userId: string, planType: string, paymentData?: any): Promise<SubscriptionDocument>;
+  upgradeToPremium(
+    userId: string,
+    planType: string,
+    paymentData?: any
+  ): Promise<SubscriptionDocument>;
   cancelSubscription(userId: string): Promise<SubscriptionDocument>;
 }
 
@@ -717,10 +762,16 @@ export interface IPaymentTransaction {
   providerTransactionId: string;
   productType: 'subscription' | 'boost' | 'superlike' | 'rewind';
   productId?: string;
-  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  status: 'pending' | 'completed' | 'expired' | 'failed' | 'refunded' | 'partial_refund';
   failureReason?: string;
   failureCode?: string;
   metadata?: any;
+  refundStatus?: 'none' | 'pending' | 'partial_refund' | 'refunded' | 'denied';
+  refundAmount?: number;
+  refundReason?: string;
+  refundRequestedAt?: Date;
+  refundedAt?: Date;
+  refundId?: string;
   createdAt?: Date;
   completedAt?: Date;
 }
@@ -734,7 +785,10 @@ export interface PaymentTransactionDocument extends IPaymentTransaction, Documen
 
 export interface PaymentTransactionModel extends Model<PaymentTransactionDocument> {
   getUserTransactions(userId: string, options?: any): Promise<PaymentTransactionDocument[]>;
-  findByProviderId(provider: string, providerTransactionId: string): Promise<PaymentTransactionDocument | null>;
+  findByProviderId(
+    provider: string,
+    providerTransactionId: string
+  ): Promise<PaymentTransactionDocument | null>;
   getUserTotalSpend(userId: string): Promise<number>;
   getRevenueAnalytics(startDate: Date, endDate: Date): Promise<any>;
   getRefundStats(startDate: Date, endDate: Date): Promise<any>;
@@ -753,8 +807,16 @@ export interface IEmailService {
 
 export interface INotificationService {
   send(userId: string, notification: Partial<INotification>): Promise<boolean>;
-  sendPush(userId: string, title: string, body: string, data?: Record<string, any>): Promise<boolean>;
-  sendBulk(userIds: string[], notification: Partial<INotification>): Promise<{ sent: number; failed: number }>;
+  sendPush(
+    userId: string,
+    title: string,
+    body: string,
+    data?: Record<string, any>
+  ): Promise<boolean>;
+  sendBulk(
+    userIds: string[],
+    notification: Partial<INotification>
+  ): Promise<{ sent: number; failed: number }>;
 }
 
 export interface ICacheService {
@@ -858,6 +920,7 @@ export interface IAchievementBadge {
   badgeIcon: string;
   rarity?: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
   unlockedAt?: Date;
+  isUnlocked?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -983,7 +1046,11 @@ export interface GroupDateDocument extends IGroupDate, Document {
 }
 
 export interface GroupDateModel extends Model<GroupDateDocument> {
-  findNearbyGroupDates(longitude: number, latitude: number, radius: number): Promise<GroupDateDocument[]>;
+  findNearbyGroupDates(
+    longitude: number,
+    latitude: number,
+    radius: number
+  ): Promise<GroupDateDocument[]>;
   getUpcomingGroupDates(limit?: number): Promise<GroupDateDocument[]>;
 }
 

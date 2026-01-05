@@ -44,31 +44,42 @@ function success({ data = null, message = 'Success', pagination = null } = {}) {
  * Create an error API response
  * @param {Object} options - Error response options
  * @param {string} [options.message] - Error message
- * @param {string} [options.error] - Error code or identifier
+ * @param {string} [options.errorCode] - Error code or identifier
  * @param {Array<Object>} [options.errors] - Array of validation errors
  * @param {*} [options.data] - Additional error data
  * @returns {ApiResponse} Standardized error response
  */
 function error({
   message = 'An error occurred',
-  error: errorCode = null,
-  errors = null,
+  errorCode = undefined,
+  errors = undefined,
   data = null,
 } = {}) {
+  // Validate input types
+  if (message !== null && typeof message !== 'string') {
+    throw new TypeError('message must be a string');
+  }
+  if (errorCode !== null && errorCode !== undefined && typeof errorCode !== 'string') {
+    throw new TypeError('errorCode must be a string or null');
+  }
+  if (errors !== null && errors !== undefined && !Array.isArray(errors)) {
+    throw new TypeError('errors must be an array or null');
+  }
+
   const response = {
     success: false,
-    message,
+    message: message || 'An error occurred',
   };
 
-  if (errorCode) {
+  if (errorCode !== null && errorCode !== undefined && errorCode !== '') {
     response.error = errorCode;
   }
 
-  if (errors && Array.isArray(errors)) {
+  if (errors !== null && errors !== undefined && Array.isArray(errors) && errors.length > 0) {
     response.errors = errors;
   }
 
-  if (data !== null) {
+  if (data !== null && data !== undefined) {
     response.data = data;
   }
 
@@ -84,7 +95,7 @@ function error({
 function validationError(validationErrors, message = 'Validation failed') {
   return error({
     message,
-    error: 'VALIDATION_ERROR',
+    errorCode: 'VALIDATION_ERROR',
     errors: validationErrors,
   });
 }
@@ -97,7 +108,7 @@ function validationError(validationErrors, message = 'Validation failed') {
 function notFound(resource = 'Resource') {
   return error({
     message: `${resource} not found`,
-    error: 'NOT_FOUND',
+    errorCode: 'NOT_FOUND',
   });
 }
 
@@ -109,7 +120,7 @@ function notFound(resource = 'Resource') {
 function unauthorized(message = 'Unauthorized') {
   return error({
     message,
-    error: 'UNAUTHORIZED',
+    errorCode: 'UNAUTHORIZED',
   });
 }
 
@@ -121,21 +132,22 @@ function unauthorized(message = 'Unauthorized') {
 function forbidden(message = 'Forbidden') {
   return error({
     message,
-    error: 'FORBIDDEN',
+    errorCode: 'FORBIDDEN',
   });
 }
 
 /**
  * Create a paginated response
- * @param {Object} options - Paginated response options
- * @param {Array} options.data - Array of items
- * @param {number} options.page - Current page number
- * @param {number} options.limit - Items per page
- * @param {number} options.total - Total number of items
- * @param {string} [options.message] - Success message
+ * @param {Object} [options] - Paginated response options
+ * @param {Array} [options.data=[]] - Array of items
+ * @param {number} [options.page=1] - Current page number
+ * @param {number} [options.limit=10] - Items per page
+ * @param {number} [options.total=0] - Total number of items
+ * @param {string} [options.message='Success'] - Success message
  * @returns {ApiResponse} Standardized paginated response
  */
-function paginated({ data, page, limit, total, message = 'Success' } = {}) {
+function paginated(options = {}) {
+  const { data = [], page = 1, limit = 10, total = 0, message = 'Success' } = options;
   const pages = Math.ceil(total / limit);
 
   return success({

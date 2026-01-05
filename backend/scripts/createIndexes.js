@@ -14,6 +14,10 @@ const createIndexes = async () => {
 
     const db = mongoose.connection.db;
 
+    if (!db) {
+      throw new Error('Failed to get database connection');
+    }
+
     // ==================== USER COLLECTION INDEXES ====================
     console.log('\n📊 Creating User indexes...');
 

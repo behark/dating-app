@@ -26,13 +26,16 @@ Your MongoDB credentials were committed to git in an earlier commit. Here's what
 After changing the password, update:
 
 ### Render.com:
+
 1. Go to your Render service
 2. Environment → Edit `MONGODB_URI`
 3. Replace with: `mongodb+srv://beharkabashi19_db_user:NEW_PASSWORD@cluster0.jvmgujl.mongodb.net/dating-app?appName=Cluster0`
 4. Save and redeploy
 
 ### Local `.env`:
+
 Update `backend/.env`:
+
 ```
 MONGODB_URI=mongodb+srv://beharkabashi19_db_user:NEW_PASSWORD@cluster0.jvmgujl.mongodb.net/dating-app?appName=Cluster0
 ```
@@ -44,6 +47,7 @@ MONGODB_URI=mongodb+srv://beharkabashi19_db_user:NEW_PASSWORD@cluster0.jvmgujl.m
 After changing the password, we can clean up git history. Options:
 
 ### Option A: Use git filter-branch (Recommended)
+
 ```bash
 # Remove file containing credentials from all history
 git filter-branch --force --index-filter \
@@ -55,6 +59,7 @@ git push origin --force --all
 ```
 
 ### Option B: Use BFG Repo-Cleaner (Easier)
+
 ```bash
 # Install BFG
 # Then run:

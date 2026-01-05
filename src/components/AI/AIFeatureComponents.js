@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Colors } from '../../constants/colors';
 import {
   View,
   Text,
@@ -10,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { Colors } from '../../constants/colors';
 import { AIService } from '../../services/AIService';
 
 /**

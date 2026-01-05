@@ -21,8 +21,8 @@ const STORAGE_PROVIDER = process.env.STORAGE_PROVIDER || 'cloudinary'; // 's3' o
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'us-east-1',
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
   },
 });
 
@@ -161,9 +161,11 @@ const uploadToCloudinary = async (file, fileName, fileType, userId) => {
       }),
     };
 
-    const uploadStream = cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
+    const uploadStream = cloudinary.uploader.upload_stream(/** @type {any} */(uploadOptions), (error, result) => {
       if (error) {
         reject(error);
+      } else if (!result) {
+        reject(new Error('Upload failed: No result returned'));
       } else {
         resolve({
           url: result.secure_url,
@@ -235,10 +237,21 @@ const StorageService = {
    * @param {Object} file - File object from multer
    * @param {string} userId - User ID
    * @param {string} fileType - Type of file (image, video, document)
-   * @returns {Object} Upload result with URL and metadata
+   * @returns {Promise<Object>} Upload result with URL and metadata
    */
   async upload(file, userId, fileType = 'image') {
-    // Validate
+    // Validate inputs
+    if (!file) {
+      throw new Error('File is required');
+    }
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    if (!fileType || typeof fileType !== 'string') {
+      throw new Error('File type must be a string');
+    }
+
+    // Validate file
     validateFile(file, fileType);
 
     // Generate file name
@@ -246,8 +259,14 @@ const StorageService = {
 
     // Upload based on provider
     if (STORAGE_PROVIDER === 's3') {
+      if (!S3_BUCKET) {
+        throw new Error('S3 bucket not configured. Set AWS_S3_BUCKET environment variable.');
+      }
       return uploadToS3(file, fileName, fileType);
     } else {
+      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+        throw new Error('Cloudinary not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.');
+      }
       return uploadToCloudinary(file, fileName, fileType, userId);
     }
   },
@@ -323,8 +342,20 @@ const StorageService = {
    */
   async getUploadSignature(userId, fileType = 'image') {
     if (STORAGE_PROVIDER === 'cloudinary') {
+      const apiSecret = process.env.CLOUDINARY_API_SECRET;
+      const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+      const apiKey = process.env.CLOUDINARY_API_KEY;
+
+      if (!apiSecret || !cloudName || !apiKey) {
+        throw new Error('Cloudinary not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.');
+      }
+
       const timestamp = Math.round(new Date().getTime() / 1000);
       const config = FILE_CONFIG[fileType];
+
+      if (!config) {
+        throw new Error(`Invalid file type: ${fileType}`);
+      }
 
       const params = {
         timestamp,
@@ -334,14 +365,14 @@ const StorageService = {
 
       const signature = cloudinary.utils.api_sign_request(
         params,
-        process.env.CLOUDINARY_API_SECRET
+        apiSecret
       );
 
       return {
         signature,
         timestamp,
-        cloudName: process.env.CLOUDINARY_CLOUD_NAME,
-        apiKey: process.env.CLOUDINARY_API_KEY,
+        cloudName,
+        apiKey,
         folder: params.folder,
         uploadPreset: params.upload_preset,
       };

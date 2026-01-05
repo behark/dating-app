@@ -97,9 +97,9 @@ const swipeLimiter = async (req, res, next) => {
 
     const tier = user?.subscription?.tier || 'free';
     const limits = {
-      free: parseInt(process.env.FREE_DAILY_SWIPE_LIMIT) || 100,
-      gold: parseInt(process.env.PREMIUM_DAILY_SWIPE_LIMIT) || 500,
-      platinum: parseInt(process.env.PREMIUM_DAILY_SWIPE_LIMIT) || 500,
+      free: parseInt(process.env.FREE_DAILY_SWIPE_LIMIT || '100', 10) || 100,
+      gold: parseInt(process.env.PREMIUM_DAILY_SWIPE_LIMIT || '500', 10) || 500,
+      platinum: parseInt(process.env.PREMIUM_DAILY_SWIPE_LIMIT || '500', 10) || 500,
       unlimited: Infinity,
     };
 
@@ -350,7 +350,7 @@ const dynamicRateLimiter = (customLimits = {}) => {
 
 /**
  * Apply rate limiter to specific routes
- * @param {Express.Router} router - Express router
+ * @param {import('express').Router} router - Express router
  * @param {Object} routeLimits - Object mapping route patterns to limiters
  */
 const applyRouteLimits = (router, routeLimits) => {

@@ -11,7 +11,7 @@ export default defineConfig({
     ['json', { outputFile: 'test-results/results.json' }],
     ['junit', { outputFile: 'test-results/junit.xml' }],
   ],
-  
+
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:19006',
     trace: 'on-first-retry',

@@ -140,15 +140,15 @@ subscriptionTierSchema.statics.getActiveTiers = function () {
   return this.find({ isActive: true }).sort({ level: 1 });
 };
 
-// Static method: Get tier by ID
-// @ts-ignore - Mongoose static method context
+// @ts-ignore
 subscriptionTierSchema.statics.getTierById = function (tierId) {
+  // @ts-ignore
   return this.findOne({ tierId, isActive: true });
 };
 
-// @ts-ignore - Mongoose static method context
-// Static method: Compare tiers
+// @ts-ignore
 subscriptionTierSchema.statics.compareTiers = function (tier1Id, tier2Id) {
+  // @ts-ignore
   return this.find({ tierId: { $in: [tier1Id, tier2Id] }, isActive: true });
 };
 
@@ -260,6 +260,7 @@ subscriptionTierSchema.statics.initializeDefaultTiers = async function () {
   ];
 
   for (const tier of defaultTiers) {
+    // @ts-ignore
     await this.findOneAndUpdate({ tierId: tier.tierId }, tier, { upsert: true, new: true });
   }
 
@@ -285,6 +286,7 @@ subscriptionTierSchema.methods.getFeatureValue = function (featureName) {
  */
 
 /** @type {SubscriptionTierModel} */
+// @ts-ignore
 const SubscriptionTierModel = mongoose.model('SubscriptionTier', subscriptionTierSchema);
 
 module.exports = SubscriptionTierModel;

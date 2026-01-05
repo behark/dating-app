@@ -11,6 +11,10 @@ const Message = require('../models/Message');
 const User = require('../models/User');
 const Swipe = require('../models/Swipe');
 
+/**
+ * @typedef {import('socket.io').Socket & { userId: string; userName: string }} AuthenticatedSocket
+ */
+
 // Connected users map (in-memory for single server, use Redis for multiple servers)
 const connectedUsers = new Map();
 
@@ -77,21 +81,29 @@ const initializeWebSocket = (httpServer) => {
 
       if (token) {
         // JWT authentication
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const jwtSecret = process.env.JWT_SECRET || '';
+        if (!jwtSecret) {
+          return next(new Error('JWT_SECRET not configured'));
+        }
+        const decoded = jwt.verify(token, jwtSecret);
+        // @ts-ignore - Adding custom property to socket
         socket.userId = decoded.userId || decoded.id;
       } else if (userId) {
         // Direct userId (for development/testing)
+        // @ts-ignore - Adding custom property to socket
         socket.userId = userId;
       } else {
         return next(new Error('Authentication required'));
       }
 
       // Verify user exists
+      // @ts-ignore - userId is set above
       const user = await User.findById(socket.userId).select('_id name isActive');
       if (!user || !user.isActive) {
         return next(new Error('User not found or inactive'));
       }
 
+      // @ts-ignore - Adding custom property to socket
       socket.userName = user.name;
       next();
     } catch (error) {
@@ -105,6 +117,7 @@ const initializeWebSocket = (httpServer) => {
 
   // Connection handling
   io.on('connection', async (socket) => {
+    // @ts-ignore - userId is set in auth middleware
     const userId = socket.userId;
     console.log(`[WS] User ${userId} connected (socket: ${socket.id})`);
 
@@ -346,6 +359,7 @@ const handleSendMessage = async (io, socket, data) => {
       content: message.content,
       type: message.type,
       mediaUrl: message.mediaUrl,
+      // @ts-ignore - replyTo field exists in Message schema
       replyTo: message.replyTo,
       isRead: message.isRead,
       createdAt: message.createdAt,

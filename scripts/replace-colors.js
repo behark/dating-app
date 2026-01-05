@@ -9,30 +9,39 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
+// Constants for repeated color paths
+const COLORS_TEXT_LIGHT = 'Colors.text.light';
+const COLORS_BACKGROUND_WHITE = 'Colors.background.white';
+const COLORS_TEXT_DARK = 'Colors.text.dark';
+const COLORS_TEXT_SECONDARY = 'Colors.text.secondary';
+const COLORS_TEXT_TERTIARY = 'Colors.text.tertiary';
+const COLORS_TEXT_MEDIUM = 'Colors.text.medium';
+const COLORS_BORDER_LIGHT = 'Colors.border.light';
+
 // Color mapping: hardcoded color -> Colors constant path
 const colorMap = {
   // Common colors
-  "'#fff'": 'Colors.background.white',
-  '"#fff"': 'Colors.background.white',
-  "'#FFF'": 'Colors.background.white',
-  '"#FFF"': 'Colors.background.white',
-  "'#ffffff'": 'Colors.background.white',
-  '"#FFFFFF"': 'Colors.background.white',
+  "'#fff'": COLORS_BACKGROUND_WHITE,
+  '"#fff"': COLORS_BACKGROUND_WHITE,
+  "'#FFF'": COLORS_BACKGROUND_WHITE,
+  '"#FFF"': COLORS_BACKGROUND_WHITE,
+  "'#ffffff'": COLORS_BACKGROUND_WHITE,
+  '"#FFFFFF"': COLORS_BACKGROUND_WHITE,
   "'#000'": 'Colors.text.primary',
   "'#000000'": 'Colors.text.primary',
-  "'#333'": 'Colors.text.dark',
-  '"#333"': 'Colors.text.dark',
-  "'#666'": 'Colors.text.secondary',
-  '"#666"': 'Colors.text.secondary',
-  "'#999'": 'Colors.text.tertiary',
-  '"#999"': 'Colors.text.tertiary',
-  "'#555'": 'Colors.text.medium',
-  '"#555"': 'Colors.text.medium',
-  "'#ccc'": 'Colors.text.light',
-  '"#ccc"': 'Colors.text.light',
-  "'#CCC'": 'Colors.text.light',
-  "'#ddd'": 'Colors.border.light',
-  '"#ddd"': 'Colors.border.light',
+  "'#333'": COLORS_TEXT_DARK,
+  '"#333"': COLORS_TEXT_DARK,
+  "'#666'": COLORS_TEXT_SECONDARY,
+  '"#666"': COLORS_TEXT_SECONDARY,
+  "'#999'": COLORS_TEXT_TERTIARY,
+  '"#999"': COLORS_TEXT_TERTIARY,
+  "'#555'": COLORS_TEXT_MEDIUM,
+  '"#555"': COLORS_TEXT_MEDIUM,
+  "'#ccc'": COLORS_TEXT_LIGHT,
+  '"#ccc"': COLORS_TEXT_LIGHT,
+  "'#CCC'": COLORS_TEXT_LIGHT,
+  "'#ddd'": COLORS_BORDER_LIGHT,
+  '"#ddd"': COLORS_BORDER_LIGHT,
   "'#DDD'": 'Colors.border.light',
   "'#eee'": 'Colors.text.lighter',
   "'#EEE'": 'Colors.text.lighter',
@@ -91,6 +100,22 @@ const gradientMap = {
   '["#f5f7fa", "#c3cfe2"]': 'Colors.gradient.light',
 };
 
+function addColorsImport(content, filePath) {
+  const importMatch = content.match(/^import .+ from ['"].+['"];$/m);
+  if (!importMatch) return content;
+
+  const lastImportIndex = content.lastIndexOf(importMatch[0]);
+  const insertIndex = content.indexOf('\n', lastImportIndex) + 1;
+  const importPath = determineImportPath(filePath);
+
+  return `${content.slice(0, insertIndex)}import { Colors } from '${importPath}';\n${content.slice(insertIndex)}`;
+}
+
+function determineImportPath(filePath) {
+  // For most files, the relative path is the same
+  return '../constants/colors';
+}
+
 function replaceColorsInFile(filePath) {
   let content = fs.readFileSync(filePath, 'utf8');
   let modified = false;
@@ -125,33 +150,7 @@ function replaceColorsInFile(filePath) {
 
   // Add Colors import if needed and file was modified
   if (modified && !hasColorsImport) {
-    // Try to find the best place to add the import
-    const importMatch = content.match(/^import .+ from ['"].+['"];$/m);
-    if (importMatch) {
-      const lastImportIndex = content.lastIndexOf(importMatch[0]);
-      const insertIndex = content.indexOf('\n', lastImportIndex) + 1;
-      const relativePath = path
-        .relative(path.dirname(filePath), path.join(__dirname, '../src/constants/colors.js'))
-        .replace(/\\/g, '/')
-        .replace(/^src\//, '../')
-        .replace(/^\.\.\/src\//, '../')
-        .replace(/^constants\//, '../constants/');
-
-      // Determine correct relative path
-      let importPath = '../constants/colors';
-      if (filePath.includes('/screens/')) {
-        importPath = '../constants/colors';
-      } else if (filePath.includes('/components/')) {
-        importPath = '../constants/colors';
-      } else if (filePath.includes('/services/')) {
-        importPath = '../constants/colors';
-      }
-
-      content =
-        content.slice(0, insertIndex) +
-        `import { Colors } from '${importPath}';\n` +
-        content.slice(insertIndex);
-    }
+    content = addColorsImport(content, filePath);
   }
 
   if (modified) {
