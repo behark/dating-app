@@ -27,7 +27,11 @@
     "snyk:test": "snyk test --severity-threshold=high --org=4a0071c2-7ef8-4aa0-9bbb-0068b72f03b0",
     "snyk:test:all": "snyk test --org=4a0071c2-7ef8-4aa0-9bbb-0068b72f03b0",
     "snyk:monitor": "snyk monitor --org=4a0071c2-7ef8-4aa0-9bbb-0068b72f03b0",
-    "snyk:fix": "snyk test --severity-threshold=high --org=4a0071c2-7ef8-4aa0-9bbb-0068b72f03b0"
+    "snyk:fix": "snyk test --severity-threshold=high --org=4a0071c2-7ef8-4aa0-9bbb-0068b72f03b0",
+    "verify:env": "node scripts/verify-production-env.js",
+    "verify:legal": "node scripts/verify-legal-urls.js",
+    "test:deletion": "node scripts/test-account-deletion.js",
+    "test:monitoring": "node scripts/test-error-monitoring.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",

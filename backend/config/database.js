@@ -97,6 +97,11 @@ const connectDB = async () => {
       mongoose.set('maxTimeMS', 10000); // 10 seconds default timeout
       console.log('✅ MongoDB global query timeout set to 10s');
 
+      // Apply performance monitoring plugin to all schemas
+      const performancePlugin = require('../utils/mongoosePerformancePlugin');
+      mongoose.plugin(performancePlugin);
+      console.log('✅ MongoDB performance monitoring plugin enabled');
+
       return conn.connection;
     }, 'mongodb_connection');
   } catch (error) {

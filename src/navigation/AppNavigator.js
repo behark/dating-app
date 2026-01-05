@@ -2,12 +2,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../constants/colors';
 import { createLazyScreen, usePreloadScreens } from '../components/LazyScreen';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { UserBehaviorAnalytics } from '../services/UserBehaviorAnalytics';
+import ConsentBanner from '../components/ConsentBanner';
+import PrivacyService from '../services/PrivacyService';
 
 // Core screens - loaded immediately for fast initial render
 import HomeScreen from '../screens/HomeScreen';
@@ -190,6 +193,65 @@ const AppNavigator = () => {
   const { currentUser } = useAuth();
   const navigationRef = React.useRef(null);
   const routeNameRef = React.useRef(null);
+  const [showConsentBanner, setShowConsentBanner] = useState(false);
+  const [checkingConsent, setCheckingConsent] = useState(true);
+
+  // Check consent status when user logs in
+  useEffect(() => {
+    const checkConsent = async () => {
+      if (!currentUser) {
+        setShowConsentBanner(false);
+        setCheckingConsent(false);
+        return;
+      }
+
+      try {
+        // Check local storage first
+        const hasConsented = await AsyncStorage.getItem('hasConsented');
+        
+        if (hasConsented === 'true') {
+          // Also verify with backend
+          try {
+            const consentStatus = await PrivacyService.getConsentStatus();
+            if (consentStatus?.hasConsented) {
+              setShowConsentBanner(false);
+            } else {
+              setShowConsentBanner(true);
+            }
+          } catch (error) {
+            // If backend check fails, trust local storage
+            setShowConsentBanner(false);
+          }
+        } else {
+          // Check backend for existing consent
+          try {
+            const consentStatus = await PrivacyService.getConsentStatus();
+            if (consentStatus?.hasConsented) {
+              // Backend has consent but local doesn't - sync
+              await AsyncStorage.setItem('hasConsented', 'true');
+              setShowConsentBanner(false);
+            } else {
+              setShowConsentBanner(true);
+            }
+          } catch (error) {
+            // If backend check fails, show consent banner
+            setShowConsentBanner(true);
+          }
+        }
+      } catch (error) {
+        // On error, show consent banner to be safe
+        setShowConsentBanner(true);
+      } finally {
+        setCheckingConsent(false);
+      }
+    };
+
+    checkConsent();
+  }, [currentUser]);
+
+  const handleConsentComplete = () => {
+    setShowConsentBanner(false);
+  };
 
   // Initialize behavior analytics on mount
   useEffect(() => {

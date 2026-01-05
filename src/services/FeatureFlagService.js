@@ -1,16 +1,66 @@
 /**
  * Feature Flag Service
  * Manages feature flags for beta testing and gradual rollouts
+ * Now integrates with backend API for server-managed flags
  */
+
+import logger from '../utils/logger';
+import api from './api';
 
 class FeatureFlagService {
   constructor() {
     this.flags = new Map();
     this.userOverrides = new Map();
     this.rolloutPercentages = new Map();
+    this.lastFetch = 0;
+    this.cacheExpiry = 5 * 60 * 1000; // 5 minutes
+    this.isFetching = false;
   }
 
-  // Initialize default flags
+  /**
+   * Fetch feature flags from backend API
+   * @returns {Promise<Array>} Array of feature flags
+   */
+  async fetchFlagsFromAPI() {
+    if (this.isFetching) return;
+    
+    this.isFetching = true;
+    try {
+      const response = await api.get('/feature-flags');
+      if (response.success && response.data) {
+        // Merge API flags with local flags (API takes precedence)
+        if (Array.isArray(response.data)) {
+          response.data.forEach(flag => {
+            this.flags.set(flag.name, {
+              ...this.flags.get(flag.name),
+              ...flag,
+              fromAPI: true,
+            });
+          });
+        }
+        this.lastFetch = Date.now();
+        logger.debug('Feature flags fetched from API', { count: response.data.length });
+      }
+      return response.data || [];
+    } catch (error) {
+      // Don't throw - fall back to local flags
+      logger.warn('Error fetching feature flags from API, using local defaults:', error.message);
+      return [];
+    } finally {
+      this.isFetching = false;
+    }
+  }
+
+  /**
+   * Check if cache needs refresh and fetch if needed
+   */
+  async ensureFreshFlags() {
+    if (Date.now() - this.lastFetch > this.cacheExpiry) {
+      await this.fetchFlagsFromAPI();
+    }
+  }
+
+  // Initialize default flags (used as fallbacks if API unavailable)
   initializeFlags() {
     // Beta features
     this.registerFlag('beta_video_chat', {
@@ -100,8 +150,26 @@ class FeatureFlagService {
     });
   }
 
-  // Check if feature is enabled for user
-  isEnabled(flagName, userId = null, userGroups = []) {
+  /**
+   * Check if feature is enabled for user
+   * Now checks API flags first, then falls back to local
+   * @param {string} flagName - Name of the feature flag
+   * @param {string} userId - User ID for rollout calculation
+   * @param {Array} userGroups - User groups for access control
+   * @returns {Promise<boolean>} Whether feature is enabled
+   */
+  async isEnabled(flagName, userId = null, userGroups = []) {
+    // Ensure we have fresh flags from API
+    await this.ensureFreshFlags();
+    
+    return this.isEnabledSync(flagName, userId, userGroups);
+  }
+
+  /**
+   * Synchronous version of isEnabled (uses cached flags)
+   * Use this when you can't await (e.g., in render methods)
+   */
+  isEnabledSync(flagName, userId = null, userGroups = []) {
     const flag = this.flags.get(flagName);
     if (!flag) return false;
 
@@ -115,7 +183,7 @@ class FeatureFlagService {
     if (!flag.enabled) return false;
 
     // Check user groups
-    if (!flag.allowedGroups.includes('all')) {
+    if (flag.allowedGroups && !flag.allowedGroups.includes('all')) {
       const hasAllowedGroup = userGroups.some((group) => flag.allowedGroups.includes(group));
       if (!hasAllowedGroup) return false;
     }
@@ -171,13 +239,51 @@ class FeatureFlagService {
   getAllFlags() {
     return Array.from(this.flags.values());
   }
+
+  /**
+   * Get a specific flag from the API
+   * @param {string} flagName - Name of the flag
+   * @returns {Promise<Object|null>} Flag object or null
+   */
+  async getFlag(flagName) {
+    try {
+      const response = await api.get(`/feature-flags/${flagName}`);
+      if (response.success && response.data) {
+        // Update local cache
+        this.flags.set(flagName, {
+          ...this.flags.get(flagName),
+          ...response.data,
+          fromAPI: true,
+        });
+        return response.data;
+      }
+      return this.flags.get(flagName) || null;
+    } catch (error) {
+      logger.warn(`Error fetching flag ${flagName}:`, error.message);
+      return this.flags.get(flagName) || null;
+    }
+  }
+
+  /**
+   * Get all flags for a user (calls API)
+   * @param {string} userId - User ID
+   * @param {Array} userGroups - User groups
+   * @returns {Promise<Object>} Object with flag states
+   */
+  async getUserFlagsAsync(userId, userGroups = []) {
+    await this.ensureFreshFlags();
+    return this.getUserFlags(userId, userGroups);
+  }
 }
 
 // Export singleton instance
 const featureFlagService = new FeatureFlagService();
 featureFlagService.initializeFlags();
 
-module.exports = {
-  FeatureFlagService,
-  featureFlagService,
-};
+// Fetch flags from API on initialization (async, non-blocking)
+featureFlagService.fetchFlagsFromAPI().catch(err => {
+  logger.warn('Initial feature flag fetch failed:', err.message);
+});
+
+export { FeatureFlagService, featureFlagService };
+export default featureFlagService;

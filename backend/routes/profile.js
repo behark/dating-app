@@ -11,7 +11,7 @@ const {
   rejectPhoto,
   getPendingPhotos,
 } = require('../controllers/profileController');
-const { authenticate, authorizeMatchedUsers } = require('../middleware/auth');
+const { authenticate, authorizeMatchedUsers, isAdmin } = require('../middleware/auth');
 const { apiCache, invalidateUserCache } = require('../middleware/apiCache');
 
 const router = express.Router();
@@ -99,10 +99,11 @@ router.put(
 router.delete('/photos/:photoId', authenticate, deletePhoto);
 
 // Photo moderation (admin only)
-router.put('/photos/:photoId/approve', authenticate, approvePhoto);
+router.put('/photos/:photoId/approve', authenticate, isAdmin, approvePhoto);
 router.put(
   '/photos/:photoId/reject',
   authenticate,
+  isAdmin,
   [body('reason').optional().trim()],
   handleValidationErrors,
   rejectPhoto

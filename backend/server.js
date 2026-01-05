@@ -79,6 +79,7 @@ const usersRoutes = require('./routes/users');
 const syncRoutes = require('./routes/sync');
 const featureFlagsRoutes = require('./routes/featureFlags');
 const betaRoutes = require('./routes/beta');
+const performanceRoutes = require('./routes/performance');
 
 // Analytics metrics middleware
 const {
@@ -88,6 +89,9 @@ const {
   userActivityMiddleware,
   errorRateMiddleware,
 } = require('./middleware/metricsMiddleware');
+
+// Performance monitoring middleware
+const { performanceMonitoringMiddleware } = require('./middleware/performanceMonitoring');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -183,6 +187,9 @@ if (process.env.SENTRY_DSN) {
 
 // Metrics collection middleware
 app.use(metricsCollector.getMiddleware());
+
+// Performance monitoring middleware (comprehensive tracking)
+app.use(performanceMonitoringMiddleware);
 
 // Analytics metrics middleware
 app.use(metricsResponseTimeMiddleware);
@@ -424,6 +431,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/sync', syncRoutes);
 app.use('/api/feature-flags', featureFlagsRoutes);
 app.use('/api/beta', betaRoutes);
+app.use('/api/performance', performanceRoutes);
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {
