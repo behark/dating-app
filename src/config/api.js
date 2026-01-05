@@ -56,6 +56,17 @@ export const API_URL = getApiUrl();
 export const API_BASE_URL = API_URL; // Alias for backward compatibility
 export const SOCKET_URL = getSocketUrl();
 
+// Debug logging for API URL (only in browser)
+if (typeof window !== 'undefined') {
+  console.log('🌐 API Configuration:');
+  console.log('  - Platform:', Platform.OS);
+  console.log('  - API_URL:', API_URL);
+  console.log('  - __DEV__:', typeof __DEV__ !== 'undefined' ? __DEV__ : 'undefined');
+  console.log('  - window.__ENV__:', window.__ENV__);
+  console.log('  - Constants.expoConfig?.extra?.backendUrl:', Constants.expoConfig?.extra?.backendUrl);
+  console.log('  - process.env.EXPO_PUBLIC_API_URL:', process.env.EXPO_PUBLIC_API_URL);
+}
+
 export default {
   API_URL,
   API_BASE_URL,
