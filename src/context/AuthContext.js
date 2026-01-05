@@ -91,12 +91,23 @@ export const AuthProvider = ({ children }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
-  const signup = async (email, password, name, age, gender) => {
+  const signup = async (email, password, name, age, gender, location) => {
     try {
+      // Validate location is provided
+      if (!location || !location.coordinates || !Array.isArray(location.coordinates)) {
+        throw new Error('Location is required to create an account. Please enable location services.');
+      }
+
+      // Validate location format
+      if (location.type !== 'Point' || location.coordinates.length !== 2) {
+        throw new Error('Invalid location format. Please try again.');
+      }
+
       // Log API URL for debugging
       logger.debug('Signup attempt', {
         email,
         name,
+        hasLocation: !!location,
         apiUrl: API_URL,
         fullUrl: `${API_URL}/auth/register`,
       });
@@ -111,6 +122,7 @@ export const AuthProvider = ({ children }) => {
           name,
           age,
           gender,
+          location,
         }),
       });
 

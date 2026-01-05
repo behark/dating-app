@@ -44,7 +44,6 @@ export default function ReportUserScreen({ route, navigation }) {
     setLoading(true);
     try {
       const result = await SafetyService.reportUser(
-        'currentUserId', // Would be from auth context
         reportedUserId,
         selectedCategory.id,
         description,

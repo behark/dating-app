@@ -48,7 +48,9 @@ const createRateLimiter = (options = {}) => {
 
       next();
     } catch (error) {
-      console.error('Rate limiter error:', error);
+      // Log error without sensitive data
+      const safeError = error instanceof Error ? error.message : String(error);
+      console.error('Rate limiter error:', safeError);
       // On error, allow the request (fail open)
       next();
     }
@@ -131,7 +133,9 @@ const swipeLimiter = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Swipe limiter error:', error);
+    // Log error without sensitive data
+    const safeError = error instanceof Error ? error.message : String(error);
+    console.error('Swipe limiter error:', safeError);
     next();
   }
 };

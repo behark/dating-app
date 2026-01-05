@@ -17,7 +17,7 @@ export class EnhancedProfileService {
   // Profile Prompts
   static async getAllPrompts() {
     try {
-      const response = await fetch(`${API_URL}/profile/prompts/list`);
+      const response = await fetch(`${API_URL}/profile/enhanced/prompts/list`);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -47,7 +47,7 @@ export class EnhancedProfileService {
         throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
-      const response = await fetch(`${API_URL}/profile/prompts/update`, {
+      const response = await fetch(`${API_URL}/profile/enhanced/prompts/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export class EnhancedProfileService {
         throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
-      const response = await fetch(`${API_URL}/profile/education`, {
+      const response = await fetch(`${API_URL}/profile/enhanced/education`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -123,7 +123,7 @@ export class EnhancedProfileService {
         throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
-      const response = await fetch(`${API_URL}/profile/occupation`, {
+      const response = await fetch(`${API_URL}/profile/enhanced/occupation`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -161,7 +161,7 @@ export class EnhancedProfileService {
         throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
-      const response = await fetch(`${API_URL}/profile/height`, {
+      const response = await fetch(`${API_URL}/profile/enhanced/height`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -199,7 +199,7 @@ export class EnhancedProfileService {
         throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
-      const response = await fetch(`${API_URL}/profile/ethnicity`, {
+      const response = await fetch(`${API_URL}/profile/enhanced/ethnicity`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

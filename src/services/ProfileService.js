@@ -1,38 +1,19 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
 import { ERROR_MESSAGES } from '../constants/constants';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
+import api from './api';
 import { validateNotEmpty, validateUserId } from '../utils/validators';
 
 export class ProfileService {
-  static async getAuthToken() {
-    try {
-      return await AsyncStorage.getItem('authToken');
-    } catch (error) {
-      logger.error('Error retrieving auth token:', error);
-      return null;
-    }
-  }
-
   static async getProfile(userId) {
     try {
       if (!validateUserId(userId)) {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_URL}/profile/${userId}`);
+      const data = await api.get(`/profile/${userId}`);
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
       if (!data.success) {
         throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch profile'));
       }
@@ -46,27 +27,8 @@ export class ProfileService {
 
   static async getMyProfile() {
     try {
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error('No authentication token found');
-      }
+      const data = await api.get('/profile/me');
 
-      const response = await fetch(`${API_URL}/profile/me`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
       if (!data.success) {
         throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch profile'));
       }
@@ -80,30 +42,8 @@ export class ProfileService {
 
   static async updateProfile(profileData) {
     try {
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error('No authentication token found');
-      }
+      const data = await api.put('/profile/update', profileData);
 
-      const response = await fetch(`${API_URL}/profile/update`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(profileData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
       if (!data.success) {
         throw new Error(getUserFriendlyMessage(data.message || 'Failed to update profile'));
       }
@@ -117,30 +57,8 @@ export class ProfileService {
 
   static async uploadPhotos(photos) {
     try {
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error('No authentication token found');
-      }
+      const data = await api.post('/profile/photos/upload', { photos });
 
-      const response = await fetch(`${API_URL}/profile/photos/upload`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ photos }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
       if (!data.success) {
         throw new Error(getUserFriendlyMessage(data.message || 'Failed to upload photos'));
       }
@@ -154,30 +72,8 @@ export class ProfileService {
 
   static async reorderPhotos(photoIds) {
     try {
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error('No authentication token found');
-      }
+      const data = await api.put('/profile/photos/reorder', { photoIds });
 
-      const response = await fetch(`${API_URL}/profile/photos/reorder`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ photoIds }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
       if (!data.success) {
         throw new Error(getUserFriendlyMessage(data.message || 'Failed to reorder photos'));
       }
@@ -195,28 +91,8 @@ export class ProfileService {
         throw new Error('Invalid photo ID provided');
       }
 
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error('No authentication token found');
-      }
+      const data = await api.delete(`/profile/photos/${photoId}`);
 
-      const response = await fetch(`${API_URL}/profile/photos/${photoId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
       if (!data.success) {
         throw new Error(getUserFriendlyMessage(data.message || 'Failed to delete photo'));
       }

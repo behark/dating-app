@@ -53,6 +53,33 @@ const MatchesScreen = () => {
       logger.error('Error loading conversations:', error);
       setLoading(false);
       setRefreshing(false);
+
+      // Show user-friendly error message
+      let errorMessage = 'Failed to load conversations.';
+      if (error.statusCode === 401) {
+        errorMessage = 'Session expired. Please log in again.';
+      } else if (error.statusCode === 403) {
+        errorMessage = "You don't have permission to view conversations.";
+      } else if (error.statusCode === 404) {
+        errorMessage = 'Conversations not found.';
+      } else if (error.statusCode === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.message?.includes('Network') || error.message?.includes('fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      Alert.alert('Error', errorMessage, [
+        {
+          text: 'Retry',
+          onPress: () => loadConversationsList(),
+        },
+        {
+          text: 'OK',
+          style: 'cancel',
+        },
+      ]);
     }
   };
 

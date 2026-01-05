@@ -49,7 +49,11 @@ const ChatScreen = ({ route, navigation }) => {
   // Load messages for this match
   const loadMessages = useCallback(
     async (loadMore = false) => {
-      if (!matchId) return;
+      if (!matchId) {
+        Alert.alert('Error', 'Invalid conversation. Please go back and try again.');
+        navigation.goBack();
+        return;
+      }
 
       try {
         if (loadMore) {
@@ -72,12 +76,36 @@ const ChatScreen = ({ route, navigation }) => {
         }
       } catch (error) {
         logger.error('Error loading messages:', error);
+        const errorMessage =
+          error.message || 'Failed to load messages. Please check your connection.';
+        
+        if (!loadMore) {
+          // Initial load failure - show alert with retry option
+          Alert.alert(
+            'Error Loading Messages',
+            errorMessage,
+            [
+              {
+                text: 'Retry',
+                onPress: () => loadMessages(false),
+              },
+              {
+                text: 'Go Back',
+                style: 'cancel',
+                onPress: () => navigation.goBack(),
+              },
+            ]
+          );
+        } else {
+          // Load more failure - show less intrusive message
+          Alert.alert('Error', 'Failed to load more messages. Pull to refresh.');
+        }
       } finally {
         setLoading(false);
         setLoadingMore(false);
       }
     },
-    [matchId, page, chatLoadMessages]
+    [matchId, page, chatLoadMessages, navigation]
   );
 
   // Initialize chat room and load messages

@@ -38,15 +38,34 @@ const ProfileScreen = () => {
 
   const loadProfile = async () => {
     try {
+      setLoading(true);
       const userData = await ProfileService.getMyProfile();
       if (userData) {
         setName(userData.name || '');
         setAge(userData.age?.toString() || '');
         setBio(userData.bio || '');
         setPhotoURL(userData.photoURL || userData.photos?.[0]?.url || '');
+      } else {
+        logger.warn('Profile data is empty');
       }
     } catch (error) {
       logger.error('Error loading profile:', error);
+      Alert.alert(
+        'Error Loading Profile',
+        error.message || 'Failed to load your profile. Please try again.',
+        [
+          {
+            text: 'Retry',
+            onPress: loadProfile,
+          },
+          {
+            text: 'OK',
+            style: 'cancel',
+          },
+        ]
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -57,6 +76,8 @@ const ProfileScreen = () => {
       setUserBadges(badges || []);
     } catch (error) {
       logger.error('Error loading user badges:', error);
+      // Silently fail for badges - not critical, but log it
+      // User can still use the profile screen without badges
     }
   };
 

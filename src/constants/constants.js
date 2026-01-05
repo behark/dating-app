@@ -75,7 +75,7 @@ export const API_ENDPOINTS = {
     UPDATE: '/profile/update',
     PHOTOS_UPLOAD: '/profile/photos/upload',
     PHOTOS_REORDER: '/profile/photos/reorder',
-    PROMPTS: '/profile/prompts',
+    PROMPTS: '/profile/enhanced/prompts',
     PREFERENCES: '/profile/preferences',
     LOCATION: '/profile/location',
     DELETE: '/profile/delete',

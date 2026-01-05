@@ -78,6 +78,16 @@ const SafetyTipsScreen = createLazyScreen(() => import('../screens/SafetyTipsScr
   displayName: 'SafetyTipsScreen',
 });
 
+const PrivacySettingsScreen = createLazyScreen(() => import('../screens/PrivacySettingsScreen'), {
+  loadingMessage: 'Loading privacy settings...',
+  displayName: 'PrivacySettingsScreen',
+});
+
+const AIInsightsScreen = createLazyScreen(() => import('../screens/AIInsightsScreen'), {
+  loadingMessage: 'Loading AI insights...',
+  displayName: 'AIInsightsScreen',
+});
+
 const VerificationScreen = createLazyScreen(() => import('../screens/VerificationScreen'), {
   loadingMessage: 'Loading verification...',
   displayName: 'VerificationScreen',
@@ -283,6 +293,22 @@ const AppNavigator = () => {
             <Stack.Screen
               name="SafetyAdvanced"
               component={SafetyAdvancedScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="PrivacySettings"
+              component={PrivacySettingsScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="AIInsights"
+              component={AIInsightsScreen}
               options={{
                 headerShown: false,
                 presentation: 'card',

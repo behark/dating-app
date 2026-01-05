@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -15,6 +16,7 @@ import {
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { validateEmail, validatePassword } from '../utils/validators';
+import logger from '../utils/logger';
 
 const LoginScreen = ({ navigation, onAuthSuccess }) => {
   const [email, setEmail] = useState('');
@@ -24,9 +26,13 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
   const [gender, setGender] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { login, signup, signInWithGoogle } = useAuth();
 
   const handleAuth = async () => {
+    // Prevent double-submit
+    if (loading) return;
+
     // Input validation
     if (!email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
@@ -57,6 +63,7 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
       return;
     }
 
+    setLoading(true);
     try {
       if (isLogin) {
         await login(email, password);
@@ -68,14 +75,30 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
         onAuthSuccess();
       }
     } catch (error) {
+      logger.error('Authentication error:', error);
       const errorMessage =
         error.message ||
-        (isLogin ? 'Login failed. Please try again.' : 'Signup failed. Please try again.');
-      Alert.alert('Error', errorMessage);
+        (isLogin ? 'Login failed. Please check your credentials and try again.' : 'Signup failed. Please try again.');
+      Alert.alert(
+        isLogin ? 'Login Failed' : 'Signup Failed',
+        errorMessage,
+        [
+          {
+            text: 'OK',
+            style: 'cancel',
+          },
+        ]
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
+    // Prevent double-submit
+    if (loading) return;
+
+    setLoading(true);
     try {
       await signInWithGoogle();
       // Call success callback if provided
@@ -83,8 +106,20 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
         onAuthSuccess();
       }
     } catch (error) {
+      logger.error('Google sign-in error:', error);
       const errorMessage = error.message || 'Google sign-in failed. Please try again.';
-      Alert.alert('Error', errorMessage);
+      Alert.alert(
+        'Google Sign-In Failed',
+        errorMessage,
+        [
+          {
+            text: 'OK',
+            style: 'cancel',
+          },
+        ]
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -242,14 +277,28 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={styles.primaryButton} onPress={handleAuth} activeOpacity={0.8}>
+            <TouchableOpacity
+              style={[styles.primaryButton, loading && styles.buttonDisabled]}
+              onPress={handleAuth}
+              activeOpacity={0.8}
+              disabled={loading}
+            >
               <LinearGradient
-                colors={Colors.gradient.primary}
+                colors={loading ? Colors.gradient.disabled || ['#999', '#777'] : Colors.gradient.primary}
                 style={styles.buttonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
-                <Text style={styles.primaryButtonText}>{isLogin ? 'Sign In' : 'Sign Up'}</Text>
+                {loading ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="small" color={Colors.background.white} />
+                    <Text style={styles.primaryButtonText}>Please wait...</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.primaryButtonText}>
+                    {isLogin ? 'Sign In' : 'Sign Up'}
+                  </Text>
+                )}
               </LinearGradient>
             </TouchableOpacity>
 
@@ -260,12 +309,22 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
             </View>
 
             <TouchableOpacity
-              style={styles.googleButton}
+              style={[styles.googleButton, loading && styles.buttonDisabled]}
               onPress={handleGoogleSignIn}
               activeOpacity={0.8}
+              disabled={loading}
             >
-              <Ionicons name="logo-google" size={20} color={Colors.brand.google} />
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color={Colors.text.tertiary} />
+                  <Text style={[styles.googleButtonText, styles.textDisabled]}>Please wait...</Text>
+                </View>
+              ) : (
+                <>
+                  <Ionicons name="logo-google" size={20} color={Colors.brand.google} />
+                  <Text style={styles.googleButtonText}>Continue with Google</Text>
+                </>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => setIsLogin(!isLogin)} style={styles.switchButton}>
@@ -457,6 +516,18 @@ const styles = StyleSheet.create({
   },
   genderTextActive: {
     color: Colors.background.white,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  textDisabled: {
+    color: Colors.text.tertiary,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
   },
 });
 

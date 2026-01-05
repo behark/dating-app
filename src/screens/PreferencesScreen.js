@@ -246,6 +246,21 @@ const PreferencesScreen = ({ navigation }) => {
   const renderPrivacyPreferences = () => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Privacy</Text>
+      <TouchableOpacity
+        style={styles.actionCard}
+        onPress={() => navigation.navigate('PrivacySettings')}
+      >
+        <View style={styles.actionCardContent}>
+          <Ionicons name="shield-checkmark" size={24} color={Colors.primary} />
+          <View style={styles.actionCardText}>
+            <Text style={styles.actionCardTitle}>Privacy & Data Settings</Text>
+            <Text style={styles.actionCardSubtitle}>
+              Export data, delete account, manage GDPR/CCPA rights
+            </Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={Colors.text.tertiary} />
+      </TouchableOpacity>
       <View style={styles.switchGroup}>
         <View style={styles.switchRow}>
           <View style={styles.switchInfo}>
@@ -637,6 +652,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.text.secondary,
     marginTop: 2,
+  },
+  actionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.background.lightest,
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: Colors.border.gray,
+  },
+  actionCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  actionCardText: {
+    marginLeft: 15,
+    flex: 1,
+  },
+  actionCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text.dark,
+    marginBottom: 4,
+  },
+  actionCardSubtitle: {
+    fontSize: 14,
+    color: Colors.text.secondary,
   },
   saveButtonLarge: {
     marginTop: 20,
