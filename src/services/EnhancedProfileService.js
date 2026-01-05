@@ -1,12 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
+import logger from '../utils/logger';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 
 export class EnhancedProfileService {
   static async getAuthToken() {
     try {
       return await AsyncStorage.getItem('authToken');
     } catch (error) {
-      console.error('Error retrieving auth token:', error);
+      logger.error('Error retrieving auth token:', error);
       return null;
     }
   }
@@ -15,15 +17,24 @@ export class EnhancedProfileService {
   static async getAllPrompts() {
     try {
       const response = await fetch(`${API_URL}/profile/prompts/list`);
-      const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch prompts');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
-      return data.data.prompts;
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch prompts'));
+      }
+
+      return data.data?.prompts || [];
     } catch (error) {
-      console.error('Error fetching prompts:', error);
+      logger.error('Error fetching prompts:', error);
       throw error;
     }
   }
@@ -39,20 +50,28 @@ export class EnhancedProfileService {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ prompts })
+        body: JSON.stringify({ prompts }),
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to update prompts');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
-      return data.data.prompts;
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to update prompts'));
+      }
+
+      return data.data?.prompts || [];
     } catch (error) {
-      console.error('Error updating prompts:', error);
+      logger.error('Error updating prompts:', error);
       throw error;
     }
   }
@@ -69,20 +88,28 @@ export class EnhancedProfileService {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(education)
+        body: JSON.stringify(education),
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to update education');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
-      return data.data.education;
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to update education'));
+      }
+
+      return data.data?.education || null;
     } catch (error) {
-      console.error('Error updating education:', error);
+      logger.error('Error updating education:', error);
       throw error;
     }
   }
@@ -99,20 +126,28 @@ export class EnhancedProfileService {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(occupation)
+        body: JSON.stringify(occupation),
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to update occupation');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
-      return data.data.occupation;
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to update occupation'));
+      }
+
+      return data.data?.occupation || null;
     } catch (error) {
-      console.error('Error updating occupation:', error);
+      logger.error('Error updating occupation:', error);
       throw error;
     }
   }
@@ -129,20 +164,28 @@ export class EnhancedProfileService {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(height)
+        body: JSON.stringify(height),
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to update height');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
-      return data.data.height;
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to update height'));
+      }
+
+      return data.data?.height || null;
     } catch (error) {
-      console.error('Error updating height:', error);
+      logger.error('Error updating height:', error);
       throw error;
     }
   }
@@ -159,20 +202,28 @@ export class EnhancedProfileService {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ ethnicity })
+        body: JSON.stringify({ ethnicity }),
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to update ethnicity');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
-      return data.data.ethnicity;
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to update ethnicity'));
+      }
+
+      return data.data?.ethnicity || null;
     } catch (error) {
-      console.error('Error updating ethnicity:', error);
+      logger.error('Error updating ethnicity:', error);
       throw error;
     }
   }

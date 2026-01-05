@@ -5,14 +5,17 @@
 The error **"Cannot set headers after they are sent to the client"** was caused by:
 
 ### Problem:
+
 The `performanceHeaders` middleware was trying to set the `Server-Timing` header in the `res.on('finish')` event handler.
 
 **Why this fails:**
+
 - The `finish` event fires **AFTER** the response has been sent to the client
 - Headers cannot be modified after the response is sent
 - This caused the error on every request
 
 ### Code Location:
+
 ```javascript
 // ❌ BEFORE (BROKEN)
 res.on('finish', () => {
@@ -27,9 +30,11 @@ res.on('finish', () => {
 ## ✅ Fix Applied
 
 ### Solution:
+
 Removed header setting from the `finish` event handler. The `finish` event should only be used for logging/metrics, not for setting headers.
 
 ### Code After Fix:
+
 ```javascript
 // ✅ AFTER (FIXED)
 res.on('finish', () => {
@@ -50,17 +55,20 @@ res.on('finish', () => {
 ## 📝 All Fixes Applied
 
 ### 1. ✅ Middleware Header Checks
+
 - Added `res.headersSent` checks to all middleware
 - Fixed `metricsMiddleware.js`
 - Fixed `apiCache.js`
 - Fixed `loadTimeOptimization.js`
 
 ### 2. ✅ Error Handler
+
 - Added `headersSent` check to global error handler
 - Added check to 404 handler
 - Added checks to health endpoints
 
 ### 3. ✅ Finish Event Handlers
+
 - Removed header setting from `finish` event
 - Changed to logging only
 - Made all `finish` handlers safe
@@ -70,12 +78,14 @@ res.on('finish', () => {
 ## 🧪 Verification
 
 ### Test Results:
+
 - ✅ Health endpoint: Working
 - ✅ Multiple requests: No errors
 - ✅ Register endpoint: Working
 - ✅ Login endpoint: Working
 
 ### Expected Behavior:
+
 - No more "Cannot set headers" errors in logs
 - All endpoints respond correctly
 - Performance monitoring still works (via logging)

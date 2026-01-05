@@ -1,16 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
-    ActivityIndicator,
-    Dimensions,
-    FlatList,
-    Image,
-    Modal,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import MediaMessagesService from '../../services/MediaMessagesService';
 
@@ -25,13 +25,7 @@ const GifPickerModal = ({ visible, onClose, onSelectGif, authToken }) => {
   const [searchLoading, setSearchLoading] = useState(false);
   const mediaService = new MediaMessagesService(authToken);
 
-  useEffect(() => {
-    if (visible && gifs.length === 0) {
-      loadPopularGifs();
-    }
-  }, [visible]);
-
-  const loadPopularGifs = async () => {
+  const loadPopularGifs = useCallback(async () => {
     setLoading(true);
     try {
       const result = await mediaService.getPopularGifs(20);
@@ -41,7 +35,13 @@ const GifPickerModal = ({ visible, onClose, onSelectGif, authToken }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [mediaService]);
+
+  useEffect(() => {
+    if (visible && gifs.length === 0) {
+      loadPopularGifs();
+    }
+  }, [visible, gifs.length, loadPopularGifs]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -68,10 +68,7 @@ const GifPickerModal = ({ visible, onClose, onSelectGif, authToken }) => {
         onClose();
       }}
     >
-      <Image
-        source={{ uri: item.url }}
-        style={styles.gif}
-      />
+      <Image source={{ uri: item.url }} style={styles.gif} />
     </TouchableOpacity>
   );
 

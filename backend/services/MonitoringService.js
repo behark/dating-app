@@ -24,11 +24,11 @@ class MonitoringService {
       dsn: process.env.SENTRY_DSN,
       environment: this.environment,
       release: process.env.RELEASE_VERSION || 'unknown',
-      
+
       // Performance Monitoring
       tracesSampleRate: this.environment === 'production' ? 0.1 : 1.0,
       profilesSampleRate: this.environment === 'production' ? 0.1 : 1.0,
-      
+
       integrations: [
         // Enable HTTP calls tracing
         Sentry.httpIntegration({ tracing: true }),
@@ -159,11 +159,15 @@ class MonitoringService {
    */
   setUser(user) {
     if (!this.initialized) return;
-    Sentry.setUser(user ? {
-      id: user._id?.toString() || user.id,
-      email: user.email,
-      username: user.displayName,
-    } : null);
+    Sentry.setUser(
+      user
+        ? {
+            id: user._id?.toString() || user.id,
+            email: user.email,
+            username: user.displayName,
+          }
+        : null
+    );
   }
 
   /**
@@ -322,11 +326,7 @@ class MetricsCollector {
    * Track database query metrics
    */
   trackDatabaseQuery(operation, collection, duration, success = true) {
-    const tags = [
-      `operation:${operation}`,
-      `collection:${collection}`,
-      `success:${success}`,
-    ];
+    const tags = [`operation:${operation}`, `collection:${collection}`, `success:${success}`];
 
     this.datadog.increment('db.queries', 1, tags);
     this.datadog.timing('db.query.duration', duration, tags);
@@ -338,7 +338,7 @@ class MetricsCollector {
   trackCache(operation, hit = false) {
     const tags = [`operation:${operation}`, `hit:${hit}`];
     this.datadog.increment('cache.operations', 1, tags);
-    
+
     if (operation === 'get') {
       this.datadog.increment(hit ? 'cache.hits' : 'cache.misses', 1);
     }

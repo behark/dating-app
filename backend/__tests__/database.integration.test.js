@@ -22,6 +22,7 @@ const mockMatchModel = {
   find: jest.fn(),
   findOne: jest.fn(),
   updateOne: jest.fn(),
+  aggregate: jest.fn(),
 };
 
 const mockMessageModel = {
@@ -47,7 +48,7 @@ describe('Database Integration Tests', () => {
       photos: ['photo1.jpg'],
       location: {
         type: 'Point',
-        coordinates: [-74.0060, 40.7128],
+        coordinates: [-74.006, 40.7128],
       },
       preferences: {
         ageRange: { min: 20, max: 35 },
@@ -69,9 +70,7 @@ describe('Database Integration Tests', () => {
       });
 
       it('should reject duplicate email', async () => {
-        mockUserModel.create.mockRejectedValue(
-          new Error('E11000 duplicate key error')
-        );
+        mockUserModel.create.mockRejectedValue(new Error('E11000 duplicate key error'));
 
         await expect(mockUserModel.create(testUser)).rejects.toThrow('duplicate key');
       });
@@ -225,7 +224,8 @@ describe('Database Integration Tests', () => {
           }),
         });
 
-        const result = await mockMessageModel.find({ conversationId: 'conv_123' })
+        const result = await mockMessageModel
+          .find({ conversationId: 'conv_123' })
           .sort({ createdAt: -1 })
           .limit(50);
 
@@ -273,7 +273,7 @@ describe('Database Integration Tests', () => {
         const result = await mockUserModel.aggregate([
           {
             $geoNear: {
-              near: { type: 'Point', coordinates: [-74.0060, 40.7128] },
+              near: { type: 'Point', coordinates: [-74.006, 40.7128] },
               distanceField: 'distance',
               maxDistance: 50000, // 50km in meters
               spherical: true,
@@ -303,7 +303,13 @@ describe('Database Integration Tests', () => {
               _id: null,
               totalUsers: { $sum: 1 },
               activeUsers: {
-                $sum: { $cond: [{ $gte: ['$lastActive', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)] }, 1, 0] },
+                $sum: {
+                  $cond: [
+                    { $gte: ['$lastActive', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)] },
+                    1,
+                    0,
+                  ],
+                },
               },
             },
           },

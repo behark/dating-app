@@ -2,16 +2,17 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import {
-    Alert,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import logger from '../utils/logger';
 import { NotificationService } from '../services/NotificationService';
 
 const NotificationPreferencesScreen = ({ navigation }) => {
@@ -33,7 +34,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
       setPreferences(prefs);
       setTempQuietHours(prefs.quietHours);
     } catch (error) {
-      console.error('Error loading preferences:', error);
+      logger.error('Error loading preferences:', error);
       Alert.alert('Error', 'Failed to load notification preferences');
     } finally {
       setLoading(false);
@@ -49,10 +50,10 @@ const NotificationPreferencesScreen = ({ navigation }) => {
         ...preferences,
         quietHours: tempQuietHours,
       });
-      setPreferences(prev => ({ ...prev, quietHours: tempQuietHours }));
+      setPreferences((prev) => ({ ...prev, quietHours: tempQuietHours }));
       Alert.alert('Success', 'Notification preferences saved successfully!');
     } catch (error) {
-      console.error('Error saving preferences:', error);
+      logger.error('Error saving preferences:', error);
       Alert.alert('Error', 'Failed to save notification preferences');
     } finally {
       setSaving(false);
@@ -60,7 +61,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
   };
 
   const updatePreference = (key, value) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
+    setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
   const frequencyOptions = [
@@ -156,10 +157,13 @@ const NotificationPreferencesScreen = ({ navigation }) => {
         <View style={styles.frequencyContent}>
           <View>
             <Text style={styles.frequencyLabel}>
-              {frequencyOptions.find(o => o.id === preferences.notificationFrequency)?.label}
+              {frequencyOptions.find((o) => o.id === preferences.notificationFrequency)?.label}
             </Text>
             <Text style={styles.frequencyDescription}>
-              {frequencyOptions.find(o => o.id === preferences.notificationFrequency)?.description}
+              {
+                frequencyOptions.find((o) => o.id === preferences.notificationFrequency)
+                  ?.description
+              }
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={24} color="#667eea" />
@@ -174,9 +178,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
         <Text style={styles.sectionTitle}>Quiet Hours</Text>
         <Switch
           value={tempQuietHours?.enabled || false}
-          onValueChange={(value) => 
-            setTempQuietHours(prev => ({ ...prev, enabled: value }))
-          }
+          onValueChange={(value) => setTempQuietHours((prev) => ({ ...prev, enabled: value }))}
           trackColor={{ false: '#ccc', true: '#667eea' }}
           thumbColor="#fff"
         />
@@ -185,7 +187,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
       {tempQuietHours?.enabled && (
         <View style={styles.quietHoursContent}>
           <Text style={styles.quietHoursDescription}>
-            Don't send notifications between {tempQuietHours.start} and {tempQuietHours.end}
+            Don&apos;t send notifications between {tempQuietHours.start} and {tempQuietHours.end}
           </Text>
           <TouchableOpacity
             style={styles.editQuietHoursButton}
@@ -216,7 +218,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
           </View>
 
           <ScrollView style={styles.modalBody}>
-            {frequencyOptions.map(option => (
+            {frequencyOptions.map((option) => (
               <TouchableOpacity
                 key={option.id}
                 style={[
@@ -271,7 +273,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
             </View>
 
             <Text style={styles.timeNote}>
-              Note: You won't receive any notifications during these hours.
+              Note: You won&apos;t receive any notifications during these hours.
             </Text>
 
             <TouchableOpacity
@@ -299,22 +301,12 @@ const NotificationPreferencesScreen = ({ navigation }) => {
 
   return (
     <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.header}
-      >
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notification Settings</Text>
-        <TouchableOpacity
-          onPress={savePreferences}
-          style={styles.saveButton}
-          disabled={saving}
-        >
+        <TouchableOpacity onPress={savePreferences} style={styles.saveButton} disabled={saving}>
           <Ionicons name="checkmark" size={24} color="#fff" />
         </TouchableOpacity>
       </LinearGradient>
@@ -335,9 +327,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
               style={styles.saveButtonGradient}
             >
               <Ionicons name="checkmark-circle" size={24} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={styles.saveButtonText}>
-                {saving ? 'Saving...' : 'Save Settings'}
-              </Text>
+              <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save Settings'}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>

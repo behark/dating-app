@@ -15,11 +15,11 @@ const handleValidationErrors = (req, res, next) => {
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
-      errors: errors.array().map(err => ({
+      errors: errors.array().map((err) => ({
         field: err.path || err.param,
         message: err.msg,
-        value: err.value
-      }))
+        value: err.value,
+      })),
     });
   }
   next();
@@ -43,36 +43,36 @@ const validators = {
   userId: {
     in: ['params'],
     isMongoId: {
-      errorMessage: 'Invalid user ID format'
-    }
+      errorMessage: 'Invalid user ID format',
+    },
   },
-  
+
   optionalUserId: {
     in: ['params'],
     optional: true,
     isMongoId: {
-      errorMessage: 'Invalid user ID format'
-    }
+      errorMessage: 'Invalid user ID format',
+    },
   },
 
   // Email validation
   email: {
     in: ['body'],
     isEmail: {
-      errorMessage: 'Invalid email address'
+      errorMessage: 'Invalid email address',
     },
     normalizeEmail: true,
-    trim: true
+    trim: true,
   },
 
   optionalEmail: {
     in: ['body'],
     optional: true,
     isEmail: {
-      errorMessage: 'Invalid email address'
+      errorMessage: 'Invalid email address',
     },
     normalizeEmail: true,
-    trim: true
+    trim: true,
   },
 
   // Password validation
@@ -80,20 +80,21 @@ const validators = {
     in: ['body'],
     isLength: {
       options: { min: 8, max: 128 },
-      errorMessage: 'Password must be between 8 and 128 characters'
+      errorMessage: 'Password must be between 8 and 128 characters',
     },
     matches: {
       options: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      errorMessage: 'Password must contain at least one lowercase letter, one uppercase letter, and one number'
-    }
+      errorMessage:
+        'Password must contain at least one lowercase letter, one uppercase letter, and one number',
+    },
   },
 
   simplePassword: {
     in: ['body'],
     isLength: {
       options: { min: 8 },
-      errorMessage: 'Password must be at least 8 characters'
-    }
+      errorMessage: 'Password must be at least 8 characters',
+    },
   },
 
   // Name validation
@@ -101,16 +102,16 @@ const validators = {
     in: ['body'],
     trim: true,
     notEmpty: {
-      errorMessage: 'Name is required'
+      errorMessage: 'Name is required',
     },
     isLength: {
       options: { min: 2, max: 50 },
-      errorMessage: 'Name must be between 2 and 50 characters'
+      errorMessage: 'Name must be between 2 and 50 characters',
     },
     matches: {
       options: /^[a-zA-Z\s'-]+$/,
-      errorMessage: 'Name can only contain letters, spaces, hyphens, and apostrophes'
-    }
+      errorMessage: 'Name can only contain letters, spaces, hyphens, and apostrophes',
+    },
   },
 
   optionalName: {
@@ -119,8 +120,8 @@ const validators = {
     trim: true,
     isLength: {
       options: { min: 2, max: 50 },
-      errorMessage: 'Name must be between 2 and 50 characters'
-    }
+      errorMessage: 'Name must be between 2 and 50 characters',
+    },
   },
 
   // Age validation
@@ -128,9 +129,9 @@ const validators = {
     in: ['body'],
     isInt: {
       options: { min: 18, max: 100 },
-      errorMessage: 'Age must be between 18 and 100'
+      errorMessage: 'Age must be between 18 and 100',
     },
-    toInt: true
+    toInt: true,
   },
 
   optionalAge: {
@@ -138,9 +139,9 @@ const validators = {
     optional: true,
     isInt: {
       options: { min: 18, max: 100 },
-      errorMessage: 'Age must be between 18 and 100'
+      errorMessage: 'Age must be between 18 and 100',
     },
-    toInt: true
+    toInt: true,
   },
 
   // Gender validation
@@ -148,8 +149,8 @@ const validators = {
     in: ['body'],
     isIn: {
       options: [['male', 'female', 'other', 'non-binary', 'prefer-not-to-say']],
-      errorMessage: 'Invalid gender value'
-    }
+      errorMessage: 'Invalid gender value',
+    },
   },
 
   optionalGender: {
@@ -157,8 +158,8 @@ const validators = {
     optional: true,
     isIn: {
       options: [['male', 'female', 'other', 'non-binary', 'prefer-not-to-say']],
-      errorMessage: 'Invalid gender value'
-    }
+      errorMessage: 'Invalid gender value',
+    },
   },
 
   // Bio validation
@@ -168,8 +169,8 @@ const validators = {
     trim: true,
     isLength: {
       options: { max: 500 },
-      errorMessage: 'Bio must not exceed 500 characters'
-    }
+      errorMessage: 'Bio must not exceed 500 characters',
+    },
   },
 
   // Interests validation
@@ -178,16 +179,16 @@ const validators = {
     optional: true,
     isArray: {
       options: { max: 20 },
-      errorMessage: 'Maximum 20 interests allowed'
-    }
+      errorMessage: 'Maximum 20 interests allowed',
+    },
   },
 
   // Photo URL validation
   photoUrl: {
     in: ['body'],
     isURL: {
-      errorMessage: 'Invalid photo URL'
-    }
+      errorMessage: 'Invalid photo URL',
+    },
   },
 
   // Pagination
@@ -196,9 +197,9 @@ const validators = {
     optional: true,
     isInt: {
       options: { min: 1 },
-      errorMessage: 'Page must be a positive integer'
+      errorMessage: 'Page must be a positive integer',
     },
-    toInt: true
+    toInt: true,
   },
 
   limit: {
@@ -206,26 +207,26 @@ const validators = {
     optional: true,
     isInt: {
       options: { min: 1, max: 100 },
-      errorMessage: 'Limit must be between 1 and 100'
+      errorMessage: 'Limit must be between 1 and 100',
     },
-    toInt: true
+    toInt: true,
   },
 
   // Token validation
   token: {
     in: ['body'],
     notEmpty: {
-      errorMessage: 'Token is required'
+      errorMessage: 'Token is required',
     },
-    isString: true
+    isString: true,
   },
 
   // Match ID validation
   matchId: {
     in: ['params'],
     isMongoId: {
-      errorMessage: 'Invalid match ID format'
-    }
+      errorMessage: 'Invalid match ID format',
+    },
   },
 
   // Message validation
@@ -233,12 +234,12 @@ const validators = {
     in: ['body'],
     trim: true,
     notEmpty: {
-      errorMessage: 'Message content is required'
+      errorMessage: 'Message content is required',
     },
     isLength: {
       options: { max: 5000 },
-      errorMessage: 'Message must not exceed 5000 characters'
-    }
+      errorMessage: 'Message must not exceed 5000 characters',
+    },
   },
 
   // Location validation
@@ -246,18 +247,18 @@ const validators = {
     in: ['body'],
     isFloat: {
       options: { min: -90, max: 90 },
-      errorMessage: 'Latitude must be between -90 and 90'
+      errorMessage: 'Latitude must be between -90 and 90',
     },
-    toFloat: true
+    toFloat: true,
   },
 
   longitude: {
     in: ['body'],
     isFloat: {
       options: { min: -180, max: 180 },
-      errorMessage: 'Longitude must be between -180 and 180'
+      errorMessage: 'Longitude must be between -180 and 180',
     },
-    toFloat: true
+    toFloat: true,
   },
 
   optionalLatitude: {
@@ -265,9 +266,9 @@ const validators = {
     optional: true,
     isFloat: {
       options: { min: -90, max: 90 },
-      errorMessage: 'Latitude must be between -90 and 90'
+      errorMessage: 'Latitude must be between -90 and 90',
     },
-    toFloat: true
+    toFloat: true,
   },
 
   optionalLongitude: {
@@ -275,9 +276,9 @@ const validators = {
     optional: true,
     isFloat: {
       options: { min: -180, max: 180 },
-      errorMessage: 'Longitude must be between -180 and 180'
+      errorMessage: 'Longitude must be between -180 and 180',
     },
-    toFloat: true
+    toFloat: true,
   },
 
   // Distance/radius validation
@@ -286,9 +287,9 @@ const validators = {
     optional: true,
     isInt: {
       options: { min: 1, max: 500 },
-      errorMessage: 'Radius must be between 1 and 500 km'
+      errorMessage: 'Radius must be between 1 and 500 km',
     },
-    toInt: true
+    toInt: true,
   },
 
   // Sort validation
@@ -297,8 +298,8 @@ const validators = {
     optional: true,
     isIn: {
       options: [['createdAt', 'updatedAt', 'name', 'distance', 'compatibility']],
-      errorMessage: 'Invalid sort field'
-    }
+      errorMessage: 'Invalid sort field',
+    },
   },
 
   sortOrder: {
@@ -306,8 +307,8 @@ const validators = {
     optional: true,
     isIn: {
       options: [['asc', 'desc', '1', '-1']],
-      errorMessage: 'Sort order must be asc or desc'
-    }
+      errorMessage: 'Sort order must be asc or desc',
+    },
   },
 
   // Report reason
@@ -315,8 +316,8 @@ const validators = {
     in: ['body'],
     isIn: {
       options: [['inappropriate', 'spam', 'harassment', 'fake_profile', 'underage', 'other']],
-      errorMessage: 'Invalid report reason'
-    }
+      errorMessage: 'Invalid report reason',
+    },
   },
 
   reportDescription: {
@@ -325,9 +326,9 @@ const validators = {
     trim: true,
     isLength: {
       options: { max: 1000 },
-      errorMessage: 'Description must not exceed 1000 characters'
-    }
-  }
+      errorMessage: 'Description must not exceed 1000 characters',
+    },
+  },
 };
 
 // ============================================================
@@ -341,7 +342,7 @@ const schemas = {
     password: validators.simplePassword,
     name: validators.name,
     age: validators.optionalAge,
-    gender: validators.optionalGender
+    gender: validators.optionalGender,
   },
 
   login: {
@@ -349,21 +350,21 @@ const schemas = {
     password: {
       in: ['body'],
       notEmpty: {
-        errorMessage: 'Password is required'
-      }
-    }
+        errorMessage: 'Password is required',
+      },
+    },
   },
 
   forgotPassword: {
-    email: validators.email
+    email: validators.email,
   },
 
   resetPassword: {
     token: validators.token,
     newPassword: {
       ...validators.simplePassword,
-      in: ['body']
-    }
+      in: ['body'],
+    },
   },
 
   // Profile schemas
@@ -372,18 +373,18 @@ const schemas = {
     age: validators.optionalAge,
     gender: validators.optionalGender,
     bio: validators.bio,
-    interests: validators.interests
+    interests: validators.interests,
   },
 
   uploadPhotos: {
-    'photos': {
+    photos: {
       in: ['body'],
       isArray: {
         options: { min: 1, max: 6 },
-        errorMessage: 'Photos array must have 1-6 items'
-      }
+        errorMessage: 'Photos array must have 1-6 items',
+      },
     },
-    'photos.*.url': validators.photoUrl
+    'photos.*.url': validators.photoUrl,
   },
 
   // Discovery schemas
@@ -396,27 +397,27 @@ const schemas = {
       optional: true,
       isInt: {
         options: { min: 18, max: 100 },
-        errorMessage: 'Minimum age must be between 18 and 100'
+        errorMessage: 'Minimum age must be between 18 and 100',
       },
-      toInt: true
+      toInt: true,
     },
     maxAge: {
       in: ['query'],
       optional: true,
       isInt: {
         options: { min: 18, max: 100 },
-        errorMessage: 'Maximum age must be between 18 and 100'
+        errorMessage: 'Maximum age must be between 18 and 100',
       },
-      toInt: true
+      toInt: true,
     },
     gender: {
       in: ['query'],
       optional: true,
       isIn: {
         options: [['male', 'female', 'other', 'all']],
-        errorMessage: 'Invalid gender filter'
-      }
-    }
+        errorMessage: 'Invalid gender filter',
+      },
+    },
   },
 
   // Swipe schemas
@@ -424,34 +425,34 @@ const schemas = {
     targetUserId: {
       in: ['body'],
       isMongoId: {
-        errorMessage: 'Invalid target user ID'
-      }
+        errorMessage: 'Invalid target user ID',
+      },
     },
     direction: {
       in: ['body'],
       isIn: {
         options: [['left', 'right', 'superlike']],
-        errorMessage: 'Direction must be left, right, or superlike'
-      }
-    }
+        errorMessage: 'Direction must be left, right, or superlike',
+      },
+    },
   },
 
   // Chat schemas
   sendMessage: {
     matchId: validators.matchId,
-    content: validators.messageContent
+    content: validators.messageContent,
   },
 
   // Report schemas
   reportUser: {
     reason: validators.reportReason,
-    description: validators.reportDescription
+    description: validators.reportDescription,
   },
 
   // Location update
   updateLocation: {
     latitude: validators.latitude,
-    longitude: validators.longitude
+    longitude: validators.longitude,
   },
 
   // Pagination (reusable for list endpoints)
@@ -459,8 +460,8 @@ const schemas = {
     page: validators.page,
     limit: validators.limit,
     sortBy: validators.sortBy,
-    sortOrder: validators.sortOrder
-  }
+    sortOrder: validators.sortOrder,
+  },
 };
 
 // ============================================================
@@ -500,7 +501,7 @@ const sanitizeString = (str) => {
 const sanitizeBody = (req, res, next) => {
   const sanitizeObject = (obj) => {
     if (!obj || typeof obj !== 'object') return obj;
-    
+
     const sanitized = Array.isArray(obj) ? [] : {};
     for (const key of Object.keys(obj)) {
       if (typeof obj[key] === 'string') {
@@ -527,7 +528,7 @@ const sanitizeBody = (req, res, next) => {
 const validateObjectId = (paramName = 'id') => {
   return [
     param(paramName).isMongoId().withMessage(`Invalid ${paramName} format`),
-    handleValidationErrors
+    handleValidationErrors,
   ];
 };
 
@@ -541,16 +542,16 @@ module.exports = {
   validate,
   handleValidationErrors,
   extendSchema,
-  
+
   // Reusable validators
   validators,
-  
+
   // Predefined schemas
   schemas,
-  
+
   // Utility middleware
   sanitizeBody,
   validateObjectId,
   validatePagination,
-  sanitizeString
+  sanitizeString,
 };

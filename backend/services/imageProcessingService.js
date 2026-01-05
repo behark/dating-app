@@ -51,7 +51,7 @@ const generateFileName = (userId, originalName) => {
  */
 const compressImage = async (buffer, size = 'medium', format = 'webp') => {
   const config = IMAGE_SIZES[size] || IMAGE_SIZES.medium;
-  
+
   let pipeline = sharp(buffer)
     .rotate() // Auto-rotate based on EXIF
     .resize(config.width, config.height, {
@@ -74,15 +74,15 @@ const compressImage = async (buffer, size = 'medium', format = 'webp') => {
  */
 const generateImageVariants = async (buffer) => {
   const variants = {};
-  
+
   // Generate WebP versions
   const sizes = ['thumbnail', 'small', 'medium', 'large'];
-  
+
   await Promise.all(
     sizes.map(async (size) => {
       const webpBuffer = await compressImage(buffer, size, 'webp');
       const jpegBuffer = await compressImage(buffer, size, 'jpeg');
-      
+
       variants[size] = {
         webp: webpBuffer,
         jpeg: jpegBuffer,
@@ -109,7 +109,7 @@ const uploadToS3 = async (buffer, key, contentType = 'image/webp') => {
   });
 
   await s3Client.send(command);
-  
+
   // Return CDN URL if available, otherwise S3 URL
   if (CDN_URL) {
     return `${CDN_URL}/${key}`;
@@ -141,7 +141,7 @@ const processProfileImage = async (file, userId) => {
 
     // Get image metadata
     const metadata = await sharp(file.buffer).metadata();
-    
+
     // Validate format
     const format = metadata.format?.toLowerCase();
     if (!ALLOWED_FORMATS.includes(format)) {
@@ -150,22 +150,22 @@ const processProfileImage = async (file, userId) => {
 
     // Generate unique base filename
     const baseName = `profiles/${generateFileName(userId, file.originalname)}`;
-    
+
     // Generate all size variants
     const variants = await generateImageVariants(file.buffer);
-    
+
     // Upload all variants to S3
     const uploadedUrls = {};
-    
+
     for (const [size, formats] of Object.entries(variants)) {
       const webpKey = `${baseName.replace(/\.\w+$/, '')}_${size}.webp`;
       const jpegKey = `${baseName.replace(/\.\w+$/, '')}_${size}.jpg`;
-      
+
       const [webpUrl, jpegUrl] = await Promise.all([
         uploadToS3(formats.webp, webpKey, 'image/webp'),
         uploadToS3(formats.jpeg, jpegKey, 'image/jpeg'),
       ]);
-      
+
       uploadedUrls[size] = {
         webp: webpUrl,
         jpeg: jpegUrl,
@@ -201,7 +201,7 @@ const processChatImage = async (file, senderId, receiverId) => {
     }
 
     const baseName = `chat/${senderId}/${receiverId}/${Date.now()}`;
-    
+
     // Generate medium and thumbnail only for chat
     const [mediumBuffer, thumbnailBuffer] = await Promise.all([
       compressImage(file.buffer, 'medium', 'webp'),
@@ -235,10 +235,10 @@ const processChatImage = async (file, senderId, receiverId) => {
 const generateSrcSet = (urls) => {
   const sizes = ['thumbnail', 'small', 'medium', 'large'];
   const widths = { thumbnail: 150, small: 300, medium: 600, large: 1200 };
-  
+
   const srcset = sizes
-    .filter(size => urls[size])
-    .map(size => `${urls[size].webp} ${widths[size]}w`)
+    .filter((size) => urls[size])
+    .map((size) => `${urls[size].webp} ${widths[size]}w`)
     .join(', ');
 
   return {
@@ -253,7 +253,7 @@ const generateSrcSet = (urls) => {
  */
 const getOptimalImageUrl = (urls, viewportWidth = 600, supportWebP = true) => {
   let size = 'medium';
-  
+
   if (viewportWidth <= 200) size = 'thumbnail';
   else if (viewportWidth <= 400) size = 'small';
   else if (viewportWidth <= 800) size = 'medium';
@@ -269,16 +269,14 @@ const getOptimalImageUrl = (urls, viewportWidth = 600, supportWebP = true) => {
 const batchProcessImages = async (files, userId, options = {}) => {
   const { concurrency = 3, onProgress } = options;
   const results = [];
-  
+
   // Process in batches to limit concurrency
   for (let i = 0; i < files.length; i += concurrency) {
     const batch = files.slice(i, i + concurrency);
-    const batchResults = await Promise.all(
-      batch.map(file => processProfileImage(file, userId))
-    );
-    
+    const batchResults = await Promise.all(batch.map((file) => processProfileImage(file, userId)));
+
     results.push(...batchResults);
-    
+
     if (onProgress) {
       onProgress({
         processed: Math.min(i + concurrency, files.length),
@@ -295,17 +293,15 @@ const batchProcessImages = async (files, userId, options = {}) => {
  */
 const extractDominantColors = async (buffer, count = 5) => {
   try {
-    const { dominant, channels } = await sharp(buffer)
-      .resize(100, 100, { fit: 'cover' })
-      .stats();
-    
+    const { dominant, channels } = await sharp(buffer).resize(100, 100, { fit: 'cover' }).stats();
+
     return {
       dominant: {
         r: Math.round(dominant.r),
         g: Math.round(dominant.g),
         b: Math.round(dominant.b),
       },
-      mean: channels.map(c => Math.round(c.mean)),
+      mean: channels.map((c) => Math.round(c.mean)),
     };
   } catch (error) {
     return null;
@@ -317,11 +313,8 @@ const extractDominantColors = async (buffer, count = 5) => {
  */
 const generateBlurPlaceholder = async (buffer) => {
   try {
-    const tiny = await sharp(buffer)
-      .resize(20, 20, { fit: 'inside' })
-      .blur(5)
-      .toBuffer();
-    
+    const tiny = await sharp(buffer).resize(20, 20, { fit: 'inside' }).blur(5).toBuffer();
+
     return `data:image/jpeg;base64,${tiny.toString('base64')}`;
   } catch (error) {
     return null;

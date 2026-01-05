@@ -2,84 +2,86 @@ const mongoose = require('mongoose');
 
 const matchSchema = new mongoose.Schema({
   // The two users in the match (stored in sorted order for consistency)
-  users: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  }],
+  users: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+  ],
 
   // Individual user references for easier querying
   user1: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   user2: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
 
   // Who initiated the final swipe that created the match
   matchInitiator: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
 
   // Type of match (regular or superlike)
   matchType: {
     type: String,
     enum: ['regular', 'superlike'],
-    default: 'regular'
+    default: 'regular',
   },
 
   // Match status
   status: {
     type: String,
     enum: ['active', 'unmatched', 'blocked'],
-    default: 'active'
+    default: 'active',
   },
 
   // Which user unmatched (if status is 'unmatched')
   unmatchedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   },
   unmatchedAt: Date,
 
   // Conversation started flag
   conversationStarted: {
     type: Boolean,
-    default: false
+    default: false,
   },
   firstMessageAt: Date,
   firstMessageBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
   },
 
   // Last activity in this match
   lastActivityAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
 
   // Message count for quick stats
   messageCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
 
   // Timestamps
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Compound index for finding matches between two specific users
@@ -99,16 +101,16 @@ matchSchema.index({ user2: 1, status: 1 });
 matchSchema.index({ lastActivityAt: -1, status: 1 });
 
 // Pre-save middleware to ensure users array is sorted and user1/user2 are set correctly
-matchSchema.pre('save', function(next) {
+matchSchema.pre('save', function (next) {
   if (this.isNew || this.isModified('users')) {
     // Sort users array to ensure consistent ordering
-    const sortedUsers = this.users.map(u => u.toString()).sort();
+    const sortedUsers = this.users.map((u) => u.toString()).sort();
     // Use compatible ObjectId constructor
-    this.users = sortedUsers.map(u => {
+    this.users = sortedUsers.map((u) => {
       if (mongoose.Types.ObjectId.isValid(u)) {
-        return mongoose.Types.ObjectId.createFromHexString ? 
-          mongoose.Types.ObjectId.createFromHexString(u) :
-          new mongoose.Types.ObjectId(u);
+        return mongoose.Types.ObjectId.createFromHexString
+          ? mongoose.Types.ObjectId.createFromHexString(u)
+          : new mongoose.Types.ObjectId(u);
       }
       return u;
     });
@@ -120,23 +122,28 @@ matchSchema.pre('save', function(next) {
 });
 
 // Static method to check if a match exists between two users
-matchSchema.statics.matchExists = async function(userId1, userId2) {
+matchSchema.statics.matchExists = async function (userId1, userId2) {
   const sortedIds = [userId1.toString(), userId2.toString()].sort();
   return this.findOne({
     user1: sortedIds[0],
     user2: sortedIds[1],
-    status: 'active'
+    status: 'active',
   });
 };
 
 // Static method to create a new match
-matchSchema.statics.createMatch = async function(userId1, userId2, initiatorId, matchType = 'regular') {
+matchSchema.statics.createMatch = async function (
+  userId1,
+  userId2,
+  initiatorId,
+  matchType = 'regular'
+) {
   const sortedIds = [userId1.toString(), userId2.toString()].sort();
-  
+
   // Check if match already exists
   const existingMatch = await this.findOne({
     user1: sortedIds[0],
-    user2: sortedIds[1]
+    user2: sortedIds[1],
   });
 
   if (existingMatch) {
@@ -156,7 +163,7 @@ matchSchema.statics.createMatch = async function(userId1, userId2, initiatorId, 
   const match = new this({
     users: [userId1, userId2],
     matchInitiator: initiatorId,
-    matchType: matchType
+    matchType: matchType,
   });
 
   await match.save();
@@ -164,18 +171,12 @@ matchSchema.statics.createMatch = async function(userId1, userId2, initiatorId, 
 };
 
 // Static method to get all matches for a user
-matchSchema.statics.getUserMatches = async function(userId, options = {}) {
-  const {
-    status = 'active',
-    limit = 50,
-    skip = 0,
-    sortBy = 'createdAt',
-    sortOrder = -1
-  } = options;
+matchSchema.statics.getUserMatches = async function (userId, options = {}) {
+  const { status = 'active', limit = 50, skip = 0, sortBy = 'createdAt', sortOrder = -1 } = options;
 
   const query = {
     users: userId,
-    status: status
+    status: status,
   };
 
   const sort = {};
@@ -189,14 +190,14 @@ matchSchema.statics.getUserMatches = async function(userId, options = {}) {
 };
 
 // Static method to unmatch
-matchSchema.statics.unmatch = async function(matchId, userId) {
+matchSchema.statics.unmatch = async function (matchId, userId) {
   const match = await this.findById(matchId);
-  
+
   if (!match) {
     throw new Error('Match not found');
   }
 
-  if (!match.users.some(u => u.toString() === userId.toString())) {
+  if (!match.users.some((u) => u.toString() === userId.toString())) {
     throw new Error('User is not part of this match');
   }
 
@@ -209,20 +210,20 @@ matchSchema.statics.unmatch = async function(matchId, userId) {
 };
 
 // Static method to get match count for a user
-matchSchema.statics.getMatchCount = async function(userId, status = 'active') {
+matchSchema.statics.getMatchCount = async function (userId, status = 'active') {
   return this.countDocuments({
     users: userId,
-    status: status
+    status: status,
   });
 };
 
 // Instance method to get the other user in the match
-matchSchema.methods.getOtherUser = function(userId) {
-  return this.users.find(u => u.toString() !== userId.toString());
+matchSchema.methods.getOtherUser = function (userId) {
+  return this.users.find((u) => u.toString() !== userId.toString());
 };
 
 // Instance method to update conversation status
-matchSchema.methods.markConversationStarted = async function(messageBy) {
+matchSchema.methods.markConversationStarted = async function (messageBy) {
   if (!this.conversationStarted) {
     this.conversationStarted = true;
     this.firstMessageAt = new Date();

@@ -9,11 +9,13 @@
 ## 🔴 Current Status: Backend Not Running
 
 ### Backend Status
+
 - ❌ **Health Check**: 502 Bad Gateway
 - ❌ **Service**: Not responding
 - ⚠️ **Issue**: Middleware error causing service crashes
 
 ### Frontend Status
+
 - ⚠️ **Not Tested Yet** (need to check Vercel)
 
 ---
@@ -23,16 +25,19 @@
 ### 1. Middleware Header Error (FIXED ✅)
 
 **Problem:**
+
 - `metricsMiddleware.js` was trying to set headers after response was sent
 - Causing "Cannot set headers after they are sent to the client" errors
 - Service crashes on every request
 
 **Fix Applied:**
+
 - Updated `backend/middleware/metricsMiddleware.js` line 37
 - Added check: `if (!res.headersSent)` before setting headers
 - This prevents the error
 
 **File Changed:**
+
 - ✅ `backend/middleware/metricsMiddleware.js`
 
 ---
@@ -40,6 +45,7 @@
 ## 📋 What Needs to Happen
 
 ### Step 1: Commit & Push Fix
+
 ```bash
 cd /home/behar/dating-app
 git add backend/middleware/metricsMiddleware.js
@@ -48,11 +54,13 @@ git push origin main
 ```
 
 ### Step 2: Wait for Render Auto-Deploy
+
 - Render will automatically detect the push
 - Will rebuild and redeploy (takes 2-5 minutes)
 - Service should start successfully
 
 ### Step 3: Verify Deployment
+
 ```bash
 # Test health endpoint
 curl https://dating-app-backend-x4yq.onrender.com/health
@@ -62,6 +70,7 @@ curl https://dating-app-backend-x4yq.onrender.com/health
 ```
 
 ### Step 4: Test Login/Signup
+
 ```bash
 # Test register
 curl -X POST https://dating-app-backend-x4yq.onrender.com/api/auth/register \
@@ -79,11 +88,13 @@ curl -X POST https://dating-app-backend-x4yq.onrender.com/api/auth/login \
 ## 🔍 Backend Logs Analysis
 
 ### Errors Found:
+
 - ❌ Multiple "Cannot set headers after they are sent" errors
 - ❌ Service returning 502 Bad Gateway
 - ⚠️ No "Server running" or "MongoDB Connected" messages in recent logs
 
 ### What This Means:
+
 - Service is crashing on startup or during requests
 - The middleware fix should resolve this
 - After redeploy, should see successful startup messages
@@ -93,12 +104,14 @@ curl -X POST https://dating-app-backend-x4yq.onrender.com/api/auth/login \
 ## 🎯 API Endpoints to Test
 
 ### Authentication Endpoints:
+
 1. **POST** `/api/auth/register` - User registration
 2. **POST** `/api/auth/login` - User login
 3. **POST** `/api/auth/refresh` - Refresh token
 4. **GET** `/api/auth/verify-email/:token` - Email verification
 
 ### Health & Status:
+
 1. **GET** `/health` - Health check
 2. **GET** `/health/detailed` - Detailed health check
 
@@ -107,6 +120,7 @@ curl -X POST https://dating-app-backend-x4yq.onrender.com/api/auth/login \
 ## 📊 Expected Behavior After Fix
 
 ### Successful Deployment Should Show:
+
 1. ✅ Health endpoint returns 200 OK
 2. ✅ Register endpoint accepts new users
 3. ✅ Login endpoint returns JWT token

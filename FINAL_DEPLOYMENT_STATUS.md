@@ -9,6 +9,7 @@
 ## 📊 Current Status
 
 ### Backend (Render)
+
 - ✅ **Server**: Running on port 10000
 - ✅ **Health Endpoint**: Working
 - ✅ **Code Fixes**: All deployed
@@ -16,6 +17,7 @@
 - ⏳ **MongoDB Connection**: Being established (may need a moment)
 
 ### Frontend (Vercel)
+
 - ✅ **Deployed**: https://dating-app-beharks-projects.vercel.app
 - ✅ **Status**: Serving content
 
@@ -32,12 +34,15 @@
 ## 🧪 Testing
 
 ### Health Check
+
 ```bash
 curl https://dating-app-backend-x4yq.onrender.com/health
 ```
+
 **Expected**: `{"status":"ok","timestamp":"..."}`
 
 ### Register
+
 ```bash
 curl -X POST https://dating-app-backend-x4yq.onrender.com/api/auth/register \
   -H "Content-Type: application/json" \
@@ -45,6 +50,7 @@ curl -X POST https://dating-app-backend-x4yq.onrender.com/api/auth/register \
 ```
 
 ### Login
+
 ```bash
 curl -X POST https://dating-app-backend-x4yq.onrender.com/api/auth/login \
   -H "Content-Type: application/json" \

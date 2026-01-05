@@ -1,20 +1,21 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    FlatList,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { API_BASE_URL } from '../config/api';
+import logger from '../utils/logger';
 import { useAuth } from '../context/AuthContext';
 import { calculateDistance } from '../utils/distanceCalculator';
 
@@ -38,13 +39,7 @@ const ExploreScreen = ({ navigation }) => {
     getLocation();
   }, []);
 
-  useEffect(() => {
-    if (location) {
-      exploreUsers();
-    }
-  }, [sortBy, filters, location]);
-
-  const getLocation = async () => {
+  const getLocation = useCallback(async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === 'granted') {
@@ -52,11 +47,11 @@ const ExploreScreen = ({ navigation }) => {
         setLocation(loc.coords);
       }
     } catch (error) {
-      console.error('Error getting location:', error);
+      logger.error('Error getting location:', error);
     }
-  };
+  }, []);
 
-  const exploreUsers = async () => {
+  const exploreUsers = useCallback(async () => {
     if (!location) return;
 
     setLoading(true);
@@ -72,24 +67,36 @@ const ExploreScreen = ({ navigation }) => {
         limit: '20',
       });
 
-      const response = await fetch(
-        `${API_BASE_URL}/discovery/explore?${queryParams}`,
-        {
-          headers: { Authorization: `Bearer ${authToken}` }
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/discovery/explore?${queryParams}`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
 
       const data = await response.json();
       if (data.success) {
         setUsers(data.data.users);
       }
     } catch (error) {
-      console.error('Error exploring users:', error);
+      logger.error('Error exploring users:', error);
       Alert.alert('Error', 'Failed to load users');
     } finally {
       setLoading(false);
     }
-  };
+  }, [location, sortBy, filters, user, authToken]);
+
+  useEffect(() => {
+    getLocation();
+  }, [getLocation]);
+
+  useEffect(() => {
+    if (location) {
+      exploreUsers();
+    }
+  }, [location, exploreUsers]);
 
   const renderUserCard = ({ item }) => {
     let distance = item.distance;
@@ -108,10 +115,7 @@ const ExploreScreen = ({ navigation }) => {
         onPress={() => navigation.navigate('ViewProfile', { userId: item._id })}
       >
         {item.photos?.[0] && (
-          <Image
-            source={{ uri: item.photos[0].url }}
-            style={styles.userImage}
-          />
+          <Image source={{ uri: item.photos[0].url }} style={styles.userImage} />
         )}
 
         {item.isBoosted && (
@@ -154,16 +158,10 @@ const ExploreScreen = ({ navigation }) => {
 
   const SortOption = ({ label, value }) => (
     <TouchableOpacity
-      style={[
-        styles.sortOption,
-        sortBy === value && styles.sortOptionActive
-      ]}
+      style={[styles.sortOption, sortBy === value && styles.sortOptionActive]}
       onPress={() => setSortBy(value)}
     >
-      <Text style={[
-        styles.sortOptionText,
-        sortBy === value && styles.sortOptionTextActive
-      ]}>
+      <Text style={[styles.sortOptionText, sortBy === value && styles.sortOptionTextActive]}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -174,20 +172,13 @@ const ExploreScreen = ({ navigation }) => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Explore</Text>
-        <TouchableOpacity
-          onPress={() => setShowFilters(!showFilters)}
-          style={styles.filterButton}
-        >
+        <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterButton}>
           <Ionicons name="options" size={24} color="#667eea" />
         </TouchableOpacity>
       </View>
 
       {/* Sort Options */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.sortContainer}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sortContainer}>
         <SortOption label="Recent Activity" value="recentActivity" />
         <SortOption label="Profile Quality" value="profileQuality" />
         <SortOption label="Verified" value="verified" />
@@ -206,7 +197,9 @@ const ExploreScreen = ({ navigation }) => {
 
           <View style={styles.filterRow}>
             <Text style={styles.filterLabel}>Gender</Text>
-            <Text style={styles.filterValue}>{filters.gender === 'any' ? 'All' : filters.gender}</Text>
+            <Text style={styles.filterValue}>
+              {filters.gender === 'any' ? 'All' : filters.gender}
+            </Text>
           </View>
         </View>
       )}

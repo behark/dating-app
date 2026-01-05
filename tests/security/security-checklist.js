@@ -60,11 +60,7 @@ const owaspTests = {
   },
   'A06:2021': {
     name: 'Vulnerable and Outdated Components',
-    tests: [
-      'Known vulnerable dependencies',
-      'Outdated libraries',
-      'Unsupported frameworks',
-    ],
+    tests: ['Known vulnerable dependencies', 'Outdated libraries', 'Unsupported frameworks'],
   },
   'A07:2021': {
     name: 'Identification and Authentication Failures',
@@ -78,27 +74,15 @@ const owaspTests = {
   },
   'A08:2021': {
     name: 'Software and Data Integrity Failures',
-    tests: [
-      'Unsigned updates',
-      'Insecure deserialization',
-      'CI/CD pipeline security',
-    ],
+    tests: ['Unsigned updates', 'Insecure deserialization', 'CI/CD pipeline security'],
   },
   'A09:2021': {
     name: 'Security Logging and Monitoring Failures',
-    tests: [
-      'Missing security logs',
-      'Missing audit trails',
-      'No alerting mechanism',
-    ],
+    tests: ['Missing security logs', 'Missing audit trails', 'No alerting mechanism'],
   },
   'A10:2021': {
     name: 'Server-Side Request Forgery',
-    tests: [
-      'SSRF vulnerabilities',
-      'Open redirects',
-      'URL scheme validation',
-    ],
+    tests: ['SSRF vulnerabilities', 'Open redirects', 'URL scheme validation'],
   },
 };
 
@@ -195,8 +179,8 @@ function generateReport() {
   };
 
   // Calculate summary
-  manualTestChecklist.forEach(category => {
-    category.tests.forEach(test => {
+  manualTestChecklist.forEach((category) => {
+    category.tests.forEach((test) => {
       report.summary.totalTests++;
       if (test.status === 'passed') report.summary.passed++;
       else if (test.status === 'failed') report.summary.failed++;
@@ -218,11 +202,11 @@ module.exports = {
 if (require.main === module) {
   console.log('Security Test Checklist');
   console.log('=======================\n');
-  
-  manualTestChecklist.forEach(category => {
+
+  manualTestChecklist.forEach((category) => {
     console.log(`\n📋 ${category.category}`);
     console.log('-'.repeat(40));
-    category.tests.forEach(test => {
+    category.tests.forEach((test) => {
       const status = test.status === 'passed' ? '✅' : test.status === 'failed' ? '❌' : '⏳';
       console.log(`  ${status} [${test.id}] ${test.name}`);
     });
@@ -232,7 +216,7 @@ if (require.main === module) {
   console.log('='.repeat(40));
   Object.entries(owaspTests).forEach(([id, data]) => {
     console.log(`\n${id}: ${data.name}`);
-    data.tests.forEach(test => {
+    data.tests.forEach((test) => {
       console.log(`  • ${test}`);
     });
   });

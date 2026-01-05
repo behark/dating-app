@@ -46,15 +46,15 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 // Profile matching algorithm
 const calculateCompatibility = (user1, user2) => {
   let score = 0;
-  
+
   // Interest match
-  const commonInterests = user1.interests.filter(i => user2.interests.includes(i));
+  const commonInterests = user1.interests.filter((i) => user2.interests.includes(i));
   score += (commonInterests.length / Math.max(user1.interests.length, user2.interests.length)) * 40;
-  
+
   // Age compatibility
   const ageDiff = Math.abs(user1.age - user2.age);
   score += Math.max(0, 30 - ageDiff) * (30 / 30);
-  
+
   // Distance score
   const distance = calculateDistance(
     user1.location.latitude,
@@ -62,8 +62,8 @@ const calculateCompatibility = (user1, user2) => {
     user2.location.latitude,
     user2.location.longitude
   );
-  score += Math.max(0, 30 - (distance / 5));
-  
+  score += Math.max(0, 30 - distance / 5);
+
   return Math.min(100, Math.round(score));
 };
 
@@ -76,7 +76,7 @@ const largeDataset = generateUsers(10000);
 suite.add('Filter profiles (100 users)', () => {
   const currentUser = smallDataset[0];
   smallDataset.filter(
-    u =>
+    (u) =>
       u.id !== currentUser.id &&
       u.age >= currentUser.preferences.ageRange.min &&
       u.age <= currentUser.preferences.ageRange.max
@@ -86,7 +86,7 @@ suite.add('Filter profiles (100 users)', () => {
 suite.add('Filter profiles (1000 users)', () => {
   const currentUser = mediumDataset[0];
   mediumDataset.filter(
-    u =>
+    (u) =>
       u.id !== currentUser.id &&
       u.age >= currentUser.preferences.ageRange.min &&
       u.age <= currentUser.preferences.ageRange.max
@@ -96,7 +96,7 @@ suite.add('Filter profiles (1000 users)', () => {
 suite.add('Filter profiles (10000 users)', () => {
   const currentUser = largeDataset[0];
   largeDataset.filter(
-    u =>
+    (u) =>
       u.id !== currentUser.id &&
       u.age >= currentUser.preferences.ageRange.min &&
       u.age <= currentUser.preferences.ageRange.max
@@ -106,7 +106,7 @@ suite.add('Filter profiles (10000 users)', () => {
 // Distance calculation benchmark
 suite.add('Calculate distance (100 users)', () => {
   const currentUser = smallDataset[0];
-  smallDataset.map(u =>
+  smallDataset.map((u) =>
     calculateDistance(
       currentUser.location.latitude,
       currentUser.location.longitude,
@@ -118,7 +118,7 @@ suite.add('Calculate distance (100 users)', () => {
 
 suite.add('Calculate distance (1000 users)', () => {
   const currentUser = mediumDataset[0];
-  mediumDataset.map(u =>
+  mediumDataset.map((u) =>
     calculateDistance(
       currentUser.location.latitude,
       currentUser.location.longitude,
@@ -131,18 +131,18 @@ suite.add('Calculate distance (1000 users)', () => {
 // Compatibility scoring benchmark
 suite.add('Calculate compatibility (100 users)', () => {
   const currentUser = smallDataset[0];
-  smallDataset.map(u => calculateCompatibility(currentUser, u));
+  smallDataset.map((u) => calculateCompatibility(currentUser, u));
 });
 
 suite.add('Calculate compatibility (1000 users)', () => {
   const currentUser = mediumDataset[0];
-  mediumDataset.map(u => calculateCompatibility(currentUser, u));
+  mediumDataset.map((u) => calculateCompatibility(currentUser, u));
 });
 
 // Sort and rank benchmark
 suite.add('Sort by compatibility (1000 users)', () => {
   const currentUser = mediumDataset[0];
-  const scored = mediumDataset.map(u => ({
+  const scored = mediumDataset.map((u) => ({
     ...u,
     compatibility: calculateCompatibility(currentUser, u),
   }));
@@ -163,8 +163,8 @@ suite.add('JSON parse profiles (1000 users)', () => {
 suite.add('Map + Filter + Sort (1000 users)', () => {
   const currentUser = mediumDataset[0];
   mediumDataset
-    .filter(u => u.id !== currentUser.id)
-    .map(u => ({
+    .filter((u) => u.id !== currentUser.id)
+    .map((u) => ({
       ...u,
       distance: calculateDistance(
         currentUser.location.latitude,
@@ -174,20 +174,20 @@ suite.add('Map + Filter + Sort (1000 users)', () => {
       ),
       compatibility: calculateCompatibility(currentUser, u),
     }))
-    .filter(u => u.distance <= 50)
+    .filter((u) => u.distance <= 50)
     .sort((a, b) => b.compatibility - a.compatibility);
 });
 
 // Run benchmarks
 suite
-  .on('cycle', event => {
+  .on('cycle', (event) => {
     console.log(String(event.target));
   })
   .on('complete', function () {
     console.log('\n📊 Benchmark Results Summary:');
     console.log('================================');
-    
-    this.forEach(benchmark => {
+
+    this.forEach((benchmark) => {
       const opsPerSec = benchmark.hz.toFixed(2);
       const meanMs = ((1 / benchmark.hz) * 1000).toFixed(4);
       console.log(`${benchmark.name}:`);

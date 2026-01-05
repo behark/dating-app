@@ -4,6 +4,12 @@ import { Platform } from 'react-native';
 // Production API URL - your Render backend
 const PRODUCTION_API_URL = 'https://dating-app-backend-x4yq.onrender.com/api';
 
+// Development API URL - use deployed backend for testing
+const DEVELOPMENT_API_URL = 'https://dating-app-backend-x4yq.onrender.com/api';
+
+// Mock API URL for UI testing without backend
+const MOCK_API_URL = null; // Set to a mock server if needed
+
 /**
  * Get the backend API URL
  * Priority:
@@ -34,8 +40,8 @@ const getApiUrl = () => {
     return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
   }
 
-  // Default to production URL
-  return PRODUCTION_API_URL;
+  // Default to localhost in development, production otherwise
+  return __DEV__ ? DEVELOPMENT_API_URL : PRODUCTION_API_URL;
 };
 
 /**
@@ -47,9 +53,11 @@ const getSocketUrl = () => {
 };
 
 export const API_URL = getApiUrl();
+export const API_BASE_URL = API_URL; // Alias for backward compatibility
 export const SOCKET_URL = getSocketUrl();
 
 export default {
   API_URL,
+  API_BASE_URL,
   SOCKET_URL,
 };

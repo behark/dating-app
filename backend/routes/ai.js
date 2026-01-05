@@ -9,7 +9,7 @@ const {
   analyzePhotoQuality,
   getPersonalizedMatches,
   getProfileImprovementSuggestions,
-  getConversationInsights
+  getConversationInsights,
 } = require('../controllers/aiController');
 
 // Mock authentication middleware (replace with actual auth in production)

@@ -59,7 +59,7 @@ const initializeWebSocket = (httpServer) => {
       socket.userName = user.name;
       next();
     } catch (error) {
-      next(new Error('Authentication failed: ' + error.message));
+      next(new Error(`Authentication failed: ${error.message}`));
     }
   });
 
@@ -81,7 +81,7 @@ const initializeWebSocket = (httpServer) => {
     await loadUserConversations(socket);
 
     // ============= Room Management =============
-    
+
     socket.on('join_room', async (matchId) => {
       await handleJoinRoom(socket, matchId);
     });
@@ -91,7 +91,7 @@ const initializeWebSocket = (httpServer) => {
     });
 
     // ============= Messaging =============
-    
+
     socket.on('send_message', async (data) => {
       await handleSendMessage(io, socket, data);
     });
@@ -105,7 +105,7 @@ const initializeWebSocket = (httpServer) => {
     });
 
     // ============= Typing Indicators =============
-    
+
     socket.on('typing_start', (matchId) => {
       handleTypingIndicator(socket, matchId, true);
     });
@@ -115,7 +115,7 @@ const initializeWebSocket = (httpServer) => {
     });
 
     // ============= Presence =============
-    
+
     socket.on('get_online_status', async (userIds, callback) => {
       const statuses = await onlineStatus.getBulkOnlineStatus(userIds);
       if (callback) callback(statuses);
@@ -126,13 +126,13 @@ const initializeWebSocket = (httpServer) => {
     });
 
     // ============= Notifications =============
-    
+
     socket.on('subscribe_notifications', () => {
       socket.join(`notifications:${userId}`);
     });
 
     // ============= Disconnect =============
-    
+
     socket.on('disconnect', async (reason) => {
       await handleDisconnect(io, socket, reason);
     });
@@ -150,7 +150,7 @@ const initializeWebSocket = (httpServer) => {
  */
 const trackConnection = (socket) => {
   const userId = socket.userId;
-  
+
   if (!connectedUsers.has(userId)) {
     connectedUsers.set(userId, new Set());
   }
@@ -163,7 +163,7 @@ const trackConnection = (socket) => {
 const loadUserConversations = async (socket) => {
   try {
     const userId = socket.userId;
-    
+
     // Get user's matches
     const matches = await Swipe.find({
       $or: [
@@ -173,16 +173,19 @@ const loadUserConversations = async (socket) => {
     }).select('_id');
 
     // Join all match rooms
-    matches.forEach(match => {
+    matches.forEach((match) => {
       socket.join(match._id.toString());
     });
 
     // Track rooms for this user
-    userRooms.set(socket.id, matches.map(m => m._id.toString()));
-    
+    userRooms.set(
+      socket.id,
+      matches.map((m) => m._id.toString())
+    );
+
     // Send initial data
     socket.emit('conversations_loaded', {
-      matchIds: matches.map(m => m._id.toString()),
+      matchIds: matches.map((m) => m._id.toString()),
     });
   } catch (error) {
     console.error('[WS] Error loading conversations:', error);
@@ -206,10 +209,7 @@ const handleJoinRoom = async (socket, matchId) => {
     // Verify user is part of this match
     const match = await Swipe.findOne({
       _id: matchId,
-      $or: [
-        { swiperId: userId },
-        { swipedId: userId },
-      ],
+      $or: [{ swiperId: userId }, { swipedId: userId }],
       isMatch: true,
     });
 
@@ -220,7 +220,7 @@ const handleJoinRoom = async (socket, matchId) => {
 
     // Join room
     socket.join(matchId);
-    
+
     // Get recent messages
     const messages = await Message.find({ matchId })
       .sort({ createdAt: -1 })
@@ -270,10 +270,7 @@ const handleSendMessage = async (io, socket, data) => {
     // Verify match exists and user is part of it
     const match = await Swipe.findOne({
       _id: matchId,
-      $or: [
-        { swiperId: senderId },
-        { swipedId: senderId },
-      ],
+      $or: [{ swiperId: senderId }, { swipedId: senderId }],
       isMatch: true,
     });
 
@@ -283,9 +280,7 @@ const handleSendMessage = async (io, socket, data) => {
     }
 
     // Determine receiver
-    const receiverId = match.swiperId.toString() === senderId
-      ? match.swipedId
-      : match.swiperId;
+    const receiverId = match.swiperId.toString() === senderId ? match.swipedId : match.swiperId;
 
     // Create message
     const message = new Message({
@@ -343,7 +338,6 @@ const handleSendMessage = async (io, socket, data) => {
       userId: senderId,
       isTyping: false,
     });
-
   } catch (error) {
     console.error('[WS] Error sending message:', error);
     socket.emit('error', { message: 'Failed to send message' });
@@ -447,17 +441,14 @@ const handleDisconnect = async (io, socket, reason) => {
   const userSockets = connectedUsers.get(userId);
   if (userSockets) {
     userSockets.delete(socket.id);
-    
+
     // If no more connections, set offline
     if (userSockets.size === 0) {
       connectedUsers.delete(userId);
       await onlineStatus.setOffline(userId);
-      
+
       // Update last active
-      await User.updateOne(
-        { _id: userId },
-        { $set: { lastActive: new Date() } }
-      );
+      await User.updateOne({ _id: userId }, { $set: { lastActive: new Date() } });
 
       // Broadcast offline status
       broadcastPresenceUpdate(io, userId, false);
@@ -483,9 +474,10 @@ const broadcastPresenceUpdate = async (io, userId, isOnline) => {
 
     // Notify each matched user
     for (const match of matches) {
-      const otherUserId = match.swiperId.toString() === userId
-        ? match.swipedId.toString()
-        : match.swiperId.toString();
+      const otherUserId =
+        match.swiperId.toString() === userId
+          ? match.swipedId.toString()
+          : match.swiperId.toString();
 
       io.to(`notifications:${otherUserId}`).emit('presence_update', {
         userId,

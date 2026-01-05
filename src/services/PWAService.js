@@ -140,7 +140,7 @@ class PWAServiceClass {
    */
   onUpdateAvailable(registration) {
     console.log('New version available');
-    
+
     // You can show a notification to the user here
     // For automatic updates:
     if (registration.waiting) {
@@ -163,9 +163,7 @@ class PWAServiceClass {
   async clearCache() {
     if ('caches' in window) {
       const cacheNames = await caches.keys();
-      await Promise.all(
-        cacheNames.map((name) => caches.delete(name))
-      );
+      await Promise.all(cacheNames.map((name) => caches.delete(name)));
       console.log('All caches cleared');
     }
   }
@@ -178,8 +176,7 @@ class PWAServiceClass {
       return 'unsupported';
     }
 
-    const permission = await Notification.requestPermission();
-    return permission;
+    return await Notification.requestPermission();
   }
 
   /**
@@ -190,12 +187,10 @@ class PWAServiceClass {
       throw new Error('Service Worker not registered');
     }
 
-    const subscription = await this.registration.pushManager.subscribe({
+    return await this.registration.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey),
     });
-
-    return subscription;
   }
 
   /**
@@ -256,9 +251,7 @@ class PWAServiceClass {
    */
   urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding)
-      .replace(/-/g, '+')
-      .replace(/_/g, '/');
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
 
     const rawData = window.atob(base64);
     const outputArray = new Uint8Array(rawData.length);

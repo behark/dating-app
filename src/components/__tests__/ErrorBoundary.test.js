@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Text, View } from 'react-native';
@@ -9,6 +10,10 @@ const ThrowError = ({ shouldThrow }) => {
     throw new Error('Test error');
   }
   return <Text>No error</Text>;
+};
+
+ThrowError.propTypes = {
+  shouldThrow: PropTypes.bool,
 };
 
 // Suppress console.error for expected errors
@@ -146,7 +151,7 @@ describe('ErrorBoundary', () => {
 
   describe('nested error boundaries', () => {
     it('should handle errors in nested boundaries', () => {
-      const { getByText, queryByText } = render(
+      const { getByText } = render(
         <ErrorBoundary>
           <View>
             <Text>Parent content</Text>

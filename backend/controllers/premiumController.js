@@ -23,9 +23,9 @@ const getSubscriptionStatus = async (req, res) => {
             advancedFilters: false,
             priorityLikes: false,
             hideAds: false,
-            profileBoostAnalytics: false
-          }
-        }
+            profileBoostAnalytics: false,
+          },
+        },
       });
     }
 
@@ -40,15 +40,15 @@ const getSubscriptionStatus = async (req, res) => {
         features: subscription.features,
         usage: {
           superLikesUsedToday: subscription.superLikesUsedToday,
-          profileBoostsUsedThisMonth: subscription.profileBoostsUsedThisMonth
-        }
-      }
+          profileBoostsUsedThisMonth: subscription.profileBoostsUsedThisMonth,
+        },
+      },
     });
   } catch (error) {
     console.error('Error getting subscription status:', error);
     res.status(500).json({
       success: false,
-      message: 'Error retrieving subscription status'
+      message: 'Error retrieving subscription status',
     });
   }
 };
@@ -64,20 +64,20 @@ const startTrial = async (req, res) => {
     if (!result.success) {
       return res.status(400).json({
         success: false,
-        message: result.message
+        message: result.message,
       });
     }
 
     res.json({
       success: true,
       message: '7-day free trial activated!',
-      data: result.subscription
+      data: result.subscription,
     });
   } catch (error) {
     console.error('Error starting trial:', error);
     res.status(500).json({
       success: false,
-      message: 'Error starting trial'
+      message: 'Error starting trial',
     });
   }
 };
@@ -93,7 +93,7 @@ const upgradeToPremium = async (req, res) => {
     if (!['monthly', 'yearly'].includes(planType)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid plan type. Must be monthly or yearly'
+        message: 'Invalid plan type. Must be monthly or yearly',
       });
     }
 
@@ -102,20 +102,20 @@ const upgradeToPremium = async (req, res) => {
     if (!result.success) {
       return res.status(400).json({
         success: false,
-        message: result.message
+        message: result.message,
       });
     }
 
     res.json({
       success: true,
       message: `Upgraded to ${planType} plan!`,
-      data: result.subscription
+      data: result.subscription,
     });
   } catch (error) {
     console.error('Error upgrading to premium:', error);
     res.status(500).json({
       success: false,
-      message: 'Error upgrading to premium'
+      message: 'Error upgrading to premium',
     });
   }
 };
@@ -131,20 +131,20 @@ const cancelSubscription = async (req, res) => {
     if (!result.success) {
       return res.status(400).json({
         success: false,
-        message: result.message
+        message: result.message,
       });
     }
 
     res.json({
       success: true,
       message: 'Subscription cancelled successfully',
-      data: result.subscription
+      data: result.subscription,
     });
   } catch (error) {
     console.error('Error cancelling subscription:', error);
     res.status(500).json({
       success: false,
-      message: 'Error cancelling subscription'
+      message: 'Error cancelling subscription',
     });
   }
 };
@@ -161,7 +161,7 @@ const getReceivedLikes = async (req, res) => {
     if (!subscription?.hasFeature('seeWhoLikedYou')) {
       return res.status(403).json({
         success: false,
-        message: 'Premium feature required. Please upgrade to see who liked you.'
+        message: 'Premium feature required. Please upgrade to see who liked you.',
       });
     }
 
@@ -181,7 +181,7 @@ const getReceivedLikes = async (req, res) => {
             _id: like._id,
             action: like.action,
             receivedAt: like.receivedAt,
-            user: likerUser
+            user: likerUser,
           });
         }
       } catch (error) {
@@ -193,14 +193,14 @@ const getReceivedLikes = async (req, res) => {
       success: true,
       data: {
         totalLikes: likesWithDetails.length,
-        likes: likesWithDetails.sort((a, b) => b.receivedAt - a.receivedAt)
-      }
+        likes: likesWithDetails.sort((a, b) => b.receivedAt - a.receivedAt),
+      },
     });
   } catch (error) {
     console.error('Error getting received likes:', error);
     res.status(500).json({
       success: false,
-      message: 'Error retrieving received likes'
+      message: 'Error retrieving received likes',
     });
   }
 };
@@ -218,15 +218,22 @@ const setPassportLocation = async (req, res) => {
     if (!subscription?.hasFeature('passport')) {
       return res.status(403).json({
         success: false,
-        message: 'Premium feature required. Please upgrade to use Passport.'
+        message: 'Premium feature required. Please upgrade to use Passport.',
       });
     }
 
     // Validate coordinates
-    if (!longitude || !latitude || longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) {
+    if (
+      !longitude ||
+      !latitude ||
+      longitude < -180 ||
+      longitude > 180 ||
+      latitude < -90 ||
+      latitude > 90
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid coordinates provided'
+        message: 'Invalid coordinates provided',
       });
     }
 
@@ -235,7 +242,7 @@ const setPassportLocation = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -244,7 +251,7 @@ const setPassportLocation = async (req, res) => {
       type: 'Point',
       coordinates: [longitude, latitude],
       city: city || 'Unknown',
-      country: country || 'Unknown'
+      country: country || 'Unknown',
     };
 
     // Save to change history
@@ -260,7 +267,7 @@ const setPassportLocation = async (req, res) => {
       location: newLocation,
       city: newLocation.city,
       country: newLocation.country,
-      changedAt: new Date()
+      changedAt: new Date(),
     });
 
     await user.save();
@@ -270,14 +277,14 @@ const setPassportLocation = async (req, res) => {
       message: 'Passport location updated successfully',
       data: {
         enabled: true,
-        location: newLocation
-      }
+        location: newLocation,
+      },
     });
   } catch (error) {
     console.error('Error setting passport location:', error);
     res.status(500).json({
       success: false,
-      message: 'Error updating passport location'
+      message: 'Error updating passport location',
     });
   }
 };
@@ -295,14 +302,14 @@ const getPassportStatus = async (req, res) => {
       data: {
         enabled: user?.passportMode?.enabled || false,
         currentLocation: user?.passportMode?.currentLocation,
-        lastChanged: user?.passportMode?.lastChanged
-      }
+        lastChanged: user?.passportMode?.lastChanged,
+      },
     });
   } catch (error) {
     console.error('Error getting passport status:', error);
     res.status(500).json({
       success: false,
-      message: 'Error retrieving passport status'
+      message: 'Error retrieving passport status',
     });
   }
 };
@@ -318,7 +325,7 @@ const disablePassport = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -331,13 +338,13 @@ const disablePassport = async (req, res) => {
     res.json({
       success: true,
       message: 'Passport mode disabled',
-      data: { enabled: false }
+      data: { enabled: false },
     });
   } catch (error) {
     console.error('Error disabling passport:', error);
     res.status(500).json({
       success: false,
-      message: 'Error disabling passport'
+      message: 'Error disabling passport',
     });
   }
 };
@@ -354,7 +361,7 @@ const getAdvancedFilterOptions = async (req, res) => {
     if (!subscription?.hasFeature('advancedFilters')) {
       return res.status(403).json({
         success: false,
-        message: 'Premium feature required. Please upgrade to use Advanced Filters.'
+        message: 'Premium feature required. Please upgrade to use Advanced Filters.',
       });
     }
 
@@ -365,49 +372,15 @@ const getAdvancedFilterOptions = async (req, res) => {
         income: {
           min: 0,
           max: 500000,
-          step: 10000
+          step: 10000,
         },
-        educationLevel: [
-          'high_school',
-          'bachelor',
-          'masters',
-          'phd'
-        ],
-        bodyType: [
-          'slim',
-          'athletic',
-          'average',
-          'curvy',
-          'stocky'
-        ],
-        drinkingFrequency: [
-          'never',
-          'rarely',
-          'socially',
-          'regularly'
-        ],
-        smokingStatus: [
-          'never',
-          'rarely',
-          'sometimes',
-          'regularly'
-        ],
-        maritalStatus: [
-          'single',
-          'divorced',
-          'widowed',
-          'separated'
-        ],
-        hasChildren: [
-          true,
-          false
-        ],
-        wantsChildren: [
-          'yes',
-          'no',
-          'maybe',
-          'unsure'
-        ],
+        educationLevel: ['high_school', 'bachelor', 'masters', 'phd'],
+        bodyType: ['slim', 'athletic', 'average', 'curvy', 'stocky'],
+        drinkingFrequency: ['never', 'rarely', 'socially', 'regularly'],
+        smokingStatus: ['never', 'rarely', 'sometimes', 'regularly'],
+        maritalStatus: ['single', 'divorced', 'widowed', 'separated'],
+        hasChildren: [true, false],
+        wantsChildren: ['yes', 'no', 'maybe', 'unsure'],
         religion: [
           'christian',
           'jewish',
@@ -416,7 +389,7 @@ const getAdvancedFilterOptions = async (req, res) => {
           'buddhist',
           'atheist',
           'agnostic',
-          'other'
+          'other',
         ],
         zodiacSign: [
           'aries',
@@ -430,7 +403,7 @@ const getAdvancedFilterOptions = async (req, res) => {
           'sagittarius',
           'capricorn',
           'aquarius',
-          'pisces'
+          'pisces',
         ],
         languages: [
           'english',
@@ -442,21 +415,16 @@ const getAdvancedFilterOptions = async (req, res) => {
           'russian',
           'chinese',
           'japanese',
-          'korean'
+          'korean',
         ],
-        travelFrequency: [
-          'never',
-          'rarely',
-          'sometimes',
-          'frequently'
-        ]
-      }
+        travelFrequency: ['never', 'rarely', 'sometimes', 'frequently'],
+      },
     });
   } catch (error) {
     console.error('Error getting advanced filter options:', error);
     res.status(500).json({
       success: false,
-      message: 'Error retrieving filter options'
+      message: 'Error retrieving filter options',
     });
   }
 };
@@ -474,7 +442,7 @@ const updateAdvancedFilters = async (req, res) => {
     if (!subscription?.hasFeature('advancedFilters')) {
       return res.status(403).json({
         success: false,
-        message: 'Premium feature required. Please upgrade to use Advanced Filters.'
+        message: 'Premium feature required. Please upgrade to use Advanced Filters.',
       });
     }
 
@@ -487,13 +455,13 @@ const updateAdvancedFilters = async (req, res) => {
     res.json({
       success: true,
       message: 'Advanced filters updated successfully',
-      data: user.advancedFilters
+      data: user.advancedFilters,
     });
   } catch (error) {
     console.error('Error updating advanced filters:', error);
     res.status(500).json({
       success: false,
-      message: 'Error updating advanced filters'
+      message: 'Error updating advanced filters',
     });
   }
 };
@@ -509,7 +477,7 @@ const sendPriorityLike = async (req, res) => {
     if (!targetUserId) {
       return res.status(400).json({
         success: false,
-        message: 'targetUserId is required'
+        message: 'targetUserId is required',
       });
     }
 
@@ -518,7 +486,7 @@ const sendPriorityLike = async (req, res) => {
     if (!subscription?.hasFeature('priorityLikes')) {
       return res.status(403).json({
         success: false,
-        message: 'Premium feature required. Please upgrade to use Priority Likes.'
+        message: 'Premium feature required. Please upgrade to use Priority Likes.',
       });
     }
 
@@ -528,25 +496,25 @@ const sendPriorityLike = async (req, res) => {
       swipedId: targetUserId,
       action: 'like',
       isPriority: true,
-      prioritySentAt: new Date()
+      prioritySentAt: new Date(),
     });
 
     await swipe.save();
 
     // Update priority stats
-    await User.findByIdAndUpdate(userId, { $inc: { 'priorityLikesSent': 1 } });
-    await User.findByIdAndUpdate(targetUserId, { $inc: { 'priorityLikesReceived': 1 } });
+    await User.findByIdAndUpdate(userId, { $inc: { priorityLikesSent: 1 } });
+    await User.findByIdAndUpdate(targetUserId, { $inc: { priorityLikesReceived: 1 } });
 
     res.json({
       success: true,
       message: 'Priority like sent successfully',
-      data: { swipeId: swipe._id }
+      data: { swipeId: swipe._id },
     });
   } catch (error) {
     console.error('Error sending priority like:', error);
     res.status(500).json({
       success: false,
-      message: 'Error sending priority like'
+      message: 'Error sending priority like',
     });
   }
 };
@@ -565,7 +533,7 @@ const updateAdsPreferences = async (req, res) => {
       if (!subscription?.hasFeature('hideAds')) {
         return res.status(403).json({
           success: false,
-          message: 'Premium feature required. Please upgrade to hide ads.'
+          message: 'Premium feature required. Please upgrade to hide ads.',
         });
       }
     }
@@ -575,7 +543,7 @@ const updateAdsPreferences = async (req, res) => {
       {
         'adsPreferences.showAds': showAds !== false,
         'adsPreferences.adCategories': adCategories || [],
-        'adsPreferences.lastAdUpdate': new Date()
+        'adsPreferences.lastAdUpdate': new Date(),
       },
       { new: true }
     );
@@ -583,13 +551,13 @@ const updateAdsPreferences = async (req, res) => {
     res.json({
       success: true,
       message: 'Ads preferences updated successfully',
-      data: user.adsPreferences
+      data: user.adsPreferences,
     });
   } catch (error) {
     console.error('Error updating ads preferences:', error);
     res.status(500).json({
       success: false,
-      message: 'Error updating ads preferences'
+      message: 'Error updating ads preferences',
     });
   }
 };
@@ -606,7 +574,7 @@ const getBoostAnalytics = async (req, res) => {
     if (!subscription?.hasFeature('profileBoostAnalytics')) {
       return res.status(403).json({
         success: false,
-        message: 'Premium feature required. Please upgrade to view profile boost analytics.'
+        message: 'Premium feature required. Please upgrade to view profile boost analytics.',
       });
     }
 
@@ -620,14 +588,14 @@ const getBoostAnalytics = async (req, res) => {
         totalLikesReceivedDuringBoosts: user?.boostAnalytics?.totalLikesReceivedDuringBoosts || 0,
         averageViewsPerBoost: user?.boostAnalytics?.averageViewsPerBoost || 0,
         averageLikesPerBoost: user?.boostAnalytics?.averageLikesPerBoost || 0,
-        boostHistory: user?.boostAnalytics?.boostHistory || []
-      }
+        boostHistory: user?.boostAnalytics?.boostHistory || [],
+      },
     });
   } catch (error) {
     console.error('Error getting boost analytics:', error);
     res.status(500).json({
       success: false,
-      message: 'Error retrieving boost analytics'
+      message: 'Error retrieving boost analytics',
     });
   }
 };
@@ -643,7 +611,7 @@ const recordBoostSession = async (req, res) => {
     if (!duration) {
       return res.status(400).json({
         success: false,
-        message: 'duration is required'
+        message: 'duration is required',
       });
     }
 
@@ -656,7 +624,7 @@ const recordBoostSession = async (req, res) => {
         totalLikesReceivedDuringBoosts: 0,
         boostHistory: [],
         averageViewsPerBoost: 0,
-        averageLikesPerBoost: 0
+        averageLikesPerBoost: 0,
       };
     }
 
@@ -667,13 +635,15 @@ const recordBoostSession = async (req, res) => {
       duration: duration,
       viewsGained: viewsGained || 0,
       likesGained: likesGained || 0,
-      matches: matches || 0
+      matches: matches || 0,
     };
 
     user.boostAnalytics.boostHistory.push(newBoost);
     user.boostAnalytics.totalBoosts = (user.boostAnalytics.totalBoosts || 0) + 1;
-    user.boostAnalytics.totalProfileViews = (user.boostAnalytics.totalProfileViews || 0) + (viewsGained || 0);
-    user.boostAnalytics.totalLikesReceivedDuringBoosts = (user.boostAnalytics.totalLikesReceivedDuringBoosts || 0) + (likesGained || 0);
+    user.boostAnalytics.totalProfileViews =
+      (user.boostAnalytics.totalProfileViews || 0) + (viewsGained || 0);
+    user.boostAnalytics.totalLikesReceivedDuringBoosts =
+      (user.boostAnalytics.totalLikesReceivedDuringBoosts || 0) + (likesGained || 0);
 
     // Calculate averages
     user.boostAnalytics.averageViewsPerBoost = Math.round(
@@ -688,13 +658,13 @@ const recordBoostSession = async (req, res) => {
     res.json({
       success: true,
       message: 'Boost session recorded successfully',
-      data: user.boostAnalytics
+      data: user.boostAnalytics,
     });
   } catch (error) {
     console.error('Error recording boost session:', error);
     res.status(500).json({
       success: false,
-      message: 'Error recording boost session'
+      message: 'Error recording boost session',
     });
   }
 };
@@ -713,5 +683,5 @@ module.exports = {
   sendPriorityLike,
   updateAdsPreferences,
   getBoostAnalytics,
-  recordBoostSession
+  recordBoostSession,
 };

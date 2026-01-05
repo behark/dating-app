@@ -58,10 +58,7 @@ module.exports = {
               json: '$.token',
               as: 'authToken',
             },
-            expect: [
-              { statusCode: 200 },
-              { hasProperty: 'token' },
-            ],
+            expect: [{ statusCode: 200 }, { hasProperty: 'token' }],
           },
         },
         {
@@ -109,10 +106,7 @@ module.exports = {
                   json: '$.profiles[0].id',
                   as: 'profileId',
                 },
-                expect: [
-                  { statusCode: 200 },
-                  { hasProperty: 'profiles' },
-                ],
+                expect: [{ statusCode: 200 }, { hasProperty: 'profiles' }],
               },
             },
             {

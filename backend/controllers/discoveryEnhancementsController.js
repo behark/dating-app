@@ -20,7 +20,7 @@ const exploreUsers = async (req, res) => {
       gender = 'any',
       sortBy = 'recentActivity', // recentActivity, profileQuality, verified, boosted
       limit = 20,
-      skip = 0
+      skip = 0,
     } = req.query;
 
     // Validate coordinates if provided
@@ -31,14 +31,14 @@ const exploreUsers = async (req, res) => {
       if (isNaN(latitude) || latitude < -90 || latitude > 90) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid latitude'
+          message: 'Invalid latitude',
         });
       }
 
       if (isNaN(longitude) || longitude < -180 || longitude > 180) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid longitude'
+          message: 'Invalid longitude',
         });
       }
     }
@@ -48,7 +48,7 @@ const exploreUsers = async (req, res) => {
     if (!currentUser) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -60,7 +60,7 @@ const exploreUsers = async (req, res) => {
     const query = {
       _id: { $nin: swipedUserIds },
       isActive: true,
-      age: { $gte: minAge, $lte: maxAge }
+      age: { $gte: minAge, $lte: maxAge },
     };
 
     if (gender !== 'any') {
@@ -76,10 +76,10 @@ const exploreUsers = async (req, res) => {
         $near: {
           $geometry: {
             type: 'Point',
-            coordinates: [longitude, latitude]
+            coordinates: [longitude, latitude],
           },
-          $maxDistance: parseInt(radius)
-        }
+          $maxDistance: parseInt(radius),
+        },
       };
     }
 
@@ -106,8 +106,10 @@ const exploreUsers = async (req, res) => {
     }
 
     // Execute query
-    let results = await User.find(query)
-      .select('name age gender bio photos interests location profileCompleteness lastActivityAt isProfileVerified activityScore')
+    const results = await User.find(query)
+      .select(
+        'name age gender bio photos interests location profileCompleteness lastActivityAt isProfileVerified activityScore'
+      )
       .sort(sortQuery)
       .skip(parseInt(skip))
       .limit(parseInt(limit))
@@ -120,7 +122,7 @@ const exploreUsers = async (req, res) => {
         const activeBoost = await BoostProfile.findOne({
           userId: user._id,
           isActive: true,
-          endsAt: { $gt: new Date() }
+          endsAt: { $gt: new Date() },
         }).select('visibilityMultiplier endsAt');
 
         // Calculate distance if coordinates provided
@@ -141,7 +143,7 @@ const exploreUsers = async (req, res) => {
           distance,
           isBoosted: !!activeBoost,
           boostEndsAt: activeBoost?.endsAt,
-          visibilityMultiplier: activeBoost?.visibilityMultiplier || 1
+          visibilityMultiplier: activeBoost?.visibilityMultiplier || 1,
         };
       })
     );
@@ -159,7 +161,7 @@ const exploreUsers = async (req, res) => {
     // Log activity
     await UserActivity.logActivity(userId, 'profile_view', {
       action: 'explore',
-      filters: { minAge, maxAge, gender, sortBy }
+      filters: { minAge, maxAge, gender, sortBy },
     });
 
     return res.status(200).json({
@@ -168,14 +170,14 @@ const exploreUsers = async (req, res) => {
         users: enhancedResults,
         count: enhancedResults.length,
         skip: parseInt(skip),
-        limit: parseInt(limit)
-      }
+        limit: parseInt(limit),
+      },
     });
   } catch (error) {
     console.error('Error exploring users:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -193,8 +195,8 @@ const getTopPicks = async (req, res) => {
       forUserId: userId,
       isActive: true,
       calculatedAt: {
-        $gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
-      }
+        $gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
+      },
     });
 
     // If no recent picks, would trigger algorithm (in production)
@@ -209,18 +211,15 @@ const getTopPicks = async (req, res) => {
 
     // Mark as seen
     await Promise.all(
-      topPicks.map(pick =>
-        TopPicks.updateOne(
-          { _id: pick._id },
-          { isSeen: true, seenAt: new Date() }
-        )
+      topPicks.map((pick) =>
+        TopPicks.updateOne({ _id: pick._id }, { isSeen: true, seenAt: new Date() })
       )
     );
 
     // Log activity
     await UserActivity.logActivity(userId, 'profile_view', {
       action: 'view_top_picks',
-      count: topPicks.length
+      count: topPicks.length,
     });
 
     return res.status(200).json({
@@ -228,14 +227,14 @@ const getTopPicks = async (req, res) => {
       data: {
         topPicks,
         count: topPicks.length,
-        calculationTime: topPicks[0]?.calculatedAt || null
-      }
+        calculationTime: topPicks[0]?.calculatedAt || null,
+      },
     });
   } catch (error) {
     console.error('Error getting top picks:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -260,14 +259,14 @@ const getRecentlyActiveUsers = async (req, res) => {
 
     // Filter out already swiped users
     const filteredUsers = recentlyActive.filter(
-      activity => !swipedUserIds.includes(activity._id.toString())
+      (activity) => !swipedUserIds.includes(activity._id.toString())
     );
 
     // Log activity
     await UserActivity.logActivity(userId, 'profile_view', {
       action: 'view_recently_active',
       count: filteredUsers.length,
-      hoursBack: parseInt(hoursBack)
+      hoursBack: parseInt(hoursBack),
     });
 
     return res.status(200).json({
@@ -275,14 +274,14 @@ const getRecentlyActiveUsers = async (req, res) => {
       data: {
         users: filteredUsers,
         count: filteredUsers.length,
-        hoursBack: parseInt(hoursBack)
-      }
+        hoursBack: parseInt(hoursBack),
+      },
     });
   } catch (error) {
     console.error('Error getting recently active users:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -301,7 +300,7 @@ const getVerifiedProfiles = async (req, res) => {
       skip = 0,
       lat,
       lng,
-      radius = 50000
+      radius = 50000,
     } = req.query;
 
     // Get swiped users to exclude
@@ -313,7 +312,7 @@ const getVerifiedProfiles = async (req, res) => {
       _id: { $nin: swipedUserIds },
       isActive: true,
       isProfileVerified: true,
-      age: { $gte: minAge, $lte: maxAge }
+      age: { $gte: minAge, $lte: maxAge },
     };
 
     if (gender !== 'any') {
@@ -328,10 +327,10 @@ const getVerifiedProfiles = async (req, res) => {
         $near: {
           $geometry: {
             type: 'Point',
-            coordinates: [longitude, latitude]
+            coordinates: [longitude, latitude],
           },
-          $maxDistance: parseInt(radius)
-        }
+          $maxDistance: parseInt(radius),
+        },
       };
     }
 
@@ -351,13 +350,13 @@ const getVerifiedProfiles = async (req, res) => {
         const activeBoost = await BoostProfile.findOne({
           userId: user._id,
           isActive: true,
-          endsAt: { $gt: new Date() }
+          endsAt: { $gt: new Date() },
         }).select('visibilityMultiplier endsAt');
 
         return {
           ...user,
           isBoosted: !!activeBoost,
-          boostEndsAt: activeBoost?.endsAt
+          boostEndsAt: activeBoost?.endsAt,
         };
       })
     );
@@ -365,7 +364,7 @@ const getVerifiedProfiles = async (req, res) => {
     // Log activity
     await UserActivity.logActivity(userId, 'profile_view', {
       action: 'view_verified_profiles',
-      count: verifiedProfiles.length
+      count: verifiedProfiles.length,
     });
 
     return res.status(200).json({
@@ -374,14 +373,14 @@ const getVerifiedProfiles = async (req, res) => {
         profiles: enhancedProfiles,
         count: verifiedProfiles.length,
         skip: parseInt(skip),
-        limit: parseInt(limit)
-      }
+        limit: parseInt(limit),
+      },
     });
   } catch (error) {
     console.error('Error getting verified profiles:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -397,7 +396,7 @@ const verifyProfile = async (req, res) => {
     if (!['photo', 'video', 'id'].includes(verificationMethod)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid verification method'
+        message: 'Invalid verification method',
       });
     }
 
@@ -406,7 +405,7 @@ const verifyProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -420,14 +419,14 @@ const verifyProfile = async (req, res) => {
       message: 'Verification request submitted',
       data: {
         verificationStatus: 'pending',
-        verificationMethod
-      }
+        verificationMethod,
+      },
     });
   } catch (error) {
     console.error('Error verifying profile:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -444,7 +443,7 @@ const approveProfileVerification = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -455,7 +454,7 @@ const approveProfileVerification = async (req, res) => {
 
     // Log activity
     await UserActivity.logActivity(userId, 'profile_update', {
-      action: 'profile_verified'
+      action: 'profile_verified',
     });
 
     return res.status(200).json({
@@ -464,14 +463,14 @@ const approveProfileVerification = async (req, res) => {
       data: {
         isProfileVerified: true,
         verificationStatus: 'verified',
-        verificationDate: user.verificationDate
-      }
+        verificationDate: user.verificationDate,
+      },
     });
   } catch (error) {
     console.error('Error approving verification:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -484,5 +483,5 @@ module.exports = {
   getRecentlyActiveUsers,
   getVerifiedProfiles,
   verifyProfile,
-  approveProfileVerification
+  approveProfileVerification,
 };

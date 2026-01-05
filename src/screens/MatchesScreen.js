@@ -3,21 +3,23 @@ import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Image,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  FlatList,
+  Image,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
+import { PremiumService } from '../services/PremiumService';
 import { SwipeController } from '../services/SwipeController';
+import logger from '../utils/logger';
 
 const MatchesScreen = ({ navigation }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, authToken } = useAuth();
   const { conversations, loadConversations, unreadCount } = useChat();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -35,13 +37,18 @@ const MatchesScreen = ({ navigation }) => {
     try {
       setLoading(true);
       await loadConversations();
-      // TODO: Load premium features when implemented
-      // const premiumStatus = await PremiumService.checkPremiumStatus(currentUser.uid);
-      // setIsPremium(premiumStatus.isPremium);
+      // Load premium status
+      try {
+        const premiumStatus = await PremiumService.checkPremiumStatus(currentUser.uid, authToken);
+        setIsPremium(premiumStatus.isPremium);
+      } catch (error) {
+        // Silently fail for premium status, don't break the app
+        logger.error('Error loading premium status:', error);
+      }
       setLoading(false);
       setRefreshing(false);
     } catch (error) {
-      console.error('Error loading conversations:', error);
+      logger.error('Error loading conversations:', error);
       setLoading(false);
       setRefreshing(false);
     }
@@ -55,10 +62,12 @@ const MatchesScreen = ({ navigation }) => {
   const renderConversation = ({ item }) => (
     <TouchableOpacity
       style={styles.matchCard}
-      onPress={() => navigation.navigate('Chat', {
-        matchId: item.matchId,
-        otherUser: item.otherUser
-      })}
+      onPress={() =>
+        navigation.navigate('Chat', {
+          matchId: item.matchId,
+          otherUser: item.otherUser,
+        })
+      }
       activeOpacity={0.8}
     >
       <TouchableOpacity
@@ -102,30 +111,40 @@ const MatchesScreen = ({ navigation }) => {
           <Ionicons name="close-circle" size={24} color="#FF6B6B" />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => navigation.navigate('ViewProfile', { userId: item.otherUser._id, showCompatibility: true })}
+          onPress={() =>
+            navigation.navigate('ViewProfile', {
+              userId: item.otherUser._id,
+              showCompatibility: true,
+            })
+          }
           activeOpacity={0.8}
           style={styles.compatibilityButton}
         >
           <Ionicons name="heart" size={20} color="#FF6B9D" />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => navigation.navigate('SafetyAdvanced', { userId: currentUser.uid, isPremium: true, preSelectTab: 'date-plans' })}
+          onPress={() =>
+            navigation.navigate('SafetyAdvanced', {
+              userId: currentUser.uid,
+              isPremium: true,
+              preSelectTab: 'date-plans',
+            })
+          }
           activeOpacity={0.8}
           style={styles.datePlanButton}
         >
           <Ionicons name="calendar" size={20} color="#FF9800" />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => navigation.navigate('Chat', {
-            matchId: item.matchId,
-            otherUser: item.otherUser
-          })}
+          onPress={() =>
+            navigation.navigate('Chat', {
+              matchId: item.matchId,
+              otherUser: item.otherUser,
+            })
+          }
           activeOpacity={0.8}
         >
-          <LinearGradient
-            colors={['#667eea', '#764ba2']}
-            style={styles.chatButton}
-          >
+          <LinearGradient colors={['#667eea', '#764ba2']} style={styles.chatButton}>
             <Ionicons name="chatbubble" size={20} color="#fff" />
           </LinearGradient>
         </TouchableOpacity>
@@ -154,8 +173,8 @@ const MatchesScreen = ({ navigation }) => {
             } catch (error) {
               Alert.alert('Error', 'Failed to unmatch');
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -174,9 +193,13 @@ const MatchesScreen = ({ navigation }) => {
   return (
     <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{showLikes ? 'People Who Liked You' : 'Your Conversations'}</Text>
+        <Text style={styles.title}>
+          {showLikes ? 'People Who Liked You' : 'Your Conversations'}
+        </Text>
         <Text style={styles.subtitle}>
-          {showLikes ? `${receivedLikes.length} likes` : `${conversations.length} ${conversations.length === 1 ? 'conversation' : 'conversations'}`}
+          {showLikes
+            ? `${receivedLikes.length} likes`
+            : `${conversations.length} ${conversations.length === 1 ? 'conversation' : 'conversations'}`}
         </Text>
 
         {isPremium && (
@@ -196,9 +219,7 @@ const MatchesScreen = ({ navigation }) => {
               onPress={() => setShowLikes(true)}
             >
               <Ionicons name="star" size={16} color={showLikes ? '#fff' : '#FFD700'} />
-              <Text style={[styles.toggleText, showLikes && styles.toggleTextActive]}>
-                Likes
-              </Text>
+              <Text style={[styles.toggleText, showLikes && styles.toggleTextActive]}>Likes</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -206,14 +227,11 @@ const MatchesScreen = ({ navigation }) => {
       {showLikes ? (
         receivedLikes.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <LinearGradient
-              colors={['#667eea', '#764ba2']}
-              style={styles.emptyCard}
-            >
+            <LinearGradient colors={['#667eea', '#764ba2']} style={styles.emptyCard}>
               <Ionicons name="star-outline" size={80} color="#fff" />
               <Text style={styles.emptyTitle}>No likes yet</Text>
               <Text style={styles.emptyText}>
-                When someone super likes you, they'll appear here!{'\n'}
+                When someone super likes you, they&apos;ll appear here!{'\n'}
                 Keep your profile updated to attract more likes.
               </Text>
             </LinearGradient>
@@ -255,13 +273,12 @@ const MatchesScreen = ({ navigation }) => {
                   </View>
                 </View>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('Chat', { userId: item.user.id, userName: item.user.name })}
+                  onPress={() =>
+                    navigation.navigate('Chat', { userId: item.user.id, userName: item.user.name })
+                  }
                   activeOpacity={0.8}
                 >
-                  <LinearGradient
-                    colors={['#667eea', '#764ba2']}
-                    style={styles.chatButton}
-                  >
+                  <LinearGradient colors={['#667eea', '#764ba2']} style={styles.chatButton}>
                     <Ionicons name="chatbubble" size={20} color="#fff" />
                   </LinearGradient>
                 </TouchableOpacity>
@@ -270,17 +287,12 @@ const MatchesScreen = ({ navigation }) => {
             keyExtractor={(item) => item.user.id}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           />
         )
-      ) : matches.length === 0 ? (
+      ) : conversations.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <LinearGradient
-            colors={['#667eea', '#764ba2']}
-            style={styles.emptyCard}
-          >
+          <LinearGradient colors={['#667eea', '#764ba2']} style={styles.emptyCard}>
             <Ionicons name="heart-outline" size={80} color="#fff" />
             <Text style={styles.emptyTitle}>No conversations yet</Text>
             <Text style={styles.emptyText}>
@@ -296,9 +308,7 @@ const MatchesScreen = ({ navigation }) => {
           keyExtractor={(item) => item.matchId}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         />
       )}
     </LinearGradient>

@@ -306,7 +306,7 @@ Swipe Right (Like):
 └── Card flies off right edge
 
 Swipe Left (Nope):
-├── Rotate card 0-15° counter-clockwise  
+├── Rotate card 0-15° counter-clockwise
 ├── Show red "NOPE" stamp (top-right)
 ├── X icon appears
 └── Card flies off left edge
@@ -947,12 +947,12 @@ Card Loading:
 
 Chat List Loading:
 ┌───┐ ░░░░░░░░░░░░░       ░░░
-│░░░│ ░░░░░░░░░░░░░░░░░░░░    
-└───┘ 
+│░░░│ ░░░░░░░░░░░░░░░░░░░░
+└───┘
 ─────────────────────────────────
 ┌───┐ ░░░░░░░░░░░░░       ░░░
-│░░░│ ░░░░░░░░░░░░░░░░░░░░    
-└───┘ 
+│░░░│ ░░░░░░░░░░░░░░░░░░░░
+└───┘
 
 Profile Loading:
         ┌───────┐
@@ -1287,6 +1287,7 @@ Chat Badges:
 ### Design Assets to Create
 
 **Priority 1 (MVP)**
+
 - [ ] Color palette and typography in design system
 - [ ] Core icons set (navigation + actions)
 - [ ] Onboarding screens (10 screens)
@@ -1297,6 +1298,7 @@ Chat Badges:
 - [ ] Error/success toasts
 
 **Priority 2 (Launch)**
+
 - [ ] Full illustration set
 - [ ] Profile screens (view + edit)
 - [ ] Settings screens
@@ -1306,6 +1308,7 @@ Chat Badges:
 - [ ] Premium upsell screens
 
 **Priority 3 (Polish)**
+
 - [ ] Micro-interactions library
 - [ ] Dark mode variants
 - [ ] Accessibility improvements
@@ -1346,5 +1349,5 @@ Example: comp_button_primary-default.png, comp_card_loading.png
 
 ---
 
-*Last Updated: January 3, 2026*
-*Version: 1.0*
+_Last Updated: January 3, 2026_
+_Version: 1.0_

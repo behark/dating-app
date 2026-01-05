@@ -19,22 +19,22 @@ router.use(authenticate);
 router.get('/dashboard', isAdmin, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    
+
     const start = startDate ? new Date(startDate) : null;
     const end = endDate ? new Date(endDate) : new Date();
 
     const dashboard = await analyticsMetricsService.getDashboardMetrics(start, end);
-    
+
     res.json({
       success: true,
-      data: dashboard
+      data: dashboard,
     });
   } catch (error) {
     console.error('Error fetching dashboard metrics:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching dashboard metrics',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -48,19 +48,19 @@ router.get('/dau', isAdmin, async (req, res) => {
   try {
     const { date } = req.query;
     const targetDate = date ? new Date(date) : new Date();
-    
+
     const dau = await analyticsMetricsService.getDailyActiveUsers(targetDate);
-    
+
     res.json({
       success: true,
-      data: dau
+      data: dau,
     });
   } catch (error) {
     console.error('Error fetching DAU:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching DAU',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -75,26 +75,24 @@ router.get('/active-users', isAdmin, async (req, res) => {
     const [dau, wau, mau] = await Promise.all([
       analyticsMetricsService.getDailyActiveUsers(),
       analyticsMetricsService.getWeeklyActiveUsers(),
-      analyticsMetricsService.getMonthlyActiveUsers()
+      analyticsMetricsService.getMonthlyActiveUsers(),
     ]);
-    
+
     res.json({
       success: true,
       data: {
         dau,
         wau,
         mau,
-        stickiness: mau.count > 0 
-          ? parseFloat((dau.count / mau.count * 100).toFixed(2)) 
-          : 0
-      }
+        stickiness: mau.count > 0 ? parseFloat(((dau.count / mau.count) * 100).toFixed(2)) : 0,
+      },
     });
   } catch (error) {
     console.error('Error fetching active users:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching active users',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -107,22 +105,24 @@ router.get('/active-users', isAdmin, async (req, res) => {
 router.get('/retention', isAdmin, async (req, res) => {
   try {
     const { cohortDate, days } = req.query;
-    
-    const targetDate = cohortDate ? new Date(cohortDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const targetDate = cohortDate
+      ? new Date(cohortDate)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const retentionDays = days ? days.split(',').map(Number) : [1, 7, 30];
-    
+
     const retention = await analyticsMetricsService.getRetentionRate(targetDate, retentionDays);
-    
+
     res.json({
       success: true,
-      data: retention
+      data: retention,
     });
   } catch (error) {
     console.error('Error fetching retention:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching retention metrics',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -136,19 +136,19 @@ router.get('/retention/rolling', isAdmin, async (req, res) => {
   try {
     const { days } = req.query;
     const lookbackDays = days ? parseInt(days) : 30;
-    
+
     const retention = await analyticsMetricsService.getRollingRetention(lookbackDays);
-    
+
     res.json({
       success: true,
-      data: retention
+      data: retention,
     });
   } catch (error) {
     console.error('Error fetching rolling retention:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching rolling retention',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -161,28 +161,28 @@ router.get('/retention/rolling', isAdmin, async (req, res) => {
 router.get('/matches', isAdmin, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    
+
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
-    
+
     const [matchRate, swipeConversion] = await Promise.all([
       analyticsMetricsService.getMatchRate(start, end),
-      analyticsMetricsService.getSwipeToMatchConversion(start, end)
+      analyticsMetricsService.getSwipeToMatchConversion(start, end),
     ]);
-    
+
     res.json({
       success: true,
       data: {
         matchRate,
-        swipeConversion
-      }
+        swipeConversion,
+      },
     });
   } catch (error) {
     console.error('Error fetching match metrics:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching match metrics',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -195,28 +195,28 @@ router.get('/matches', isAdmin, async (req, res) => {
 router.get('/messages', isAdmin, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    
+
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
-    
+
     const [responseRate, avgMessages] = await Promise.all([
       analyticsMetricsService.getMessageResponseRate(start, end),
-      analyticsMetricsService.getAverageMessagesPerMatch(start, end)
+      analyticsMetricsService.getAverageMessagesPerMatch(start, end),
     ]);
-    
+
     res.json({
       success: true,
       data: {
         responseRate,
-        avgMessages
-      }
+        avgMessages,
+      },
     });
   } catch (error) {
     console.error('Error fetching message metrics:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching message metrics',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -229,28 +229,28 @@ router.get('/messages', isAdmin, async (req, res) => {
 router.get('/premium', isAdmin, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    
+
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
-    
+
     const [conversionRate, churnRate] = await Promise.all([
       analyticsMetricsService.getPremiumConversionRate(start, end),
-      analyticsMetricsService.getPremiumChurnRate(start, end)
+      analyticsMetricsService.getPremiumChurnRate(start, end),
     ]);
-    
+
     res.json({
       success: true,
       data: {
         conversionRate,
-        churnRate
-      }
+        churnRate,
+      },
     });
   } catch (error) {
     console.error('Error fetching premium metrics:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching premium metrics',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -263,22 +263,22 @@ router.get('/premium', isAdmin, async (req, res) => {
 router.get('/photos', isAdmin, async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    
+
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
-    
+
     const uploadMetrics = await analyticsMetricsService.getPhotoUploadSuccessRate(start, end);
-    
+
     res.json({
       success: true,
-      data: uploadMetrics
+      data: uploadMetrics,
     });
   } catch (error) {
     console.error('Error fetching photo metrics:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching photo metrics',
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -291,23 +291,23 @@ router.get('/photos', isAdmin, async (req, res) => {
 router.post('/crash', async (req, res) => {
   try {
     const { platform, version, errorMessage, stackTrace } = req.body;
-    
+
     analyticsMetricsService.trackCrash(
       platform || 'unknown',
       version || 'unknown',
       errorMessage || 'No message',
       stackTrace || 'No stack trace'
     );
-    
+
     res.json({
       success: true,
-      message: 'Crash reported'
+      message: 'Crash reported',
     });
   } catch (error) {
     console.error('Error reporting crash:', error);
     res.status(500).json({
       success: false,
-      message: 'Error reporting crash'
+      message: 'Error reporting crash',
     });
   }
 });
@@ -320,12 +320,12 @@ router.post('/crash', async (req, res) => {
 router.get('/export', isAdmin, async (req, res) => {
   try {
     const { type, startDate, endDate } = req.query;
-    
+
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
-    
+
     const dashboard = await analyticsMetricsService.getDashboardMetrics(start, end);
-    
+
     // Convert to CSV format
     const csvRows = [
       'Metric,Value,Date',
@@ -338,18 +338,21 @@ router.get('/export', isAdmin, async (req, res) => {
       `Premium Conversion,${dashboard.monetization.premiumConversionRate}%,${dashboard.generatedAt}`,
       `D1 Retention,${dashboard.retention.D1}%,${dashboard.generatedAt}`,
       `D7 Retention,${dashboard.retention.D7}%,${dashboard.generatedAt}`,
-      `D30 Retention,${dashboard.retention.D30}%,${dashboard.generatedAt}`
+      `D30 Retention,${dashboard.retention.D30}%,${dashboard.generatedAt}`,
     ];
-    
+
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename=metrics-${new Date().toISOString().split('T')[0]}.csv`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=metrics-${new Date().toISOString().split('T')[0]}.csv`
+    );
     res.send(csvRows.join('\n'));
   } catch (error) {
     console.error('Error exporting metrics:', error);
     res.status(500).json({
       success: false,
       message: 'Error exporting metrics',
-      error: error.message
+      error: error.message,
     });
   }
 });

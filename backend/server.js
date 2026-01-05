@@ -108,27 +108,30 @@ app.use(userActivityMiddleware);
 app.use(photoUploadMetricsMiddleware);
 
 // Performance & Security Middleware (order matters!)
-app.use(requestIdMiddleware);        // Add request ID for tracing
+app.use(requestIdMiddleware); // Add request ID for tracing
 // Note: responseTimeMiddleware removed - using metricsResponseTimeMiddleware instead to avoid conflicts
-app.use(performanceHeaders);         // Performance headers
-app.use(helmet());                   // Security headers
-app.use(compression({                // Compress responses
-  level: 6,
-  threshold: 1024,
-  filter: (req, res) => {
-    // Don't compress already compressed formats
-    const contentType = res.getHeader('Content-Type');
-    if (typeof contentType === 'string') {
-      if (['image/', 'video/', 'audio/'].some(t => contentType.includes(t))) {
-        return false;
+app.use(performanceHeaders); // Performance headers
+app.use(helmet()); // Security headers
+app.use(
+  compression({
+    // Compress responses
+    level: 6,
+    threshold: 1024,
+    filter: (req, res) => {
+      // Don't compress already compressed formats
+      const contentType = res.getHeader('Content-Type');
+      if (typeof contentType === 'string') {
+        if (['image/', 'video/', 'audio/'].some((t) => contentType.includes(t))) {
+          return false;
+        }
       }
-    }
-    return compression.filter(req, res);
-  },
-}));
-app.use(cdnCacheMiddleware);         // CDN cache headers
-app.use(preflightCache(86400));      // Cache CORS preflight for 24h
-app.use(morgan(morganFormat, { stream: logger.getStream() }));  // Structured logging
+      return compression.filter(req, res);
+    },
+  })
+);
+app.use(cdnCacheMiddleware); // CDN cache headers
+app.use(preflightCache(86400)); // Cache CORS preflight for 24h
+app.use(morgan(morganFormat, { stream: logger.getStream() })); // Structured logging
 
 // CORS configuration
 const allowedOrigins = [
@@ -143,15 +146,15 @@ const corsOptions = {
   origin: (origin, callback) => {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    
+
     // Check if origin matches allowed patterns
-    const isAllowed = allowedOrigins.some(allowed => {
+    const isAllowed = allowedOrigins.some((allowed) => {
       if (allowed instanceof RegExp) {
         return allowed.test(origin);
       }
       return allowed === origin;
     });
-    
+
     if (isAllowed) {
       callback(null, true);
     } else {
@@ -168,7 +171,7 @@ const corsOptions = {
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID'],
-  credentials: true
+  credentials: true,
 };
 app.use(cors(corsOptions));
 
@@ -181,10 +184,12 @@ app.use(cookieParser());
 
 // CSRF Protection (for non-API routes with session cookies)
 // Skipped for Bearer token authenticated API routes
-app.use(csrfProtection({
-  ignoreMethods: ['GET', 'HEAD', 'OPTIONS'],
-  ignorePaths: ['/api/auth', '/api/webhook', '/health']
-}));
+app.use(
+  csrfProtection({
+    ignoreMethods: ['GET', 'HEAD', 'OPTIONS'],
+    ignorePaths: ['/api/auth', '/api/webhook', '/health'],
+  })
+);
 
 // CSRF Token endpoint
 app.get('/api/csrf-token', getCsrfToken);
@@ -198,12 +203,12 @@ app.get('/health', (req, res) => {
   if (res.headersSent) {
     return;
   }
-  
+
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV,
   });
 });
 
@@ -236,10 +241,10 @@ app.use('*', (req, res) => {
   if (res.headersSent) {
     return;
   }
-  
+
   res.status(404).json({
     success: false,
-    message: 'Route not found'
+    message: 'Route not found',
   });
 });
 
@@ -267,12 +272,12 @@ app.use((error, req, res, next) => {
 
     // Mongoose validation error
     if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map(err => err.message);
+      const errors = Object.values(error.errors).map((err) => err.message);
       if (!res.headersSent) {
         return res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors
+          errors,
         });
       }
       return;
@@ -283,7 +288,7 @@ app.use((error, req, res, next) => {
       if (!res.headersSent) {
         return res.status(409).json({
           success: false,
-          message: 'Duplicate entry found'
+          message: 'Duplicate entry found',
         });
       }
       return;
@@ -294,7 +299,7 @@ app.use((error, req, res, next) => {
       if (!res.headersSent) {
         return res.status(error.statusCode).json({
           success: false,
-          message: error.message
+          message: error.message,
         });
       }
       return;
@@ -304,7 +309,7 @@ app.use((error, req, res, next) => {
     if (!res.headersSent) {
       res.status(500).json({
         success: false,
-        message: 'Internal server error'
+        message: 'Internal server error',
       });
     }
   });
@@ -328,24 +333,24 @@ const connectDB = async () => {
     try {
       // Support both MONGODB_URI and MONGODB_URL for compatibility
       const mongoURI = process.env.MONGODB_URI || process.env.MONGODB_URL;
-      
+
       if (!mongoURI) {
         console.warn('MONGODB_URI or MONGODB_URL not set - database features will be unavailable');
         return false;
       }
 
       console.log('Attempting MongoDB connection...');
-      
+
       // Serverless-optimized connection settings
       const conn = await mongoose.connect(mongoURI, {
         bufferCommands: false,
-        maxPoolSize: 50,              // Increased for better concurrency
-        minPoolSize: 10,              // Keep minimum connections warm
+        maxPoolSize: 50, // Increased for better concurrency
+        minPoolSize: 10, // Keep minimum connections warm
         serverSelectionTimeoutMS: 10000,
         socketTimeoutMS: 45000,
-        maxIdleTimeMS: 30000,         // Close idle connections after 30s
-        waitQueueTimeoutMS: 10000,    // Timeout for waiting in queue
-        family: 4,                    // Use IPv4, skip trying IPv6
+        maxIdleTimeMS: 30000, // Close idle connections after 30s
+        waitQueueTimeoutMS: 10000, // Timeout for waiting in queue
+        family: 4, // Use IPv4, skip trying IPv6
       });
 
       isConnected = true;
@@ -393,8 +398,8 @@ const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     methods: ['GET', 'POST'],
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 
 // Socket.io middleware for authentication
@@ -431,7 +436,7 @@ io.on('connection', (socket) => {
       }
 
       // Leave previous rooms
-      socket.rooms.forEach(room => {
+      socket.rooms.forEach((room) => {
         if (room !== socket.id) {
           socket.leave(room);
         }
@@ -468,11 +473,8 @@ io.on('connection', (socket) => {
       // Verify the match exists and user is part of it
       const match = await Swipe.findOne({
         _id: matchId,
-        $or: [
-          { swiperId: senderId },
-          { swipedId: senderId }
-        ],
-        action: 'like'
+        $or: [{ swiperId: senderId }, { swipedId: senderId }],
+        action: 'like',
       });
 
       if (!match) {
@@ -481,9 +483,7 @@ io.on('connection', (socket) => {
       }
 
       // Determine receiver
-      const receiverId = match.swiperId.toString() === senderId
-        ? match.swipedId
-        : match.swiperId;
+      const receiverId = match.swiperId.toString() === senderId ? match.swipedId : match.swiperId;
 
       // Create and save message
       const message = new Message({
@@ -491,7 +491,7 @@ io.on('connection', (socket) => {
         senderId,
         receiverId,
         content,
-        type
+        type,
       });
 
       await message.save();
@@ -506,7 +506,9 @@ io.on('connection', (socket) => {
         if (receiverUser?.notificationPreferences?.messageNotifications !== false) {
           const senderName = message.senderId?.name || 'Someone';
           const messagePreview = content.length > 50 ? `${content.substring(0, 50)}...` : content;
-          console.log(`[NOTIFICATION] Message from ${senderName} to ${receiverId}: ${messagePreview}`);
+          console.log(
+            `[NOTIFICATION] Message from ${senderName} to ${receiverId}: ${messagePreview}`
+          );
           // In production, send via Expo push notification service
         }
       } catch (notifError) {
@@ -523,16 +525,15 @@ io.on('connection', (socket) => {
           content: message.content,
           type: message.type,
           isRead: message.isRead,
-          createdAt: message.createdAt
-        }
+          createdAt: message.createdAt,
+        },
       });
 
       // Emit delivery confirmation to sender
       socket.emit('message_sent', {
         messageId: message._id,
-        timestamp: message.createdAt
+        timestamp: message.createdAt,
       });
-
     } catch (error) {
       console.error('Error sending message:', error);
       socket.emit('error', { message: 'Failed to send message' });
@@ -543,14 +544,14 @@ io.on('connection', (socket) => {
   socket.on('typing_start', (matchId) => {
     socket.to(matchId).emit('user_typing', {
       userId: socket.userId,
-      isTyping: true
+      isTyping: true,
     });
   });
 
   socket.on('typing_stop', (matchId) => {
     socket.to(matchId).emit('user_typing', {
       userId: socket.userId,
-      isTyping: false
+      isTyping: false,
     });
   });
 
@@ -564,11 +565,11 @@ io.on('connection', (socket) => {
       const message = await Message.findOneAndUpdate(
         {
           _id: messageId,
-          receiverId: userId
+          receiverId: userId,
         },
         {
           isRead: true,
-          readAt: new Date()
+          readAt: new Date(),
         },
         { new: true }
       );
@@ -578,7 +579,7 @@ io.on('connection', (socket) => {
         io.to(matchId).emit('message_read_receipt', {
           messageId: message._id,
           readBy: userId,
-          readAt: message.readAt
+          readAt: message.readAt,
         });
       }
     } catch (error) {
@@ -597,7 +598,7 @@ io.on('connection', (socket) => {
 const startServer = async () => {
   try {
     const dbConnected = await connectDB();
-    
+
     if (!dbConnected) {
       console.warn('⚠️  MongoDB connection failed - server starting without database');
       console.warn('⚠️  Some features may not work until MongoDB is connected');

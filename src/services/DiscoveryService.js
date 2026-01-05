@@ -1,8 +1,11 @@
 import { API_BASE_URL } from '../config/api';
+import { validateCoordinates, validateNumberRange, validateUserId } from '../utils/validators';
+import logger from '../utils/logger';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 
 /**
  * DiscoveryService - User discovery and exploration functionality
- * 
+ *
  * Provides methods for:
  * - Exploring users based on location and filters
  * - Getting top picks and recently active users
@@ -35,6 +38,11 @@ class DiscoveryService {
    */
   async exploreUsers(lat, lng, options = {}) {
     try {
+      // Validate inputs
+      if (!validateCoordinates(lat, lng)) {
+        throw new Error('Invalid coordinates provided');
+      }
+
       const {
         radius = 50000,
         minAge = 18,
@@ -42,35 +50,51 @@ class DiscoveryService {
         gender = 'any',
         sortBy = 'recentActivity',
         limit = 20,
-        skip = 0
+        skip = 0,
       } = options;
 
+      // Validate options
+      if (!validateNumberRange(radius, 1000, 100000)) {
+        throw new Error('Radius must be between 1km and 100km');
+      }
+      if (!validateNumberRange(minAge, 18, 100) || !validateNumberRange(maxAge, 18, 100)) {
+        throw new Error('Age must be between 18 and 100');
+      }
+      if (!validateNumberRange(limit, 1, 100)) {
+        throw new Error('Limit must be between 1 and 100');
+      }
+
       const queryParams = new URLSearchParams({
-        lat,
-        lng,
-        radius,
-        minAge,
-        maxAge,
+        lat: lat.toString(),
+        lng: lng.toString(),
+        radius: radius.toString(),
+        minAge: minAge.toString(),
+        maxAge: maxAge.toString(),
         gender,
         sortBy,
-        limit,
-        skip
+        limit: limit.toString(),
+        skip: skip.toString(),
       });
 
-      const response = await fetch(
-        `${API_BASE_URL}/discovery/explore?${queryParams}`,
-        {
-          headers: { Authorization: `Bearer ${this.authToken}` }
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/discovery/explore?${queryParams}`, {
+        headers: { Authorization: `Bearer ${this.authToken}` },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = getUserFriendlyMessage(
+          errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        );
+        throw new Error(errorMessage);
+      }
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(data.message);
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
       }
-      return data.data;
+      return data.data || [];
     } catch (error) {
-      console.error('Error exploring users:', error);
+      logger.error('Error exploring users:', error);
       throw error;
     }
   }
@@ -83,22 +107,32 @@ class DiscoveryService {
    */
   async getTopPicks(limit = 10) {
     try {
-      const queryParams = new URLSearchParams({ limit });
+      // Validate input
+      if (!validateNumberRange(limit, 1, 50)) {
+        throw new Error('Limit must be between 1 and 50');
+      }
 
-      const response = await fetch(
-        `${API_BASE_URL}/discovery/top-picks?${queryParams}`,
-        {
-          headers: { Authorization: `Bearer ${this.authToken}` }
-        }
-      );
+      const queryParams = new URLSearchParams({ limit: limit.toString() });
+
+      const response = await fetch(`${API_BASE_URL}/discovery/top-picks?${queryParams}`, {
+        headers: { Authorization: `Bearer ${this.authToken}` },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = getUserFriendlyMessage(
+          errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        );
+        throw new Error(errorMessage);
+      }
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(data.message);
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
       }
-      return data.data;
+      return data.data || { topPicks: [] };
     } catch (error) {
-      console.error('Error getting top picks:', error);
+      logger.error('Error getting top picks:', error);
       throw error;
     }
   }
@@ -110,25 +144,38 @@ class DiscoveryService {
    */
   async getRecentlyActiveUsers(hoursBack = 24, limit = 20) {
     try {
+      // Validate inputs
+      if (!validateNumberRange(hoursBack, 1, 168)) {
+        throw new Error('Hours back must be between 1 and 168 (1 week)');
+      }
+      if (!validateNumberRange(limit, 1, 100)) {
+        throw new Error('Limit must be between 1 and 100');
+      }
+
       const queryParams = new URLSearchParams({
-        hoursBack,
-        limit
+        hoursBack: hoursBack.toString(),
+        limit: limit.toString(),
       });
 
-      const response = await fetch(
-        `${API_BASE_URL}/discovery/recently-active?${queryParams}`,
-        {
-          headers: { Authorization: `Bearer ${this.authToken}` }
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/discovery/recently-active?${queryParams}`, {
+        headers: { Authorization: `Bearer ${this.authToken}` },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = getUserFriendlyMessage(
+          errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        );
+        throw new Error(errorMessage);
+      }
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(data.message);
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
       }
-      return data.data;
+      return data.data || { users: [] };
     } catch (error) {
-      console.error('Error getting recently active users:', error);
+      logger.error('Error getting recently active users:', error);
       throw error;
     }
   }
@@ -138,14 +185,30 @@ class DiscoveryService {
    */
   async getVerifiedProfiles(lat, lng, options = {}) {
     try {
+      // Validate coordinates
+      if (!validateCoordinates(lat, lng)) {
+        throw new Error('Invalid coordinates provided');
+      }
+
       const {
         minAge = 18,
         maxAge = 100,
         gender = 'any',
         radius = 50000,
         limit = 20,
-        skip = 0
+        skip = 0,
       } = options;
+
+      // Validate options
+      if (!validateNumberRange(radius, 1000, 100000)) {
+        throw new Error('Radius must be between 1km and 100km');
+      }
+      if (!validateNumberRange(minAge, 18, 100) || !validateNumberRange(maxAge, 18, 100)) {
+        throw new Error('Age must be between 18 and 100');
+      }
+      if (!validateNumberRange(limit, 1, 100)) {
+        throw new Error('Limit must be between 1 and 100');
+      }
 
       const queryParams = new URLSearchParams({
         lat,
@@ -155,23 +218,28 @@ class DiscoveryService {
         gender,
         radius,
         limit,
-        skip
+        skip,
       });
 
-      const response = await fetch(
-        `${API_BASE_URL}/discovery/verified?${queryParams}`,
-        {
-          headers: { Authorization: `Bearer ${this.authToken}` }
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/discovery/verified?${queryParams}`, {
+        headers: { Authorization: `Bearer ${this.authToken}` },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = getUserFriendlyMessage(
+          errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        );
+        throw new Error(errorMessage);
+      }
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(data.message);
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
       }
-      return data.data;
+      return data.data || { users: [] };
     } catch (error) {
-      console.error('Error getting verified profiles:', error);
+      logger.error('Error getting verified profiles:', error);
       throw error;
     }
   }
@@ -181,24 +249,36 @@ class DiscoveryService {
    */
   async verifyProfile(verificationMethod = 'photo') {
     try {
+      if (!['photo', 'document', 'video'].includes(verificationMethod)) {
+        throw new Error('Invalid verification method. Must be photo, document, or video');
+      }
+
       const response = await fetch(`${API_BASE_URL}/discovery/verify-profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`
+          Authorization: `Bearer ${this.authToken}`,
         },
         body: JSON.stringify({
-          verificationMethod
-        })
+          verificationMethod,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = getUserFriendlyMessage(
+          errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        );
+        throw new Error(errorMessage);
+      }
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(data.message);
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
       }
-      return data.data;
+      return data.data || {};
     } catch (error) {
-      console.error('Error verifying profile:', error);
+      logger.error('Error verifying profile:', error);
       throw error;
     }
   }
@@ -208,24 +288,36 @@ class DiscoveryService {
    */
   async approveProfileVerification(userId) {
     try {
+      if (!validateUserId(userId)) {
+        throw new Error('Invalid user ID provided');
+      }
+
       const response = await fetch(`${API_BASE_URL}/discovery/approve-verification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`
+          Authorization: `Bearer ${this.authToken}`,
         },
         body: JSON.stringify({
-          userId
-        })
+          userId,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = getUserFriendlyMessage(
+          errorData.message || `HTTP ${response.status}: ${response.statusText}`
+        );
+        throw new Error(errorMessage);
+      }
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(data.message);
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
       }
-      return data.data;
+      return data.data || {};
     } catch (error) {
-      console.error('Error approving verification:', error);
+      logger.error('Error approving verification:', error);
       throw error;
     }
   }

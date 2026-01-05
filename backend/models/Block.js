@@ -1,23 +1,26 @@
 const mongoose = require('mongoose');
 
-const blockSchema = new mongoose.Schema({
-  blockerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+const blockSchema = new mongoose.Schema(
+  {
+    blockerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    blockedUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    reason: {
+      type: String,
+      maxlength: 500,
+    },
   },
-  blockedUserId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  reason: {
-    type: String,
-    maxlength: 500
+  {
+    timestamps: true,
   }
-}, {
-  timestamps: true
-});
+);
 
 // Compound index to ensure unique block relationships
 blockSchema.index({ blockerId: 1, blockedUserId: 1 }, { unique: true });

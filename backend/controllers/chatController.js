@@ -13,7 +13,7 @@ const getMessages = async (req, res) => {
     if (!matchId || !require('mongoose').Types.ObjectId.isValid(matchId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid match ID'
+        message: 'Invalid match ID',
       });
     }
 
@@ -21,17 +21,14 @@ const getMessages = async (req, res) => {
     if (userId) {
       const match = await Swipe.findOne({
         _id: matchId,
-        $or: [
-          { swiperId: userId },
-          { swipedId: userId }
-        ],
-        action: 'like'
+        $or: [{ swiperId: userId }, { swipedId: userId }],
+        action: 'like',
       }).lean();
 
       if (!match) {
         return res.status(403).json({
           success: false,
-          message: 'Access denied to this conversation'
+          message: 'Access denied to this conversation',
         });
       }
     }
@@ -40,11 +37,7 @@ const getMessages = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Get messages with pagination
-    let messages = await Message.getMessagesForMatch(
-      matchId,
-      parseInt(limit),
-      skip
-    );
+    let messages = await Message.getMessagesForMatch(matchId, parseInt(limit), skip);
 
     // Get total count for pagination info
     const totalMessages = await Message.countDocuments({ matchId });
@@ -58,18 +51,19 @@ const getMessages = async (req, res) => {
     if (shouldDecrypt === 'true' && userId) {
       const match = await Swipe.findById(matchId);
       if (match) {
-        const otherUserId = match.swiperId.toString() === userId 
-          ? match.swipedId.toString() 
-          : match.swiperId.toString();
+        const otherUserId =
+          match.swiperId.toString() === userId
+            ? match.swipedId.toString()
+            : match.swiperId.toString();
         const conversationKey = generateConversationKey(userId, otherUserId);
-        
-        messages = messages.map(msg => {
+
+        messages = messages.map((msg) => {
           if (msg.isEncrypted && msg.content) {
             try {
               return {
                 ...msg,
                 content: decryptMessage(msg.content, conversationKey),
-                _decrypted: true
+                _decrypted: true,
               };
             } catch (e) {
               return { ...msg, _decryptionFailed: true };
@@ -88,16 +82,15 @@ const getMessages = async (req, res) => {
           page: parseInt(page),
           limit: parseInt(limit),
           total: totalMessages,
-          pages: Math.ceil(totalMessages / parseInt(limit))
-        }
-      }
+          pages: Math.ceil(totalMessages / parseInt(limit)),
+        },
+      },
     });
-
   } catch (error) {
     console.error('Get messages error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -112,7 +105,7 @@ const getConversations = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
@@ -121,12 +114,9 @@ const getConversations = async (req, res) => {
       // Stage 1: Find all matches for this user
       {
         $match: {
-          $or: [
-            { swiperId: userObjectId },
-            { swipedId: userObjectId }
-          ],
-          action: 'like'
-        }
+          $or: [{ swiperId: userObjectId }, { swipedId: userObjectId }],
+          action: 'like',
+        },
       },
       // Stage 2: Sort by creation date
       { $sort: { createdAt: -1 } },
@@ -139,16 +129,16 @@ const getConversations = async (req, res) => {
               $cond: {
                 if: { $eq: ['$swiperId', userObjectId] },
                 then: '$swipedId',
-                else: '$swiperId'
-              }
-            }
+                else: '$swiperId',
+              },
+            },
           },
           pipeline: [
             { $match: { $expr: { $eq: ['$_id', '$$otherUserId'] } } },
-            { $project: { name: 1, photos: { $slice: ['$photos', 3] }, lastActive: 1 } }
+            { $project: { name: 1, photos: { $slice: ['$photos', 3] }, lastActive: 1 } },
           ],
-          as: 'otherUserData'
-        }
+          as: 'otherUserData',
+        },
       },
       { $unwind: '$otherUserData' },
       // Stage 4: Lookup latest message for each match
@@ -160,10 +150,10 @@ const getConversations = async (req, res) => {
             { $match: { $expr: { $eq: ['$matchId', '$$matchId'] } } },
             { $sort: { createdAt: -1 } },
             { $limit: 1 },
-            { $project: { content: 1, type: 1, createdAt: 1, senderId: 1 } }
+            { $project: { content: 1, type: 1, createdAt: 1, senderId: 1 } },
           ],
-          as: 'latestMessageData'
-        }
+          as: 'latestMessageData',
+        },
       },
       // Stage 5: Lookup unread count
       {
@@ -177,15 +167,15 @@ const getConversations = async (req, res) => {
                   $and: [
                     { $eq: ['$matchId', '$$matchId'] },
                     { $eq: ['$receiverId', userObjectId] },
-                    { $eq: ['$isRead', false] }
-                  ]
-                }
-              }
+                    { $eq: ['$isRead', false] },
+                  ],
+                },
+              },
             },
-            { $count: 'count' }
+            { $count: 'count' },
           ],
-          as: 'unreadData'
-        }
+          as: 'unreadData',
+        },
       },
       // Stage 6: Project final shape
       {
@@ -195,40 +185,39 @@ const getConversations = async (req, res) => {
             _id: '$otherUserData._id',
             name: '$otherUserData.name',
             photos: '$otherUserData.photos',
-            lastActive: '$otherUserData.lastActive'
+            lastActive: '$otherUserData.lastActive',
           },
           latestMessage: {
             $cond: {
               if: { $gt: [{ $size: '$latestMessageData' }, 0] },
               then: { $arrayElemAt: ['$latestMessageData', 0] },
-              else: null
-            }
+              else: null,
+            },
           },
           unreadCount: {
             $cond: {
               if: { $gt: [{ $size: '$unreadData' }, 0] },
               then: { $arrayElemAt: ['$unreadData.count', 0] },
-              else: 0
-            }
+              else: 0,
+            },
           },
-          matchDate: '$createdAt'
-        }
-      }
+          matchDate: '$createdAt',
+        },
+      },
     ]);
 
     res.json({
       success: true,
       data: {
         conversations,
-        count: conversations.length
-      }
+        count: conversations.length,
+      },
     });
-
   } catch (error) {
     console.error('Get conversations error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -242,7 +231,7 @@ const markAsRead = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
@@ -250,24 +239,21 @@ const markAsRead = async (req, res) => {
     if (!matchId || !require('mongoose').Types.ObjectId.isValid(matchId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid match ID'
+        message: 'Invalid match ID',
       });
     }
 
     // Verify user has access to this match (use .lean() for read-only query)
     const match = await Swipe.findOne({
       _id: matchId,
-      $or: [
-        { swiperId: userId },
-        { swipedId: userId }
-      ],
-      action: 'like'
+      $or: [{ swiperId: userId }, { swipedId: userId }],
+      action: 'like',
     }).lean();
 
     if (!match) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied to this conversation'
+        message: 'Access denied to this conversation',
       });
     }
 
@@ -277,15 +263,14 @@ const markAsRead = async (req, res) => {
     res.json({
       success: true,
       data: {
-        markedAsRead: result.modifiedCount
-      }
+        markedAsRead: result.modifiedCount,
+      },
     });
-
   } catch (error) {
     console.error('Mark as read error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -298,7 +283,7 @@ const getUnreadCount = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
@@ -307,15 +292,14 @@ const getUnreadCount = async (req, res) => {
     res.json({
       success: true,
       data: {
-        unreadCount
-      }
+        unreadCount,
+      },
     });
-
   } catch (error) {
     console.error('Get unread count error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -329,20 +313,20 @@ const deleteMessage = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
     // Find and verify ownership
     const message = await Message.findOne({
       _id: messageId,
-      senderId: userId
+      senderId: userId,
     });
 
     if (!message) {
       return res.status(404).json({
         success: false,
-        message: 'Message not found or access denied'
+        message: 'Message not found or access denied',
       });
     }
 
@@ -352,14 +336,13 @@ const deleteMessage = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Message deleted successfully'
+      message: 'Message deleted successfully',
     });
-
   } catch (error) {
     console.error('Delete message error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -373,26 +356,26 @@ const markMessageAsRead = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
     if (!messageId || !require('mongoose').Types.ObjectId.isValid(messageId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid message ID'
+        message: 'Invalid message ID',
       });
     }
 
     const message = await Message.findOne({
       _id: messageId,
-      receiverId: userId
+      receiverId: userId,
     });
 
     if (!message) {
       return res.status(404).json({
         success: false,
-        message: 'Message not found or access denied'
+        message: 'Message not found or access denied',
       });
     }
 
@@ -405,15 +388,14 @@ const markMessageAsRead = async (req, res) => {
       data: {
         messageId: message._id,
         isRead: message.isRead,
-        readAt: message.readAt
-      }
+        readAt: message.readAt,
+      },
     });
-
   } catch (error) {
     console.error('Mark message as read error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -427,14 +409,14 @@ const getReadReceipts = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
     if (!matchId || !require('mongoose').Types.ObjectId.isValid(matchId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid match ID'
+        message: 'Invalid match ID',
       });
     }
 
@@ -447,15 +429,14 @@ const getReadReceipts = async (req, res) => {
     res.json({
       success: true,
       data: {
-        messages
-      }
+        messages,
+      },
     });
-
   } catch (error) {
     console.error('Get read receipts error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -469,38 +450,33 @@ const sendEncryptedMessage = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
     if (!matchId || !content) {
       return res.status(400).json({
         success: false,
-        message: 'Match ID and content are required'
+        message: 'Match ID and content are required',
       });
     }
 
     // Verify user has access to this match
     const match = await Swipe.findOne({
       _id: matchId,
-      $or: [
-        { swiperId: userId },
-        { swipedId: userId }
-      ],
-      action: 'like'
+      $or: [{ swiperId: userId }, { swipedId: userId }],
+      action: 'like',
     });
 
     if (!match) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied to this conversation'
+        message: 'Access denied to this conversation',
       });
     }
 
     // Determine recipient
-    const receiverId = match.swiperId.toString() === userId 
-      ? match.swipedId 
-      : match.swiperId;
+    const receiverId = match.swiperId.toString() === userId ? match.swipedId : match.swiperId;
 
     // Generate conversation key and encrypt message
     const conversationKey = generateConversationKey(userId, receiverId.toString());
@@ -516,8 +492,8 @@ const sendEncryptedMessage = async (req, res) => {
       isEncrypted: true,
       encryptionMetadata: {
         algorithm: 'aes-256-gcm',
-        keyVersion: 1
-      }
+        keyVersion: 1,
+      },
     });
 
     await message.save();
@@ -533,16 +509,15 @@ const sendEncryptedMessage = async (req, res) => {
           content: content, // Return decrypted for sender
           type: message.type,
           isEncrypted: true,
-          createdAt: message.createdAt
-        }
-      }
+          createdAt: message.createdAt,
+        },
+      },
     });
-
   } catch (error) {
     console.error('Send encrypted message error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -555,5 +530,5 @@ module.exports = {
   deleteMessage,
   markMessageAsRead,
   getReadReceipts,
-  sendEncryptedMessage
+  sendEncryptedMessage,
 };

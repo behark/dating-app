@@ -2,15 +2,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-    FlatList,
-    LayoutAnimation,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    UIManager,
-    View
+  FlatList,
+  LayoutAnimation,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  UIManager,
+  View,
 } from 'react-native';
 import { SafetyService } from '../services/SafetyService';
 
@@ -145,13 +145,15 @@ export default function SafetyTipsScreen({ navigation }) {
               <View style={styles.stepNumber}>
                 <Text style={styles.stepNumberText}>1</Text>
               </View>
-              <Text style={styles.stepText}>Find the user's profile or conversation</Text>
+              <Text style={styles.stepText}>Find the user&apos;s profile or conversation</Text>
             </View>
             <View style={styles.stepItem}>
               <View style={styles.stepNumber}>
                 <Text style={styles.stepNumberText}>2</Text>
               </View>
-              <Text style={styles.stepText}>Tap the menu icon (⋮) and select "Report"</Text>
+              <Text style={styles.stepText}>
+                Tap the menu icon (⋮) and select &quot;Report&quot;
+              </Text>
             </View>
             <View style={styles.stepItem}>
               <View style={styles.stepNumber}>
@@ -176,7 +178,8 @@ export default function SafetyTipsScreen({ navigation }) {
             <View>
               <Text style={styles.practiceTitle}>Privacy First</Text>
               <Text style={styles.practiceText}>
-                Never share personal information too quickly. Keep conversations on the app until you trust someone.
+                Never share personal information too quickly. Keep conversations on the app until
+                you trust someone.
               </Text>
             </View>
           </View>
@@ -186,7 +189,8 @@ export default function SafetyTipsScreen({ navigation }) {
             <View>
               <Text style={styles.practiceTitle}>Verify Identity</Text>
               <Text style={styles.practiceText}>
-                Ask for a video call or photo verification before meeting. Trust your instincts if something feels off.
+                Ask for a video call or photo verification before meeting. Trust your instincts if
+                something feels off.
               </Text>
             </View>
           </View>
@@ -196,7 +200,8 @@ export default function SafetyTipsScreen({ navigation }) {
             <View>
               <Text style={styles.practiceTitle}>Public Meetings</Text>
               <Text style={styles.practiceText}>
-                Always meet in public places. Tell a friend where you're going and when to expect your call.
+                Always meet in public places. Tell a friend where you&apos;re going and when to
+                expect your call.
               </Text>
             </View>
           </View>
@@ -206,7 +211,8 @@ export default function SafetyTipsScreen({ navigation }) {
             <View>
               <Text style={styles.practiceTitle}>Trust Your Gut</Text>
               <Text style={styles.practiceText}>
-                If something doesn't feel right, it probably isn't. It's okay to step back or block someone.
+                If something doesn&apos;t feel right, it probably isn&apos;t. It&apos;s okay to step
+                back or block someone.
               </Text>
             </View>
           </View>
@@ -214,9 +220,7 @@ export default function SafetyTipsScreen({ navigation }) {
 
         <View style={styles.communityGuidelinesSection}>
           <Text style={styles.sectionTitle}>Community Guidelines</Text>
-          <Text style={styles.guidelineText}>
-            We maintain a safe community by prohibiting:
-          </Text>
+          <Text style={styles.guidelineText}>We maintain a safe community by prohibiting:</Text>
           <View style={styles.guidelinesList}>
             <View style={styles.guidelineItem}>
               <Ionicons name="close-circle" size={20} color="#FF6B6B" />

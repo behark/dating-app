@@ -3,7 +3,12 @@
  * Handles file uploads to AWS S3 or Cloudinary with CDN support
  */
 
-const { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const cloudinary = require('cloudinary').v2;
 const crypto = require('crypto');
@@ -76,19 +81,19 @@ const generateFileName = (userId, fileType, originalName) => {
  */
 const validateFile = (file, fileType) => {
   const config = FILE_CONFIG[fileType];
-  
+
   if (!config) {
     throw new Error(`Invalid file type: ${fileType}`);
   }
-  
+
   if (file.size > config.maxSize) {
     throw new Error(`File size exceeds maximum allowed (${config.maxSize / 1024 / 1024}MB)`);
   }
-  
+
   if (!config.allowedTypes.includes(file.mimetype)) {
     throw new Error(`File type ${file.mimetype} is not allowed`);
   }
-  
+
   return true;
 };
 
@@ -98,7 +103,7 @@ const validateFile = (file, fileType) => {
 const uploadToS3 = async (file, fileName, fileType) => {
   const config = FILE_CONFIG[fileType];
   const key = `${config.folder}/${fileName}`;
-  
+
   const command = new PutObjectCommand({
     Bucket: S3_BUCKET,
     Key: key,
@@ -110,14 +115,14 @@ const uploadToS3 = async (file, fileName, fileType) => {
       uploadedAt: new Date().toISOString(),
     },
   });
-  
+
   await s3Client.send(command);
-  
+
   // Return CDN URL if configured, otherwise S3 URL
-  const url = CDN_URL 
+  const url = CDN_URL
     ? `${CDN_URL}/${key}`
     : `https://${S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
-  
+
   return {
     url,
     key,
@@ -131,7 +136,7 @@ const uploadToS3 = async (file, fileName, fileType) => {
  */
 const uploadToCloudinary = async (file, fileName, fileType, userId) => {
   const config = FILE_CONFIG[fileType];
-  
+
   return new Promise((resolve, reject) => {
     const uploadOptions = {
       folder: `dating-app/${config.folder}/${userId}`,
@@ -155,38 +160,39 @@ const uploadToCloudinary = async (file, fileName, fileType, userId) => {
         eager_async: true,
       }),
     };
-    
-    const uploadStream = cloudinary.uploader.upload_stream(
-      uploadOptions,
-      (error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve({
-            url: result.secure_url,
-            publicId: result.public_id,
-            format: result.format,
-            width: result.width,
-            height: result.height,
-            duration: result.duration, // For videos
-            thumbnailUrl: fileType === 'video' 
+
+    const uploadStream = cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve({
+          url: result.secure_url,
+          publicId: result.public_id,
+          format: result.format,
+          width: result.width,
+          height: result.height,
+          duration: result.duration, // For videos
+          thumbnailUrl:
+            fileType === 'video'
               ? cloudinary.url(result.public_id, {
                   resource_type: 'video',
                   format: 'jpg',
                   ...config.transformations.thumbnail,
                 })
               : undefined,
-            variants: fileType === 'image' ? {
-              thumbnail: cloudinary.url(result.public_id, config.transformations.thumbnail),
-              medium: cloudinary.url(result.public_id, config.transformations.medium),
-              large: cloudinary.url(result.public_id, config.transformations.large),
-            } : undefined,
-            provider: 'cloudinary',
-          });
-        }
+          variants:
+            fileType === 'image'
+              ? {
+                  thumbnail: cloudinary.url(result.public_id, config.transformations.thumbnail),
+                  medium: cloudinary.url(result.public_id, config.transformations.medium),
+                  large: cloudinary.url(result.public_id, config.transformations.large),
+                }
+              : undefined,
+          provider: 'cloudinary',
+        });
       }
-    );
-    
+    });
+
     uploadStream.end(file.buffer);
   });
 };
@@ -199,7 +205,7 @@ const deleteFromS3 = async (key) => {
     Bucket: S3_BUCKET,
     Key: key,
   });
-  
+
   await s3Client.send(command);
 };
 
@@ -218,7 +224,7 @@ const getSignedS3Url = async (key, expiresIn = 3600) => {
     Bucket: S3_BUCKET,
     Key: key,
   });
-  
+
   return getSignedUrl(s3Client, command, { expiresIn });
 };
 
@@ -234,10 +240,10 @@ const StorageService = {
   async upload(file, userId, fileType = 'image') {
     // Validate
     validateFile(file, fileType);
-    
+
     // Generate file name
     const fileName = generateFileName(userId, fileType, file.originalname);
-    
+
     // Upload based on provider
     if (STORAGE_PROVIDER === 's3') {
       return uploadToS3(file, fileName, fileType);
@@ -245,13 +251,13 @@ const StorageService = {
       return uploadToCloudinary(file, fileName, fileType, userId);
     }
   },
-  
+
   /**
    * Upload multiple files
    */
   async uploadMultiple(files, userId, fileType = 'image') {
     const results = [];
-    
+
     for (const file of files) {
       try {
         const result = await this.upload(file, userId, fileType);
@@ -260,10 +266,10 @@ const StorageService = {
         results.push({ success: false, error: error.message, fileName: file.originalname });
       }
     }
-    
+
     return results;
   },
-  
+
   /**
    * Delete a file
    */
@@ -274,15 +280,19 @@ const StorageService = {
       return deleteFromCloudinary(identifier, resourceType);
     }
   },
-  
+
   /**
    * Get optimized image URL
    */
   getOptimizedUrl(url, options = {}) {
     if (STORAGE_PROVIDER === 'cloudinary' && url.includes('cloudinary')) {
       // Extract public ID from URL
-      const publicId = url.split('/').slice(-2).join('/').replace(/\.[^.]+$/, '');
-      
+      const publicId = url
+        .split('/')
+        .slice(-2)
+        .join('/')
+        .replace(/\.[^.]+$/, '');
+
       return cloudinary.url(publicId, {
         quality: options.quality || 'auto',
         fetch_format: options.format || 'auto',
@@ -292,18 +302,18 @@ const StorageService = {
         ...options,
       });
     }
-    
+
     // For S3 with CloudFront, URL stays the same (transformations handled at edge)
     return url;
   },
-  
+
   /**
    * Get thumbnail URL
    */
   getThumbnailUrl(url, width = 150, height = 150) {
     return this.getOptimizedUrl(url, { width, height, crop: 'fill' });
   },
-  
+
   /**
    * Generate upload signature for direct client upload
    */
@@ -311,18 +321,18 @@ const StorageService = {
     if (STORAGE_PROVIDER === 'cloudinary') {
       const timestamp = Math.round(new Date().getTime() / 1000);
       const config = FILE_CONFIG[fileType];
-      
+
       const params = {
         timestamp,
         folder: `dating-app/${config.folder}/${userId}`,
         upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
       };
-      
+
       const signature = cloudinary.utils.api_sign_request(
         params,
         process.env.CLOUDINARY_API_SECRET
       );
-      
+
       return {
         signature,
         timestamp,
@@ -335,15 +345,15 @@ const StorageService = {
       // For S3, generate presigned URL
       const fileName = generateFileName(userId, fileType, 'upload.tmp');
       const key = `${FILE_CONFIG[fileType].folder}/${fileName}`;
-      
+
       const command = new PutObjectCommand({
         Bucket: S3_BUCKET,
         Key: key,
         ContentType: 'application/octet-stream',
       });
-      
+
       const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-      
+
       return {
         presignedUrl,
         key,
@@ -352,7 +362,7 @@ const StorageService = {
       };
     }
   },
-  
+
   /**
    * Moderate image using Cloudinary AI
    */
@@ -360,22 +370,22 @@ const StorageService = {
     if (STORAGE_PROVIDER !== 'cloudinary') {
       return { safe: true, moderation: null };
     }
-    
+
     try {
       const result = await cloudinary.api.resource(publicId, {
         moderation: 'aws_rek',
       });
-      
+
       const moderation = result.moderation?.[0];
       const safe = moderation?.status === 'approved';
-      
+
       return { safe, moderation };
     } catch (error) {
       console.error('Moderation error:', error);
       return { safe: true, moderation: null, error: error.message };
     }
   },
-  
+
   /**
    * Get file info
    */
@@ -387,7 +397,7 @@ const StorageService = {
         Bucket: S3_BUCKET,
         Key: identifier,
       });
-      
+
       const response = await s3Client.send(command);
       return {
         contentType: response.ContentType,
@@ -397,7 +407,7 @@ const StorageService = {
       };
     }
   },
-  
+
   // Expose configurations
   FILE_CONFIG,
   STORAGE_PROVIDER,

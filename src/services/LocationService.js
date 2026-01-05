@@ -1,5 +1,5 @@
 import * as Location from 'expo-location';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { calculateDistance as calcDist } from '../utils/distanceCalculator';
 
@@ -138,12 +138,7 @@ export class LocationService {
    */
   static calculateDistance(coord1, coord2) {
     if (!coord1 || !coord2) return null;
-    return calcDist(
-      coord1.latitude,
-      coord1.longitude,
-      coord2.latitude,
-      coord2.longitude
-    );
+    return calcDist(coord1.latitude, coord1.longitude, coord2.latitude, coord2.longitude);
   }
 
   static async getNearbyUsers(currentUserId, maxDistanceKm = 50) {
@@ -158,10 +153,10 @@ export class LocationService {
 
       const currentLocation = currentUserData.location;
 
-      // In a real app, you'd use Firebase Geo queries or a spatial database
-      // For now, we'll fetch all users and filter client-side
-      // TODO: Implement proper geospatial queries for production
-      const usersSnapshot = await getDoc(collection(db, 'users'));
+      // Note: For production, implement server-side geospatial queries using MongoDB $geoNear
+      // or Firebase GeoFire. Client-side filtering is used here for development.
+      // Backend should handle geospatial queries at /api/discovery/explore endpoint
+      const usersSnapshot = await getDocs(collection(db, 'users'));
       const nearbyUsers = [];
 
       usersSnapshot.forEach((doc) => {

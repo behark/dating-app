@@ -19,20 +19,15 @@ exports.exportUserData = async (req, res) => {
     const userId = req.user._id;
 
     // Fetch all user data from different collections
-    const [
-      userData,
-      messages,
-      swipes,
-      reports,
-      blocks,
-      activities
-    ] = await Promise.all([
-      User.findById(userId).select('-password -passwordResetToken -phoneVerificationCode -emailVerificationToken').lean(),
+    const [userData, messages, swipes, reports, blocks, activities] = await Promise.all([
+      User.findById(userId)
+        .select('-password -passwordResetToken -phoneVerificationCode -emailVerificationToken')
+        .lean(),
       Message.find({ $or: [{ senderId: userId }, { receiverId: userId }] }).lean(),
       Swipe.find({ $or: [{ swiper: userId }, { swiped: userId }] }).lean(),
       Report.find({ $or: [{ reporter: userId }, { reported: userId }] }).lean(),
       Block.find({ $or: [{ blocker: userId }, { blocked: userId }] }).lean(),
-      UserActivity.find({ userId }).lean()
+      UserActivity.find({ userId }).lean(),
     ]);
 
     // Compile all data
@@ -41,52 +36,55 @@ exports.exportUserData = async (req, res) => {
       exportFormat: 'JSON',
       dataSubject: {
         id: userId,
-        email: userData?.email
+        email: userData?.email,
       },
       profile: userData,
-      messages: messages.map(msg => ({
+      messages: messages.map((msg) => ({
         id: msg._id,
         direction: msg.senderId.toString() === userId.toString() ? 'sent' : 'received',
         content: msg.content,
         type: msg.type,
-        createdAt: msg.createdAt
+        createdAt: msg.createdAt,
       })),
-      swipes: swipes.map(swipe => ({
+      swipes: swipes.map((swipe) => ({
         id: swipe._id,
         direction: swipe.swiper.toString() === userId.toString() ? 'given' : 'received',
         action: swipe.action,
-        createdAt: swipe.createdAt
+        createdAt: swipe.createdAt,
       })),
       reports: {
-        filed: reports.filter(r => r.reporter?.toString() === userId.toString()),
-        received: reports.filter(r => r.reported?.toString() === userId.toString()).length // Only count, not details
+        filed: reports.filter((r) => r.reporter?.toString() === userId.toString()),
+        received: reports.filter((r) => r.reported?.toString() === userId.toString()).length, // Only count, not details
       },
       blocks: {
-        blocked: blocks.filter(b => b.blocker?.toString() === userId.toString()).length,
-        blockedBy: blocks.filter(b => b.blocked?.toString() === userId.toString()).length
+        blocked: blocks.filter((b) => b.blocker?.toString() === userId.toString()).length,
+        blockedBy: blocks.filter((b) => b.blocked?.toString() === userId.toString()).length,
       },
       activities: activities,
       metadata: {
         accountCreated: userData?.createdAt,
         lastActive: userData?.lastActive,
-        totalLogins: activities?.filter(a => a.type === 'login')?.length || 0
-      }
+        totalLogins: activities?.filter((a) => a.type === 'login')?.length || 0,
+      },
     };
 
     // Set headers for file download
     res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename="user-data-export-${userId}-${Date.now()}.json"`);
-    
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="user-data-export-${userId}-${Date.now()}.json"`
+    );
+
     res.json({
       success: true,
-      data: exportData
+      data: exportData,
     });
   } catch (error) {
     console.error('Data export error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to export user data',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -98,7 +96,7 @@ exports.exportUserData = async (req, res) => {
 exports.getPrivacySettings = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('privacySettings email name');
-    
+
     res.json({
       success: true,
       data: {
@@ -108,16 +106,16 @@ exports.getPrivacySettings = async (req, res) => {
           thirdPartySharing: false,
           analyticsTracking: true,
           doNotSell: false,
-          dataRetentionPeriod: '2years'
+          dataRetentionPeriod: '2years',
         },
-        consentHistory: user.privacySettings?.consentHistory || []
-      }
+        consentHistory: user.privacySettings?.consentHistory || [],
+      },
     });
   } catch (error) {
     console.error('Get privacy settings error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get privacy settings'
+      message: 'Failed to get privacy settings',
     });
   }
 };
@@ -134,7 +132,7 @@ exports.updatePrivacySettings = async (req, res) => {
       thirdPartySharing,
       analyticsTracking,
       doNotSell,
-      dataRetentionPeriod
+      dataRetentionPeriod,
     } = req.body;
 
     const updateData = {
@@ -144,7 +142,7 @@ exports.updatePrivacySettings = async (req, res) => {
       'privacySettings.analyticsTracking': analyticsTracking,
       'privacySettings.doNotSell': doNotSell,
       'privacySettings.dataRetentionPeriod': dataRetentionPeriod,
-      'privacySettings.lastUpdated': new Date()
+      'privacySettings.lastUpdated': new Date(),
     };
 
     // Add consent history entry
@@ -153,14 +151,14 @@ exports.updatePrivacySettings = async (req, res) => {
       action: 'settings_updated',
       changes: req.body,
       ipAddress: req.ip,
-      userAgent: req.headers['user-agent']
+      userAgent: req.headers['user-agent'],
     };
 
     const user = await User.findByIdAndUpdate(
       req.user._id,
       {
         $set: updateData,
-        $push: { 'privacySettings.consentHistory': consentEntry }
+        $push: { 'privacySettings.consentHistory': consentEntry },
       },
       { new: true }
     ).select('privacySettings');
@@ -168,13 +166,13 @@ exports.updatePrivacySettings = async (req, res) => {
     res.json({
       success: true,
       message: 'Privacy settings updated successfully',
-      data: user.privacySettings
+      data: user.privacySettings,
     });
   } catch (error) {
     console.error('Update privacy settings error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update privacy settings'
+      message: 'Failed to update privacy settings',
     });
   }
 };
@@ -191,29 +189,30 @@ exports.doNotSell = async (req, res) => {
       $set: {
         'privacySettings.doNotSell': optOut !== false, // Default to true
         'privacySettings.doNotSellDate': new Date(),
-        'privacySettings.thirdPartySharing': false
+        'privacySettings.thirdPartySharing': false,
       },
       $push: {
         'privacySettings.consentHistory': {
           timestamp: new Date(),
           action: optOut !== false ? 'do_not_sell_enabled' : 'do_not_sell_disabled',
           ipAddress: req.ip,
-          userAgent: req.headers['user-agent']
-        }
-      }
+          userAgent: req.headers['user-agent'],
+        },
+      },
     });
 
     res.json({
       success: true,
-      message: optOut !== false 
-        ? 'Your personal information will not be sold to third parties'
-        : 'Do Not Sell preference has been disabled'
+      message:
+        optOut !== false
+          ? 'Your personal information will not be sold to third parties'
+          : 'Do Not Sell preference has been disabled',
     });
   } catch (error) {
     console.error('Do Not Sell error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update Do Not Sell preference'
+      message: 'Failed to update Do Not Sell preference',
     });
   }
 };
@@ -232,39 +231,30 @@ exports.deleteAccount = async (req, res) => {
     if (user.email !== confirmEmail) {
       return res.status(400).json({
         success: false,
-        message: 'Email confirmation does not match'
+        message: 'Email confirmation does not match',
       });
     }
 
     // Delete all user data from all collections
     await Promise.all([
       // Anonymize messages (keep for other users but remove PII)
-      Message.updateMany(
-        { senderId: userId },
-        { $set: { content: '[Deleted]', senderId: null } }
-      ),
-      Message.updateMany(
-        { receiverId: userId },
-        { $set: { receiverId: null } }
-      ),
-      
+      Message.updateMany({ senderId: userId }, { $set: { content: '[Deleted]', senderId: null } }),
+      Message.updateMany({ receiverId: userId }, { $set: { receiverId: null } }),
+
       // Delete swipes
       Swipe.deleteMany({ $or: [{ swiper: userId }, { swiped: userId }] }),
-      
+
       // Anonymize reports
-      Report.updateMany(
-        { reporter: userId },
-        { $set: { reporter: null } }
-      ),
-      
+      Report.updateMany({ reporter: userId }, { $set: { reporter: null } }),
+
       // Delete blocks
       Block.deleteMany({ $or: [{ blocker: userId }, { blocked: userId }] }),
-      
+
       // Delete activity logs
       UserActivity.deleteMany({ userId }),
-      
+
       // Finally, delete the user account
-      User.findByIdAndDelete(userId)
+      User.findByIdAndDelete(userId),
     ]);
 
     // Log deletion for compliance records (anonymized)
@@ -272,13 +262,13 @@ exports.deleteAccount = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Your account and all associated data have been permanently deleted'
+      message: 'Your account and all associated data have been permanently deleted',
     });
   } catch (error) {
     console.error('Account deletion error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete account'
+      message: 'Failed to delete account',
     });
   }
 };
@@ -291,7 +281,7 @@ exports.rectifyData = async (req, res) => {
   try {
     const allowedFields = ['name', 'email', 'phoneNumber', 'bio', 'age', 'gender'];
     const updates = {};
-    
+
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
@@ -301,7 +291,7 @@ exports.rectifyData = async (req, res) => {
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'No valid fields provided for update'
+        message: 'No valid fields provided for update',
       });
     }
 
@@ -314,13 +304,13 @@ exports.rectifyData = async (req, res) => {
     res.json({
       success: true,
       message: 'Personal data updated successfully',
-      data: user
+      data: user,
     });
   } catch (error) {
     console.error('Data rectification error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update personal data'
+      message: 'Failed to update personal data',
     });
   }
 };
@@ -332,7 +322,7 @@ exports.rectifyData = async (req, res) => {
 exports.getConsentStatus = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('privacySettings createdAt');
-    
+
     res.json({
       success: true,
       data: {
@@ -343,16 +333,16 @@ exports.getConsentStatus = async (req, res) => {
           essential: true, // Always required
           analytics: user.privacySettings?.analyticsTracking ?? true,
           marketing: user.privacySettings?.marketingEmails ?? false,
-          thirdParty: user.privacySettings?.thirdPartySharing ?? false
+          thirdParty: user.privacySettings?.thirdPartySharing ?? false,
         },
-        accountAge: user.createdAt
-      }
+        accountAge: user.createdAt,
+      },
     });
   } catch (error) {
     console.error('Get consent status error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get consent status'
+      message: 'Failed to get consent status',
     });
   }
 };
@@ -372,7 +362,7 @@ exports.recordConsent = async (req, res) => {
         'privacySettings.consentVersion': policyVersion || '1.0',
         'privacySettings.analyticsTracking': purposes?.analytics ?? true,
         'privacySettings.marketingEmails': purposes?.marketing ?? false,
-        'privacySettings.thirdPartySharing': purposes?.thirdParty ?? false
+        'privacySettings.thirdPartySharing': purposes?.thirdParty ?? false,
       },
       $push: {
         'privacySettings.consentHistory': {
@@ -381,20 +371,20 @@ exports.recordConsent = async (req, res) => {
           version: policyVersion || '1.0',
           purposes: purposes,
           ipAddress: req.ip,
-          userAgent: req.headers['user-agent']
-        }
-      }
+          userAgent: req.headers['user-agent'],
+        },
+      },
     });
 
     res.json({
       success: true,
-      message: 'Consent recorded successfully'
+      message: 'Consent recorded successfully',
     });
   } catch (error) {
     console.error('Record consent error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to record consent'
+      message: 'Failed to record consent',
     });
   }
 };
@@ -408,7 +398,7 @@ exports.withdrawConsent = async (req, res) => {
     const { purposes } = req.body;
 
     const updates = {
-      'privacySettings.lastUpdated': new Date()
+      'privacySettings.lastUpdated': new Date(),
     };
 
     if (purposes?.analytics === false) {
@@ -429,20 +419,20 @@ exports.withdrawConsent = async (req, res) => {
           action: 'consent_withdrawn',
           purposes: purposes,
           ipAddress: req.ip,
-          userAgent: req.headers['user-agent']
-        }
-      }
+          userAgent: req.headers['user-agent'],
+        },
+      },
     });
 
     res.json({
       success: true,
-      message: 'Consent preferences updated'
+      message: 'Consent preferences updated',
     });
   } catch (error) {
     console.error('Withdraw consent error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update consent preferences'
+      message: 'Failed to update consent preferences',
     });
   }
 };

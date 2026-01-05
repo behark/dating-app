@@ -36,7 +36,10 @@ jest.mock('../models/Subscription', () => ({
   countDocuments: jest.fn(),
 }));
 
-const { AnalyticsMetricsService, analyticsMetricsService } = require('../services/AnalyticsMetricsService');
+const {
+  AnalyticsMetricsService,
+  analyticsMetricsService,
+} = require('../services/AnalyticsMetricsService');
 const User = require('../models/User');
 const Swipe = require('../models/Swipe');
 const Message = require('../models/Message');
@@ -68,11 +71,9 @@ describe('AnalyticsMetricsService', () => {
       expect(result).toHaveProperty('userIds');
       expect(result.userIds).toEqual(mockUserIds);
       expect(UserActivity.distinct).toHaveBeenCalledWith('userId', expect.any(Object));
-      expect(mockDatadogService.gauge).toHaveBeenCalledWith(
-        'users.daily_active',
-        3,
-        ['date:2026-01-03']
-      );
+      expect(mockDatadogService.gauge).toHaveBeenCalledWith('users.daily_active', 3, [
+        'date:2026-01-03',
+      ]);
     });
 
     it('should use cache on subsequent calls', async () => {
@@ -80,10 +81,10 @@ describe('AnalyticsMetricsService', () => {
       UserActivity.distinct.mockResolvedValue(mockUserIds);
 
       const testDate = new Date('2026-01-03');
-      
+
       // First call
       await service.getDailyActiveUsers(testDate);
-      
+
       // Second call should use cache
       const result = await service.getDailyActiveUsers(testDate);
 
@@ -249,12 +250,14 @@ describe('AnalyticsMetricsService', () => {
 
   describe('getAverageMessagesPerMatch', () => {
     it('should calculate average messages correctly', async () => {
-      Message.aggregate.mockResolvedValue([{
-        _id: null,
-        avgMessages: 15.5,
-        totalMatches: 100,
-        totalMessages: 1550,
-      }]);
+      Message.aggregate.mockResolvedValue([
+        {
+          _id: null,
+          avgMessages: 15.5,
+          totalMatches: 100,
+          totalMessages: 1550,
+        },
+      ]);
 
       const result = await service.getAverageMessagesPerMatch(new Date(), new Date());
 
@@ -331,7 +334,7 @@ describe('AnalyticsMetricsService', () => {
       User.find.mockReturnValue({
         select: jest.fn().mockResolvedValue(mockUsers),
       });
-      
+
       UserActivity.distinct
         .mockResolvedValueOnce(['user1', 'user2', 'user3']) // D1: 3 active
         .mockResolvedValueOnce(['user1', 'user2']) // D7: 2 active
@@ -418,7 +421,11 @@ describe('AnalyticsMetricsService', () => {
           'status_class:2xx',
         ])
       );
-      expect(mockDatadogService.increment).toHaveBeenCalledWith('api.requests', 1, expect.any(Array));
+      expect(mockDatadogService.increment).toHaveBeenCalledWith(
+        'api.requests',
+        1,
+        expect.any(Array)
+      );
     });
 
     it('should track 5xx errors', () => {
@@ -446,11 +453,9 @@ describe('AnalyticsMetricsService', () => {
     it('should track successful uploads', () => {
       service.trackPhotoUpload(true, 1024000, 500);
 
-      expect(mockDatadogService.increment).toHaveBeenCalledWith(
-        'photos.upload.attempts',
-        1,
-        ['success:true']
-      );
+      expect(mockDatadogService.increment).toHaveBeenCalledWith('photos.upload.attempts', 1, [
+        'success:true',
+      ]);
       expect(mockDatadogService.increment).toHaveBeenCalledWith('photos.upload.success', 1);
       expect(mockDatadogService.histogram).toHaveBeenCalledWith('photos.upload.duration', 500);
       expect(mockDatadogService.histogram).toHaveBeenCalledWith('photos.upload.size', 1024000);
@@ -478,13 +483,12 @@ describe('AnalyticsMetricsService', () => {
 
       service.trackCrash('ios', '1.0.0', 'NullPointerException', 'stack trace');
 
-      expect(mockDatadogService.increment).toHaveBeenCalledWith(
-        'app.crashes',
-        1,
-        ['platform:ios', 'version:1.0.0']
-      );
+      expect(mockDatadogService.increment).toHaveBeenCalledWith('app.crashes', 1, [
+        'platform:ios',
+        'version:1.0.0',
+      ]);
       expect(consoleSpy).toHaveBeenCalled();
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -571,7 +575,7 @@ describe('AnalyticsMetricsService', () => {
 
       service.setCache('test_key', { data: 'test' });
 
-      await new Promise(resolve => setTimeout(resolve, 15));
+      await new Promise((resolve) => setTimeout(resolve, 15));
 
       expect(service.isCacheValid('test_key')).toBe(false);
 

@@ -1,5 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import { AIService } from '../../services/AIService';
 
 /**
@@ -7,26 +16,26 @@ import { AIService } from '../../services/AIService';
  * Shows AI recommendations for photo selection and ordering
  */
 export const SmartPhotoSelector = ({ userId, onPhotoSelected }) => {
-  const [recommendations, useState] = useState(null);
+  const [recommendations, setRecommendations] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const aiService = new AIService(null); // Initialize with token from context/auth
+  // Memoize aiService to prevent recreating on every render
+  const aiService = useMemo(() => new AIService(null), []); // Initialize with token from context/auth
 
   useEffect(() => {
+    const loadRecommendations = async () => {
+      try {
+        setLoading(true);
+        const data = await aiService.getSmartPhotoSelection(userId);
+        setRecommendations(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
     loadRecommendations();
-  }, [userId]);
-
-  const loadRecommendations = async () => {
-    try {
-      setLoading(true);
-      const data = await aiService.getSmartPhotoSelection(userId);
-      useState(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [userId, aiService]);
 
   if (loading) {
     return (
@@ -53,17 +62,24 @@ export const SmartPhotoSelector = ({ userId, onPhotoSelected }) => {
         <View key={index} style={styles.photoCard}>
           <View style={styles.photoHeader}>
             <Text style={styles.photoTitle}>Photo {rec.photoIndex + 1}</Text>
-            <View style={[styles.badge, { backgroundColor: rec.priority === 'high' ? '#FF6B9D' : rec.priority === 'medium' ? '#FFD93D' : '#9D84B7' }]}>
+            <View
+              style={[
+                styles.badge,
+                {
+                  backgroundColor:
+                    rec.priority === 'high'
+                      ? '#FF6B9D'
+                      : rec.priority === 'medium'
+                        ? '#FFD93D'
+                        : '#9D84B7',
+                },
+              ]}
+            >
               <Text style={styles.badgeText}>{rec.priority.toUpperCase()}</Text>
             </View>
           </View>
 
-          {rec.photoUrl && (
-            <Image
-              source={{ uri: rec.photoUrl }}
-              style={styles.photoImage}
-            />
-          )}
+          {rec.photoUrl && <Image source={{ uri: rec.photoUrl }} style={styles.photoImage} />}
 
           <View style={styles.scoreContainer}>
             <Text style={styles.scoreLabel}>Quality Score:</Text>
@@ -73,14 +89,13 @@ export const SmartPhotoSelector = ({ userId, onPhotoSelected }) => {
           <View style={styles.reasonsList}>
             <Text style={styles.reasonsTitle}>Why this works:</Text>
             {rec.reasons.map((reason, i) => (
-              <Text key={i} style={styles.reasonItem}>✓ {reason}</Text>
+              <Text key={i} style={styles.reasonItem}>
+                ✓ {reason}
+              </Text>
             ))}
           </View>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => onPhotoSelected?.(rec.photoIndex)}
-          >
+          <TouchableOpacity style={styles.button} onPress={() => onPhotoSelected?.(rec.photoIndex)}>
             <Text style={styles.buttonText}>Use as Primary Photo</Text>
           </TouchableOpacity>
         </View>
@@ -88,8 +103,12 @@ export const SmartPhotoSelector = ({ userId, onPhotoSelected }) => {
 
       <View style={styles.analysisCard}>
         <Text style={styles.analysisTitle}>📊 Profile Analysis</Text>
-        <Text style={styles.analysisText}>Average Quality: {recommendations?.analysis.averageScore.toFixed(0)}/100</Text>
-        <Text style={styles.analysisText}>Total Photos: {recommendations?.analysis.totalPhotos}</Text>
+        <Text style={styles.analysisText}>
+          Average Quality: {recommendations?.analysis.averageScore.toFixed(0)}/100
+        </Text>
+        <Text style={styles.analysisText}>
+          Total Photos: {recommendations?.analysis.totalPhotos}
+        </Text>
       </View>
     </ScrollView>
   );
@@ -102,13 +121,9 @@ export const SmartPhotoSelector = ({ userId, onPhotoSelected }) => {
 export const BioSuggestions = ({ userId, interests, currentBio, onBioSelected }) => {
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(false);
-  const aiService = new AIService(null);
+  const aiService = useMemo(() => new AIService(null), []);
 
-  useEffect(() => {
-    loadSuggestions();
-  }, [userId, interests]);
-
-  const loadSuggestions = async () => {
+  const loadSuggestions = useCallback(async () => {
     try {
       setLoading(true);
       const data = await aiService.getBioSuggestions(userId, interests, currentBio);
@@ -118,7 +133,11 @@ export const BioSuggestions = ({ userId, interests, currentBio, onBioSelected })
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, interests, currentBio, aiService]);
+
+  useEffect(() => {
+    loadSuggestions();
+  }, [loadSuggestions]);
 
   if (loading) {
     return <ActivityIndicator size="large" color="#FF6B9D" />;
@@ -138,10 +157,7 @@ export const BioSuggestions = ({ userId, interests, currentBio, onBioSelected })
 
           <Text style={styles.reasonText}>{suggestion.reason}</Text>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => onBioSelected?.(suggestion.bio)}
-          >
+          <TouchableOpacity style={styles.button} onPress={() => onBioSelected?.(suggestion.bio)}>
             <Text style={styles.buttonText}>Use This Bio</Text>
           </TouchableOpacity>
         </View>
@@ -149,9 +165,12 @@ export const BioSuggestions = ({ userId, interests, currentBio, onBioSelected })
 
       <View style={styles.tipsCard}>
         <Text style={styles.tipsTitle}>💡 Bio Tips</Text>
-        {suggestions?.explanations && Object.entries(suggestions.explanations).map(([key, value], i) => (
-          <Text key={i} style={styles.tipText}>• {value}</Text>
-        ))}
+        {suggestions?.explanations &&
+          Object.entries(suggestions.explanations).map(([_key, value], i) => (
+            <Text key={i} style={styles.tipText}>
+              • {value}
+            </Text>
+          ))}
       </View>
     </ScrollView>
   );
@@ -164,13 +183,9 @@ export const BioSuggestions = ({ userId, interests, currentBio, onBioSelected })
 export const CompatibilityScore = ({ userId, targetUserId }) => {
   const [score, setScore] = useState(null);
   const [loading, setLoading] = useState(false);
-  const aiService = new AIService(null);
+  const aiService = useMemo(() => new AIService(null), []);
 
-  useEffect(() => {
-    loadScore();
-  }, [userId, targetUserId]);
-
-  const loadScore = async () => {
+  const loadScore = useCallback(async () => {
     try {
       setLoading(true);
       const data = await aiService.getCompatibilityScore(userId, targetUserId);
@@ -180,7 +195,11 @@ export const CompatibilityScore = ({ userId, targetUserId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, targetUserId, aiService]);
+
+  useEffect(() => {
+    loadScore();
+  }, [loadScore]);
 
   if (loading) {
     return <ActivityIndicator size="large" color="#FF6B9D" />;
@@ -217,7 +236,7 @@ export const CompatibilityScore = ({ userId, targetUserId }) => {
               <View
                 style={[
                   styles.progressFill,
-                  { width: `${value}%`, backgroundColor: getScoreColor(value) }
+                  { width: `${value}%`, backgroundColor: getScoreColor(value) },
                 ]}
               />
             </View>
@@ -233,16 +252,17 @@ export const CompatibilityScore = ({ userId, targetUserId }) => {
  * ConversationStarters Component
  * AI-generated conversation starter suggestions
  */
-export const ConversationStarters = ({ userId, targetUserId, targetProfile, onStarterSelected }) => {
+export const ConversationStarters = ({
+  userId,
+  targetUserId,
+  targetProfile,
+  onStarterSelected,
+}) => {
   const [starters, setStarters] = useState(null);
   const [loading, setLoading] = useState(false);
-  const aiService = new AIService(null);
+  const aiService = useMemo(() => new AIService(null), []);
 
-  useEffect(() => {
-    loadStarters();
-  }, [userId, targetUserId]);
-
-  const loadStarters = async () => {
+  const loadStarters = useCallback(async () => {
     try {
       setLoading(true);
       const data = await aiService.getConversationStarters(userId, targetUserId, targetProfile);
@@ -252,7 +272,13 @@ export const ConversationStarters = ({ userId, targetUserId, targetProfile, onSt
     } finally {
       setLoading(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, targetUserId, aiService]); // targetProfile is a prop object, stable reference
+
+  useEffect(() => {
+    loadStarters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, targetUserId]); // loadStarters is stable due to useCallback
 
   if (loading) {
     return <ActivityIndicator size="large" color="#FF6B9D" />;
@@ -281,7 +307,7 @@ export const ConversationStarters = ({ userId, targetUserId, targetProfile, onSt
 const formatLabel = (key) => {
   return key
     .replace(/([A-Z])/g, ' $1')
-    .replace(/^./, str => str.toUpperCase())
+    .replace(/^./, (str) => str.toUpperCase())
     .trim();
 };
 

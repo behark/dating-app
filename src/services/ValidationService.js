@@ -1,6 +1,6 @@
 /**
  * ValidationService - Validation utilities for forms and user input
- * 
+ *
  * Note: For new code, prefer importing directly from '../utils/validators.js'
  * which provides standalone functions that are easier to test and tree-shake.
  * This service is maintained for backward compatibility.
@@ -15,7 +15,7 @@ export class ValidationService {
 
   static validatePassword(password) {
     if (!password || typeof password !== 'string') return false;
-    return password.length >= 6;
+    return password.length >= 8;
   }
 
   static validateAge(age) {
@@ -92,7 +92,10 @@ export class ValidationService {
     const maxSize = 10 * 1024 * 1024; // 10MB
 
     if (!file.type || !allowedTypes.includes(file.type)) {
-      return { valid: false, error: 'Invalid file type. Only JPEG, PNG, and WebP images are allowed.' };
+      return {
+        valid: false,
+        error: 'Invalid file type. Only JPEG, PNG, and WebP images are allowed.',
+      };
     }
 
     if (file.size > maxSize) {

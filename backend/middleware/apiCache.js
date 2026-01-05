@@ -48,7 +48,7 @@ const apiCache = (type, ttlOverride = null) => {
 
       // Try to get cached response
       const cachedResponse = await cache.get(cacheKey);
-      
+
       if (cachedResponse) {
         // Add cache headers
         if (!res.headersSent) {
@@ -62,7 +62,7 @@ const apiCache = (type, ttlOverride = null) => {
             // Headers already sent, ignore
           }
         }
-        
+
         return res.json(cachedResponse);
       }
 
@@ -80,7 +80,7 @@ const apiCache = (type, ttlOverride = null) => {
         if (res.statusCode >= 200 && res.statusCode < 300 && data?.success !== false) {
           const ttl = ttlOverride || getTTLForType(type);
           // Cache asynchronously to avoid blocking response
-          cache.set(cacheKey, data, ttl).catch(err => {
+          cache.set(cacheKey, data, ttl).catch((err) => {
             console.error('Cache set error:', err);
           });
         }
@@ -120,7 +120,7 @@ const getTTLForType = (type) => {
     preferences: CACHE_TTL.USER_PREFERENCES,
     leaderboard: CACHE_TTL.LEADERBOARD,
   };
-  
+
   return ttlMap[type] || 300; // Default 5 minutes
 };
 
@@ -152,7 +152,7 @@ const invalidateUserCache = async (userId) => {
       `${CACHE_KEYS.CONVERSATION}${userId}*`,
     ];
 
-    await Promise.all(patterns.map(pattern => cache.delByPattern(pattern)));
+    await Promise.all(patterns.map((pattern) => cache.delByPattern(pattern)));
     return true;
   } catch (error) {
     console.error('User cache invalidation error:', error);
@@ -168,7 +168,7 @@ const conditionalCache = (condition, type, ttl = null) => {
     if (typeof condition === 'function' && !condition(req)) {
       return next();
     }
-    
+
     return apiCache(type, ttl)(req, res, next);
   };
 };
@@ -204,13 +204,10 @@ const staleWhileRevalidate = (type, fetchFn, staleTime = 60) => {
       const cacheKey = generateCacheKey(type, params);
       const metaKey = `${cacheKey}:meta`;
 
-      const [cachedResponse, meta] = await Promise.all([
-        cache.get(cacheKey),
-        cache.get(metaKey),
-      ]);
+      const [cachedResponse, meta] = await Promise.all([cache.get(cacheKey), cache.get(metaKey)]);
 
       const now = Date.now();
-      const isStale = meta && (now - meta.timestamp) > (staleTime * 1000);
+      const isStale = meta && now - meta.timestamp > staleTime * 1000;
 
       // Return cached data immediately
       if (cachedResponse) {
@@ -253,9 +250,9 @@ const staleWhileRevalidate = (type, fetchFn, staleTime = 60) => {
           Promise.all([
             cache.set(cacheKey, data, ttl),
             cache.set(metaKey, { timestamp: Date.now() }, ttl),
-          ]).catch(err => console.error('Cache error:', err));
+          ]).catch((err) => console.error('Cache error:', err));
         }
-        
+
         if (!res.headersSent) {
           try {
             res.set({ 'X-Cache': 'MISS' });
@@ -303,10 +300,10 @@ const etagCache = (type) => {
           try {
             const crypto = require('crypto');
             const etag = crypto.createHash('md5').update(JSON.stringify(data)).digest('hex');
-            
+
             res.set('ETag', etag);
             // Cache asynchronously to avoid blocking response
-            cache.set(etagKey, etag, getTTLForType(type)).catch(err => {
+            cache.set(etagKey, etag, getTTLForType(type)).catch((err) => {
               console.error('Cache error:', err);
             });
           } catch (error) {
@@ -314,7 +311,7 @@ const etagCache = (type) => {
             console.error('ETag error:', error);
           }
         }
-        
+
         return originalJson(data);
       };
 

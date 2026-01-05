@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { getApps, initializeApp } from 'firebase/app';
+// eslint-disable-next-line import/named
 import { getAuth, getReactNativePersistence, initializeAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -12,7 +13,7 @@ const firebaseConfig = {
   projectId: Constants.expoConfig?.extra?.firebaseProjectId,
   storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket,
   messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId,
-  appId: Constants.expoConfig?.extra?.firebaseAppId
+  appId: Constants.expoConfig?.extra?.firebaseAppId,
 };
 
 // Initialize Firebase - only if not already initialized
@@ -27,7 +28,7 @@ if (getApps().length === 0) {
 let auth;
 try {
   auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage)
+    persistence: getReactNativePersistence(AsyncStorage),
   });
 } catch (error) {
   // If auth already initialized, get the existing instance

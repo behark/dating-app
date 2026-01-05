@@ -50,9 +50,11 @@ const DEMO_PROFILES = [
     id: 'demo_3',
     name: 'Taylor',
     age: 30,
-    bio: 'Fitness enthusiast, dog lover, and weekend explorer. Let\'s make memories together!',
+    bio: "Fitness enthusiast, dog lover, and weekend explorer. Let's make memories together!",
+    // eslint-disable-next-line no-secrets/no-secrets
     photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
     photos: [
+      // eslint-disable-next-line no-secrets/no-secrets
       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
       'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
     ],
@@ -65,9 +67,12 @@ const DEMO_PROFILES = [
     name: 'Sam',
     age: 27,
     bio: 'Creative soul, music lover, and sunset chaser. Looking for my person to share adventures with.',
+    // eslint-disable-next-line no-secrets/no-secrets
     photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
     photos: [
+      // eslint-disable-next-line no-secrets/no-secrets
       'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      // eslint-disable-next-line no-secrets/no-secrets
       'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
     ],
     interests: ['music', 'art', 'beach', 'photography'],
@@ -78,9 +83,11 @@ const DEMO_PROFILES = [
     id: 'demo_5',
     name: 'Casey',
     age: 29,
-    bio: 'Tech enthusiast, coffee addict, and weekend warrior. Let\'s build something amazing together!',
+    bio: "Tech enthusiast, coffee addict, and weekend warrior. Let's build something amazing together!",
+    // eslint-disable-next-line no-secrets/no-secrets
     photoURL: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
     photos: [
+      // eslint-disable-next-line no-secrets/no-secrets
       'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
       'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400',
     ],
@@ -179,38 +186,33 @@ const PreviewHomeScreen = ({ navigation }) => {
           onPress={() => setShowLoginModal(true)}
           activeOpacity={0.8}
         >
-          <LinearGradient
-            colors={['#667eea', '#764ba2']}
-            style={styles.signUpButtonGradient}
-          >
+          <LinearGradient colors={['#667eea', '#764ba2']} style={styles.signUpButtonGradient}>
             <Text style={styles.signUpButtonText}>Sign Up Free</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
 
       {/* Demo Cards */}
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {cards.length > 0 && cards.slice(currentIndex, currentIndex + 3).map((card, index) => (
-          <View key={card.id} style={styles.cardWrapper}>
-            <SwipeCard
-              card={card}
-              index={currentIndex + index}
-              onSwipeLeft={handleSwipeLeft}
-              onSwipeRight={handleSwipeRight}
-              onViewProfile={handleViewProfile}
-            />
-            {/* Demo Overlay */}
-            <View style={styles.demoOverlay}>
-              <View style={styles.demoBadge}>
-                <Ionicons name="information-circle" size={16} color="#fff" />
-                <Text style={styles.demoBadgeText}>Demo Profile</Text>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {cards.length > 0 &&
+          cards.slice(currentIndex, currentIndex + 3).map((card, index) => (
+            <View key={card.id} style={styles.cardWrapper}>
+              <SwipeCard
+                card={card}
+                index={currentIndex + index}
+                onSwipeLeft={handleSwipeLeft}
+                onSwipeRight={handleSwipeRight}
+                onViewProfile={handleViewProfile}
+              />
+              {/* Demo Overlay */}
+              <View style={styles.demoOverlay}>
+                <View style={styles.demoBadge}>
+                  <Ionicons name="information-circle" size={16} color="#fff" />
+                  <Text style={styles.demoBadgeText}>Demo Profile</Text>
+                </View>
               </View>
             </View>
-          </View>
-        ))}
+          ))}
 
         {/* Empty State */}
         {currentIndex >= cards.length && (
@@ -220,7 +222,7 @@ const PreviewHomeScreen = ({ navigation }) => {
               style={styles.emptyCard}
             >
               <Ionicons name="heart" size={80} color="#667eea" />
-              <Text style={styles.emptyTitle}>You've seen all preview profiles!</Text>
+              <Text style={styles.emptyTitle}>You&apos;ve seen all preview profiles!</Text>
               <Text style={styles.emptyText}>
                 Sign up to see real matches in your area and start connecting
               </Text>
@@ -229,10 +231,7 @@ const PreviewHomeScreen = ({ navigation }) => {
                 onPress={() => setShowLoginModal(true)}
                 activeOpacity={0.8}
               >
-                <LinearGradient
-                  colors={['#667eea', '#764ba2']}
-                  style={styles.ctaButtonGradient}
-                >
+                <LinearGradient colors={['#667eea', '#764ba2']} style={styles.ctaButtonGradient}>
                   <Text style={styles.ctaButtonText}>Get Started Free</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -278,22 +277,17 @@ const PreviewHomeScreen = ({ navigation }) => {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <TouchableOpacity
-              onPress={() => setShowLoginModal(false)}
-              style={styles.closeButton}
-            >
+            <TouchableOpacity onPress={() => setShowLoginModal(false)} style={styles.closeButton}>
               <Ionicons name="close" size={28} color="#333" />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>{getInteractionMessage()}</Text>
             <Text style={styles.modalSubtitle}>
-              Create a free account to {interactionType === 'view' ? 'view full profiles' : 'start matching'}
+              Create a free account to{' '}
+              {interactionType === 'view' ? 'view full profiles' : 'start matching'}
             </Text>
           </View>
           <View style={styles.loginContainer}>
-            <LoginScreen 
-              navigation={navigation}
-              onAuthSuccess={() => setShowLoginModal(false)}
-            />
+            <LoginScreen navigation={navigation} onAuthSuccess={() => setShowLoginModal(false)} />
           </View>
         </View>
       </Modal>

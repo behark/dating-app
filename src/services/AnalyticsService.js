@@ -123,7 +123,8 @@ export class AnalyticsService {
 
   // Swiping events
   static logSwipe(direction, hasMatch = false) {
-    const event = direction === 'right' ? ANALYTICS_EVENTS.SWIPE_RIGHT : ANALYTICS_EVENTS.SWIPE_LEFT;
+    const event =
+      direction === 'right' ? ANALYTICS_EVENTS.SWIPE_RIGHT : ANALYTICS_EVENTS.SWIPE_LEFT;
     this.logEvent(event, { resulted_in_match: hasMatch });
   }
 

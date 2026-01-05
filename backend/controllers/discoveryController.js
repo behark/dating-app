@@ -12,7 +12,7 @@ const discoverUsers = async (req, res) => {
     if (!lat || !lng || !radius) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required parameters: lat, lng, radius'
+        message: 'Missing required parameters: lat, lng, radius',
       });
     }
 
@@ -24,21 +24,21 @@ const discoverUsers = async (req, res) => {
     if (isNaN(latitude) || latitude < -90 || latitude > 90) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid latitude. Must be between -90 and 90'
+        message: 'Invalid latitude. Must be between -90 and 90',
       });
     }
 
     if (isNaN(longitude) || longitude < -180 || longitude > 180) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid longitude. Must be between -180 and 180'
+        message: 'Invalid longitude. Must be between -180 and 180',
       });
     }
 
     if (isNaN(searchRadius) || searchRadius <= 0 || searchRadius > 50000) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid radius. Must be between 1 and 50000 meters'
+        message: 'Invalid radius. Must be between 1 and 50000 meters',
       });
     }
 
@@ -49,7 +49,7 @@ const discoverUsers = async (req, res) => {
       if (!currentUser) {
         return res.status(404).json({
           success: false,
-          message: 'Current user not found'
+          message: 'Current user not found',
         });
       }
     }
@@ -68,22 +68,19 @@ const discoverUsers = async (req, res) => {
       minAge: currentUser?.preferredAgeRange?.min || 18,
       maxAge: currentUser?.preferredAgeRange?.max || 100,
       preferredGender: currentUser?.preferredGender || 'any',
-      preferredDistance: currentUser?.preferredDistance || 50 // km
+      preferredDistance: currentUser?.preferredDistance || 50, // km
     };
 
     // Find users within the specified radius
-    const nearbyUsers = await User.findNearby(
-      longitude,
-      latitude,
-      searchRadius,
-      discoveryOptions
-    )
-    .select('name age gender bio photos interests location profileCompleteness lastActive locationPrivacy')
-    .limit(50) // Limit results for performance
-    .sort({ profileCompleteness: -1, lastActive: -1 }); // Sort by profile completeness and recent activity
+    const nearbyUsers = await User.findNearby(longitude, latitude, searchRadius, discoveryOptions)
+      .select(
+        'name age gender bio photos interests location profileCompleteness lastActive locationPrivacy'
+      )
+      .limit(50) // Limit results for performance
+      .sort({ profileCompleteness: -1, lastActive: -1 }); // Sort by profile completeness and recent activity
 
     // Transform the response to include distance calculation and privacy filtering
-    const usersWithDistance = nearbyUsers.map(user => {
+    const usersWithDistance = nearbyUsers.map((user) => {
       const userObj = user.toObject();
 
       // Calculate distance in kilometers (approximate)
@@ -91,7 +88,7 @@ const discoverUsers = async (req, res) => {
         latitude,
         longitude,
         user.location.coordinates[1], // latitude
-        user.location.coordinates[0]  // longitude
+        user.location.coordinates[0] // longitude
       );
 
       // Apply privacy controls
@@ -108,7 +105,7 @@ const discoverUsers = async (req, res) => {
         ...userObj,
         distance: Math.round(distance * 10) / 10, // Round to 1 decimal place
         locationPrivacy: user.locationPrivacy,
-        location: locationVisible ? undefined : undefined // Remove detailed location data for privacy
+        location: locationVisible ? undefined : undefined, // Remove detailed location data for privacy
       };
     });
 
@@ -120,16 +117,15 @@ const discoverUsers = async (req, res) => {
         searchParams: {
           latitude,
           longitude,
-          radius: searchRadius
-        }
-      }
+          radius: searchRadius,
+        },
+      },
     });
-
   } catch (error) {
     console.error('Discovery error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error during user discovery'
+      message: 'Internal server error during user discovery',
     });
   }
 };
@@ -144,17 +140,16 @@ const getDiscoverySettings = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
-    const user = await User.findById(userId)
-      .select('preferredGender preferredAgeRange location');
+    const user = await User.findById(userId).select('preferredGender preferredAgeRange location');
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -163,15 +158,14 @@ const getDiscoverySettings = async (req, res) => {
       data: {
         preferredGender: user.preferredGender,
         preferredAgeRange: user.preferredAgeRange,
-        currentLocation: user.location
-      }
+        currentLocation: user.location,
+      },
     });
-
   } catch (error) {
     console.error('Get discovery settings error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -185,14 +179,14 @@ const updateLocation = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
     if (!latitude || !longitude) {
       return res.status(400).json({
         success: false,
-        message: 'Latitude and longitude are required'
+        message: 'Latitude and longitude are required',
       });
     }
 
@@ -200,7 +194,7 @@ const updateLocation = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -208,14 +202,13 @@ const updateLocation = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Location updated successfully'
+      message: 'Location updated successfully',
     });
-
   } catch (error) {
     console.error('Update location error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -229,7 +222,7 @@ const updateLocationPrivacy = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
@@ -238,7 +231,7 @@ const updateLocationPrivacy = async (req, res) => {
     if (!privacyLevel || !validLevels.includes(privacyLevel)) {
       return res.status(400).json({
         success: false,
-        message: `Invalid privacy level. Must be one of: ${validLevels.join(', ')}`
+        message: `Invalid privacy level. Must be one of: ${validLevels.join(', ')}`,
       });
     }
 
@@ -252,15 +245,14 @@ const updateLocationPrivacy = async (req, res) => {
       success: true,
       message: 'Location privacy updated successfully',
       data: {
-        locationPrivacy: user.locationPrivacy
-      }
+        locationPrivacy: user.locationPrivacy,
+      },
     });
-
   } catch (error) {
     console.error('Update location privacy error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -273,7 +265,7 @@ const getLocationPrivacy = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
@@ -283,15 +275,14 @@ const getLocationPrivacy = async (req, res) => {
       success: true,
       data: {
         locationPrivacy: user.locationPrivacy || 'visible_to_matches',
-        locationHistoryEnabled: user.locationHistoryEnabled || false
-      }
+        locationHistoryEnabled: user.locationHistoryEnabled || false,
+      },
     });
-
   } catch (error) {
     console.error('Get location privacy error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -305,36 +296,37 @@ const updatePreferredDistance = async (req, res) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required'
+        message: 'Authentication required',
       });
     }
 
-    if (typeof preferredDistance !== 'number' || preferredDistance < 1 || preferredDistance > 50000) {
+    if (
+      typeof preferredDistance !== 'number' ||
+      preferredDistance < 1 ||
+      preferredDistance > 50000
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid preferred distance. Must be between 1 and 50000 km'
+        message: 'Invalid preferred distance. Must be between 1 and 50000 km',
       });
     }
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { preferredDistance },
-      { new: true }
-    ).select('preferredDistance');
+    const user = await User.findByIdAndUpdate(userId, { preferredDistance }, { new: true }).select(
+      'preferredDistance'
+    );
 
     res.json({
       success: true,
       message: 'Preferred distance updated successfully',
       data: {
-        preferredDistance: user.preferredDistance
-      }
+        preferredDistance: user.preferredDistance,
+      },
     });
-
   } catch (error) {
     console.error('Update preferred distance error:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
     });
   }
 };
@@ -345,5 +337,5 @@ module.exports = {
   updateLocation,
   updateLocationPrivacy,
   getLocationPrivacy,
-  updatePreferredDistance
+  updatePreferredDistance,
 };

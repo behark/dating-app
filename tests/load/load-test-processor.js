@@ -18,10 +18,18 @@ module.exports = {
   // Generate random profile data
   generateProfileData: (context, events, done) => {
     const interests = [
-      'hiking', 'photography', 'cooking', 'travel', 'music',
-      'movies', 'fitness', 'reading', 'gaming', 'art'
+      'hiking',
+      'photography',
+      'cooking',
+      'travel',
+      'music',
+      'movies',
+      'fitness',
+      'reading',
+      'gaming',
+      'art',
     ];
-    
+
     const randomInterests = interests
       .sort(() => Math.random() - 0.5)
       .slice(0, 3 + Math.floor(Math.random() * 3));
@@ -60,7 +68,7 @@ module.exports = {
   // Log response time for custom metrics
   logResponseTime: (requestParams, response, context, ee, next) => {
     const responseTime = response.timings?.phases?.firstByte || 0;
-    
+
     // Emit custom metric
     ee.emit('customStat', {
       stat: 'response_time_ms',
@@ -88,13 +96,13 @@ module.exports = {
   generateLocation: (context, events, done) => {
     // Random location within USA
     const locations = [
-      { lat: 40.7128, lng: -74.0060, city: 'New York' },
+      { lat: 40.7128, lng: -74.006, city: 'New York' },
       { lat: 34.0522, lng: -118.2437, city: 'Los Angeles' },
       { lat: 41.8781, lng: -87.6298, city: 'Chicago' },
       { lat: 29.7604, lng: -95.3698, city: 'Houston' },
-      { lat: 33.4484, lng: -112.0740, city: 'Phoenix' },
+      { lat: 33.4484, lng: -112.074, city: 'Phoenix' },
     ];
-    
+
     const location = locations[Math.floor(Math.random() * locations.length)];
     context.vars.location = {
       latitude: location.lat + (Math.random() - 0.5) * 0.1,

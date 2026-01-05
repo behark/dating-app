@@ -1,6 +1,6 @@
 /**
  * Apple In-App Purchase Service
- * 
+ *
  * Handles Apple App Store IAP operations including:
  * - Receipt validation
  * - Subscription management
@@ -21,22 +21,16 @@ class AppleIAPService {
     try {
       const payload = {
         'receipt-data': receiptData,
-        'password': paymentConfig.apple.sharedSecret,
+        password: paymentConfig.apple.sharedSecret,
         'exclude-old-transactions': excludeOldTransactions,
       };
 
       // Try production first
-      let response = await axios.post(
-        paymentConfig.apple.verifyReceiptUrl.production,
-        payload
-      );
+      let response = await axios.post(paymentConfig.apple.verifyReceiptUrl.production, payload);
 
       // If sandbox receipt, retry with sandbox URL
       if (response.data.status === 21007) {
-        response = await axios.post(
-          paymentConfig.apple.verifyReceiptUrl.sandbox,
-          payload
-        );
+        response = await axios.post(paymentConfig.apple.verifyReceiptUrl.sandbox, payload);
       }
 
       return this.parseReceiptResponse(response.data);
@@ -68,35 +62,40 @@ class AppleIAPService {
       .sort((a, b) => parseInt(b.expires_date_ms) - parseInt(a.expires_date_ms))[0];
 
     // Get consumable purchases
-    const consumables = (receipt.in_app || [])
-      .filter((item) => !this.isSubscriptionProduct(item.product_id));
+    const consumables = (receipt.in_app || []).filter(
+      (item) => !this.isSubscriptionProduct(item.product_id)
+    );
 
     return {
       valid: true,
       status: 0,
       bundleId: receipt.bundle_id,
       originalApplicationVersion: receipt.original_application_version,
-      subscription: activeSubscription ? {
-        productId: activeSubscription.product_id,
-        transactionId: activeSubscription.transaction_id,
-        originalTransactionId: activeSubscription.original_transaction_id,
-        purchaseDate: new Date(parseInt(activeSubscription.purchase_date_ms)),
-        expiresDate: new Date(parseInt(activeSubscription.expires_date_ms)),
-        isTrialPeriod: activeSubscription.is_trial_period === 'true',
-        isInIntroOfferPeriod: activeSubscription.is_in_intro_offer_period === 'true',
-        isActive: parseInt(activeSubscription.expires_date_ms) > Date.now(),
-        cancellationDate: activeSubscription.cancellation_date_ms
-          ? new Date(parseInt(activeSubscription.cancellation_date_ms))
-          : null,
-      } : null,
-      pendingRenewal: pendingRenewalInfo[0] ? {
-        productId: pendingRenewalInfo[0].product_id,
-        autoRenewStatus: pendingRenewalInfo[0].auto_renew_status === '1',
-        expirationIntent: pendingRenewalInfo[0].expiration_intent,
-        gracePeriodExpiresDate: pendingRenewalInfo[0].grace_period_expires_date_ms
-          ? new Date(parseInt(pendingRenewalInfo[0].grace_period_expires_date_ms))
-          : null,
-      } : null,
+      subscription: activeSubscription
+        ? {
+            productId: activeSubscription.product_id,
+            transactionId: activeSubscription.transaction_id,
+            originalTransactionId: activeSubscription.original_transaction_id,
+            purchaseDate: new Date(parseInt(activeSubscription.purchase_date_ms)),
+            expiresDate: new Date(parseInt(activeSubscription.expires_date_ms)),
+            isTrialPeriod: activeSubscription.is_trial_period === 'true',
+            isInIntroOfferPeriod: activeSubscription.is_in_intro_offer_period === 'true',
+            isActive: parseInt(activeSubscription.expires_date_ms) > Date.now(),
+            cancellationDate: activeSubscription.cancellation_date_ms
+              ? new Date(parseInt(activeSubscription.cancellation_date_ms))
+              : null,
+          }
+        : null,
+      pendingRenewal: pendingRenewalInfo[0]
+        ? {
+            productId: pendingRenewalInfo[0].product_id,
+            autoRenewStatus: pendingRenewalInfo[0].auto_renew_status === '1',
+            expirationIntent: pendingRenewalInfo[0].expiration_intent,
+            gracePeriodExpiresDate: pendingRenewalInfo[0].grace_period_expires_date_ms
+              ? new Date(parseInt(pendingRenewalInfo[0].grace_period_expires_date_ms))
+              : null,
+          }
+        : null,
       consumables: consumables.map((item) => ({
         productId: item.product_id,
         transactionId: item.transaction_id,
@@ -163,7 +162,7 @@ class AppleIAPService {
       // Handle subscription
       if (this.isSubscriptionProduct(productId) && validation.subscription) {
         const planType = this.getPlanTypeFromProductId(productId);
-        
+
         await Subscription.upgradeToPremium(userId, planType, {
           method: 'apple',
           paymentId: validation.subscription.originalTransactionId,
@@ -247,16 +246,16 @@ class AppleIAPService {
 
     switch (consumable.productId) {
       case products.superLikePack5:
-        user.superLikesBalance = (user.superLikesBalance || 0) + (5 * quantity);
+        user.superLikesBalance = (user.superLikesBalance || 0) + 5 * quantity;
         break;
       case products.superLikePack15:
-        user.superLikesBalance = (user.superLikesBalance || 0) + (15 * quantity);
+        user.superLikesBalance = (user.superLikesBalance || 0) + 15 * quantity;
         break;
       case products.boostPack1:
-        user.boostsBalance = (user.boostsBalance || 0) + (1 * quantity);
+        user.boostsBalance = (user.boostsBalance || 0) + 1 * quantity;
         break;
       case products.boostPack5:
-        user.boostsBalance = (user.boostsBalance || 0) + (5 * quantity);
+        user.boostsBalance = (user.boostsBalance || 0) + 5 * quantity;
         break;
     }
 
@@ -297,7 +296,7 @@ class AppleIAPService {
       // Restore active subscription
       if (validation.subscription && validation.subscription.isActive) {
         const planType = this.getPlanTypeFromProductId(validation.subscription.productId);
-        
+
         await Subscription.upgradeToPremium(userId, planType, {
           method: 'apple',
           paymentId: validation.subscription.originalTransactionId,
@@ -356,9 +355,10 @@ class AppleIAPService {
   static async getSubscriptionStatus(originalTransactionId) {
     try {
       const token = this.generateAppStoreJWT();
-      const environment = paymentConfig.apple.environment === 'production' 
-        ? 'api.storekit.itunes.apple.com' 
-        : 'api.storekit-sandbox.itunes.apple.com';
+      const environment =
+        paymentConfig.apple.environment === 'production'
+          ? 'api.storekit.itunes.apple.com'
+          : 'api.storekit-sandbox.itunes.apple.com';
 
       const response = await axios.get(
         `https://${environment}/inApps/v1/subscriptions/${originalTransactionId}`,
@@ -382,18 +382,16 @@ class AppleIAPService {
   static async lookupOrder(orderId) {
     try {
       const token = this.generateAppStoreJWT();
-      const environment = paymentConfig.apple.environment === 'production' 
-        ? 'api.storekit.itunes.apple.com' 
-        : 'api.storekit-sandbox.itunes.apple.com';
+      const environment =
+        paymentConfig.apple.environment === 'production'
+          ? 'api.storekit.itunes.apple.com'
+          : 'api.storekit-sandbox.itunes.apple.com';
 
-      const response = await axios.get(
-        `https://${environment}/inApps/v1/lookup/${orderId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get(`https://${environment}/inApps/v1/lookup/${orderId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       return response.data;
     } catch (error) {
@@ -417,7 +415,7 @@ class AppleIAPService {
       const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
 
       const { notificationType, subtype, data } = payload;
-      
+
       // Decode the transaction info
       const signedTransactionInfo = data?.signedTransactionInfo;
       const signedRenewalInfo = data?.signedRenewalInfo;
@@ -455,7 +453,7 @@ class AppleIAPService {
    */
   static async handleNotificationType(type, subtype, data) {
     const { transactionInfo, renewalInfo } = data;
-    
+
     if (!transactionInfo) return;
 
     // Find user by original transaction ID
@@ -532,7 +530,7 @@ class AppleIAPService {
    */
   static async handleSubscribed(userId, transactionInfo, subtype) {
     const planType = this.getPlanTypeFromProductId(transactionInfo.productId);
-    
+
     await Subscription.upgradeToPremium(userId, planType, {
       method: 'apple',
       paymentId: transactionInfo.originalTransactionId,

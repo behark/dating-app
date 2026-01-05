@@ -1,4 +1,13 @@
-import { doc, updateDoc, getDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import {
+  doc,
+  updateDoc,
+  getDoc,
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs,
+} from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
 
@@ -62,7 +71,7 @@ export class VerificationService {
           uploadedBy: userId,
           documentType,
           uploadedAt: new Date().toISOString(),
-        }
+        },
       });
 
       const downloadURL = await getDownloadURL(fileRef);
@@ -90,7 +99,7 @@ export class VerificationService {
       );
 
       const snapshot = await getDocs(verificationRequestsQuery);
-      const requests = snapshot.docs.map(doc => ({
+      const requests = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));

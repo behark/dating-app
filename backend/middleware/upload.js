@@ -8,7 +8,7 @@ const path = require('path');
 
 // File type validation
 const fileFilter = (allowedTypes) => (req, file, cb) => {
-  const isAllowed = allowedTypes.some(type => {
+  const isAllowed = allowedTypes.some((type) => {
     if (type.includes('*')) {
       const [mainType] = type.split('/');
       return file.mimetype.startsWith(mainType);
@@ -30,13 +30,7 @@ const imageUpload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB
     files: 6, // Max 6 images
   },
-  fileFilter: fileFilter([
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'image/heic',
-    'image/heif',
-  ]),
+  fileFilter: fileFilter(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']),
 });
 
 // Video upload configuration
@@ -46,11 +40,7 @@ const videoUpload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB
     files: 3, // Max 3 videos
   },
-  fileFilter: fileFilter([
-    'video/mp4',
-    'video/quicktime',
-    'video/webm',
-  ]),
+  fileFilter: fileFilter(['video/mp4', 'video/quicktime', 'video/webm']),
 });
 
 // Document upload configuration
@@ -60,11 +50,7 @@ const documentUpload = multer({
     fileSize: 5 * 1024 * 1024, // 5MB
     files: 1,
   },
-  fileFilter: fileFilter([
-    'application/pdf',
-    'image/jpeg',
-    'image/png',
-  ]),
+  fileFilter: fileFilter(['application/pdf', 'image/jpeg', 'image/png']),
 });
 
 // Generic file upload
@@ -144,14 +130,14 @@ const handleUploadError = (err, req, res, next) => {
       error: err.code,
     });
   }
-  
+
   if (err.message && err.message.includes('File type')) {
     return res.status(400).json({
       success: false,
       message: err.message,
     });
   }
-  
+
   next(err);
 };
 

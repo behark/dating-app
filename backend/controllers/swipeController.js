@@ -46,14 +46,14 @@ const createSwipe = async (req, res) => {
     if (!targetId || !action) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: targetId, action'
+        message: 'Missing required fields: targetId, action',
       });
     }
 
     if (!['like', 'pass', 'superlike'].includes(action)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid action. Must be one of: like, pass, superlike'
+        message: 'Invalid action. Must be one of: like, pass, superlike',
       });
     }
 
@@ -68,13 +68,13 @@ const createSwipe = async (req, res) => {
         success: false,
         message: 'Daily swipe limit reached',
         remaining: 0,
-        limit: 50
+        limit: 50,
       });
     }
 
     // Use SwipeService to process the swipe and check for matches
     const result = await SwipeService.processSwipe(swiperId, targetId, action, {
-      isPriority: req.body.isPriority || false
+      isPriority: req.body.isPriority || false,
     });
 
     // Get user info for notifications
@@ -85,28 +85,28 @@ const createSwipe = async (req, res) => {
     if (result.isMatch) {
       // Send match notifications to both users
       const swipedUser = await User.findById(targetId).select('name').lean();
-      
+
       await sendNotificationInternal(
         targetId,
         'match',
-        '🎉 It\'s a Match!',
+        "🎉 It's a Match!",
         `You and ${swiperUserName} liked each other!`,
-        { 
-          type: 'match', 
+        {
+          type: 'match',
           matcherId: swiperId,
-          matchId: result.matchData?.matchId
+          matchId: result.matchData?.matchId,
         }
       );
 
       await sendNotificationInternal(
         swiperId,
         'match',
-        '🎉 It\'s a Match!',
+        "🎉 It's a Match!",
         `You and ${swipedUser?.name || 'Someone'} liked each other!`,
-        { 
-          type: 'match', 
+        {
+          type: 'match',
           matcherId: targetId,
-          matchId: result.matchData?.matchId
+          matchId: result.matchData?.matchId,
         }
       );
     } else if (action === 'like' || action === 'superlike') {
@@ -128,14 +128,14 @@ const createSwipe = async (req, res) => {
         isMatch: result.isMatch,
         match: result.isMatch, // Keep for backward compatibility
         matchData: result.matchData,
-        remaining: limitCheck.remaining - 1
-      }
+        remaining: limitCheck.remaining - 1,
+      },
     });
   } catch (error) {
     console.error('Error creating swipe:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while creating swipe'
+      message: 'Internal server error while creating swipe',
     });
   }
 };
@@ -158,8 +158,8 @@ const getSwipeCountToday = async (req, res) => {
           used: 0,
           remaining: -1,
           limit: 'unlimited',
-          isPremium: true
-        }
+          isPremium: true,
+        },
       });
     }
 
@@ -171,14 +171,14 @@ const getSwipeCountToday = async (req, res) => {
         used: limitCheck.used,
         remaining: limitCheck.remaining,
         limit: 50,
-        isPremium: false
-      }
+        isPremium: false,
+      },
     });
   } catch (error) {
     console.error('Error getting swipe count:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while retrieving swipe count'
+      message: 'Internal server error while retrieving swipe count',
     });
   }
 };
@@ -194,7 +194,7 @@ const undoSwipe = async (req, res) => {
     if (!swipeId) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required field: swipeId'
+        message: 'Missing required field: swipeId',
       });
     }
 
@@ -203,28 +203,28 @@ const undoSwipe = async (req, res) => {
     res.json({
       success: true,
       message: 'Swipe undone successfully',
-      data: result.undoneSwipe
+      data: result.undoneSwipe,
     });
   } catch (error) {
     console.error('Error undoing swipe:', error);
-    
+
     if (error.message === 'Swipe not found') {
       return res.status(404).json({
         success: false,
-        message: error.message
+        message: error.message,
       });
     }
-    
+
     if (error.message === 'Unauthorized to undo this swipe') {
       return res.status(403).json({
         success: false,
-        message: error.message
+        message: error.message,
       });
     }
-    
+
     res.status(500).json({
       success: false,
-      message: 'Internal server error while undoing swipe'
+      message: 'Internal server error while undoing swipe',
     });
   }
 };
@@ -245,14 +245,14 @@ const getUserSwipes = async (req, res) => {
       success: true,
       data: {
         swipes: swipes,
-        count: swipes.length
-      }
+        count: swipes.length,
+      },
     });
   } catch (error) {
     console.error('Error getting user swipes:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while retrieving swipes'
+      message: 'Internal server error while retrieving swipes',
     });
   }
 };
@@ -266,7 +266,7 @@ const getReceivedSwipes = async (req, res) => {
 
     const swipes = await Swipe.find({
       swipedId: userId,
-      action: { $in: ['like', 'superlike'] }
+      action: { $in: ['like', 'superlike'] },
     })
       .populate('swiperId', 'name photoURL age')
       .sort({ createdAt: -1 })
@@ -276,14 +276,14 @@ const getReceivedSwipes = async (req, res) => {
       success: true,
       data: {
         swipes: swipes,
-        count: swipes.length
-      }
+        count: swipes.length,
+      },
     });
   } catch (error) {
     console.error('Error getting received swipes:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while retrieving received swipes'
+      message: 'Internal server error while retrieving received swipes',
     });
   }
 };
@@ -300,12 +300,12 @@ const getMatches = async (req, res) => {
       status,
       limit: parseInt(limit),
       skip: parseInt(skip),
-      sortBy
+      sortBy,
     });
 
     // Transform matches to include the other user's info prominently
-    const transformedMatches = matches.map(match => {
-      const otherUser = match.users.find(u => u._id.toString() !== userId);
+    const transformedMatches = matches.map((match) => {
+      const otherUser = match.users.find((u) => u._id.toString() !== userId);
       return {
         matchId: match._id,
         matchedAt: match.createdAt,
@@ -313,7 +313,7 @@ const getMatches = async (req, res) => {
         status: match.status,
         conversationStarted: match.conversationStarted,
         lastActivityAt: match.lastActivityAt,
-        user: otherUser
+        user: otherUser,
       };
     });
 
@@ -324,14 +324,14 @@ const getMatches = async (req, res) => {
       data: {
         matches: transformedMatches,
         count: transformedMatches.length,
-        total: totalCount
-      }
+        total: totalCount,
+      },
     });
   } catch (error) {
     console.error('Error getting matches:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while retrieving matches'
+      message: 'Internal server error while retrieving matches',
     });
   }
 };
@@ -347,7 +347,7 @@ const unmatch = async (req, res) => {
     if (!matchId) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required parameter: matchId'
+        message: 'Missing required parameter: matchId',
       });
     }
 
@@ -358,29 +358,29 @@ const unmatch = async (req, res) => {
       message: 'Successfully unmatched',
       data: {
         matchId: match._id,
-        status: match.status
-      }
+        status: match.status,
+      },
     });
   } catch (error) {
     console.error('Error unmatching:', error);
-    
+
     if (error.message === 'Match not found') {
       return res.status(404).json({
         success: false,
-        message: error.message
+        message: error.message,
       });
     }
-    
+
     if (error.message === 'User is not part of this match') {
       return res.status(403).json({
         success: false,
-        message: error.message
+        message: error.message,
       });
     }
-    
+
     res.status(500).json({
       success: false,
-      message: 'Internal server error while unmatching'
+      message: 'Internal server error while unmatching',
     });
   }
 };
@@ -395,13 +395,13 @@ const getSwipeStats = async (req, res) => {
 
     res.json({
       success: true,
-      data: stats
+      data: stats,
     });
   } catch (error) {
     console.error('Error getting swipe stats:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while retrieving swipe statistics'
+      message: 'Internal server error while retrieving swipe statistics',
     });
   }
 };
@@ -427,14 +427,14 @@ const getPendingLikes = async (req, res) => {
         data: {
           count: pendingLikes.length,
           isPremium: false,
-          message: 'Upgrade to Premium to see who liked you'
-        }
+          message: 'Upgrade to Premium to see who liked you',
+        },
       });
     }
 
     const pendingLikes = await SwipeService.getPendingLikes(userId, {
       limit: parseInt(limit),
-      skip: parseInt(skip)
+      skip: parseInt(skip),
     });
 
     res.json({
@@ -442,14 +442,14 @@ const getPendingLikes = async (req, res) => {
       data: {
         likes: pendingLikes,
         count: pendingLikes.length,
-        isPremium: true
-      }
+        isPremium: true,
+      },
     });
   } catch (error) {
     console.error('Error getting pending likes:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while retrieving pending likes'
+      message: 'Internal server error while retrieving pending likes',
     });
   }
 };
@@ -463,5 +463,5 @@ module.exports = {
   getMatches,
   unmatch,
   getSwipeStats,
-  getPendingLikes
+  getPendingLikes,
 };

@@ -1,10 +1,10 @@
 /**
  * Database Migration: Add Indexes for Retention Queries
  * TD-003: Add database indexes for retention queries
- * 
+ *
  * This script adds optimized indexes for analytics and retention queries
  * to improve query performance significantly.
- * 
+ *
  * Run: node backend/scripts/add-retention-indexes.js
  */
 
@@ -22,16 +22,16 @@ const INDEXES_TO_CREATE = [
       {
         name: 'createdAt_userId_compound',
         keys: { createdAt: -1, userId: 1 },
-        options: { background: true }
+        options: { background: true },
       },
       // Index for retention cohort queries
       // Supports: UserActivity.distinct('userId', { userId: { $in }, createdAt: { $gte, $lte } })
       {
         name: 'userId_createdAt_retention',
         keys: { userId: 1, createdAt: 1 },
-        options: { background: true }
-      }
-    ]
+        options: { background: true },
+      },
+    ],
   },
   // User collection indexes for cohort registration queries
   {
@@ -42,16 +42,16 @@ const INDEXES_TO_CREATE = [
       {
         name: 'createdAt_desc',
         keys: { createdAt: -1 },
-        options: { background: true }
+        options: { background: true },
       },
       // Compound index for retention eligible users query
       // Supports: User.countDocuments({ _id: { $in }, createdAt: { $lt } })
       {
         name: 'createdAt_id_retention',
         keys: { createdAt: 1, _id: 1 },
-        options: { background: true }
-      }
-    ]
+        options: { background: true },
+      },
+    ],
   },
   // Subscription collection indexes for premium metrics
   {
@@ -61,15 +61,15 @@ const INDEXES_TO_CREATE = [
       {
         name: 'createdAt_status',
         keys: { createdAt: -1, status: 1 },
-        options: { background: true }
+        options: { background: true },
       },
       // Index for churn rate queries
       {
         name: 'cancelledAt_status',
         keys: { cancelledAt: -1, status: 1 },
-        options: { background: true, sparse: true }
-      }
-    ]
+        options: { background: true, sparse: true },
+      },
+    ],
   },
   // Swipe collection indexes for match metrics
   {
@@ -79,15 +79,15 @@ const INDEXES_TO_CREATE = [
       {
         name: 'action_createdAt',
         keys: { action: 1, createdAt: -1 },
-        options: { background: true }
+        options: { background: true },
       },
       // Compound index for mutual like lookup (match detection)
       {
         name: 'swiperId_swipedId_action',
         keys: { swiperId: 1, swipedId: 1, action: 1 },
-        options: { background: true }
-      }
-    ]
+        options: { background: true },
+      },
+    ],
   },
   // Message collection indexes for messaging metrics
   {
@@ -97,23 +97,24 @@ const INDEXES_TO_CREATE = [
       {
         name: 'matchId_createdAt',
         keys: { matchId: 1, createdAt: 1 },
-        options: { background: true }
+        options: { background: true },
       },
       // Index for date range queries
       {
         name: 'createdAt_matchId',
         keys: { createdAt: -1, matchId: 1 },
-        options: { background: true }
-      }
-    ]
-  }
+        options: { background: true },
+      },
+    ],
+  },
 ];
 
 async function createIndexes() {
   console.log('🚀 Starting database index migration for retention queries...\n');
-  
-  const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/dating-app';
-  
+
+  const mongoUri =
+    process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/dating-app';
+
   try {
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB\n');
@@ -125,7 +126,7 @@ async function createIndexes() {
 
     for (const collectionDef of INDEXES_TO_CREATE) {
       console.log(`📁 Processing collection: ${collectionDef.collection}`);
-      
+
       // Check if collection exists
       const collections = await db.listCollections({ name: collectionDef.collection }).toArray();
       if (collections.length === 0) {
@@ -134,10 +135,10 @@ async function createIndexes() {
       }
 
       const collection = db.collection(collectionDef.collection);
-      
+
       // Get existing indexes
       const existingIndexes = await collection.indexes();
-      const existingIndexNames = existingIndexes.map(idx => idx.name);
+      const existingIndexNames = existingIndexes.map((idx) => idx.name);
 
       for (const indexDef of collectionDef.indexes) {
         try {
@@ -152,7 +153,7 @@ async function createIndexes() {
           console.log(`   🔧 Creating index '${indexDef.name}'...`);
           await collection.createIndex(indexDef.keys, {
             ...indexDef.options,
-            name: indexDef.name
+            name: indexDef.name,
           });
           console.log(`   ✅ Index '${indexDef.name}' created successfully`);
           totalCreated++;
@@ -174,7 +175,7 @@ async function createIndexes() {
 
     // Verify indexes
     console.log('\n🔍 Verifying indexes on key collections:\n');
-    
+
     for (const collectionDef of INDEXES_TO_CREATE) {
       const collections = await db.listCollections({ name: collectionDef.collection }).toArray();
       if (collections.length === 0) continue;
@@ -182,7 +183,7 @@ async function createIndexes() {
       const collection = db.collection(collectionDef.collection);
       const indexes = await collection.indexes();
       console.log(`📁 ${collectionDef.collection}:`);
-      indexes.forEach(idx => {
+      indexes.forEach((idx) => {
         if (idx.name !== '_id_') {
           console.log(`   - ${idx.name}: ${JSON.stringify(idx.key)}`);
         }
@@ -191,7 +192,6 @@ async function createIndexes() {
     }
 
     console.log('✅ Migration completed successfully!\n');
-    
   } catch (error) {
     console.error('❌ Migration failed:', error.message);
     process.exit(1);

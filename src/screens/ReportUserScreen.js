@@ -2,18 +2,19 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafetyService } from '../services/SafetyService';
+import logger from '../utils/logger';
 
 export default function ReportUserScreen({ route, navigation }) {
   const { userId: reportedUserId, userName = 'User' } = route.params || {};
@@ -50,17 +51,21 @@ export default function ReportUserScreen({ route, navigation }) {
       );
 
       if (result.success) {
-        Alert.alert('Report Submitted', 'Thank you for helping keep our community safe. We will review your report shortly.', [
-          {
-            text: 'OK',
-            onPress: () => navigation.goBack(),
-          },
-        ]);
+        Alert.alert(
+          'Report Submitted',
+          'Thank you for helping keep our community safe. We will review your report shortly.',
+          [
+            {
+              text: 'OK',
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
       } else {
         Alert.alert('Error', 'Failed to submit report. Please try again.');
       }
     } catch (error) {
-      console.error('Error submitting report:', error);
+      logger.error('Error submitting report:', error);
       Alert.alert('Error', 'An error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -133,7 +138,8 @@ export default function ReportUserScreen({ route, navigation }) {
         <View style={styles.noticeBox}>
           <Ionicons name="information-circle" size={24} color="#667eea" />
           <Text style={styles.noticeText}>
-            Your report is confidential and will be reviewed by our safety team. False reports may result in account suspension.
+            Your report is confidential and will be reviewed by our safety team. False reports may
+            result in account suspension.
           </Text>
         </View>
 
@@ -176,7 +182,7 @@ export default function ReportUserScreen({ route, navigation }) {
         <View style={styles.reportingSection}>
           <Text style={styles.sectionLabel}>Additional Details</Text>
           <Text style={styles.sectionHint}>
-            Please provide specific details about why you're reporting this user
+            Please provide specific details about why you&apos;re reporting this user
           </Text>
           <TextInput
             style={styles.descriptionInput}
@@ -188,9 +194,7 @@ export default function ReportUserScreen({ route, navigation }) {
             onChangeText={setDescription}
             maxLength={500}
           />
-          <Text style={styles.characterCount}>
-            {description.length}/500
-          </Text>
+          <Text style={styles.characterCount}>{description.length}/500</Text>
         </View>
 
         {/* Submit Button */}

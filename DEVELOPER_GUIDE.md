@@ -73,21 +73,25 @@ dating-app/
 ## Key Configuration Files
 
 ### `app.json` (Expo Configuration)
+
 - App name, version, icon, splash screen
 - Environment variable definitions
 - Platform-specific settings
 
 ### `firebase.js` (Firebase Setup)
+
 - Firebase project initialization
 - Auth, Firestore, Storage configuration
 - Uses environment variables with fallbacks
 
 ### `AuthContext.js` (Authentication State)
+
 - Global auth state management
 - Login/signup/logout logic
 - Persists auth session to AsyncStorage
 
 ### `AppNavigator.js` (Navigation)
+
 - Tab-based navigation (Home, Matches, Chat, Profile)
 - Stack navigation within tabs
 - Auth screens (Login/Signup)
@@ -119,6 +123,7 @@ CLOUDINARY_API_SECRET=...           # Private, not in .env.example
 ## Testing
 
 ### Running Tests
+
 ```bash
 # Run all tests
 npm test
@@ -131,6 +136,7 @@ npm run test:coverage
 ```
 
 ### Writing Tests
+
 Place test files in `src/__tests__/` with `.test.js` extension:
 
 ```javascript
@@ -142,6 +148,7 @@ describe('Feature Name', () => {
 ```
 
 **Mocked Dependencies**:
+
 - `@react-native-async-storage/async-storage`
 - `expo-constants`
 - `firebase/app`, `firebase/auth`, `firebase/firestore`, `firebase/storage`
@@ -149,10 +156,12 @@ describe('Feature Name', () => {
 ## Debugging
 
 ### Console Warnings
+
 - ESLint configured to warn on `console.log` (use `console.warn` or `console.error` instead)
 - Check `.eslintrc.json` for rules
 
 ### Mobile Debugging
+
 ```bash
 # React Native Debugger
 npm start
@@ -166,25 +175,31 @@ npm run web
 ### Common Issues
 
 **Firebase not initializing**:
+
 - Check `EXPO_PUBLIC_FIREBASE_*` env vars are set
 - See [FIREBASE_SETUP.md](FIREBASE_SETUP.md)
 
 **AsyncStorage not persisting**:
+
 - Ensure `jest.setup.js` mocks are configured for tests
 - In production, AsyncStorage requires native modules
 
 **Navigation not working**:
+
 - Verify `AppNavigator.js` setup
 - Check `AuthContext.js` for navigation context
 
 ## Git Workflow
 
 ### Pre-commit Hooks
+
 Husky automatically runs before each commit:
+
 1. **ESLint** - checks code style
 2. **Prettier** - checks formatting
 
 Fix issues before committing:
+
 ```bash
 npm run lint:fix
 npm run format
@@ -193,7 +208,9 @@ git commit -m "message"
 ```
 
 ### CI/CD Pipeline
+
 GitHub Actions runs on every push/PR:
+
 - Linting check
 - Formatting check
 - Security audit
@@ -222,6 +239,7 @@ View results in GitHub Actions tab.
 ## Deployment
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) and [QUICK_DEPLOY.md](QUICK_DEPLOY.md) for:
+
 - Web deployment (Vercel, Netlify)
 - Mobile app stores (App Store, Google Play)
 - Firebase Hosting

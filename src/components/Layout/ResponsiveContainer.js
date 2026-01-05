@@ -3,14 +3,14 @@ import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { BREAKPOINTS, useResponsive } from '../../hooks/useResponsive';
 
 /**
- * ResponsiveContainer - A layout component that provides consistent 
+ * ResponsiveContainer - A layout component that provides consistent
  * responsive behavior across iOS, Android, Web, and Tablet devices.
- * 
+ *
  * Platform Support:
  * - iOS 14+ (with iPad optimization)
  * - Android 8+ (with tablet optimization)
  * - Web (responsive with breakpoints)
- * 
+ *
  * Features:
  * - Automatic max-width constraints on larger screens
  * - Centered content on tablets and desktops
@@ -28,7 +28,7 @@ export const ResponsiveContainer = ({
   testID,
 }) => {
   const { width, deviceType, isLandscape, isWeb, isIOS, isAndroid } = useResponsive();
-  
+
   // Calculate responsive padding based on device and orientation
   const getResponsivePadding = () => {
     if (deviceType === 'mobile') {
@@ -62,20 +62,20 @@ export const ResponsiveContainer = ({
   ];
 
   const ContentWrapper = scrollable ? ScrollView : View;
-  const wrapperProps = scrollable ? {
-    contentContainerStyle: contentStyle,
-    showsVerticalScrollIndicator: false,
-    bounces: isIOS,
-    overScrollMode: isAndroid ? 'never' : undefined,
-  } : {
-    style: contentStyle,
-  };
+  const wrapperProps = scrollable
+    ? {
+        contentContainerStyle: contentStyle,
+        showsVerticalScrollIndicator: false,
+        bounces: isIOS,
+        overScrollMode: isAndroid ? 'never' : undefined,
+      }
+    : {
+        style: contentStyle,
+      };
 
   return (
     <View style={containerStyle} testID={testID}>
-      <ContentWrapper {...wrapperProps}>
-        {children}
-      </ContentWrapper>
+      <ContentWrapper {...wrapperProps}>{children}</ContentWrapper>
     </View>
   );
 };
@@ -94,11 +94,9 @@ export const TabletSplitView = ({
   testID,
 }) => {
   const { width, deviceType, isLandscape } = useResponsive();
-  
+
   // Only show split view on tablet+ in landscape or desktop
-  const showSplitView = 
-    (deviceType === 'tablet' && isLandscape) || 
-    deviceType === 'desktop';
+  const showSplitView = (deviceType === 'tablet' && isLandscape) || deviceType === 'desktop';
 
   // On mobile or tablet portrait, show single panel
   if (!showSplitView) {
@@ -115,12 +113,8 @@ export const TabletSplitView = ({
 
   return (
     <View style={[styles.splitContainer, style]} testID={testID}>
-      <View style={[styles.leftPanel, { width: actualLeftWidth }]}>
-        {leftPanel}
-      </View>
-      <View style={[styles.rightPanel, { width: rightWidth }]}>
-        {rightPanel}
-      </View>
+      <View style={[styles.leftPanel, { width: actualLeftWidth }]}>{leftPanel}</View>
+      <View style={[styles.rightPanel, { width: rightWidth }]}>{rightPanel}</View>
     </View>
   );
 };
@@ -136,7 +130,7 @@ export const ResponsiveGrid = ({
   testID,
 }) => {
   const { width } = useResponsive();
-  
+
   // Determine number of columns based on current width
   const getColumnCount = () => {
     if (width >= BREAKPOINTS.lg) return columns.lg || columns.md || 4;
@@ -164,15 +158,13 @@ export const ResponsiveGrid = ({
  */
 export const PlatformInfo = ({ visible = __DEV__ }) => {
   const { width, height, deviceType, platform, isLandscape } = useResponsive();
-  
+
   if (!visible) return null;
-  
+
   return (
     <View style={styles.platformInfo}>
       <View style={styles.platformBadge}>
-        <View style={styles.platformText}>
-          {/* Display is handled by text children */}
-        </View>
+        <View style={styles.platformText}>{/* Display is handled by text children */}</View>
       </View>
     </View>
   );

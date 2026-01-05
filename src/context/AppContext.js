@@ -7,11 +7,11 @@ const initialState = {
   // Network status
   isOnline: true,
   isInitialized: false,
-  
+
   // UI State
   isLoading: false,
   error: null,
-  
+
   // App-wide settings
   settings: {
     notifications: true,
@@ -19,11 +19,11 @@ const initialState = {
     darkMode: false,
     language: 'en',
   },
-  
+
   // Cached data for offline support
   cachedProfiles: [],
   cachedMatches: [],
-  
+
   // Sync status
   lastSyncTime: null,
   pendingActionsCount: 0,
@@ -53,32 +53,32 @@ const appReducer = (state, action) => {
         ...action.payload,
         isInitialized: true,
       };
-    
+
     case ActionTypes.SET_ONLINE_STATUS:
       return {
         ...state,
         isOnline: action.payload,
       };
-    
+
     case ActionTypes.SET_LOADING:
       return {
         ...state,
         isLoading: action.payload,
       };
-    
+
     case ActionTypes.SET_ERROR:
       return {
         ...state,
         error: action.payload,
         isLoading: false,
       };
-    
+
     case ActionTypes.CLEAR_ERROR:
       return {
         ...state,
         error: null,
       };
-    
+
     case ActionTypes.UPDATE_SETTINGS:
       return {
         ...state,
@@ -87,37 +87,37 @@ const appReducer = (state, action) => {
           ...action.payload,
         },
       };
-    
+
     case ActionTypes.SET_CACHED_PROFILES:
       return {
         ...state,
         cachedProfiles: action.payload,
       };
-    
+
     case ActionTypes.SET_CACHED_MATCHES:
       return {
         ...state,
         cachedMatches: action.payload,
       };
-    
+
     case ActionTypes.SET_LAST_SYNC:
       return {
         ...state,
         lastSyncTime: action.payload,
       };
-    
+
     case ActionTypes.SET_PENDING_ACTIONS:
       return {
         ...state,
         pendingActionsCount: action.payload,
       };
-    
+
     case ActionTypes.RESET_STATE:
       return {
         ...initialState,
         isInitialized: true,
       };
-    
+
     default:
       return state;
   }
@@ -149,7 +149,7 @@ export const AppProvider = ({ children }) => {
   // Initialize app state
   useEffect(() => {
     initializeApp();
-    
+
     return () => {
       if (offlineUnsubscribe.current) {
         offlineUnsubscribe.current();
@@ -161,7 +161,7 @@ export const AppProvider = ({ children }) => {
     try {
       // Initialize offline service
       await OfflineService.initialize();
-      
+
       // Subscribe to network changes
       offlineUnsubscribe.current = OfflineService.subscribe((isOnline) => {
         dispatch({ type: ActionTypes.SET_ONLINE_STATUS, payload: isOnline });
@@ -208,15 +208,18 @@ export const AppProvider = ({ children }) => {
     dispatch({ type: ActionTypes.CLEAR_ERROR });
   }, []);
 
-  const updateSettings = useCallback(async (newSettings) => {
-    try {
-      const updatedSettings = { ...state.settings, ...newSettings };
-      await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updatedSettings));
-      dispatch({ type: ActionTypes.UPDATE_SETTINGS, payload: newSettings });
-    } catch (error) {
-      console.error('Error saving settings:', error);
-    }
-  }, [state.settings]);
+  const updateSettings = useCallback(
+    async (newSettings) => {
+      try {
+        const updatedSettings = { ...state.settings, ...newSettings };
+        await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updatedSettings));
+        dispatch({ type: ActionTypes.UPDATE_SETTINGS, payload: newSettings });
+      } catch (error) {
+        console.error('Error saving settings:', error);
+      }
+    },
+    [state.settings]
+  );
 
   const cacheProfiles = useCallback(async (profiles) => {
     try {
@@ -236,17 +239,20 @@ export const AppProvider = ({ children }) => {
     }
   }, []);
 
-  const queueOfflineAction = useCallback(async (action) => {
-    if (!state.isOnline) {
-      await OfflineService.queueAction(action);
-      dispatch({ 
-        type: ActionTypes.SET_PENDING_ACTIONS, 
-        payload: state.pendingActionsCount + 1 
-      });
-      return true;
-    }
-    return false;
-  }, [state.isOnline, state.pendingActionsCount]);
+  const queueOfflineAction = useCallback(
+    async (action) => {
+      if (!state.isOnline) {
+        await OfflineService.queueAction(action);
+        dispatch({
+          type: ActionTypes.SET_PENDING_ACTIONS,
+          payload: state.pendingActionsCount + 1,
+        });
+        return true;
+      }
+      return false;
+    },
+    [state.isOnline, state.pendingActionsCount]
+  );
 
   const updateLastSync = useCallback(async () => {
     const now = new Date().toISOString();
@@ -264,7 +270,7 @@ export const AppProvider = ({ children }) => {
   const value = {
     // State
     ...state,
-    
+
     // Actions
     setLoading,
     setError,
@@ -275,18 +281,14 @@ export const AppProvider = ({ children }) => {
     queueOfflineAction,
     updateLastSync,
     resetState,
-    
+
     // Selectors
     getOfflineProfiles: () => state.cachedProfiles,
     getOfflineMatches: () => state.cachedMatches,
     hasPendingActions: () => state.pendingActionsCount > 0,
   };
 
-  return (
-    <AppContext.Provider value={value}>
-      {children}
-    </AppContext.Provider>
-  );
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
 export default AppContext;

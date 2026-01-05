@@ -29,7 +29,7 @@ export const useBetaTesting = (userId, userGroups = []) => {
           const enrollment = JSON.parse(stored);
           setIsBetaUser(enrollment.isEnrolled);
         }
-        
+
         // Get feature flags for user
         const flags = featureFlagService.getUserFlags(userId, userGroups);
         setFeatureFlags(flags);
@@ -46,38 +46,44 @@ export const useBetaTesting = (userId, userGroups = []) => {
   }, [userId, userGroups]);
 
   // Enroll in beta program
-  const enrollInBeta = useCallback(async (userData = {}) => {
-    try {
-      const enrollment = betaTestingService.enrollUser(userId, {
-        ...userData,
-        enrolledAt: new Date().toISOString(),
-      });
+  const enrollInBeta = useCallback(
+    async (userData = {}) => {
+      try {
+        const enrollment = betaTestingService.enrollUser(userId, {
+          ...userData,
+          enrolledAt: new Date().toISOString(),
+        });
 
-      await AsyncStorage.setItem(BETA_STORAGE_KEY, JSON.stringify({
-        isEnrolled: true,
-        enrollment,
-      }));
+        await AsyncStorage.setItem(
+          BETA_STORAGE_KEY,
+          JSON.stringify({
+            isEnrolled: true,
+            enrollment,
+          })
+        );
 
-      setIsBetaUser(true);
-      
-      // Update feature flags to include beta_testers group
-      const newGroups = [...userGroups, 'beta_testers'];
-      const flags = featureFlagService.getUserFlags(userId, newGroups);
-      setFeatureFlags(flags);
+        setIsBetaUser(true);
 
-      return enrollment;
-    } catch (error) {
-      console.error('Error enrolling in beta:', error);
-      throw error;
-    }
-  }, [userId, userGroups]);
+        // Update feature flags to include beta_testers group
+        const newGroups = [...userGroups, 'beta_testers'];
+        const flags = featureFlagService.getUserFlags(userId, newGroups);
+        setFeatureFlags(flags);
+
+        return enrollment;
+      } catch (error) {
+        console.error('Error enrolling in beta:', error);
+        throw error;
+      }
+    },
+    [userId, userGroups]
+  );
 
   // Leave beta program
   const leaveBeta = useCallback(async () => {
     try {
       await AsyncStorage.removeItem(BETA_STORAGE_KEY);
       setIsBetaUser(false);
-      
+
       // Reset to non-beta feature flags
       const flags = featureFlagService.getUserFlags(userId, userGroups);
       setFeatureFlags(flags);
@@ -88,88 +94,103 @@ export const useBetaTesting = (userId, userGroups = []) => {
   }, [userId, userGroups]);
 
   // Check if feature is enabled
-  const isFeatureEnabled = useCallback((featureName) => {
-    return featureFlags[featureName]?.enabled || false;
-  }, [featureFlags]);
+  const isFeatureEnabled = useCallback(
+    (featureName) => {
+      return featureFlags[featureName]?.enabled || false;
+    },
+    [featureFlags]
+  );
 
   // Submit feedback
-  const submitFeedback = useCallback(async (feedbackData) => {
-    try {
-      const feedback = betaTestingService.submitFeedback(userId, {
-        ...feedbackData,
-        isBetaUser,
-      });
+  const submitFeedback = useCallback(
+    async (feedbackData) => {
+      try {
+        const feedback = betaTestingService.submitFeedback(userId, {
+          ...feedbackData,
+          isBetaUser,
+        });
 
-      // Also persist to AsyncStorage for offline support
-      const storedFeedback = await AsyncStorage.getItem('@pending_feedback') || '[]';
-      const pending = JSON.parse(storedFeedback);
-      pending.push(feedback);
-      await AsyncStorage.setItem('@pending_feedback', JSON.stringify(pending));
+        // Also persist to AsyncStorage for offline support
+        const storedFeedback = (await AsyncStorage.getItem('@pending_feedback')) || '[]';
+        const pending = JSON.parse(storedFeedback);
+        pending.push(feedback);
+        await AsyncStorage.setItem('@pending_feedback', JSON.stringify(pending));
 
-      return feedback;
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
-      throw error;
-    }
-  }, [userId, isBetaUser]);
+        return feedback;
+      } catch (error) {
+        console.error('Error submitting feedback:', error);
+        throw error;
+      }
+    },
+    [userId, isBetaUser]
+  );
 
   // Submit bug report
-  const submitBugReport = useCallback(async (bugData) => {
-    try {
-      return betaTestingService.submitBugReport(userId, bugData);
-    } catch (error) {
-      console.error('Error submitting bug report:', error);
-      throw error;
-    }
-  }, [userId]);
+  const submitBugReport = useCallback(
+    async (bugData) => {
+      try {
+        return betaTestingService.submitBugReport(userId, bugData);
+      } catch (error) {
+        console.error('Error submitting bug report:', error);
+        throw error;
+      }
+    },
+    [userId]
+  );
 
   // Start session tracking
   const startSession = useCallback(async (deviceInfo = {}) => {
     sessionStartRef.current = new Date();
     screenHistoryRef.current = [];
     actionsRef.current = [];
-    
+
     sessionRef.current = {
       startTime: sessionStartRef.current,
       deviceInfo,
     };
 
     // Store session start
-    await AsyncStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({
-      startTime: sessionStartRef.current.toISOString(),
-    }));
+    await AsyncStorage.setItem(
+      SESSION_STORAGE_KEY,
+      JSON.stringify({
+        startTime: sessionStartRef.current.toISOString(),
+      })
+    );
   }, []);
 
   // End session and record analytics
-  const endSession = useCallback(async (appVersion) => {
-    if (!sessionStartRef.current) return;
+  const endSession = useCallback(
+    async (appVersion) => {
+      if (!sessionStartRef.current) return;
 
-    const endTime = new Date();
-    const duration = endTime - sessionStartRef.current;
+      const endTime = new Date();
+      const duration = endTime - sessionStartRef.current;
 
-    try {
-      const session = betaTestingService.recordSession(userId, {
-        startTime: sessionStartRef.current,
-        endTime,
-        duration,
-        screens: screenHistoryRef.current,
-        actions: actionsRef.current,
-        deviceInfo: sessionRef.current?.deviceInfo || {},
-        appVersion,
-        featuresUsed: [...new Set(actionsRef.current.map(a => a.feature).filter(Boolean))],
-      });
+      try {
+        const session = betaTestingService.recordSession(userId, {
+          startTime: sessionStartRef.current,
+          endTime,
+          duration,
+          screens: screenHistoryRef.current,
+          actions: actionsRef.current,
+          deviceInfo: sessionRef.current?.deviceInfo || {},
+          appVersion,
+          featuresUsed: [...new Set(actionsRef.current.map((a) => a.feature).filter(Boolean))],
+        });
 
-      // Clear session data
-      await AsyncStorage.removeItem(SESSION_STORAGE_KEY);
-      sessionStartRef.current = null;
-      screenHistoryRef.current = [];
-      actionsRef.current = [];
+        // Clear session data
+        await AsyncStorage.removeItem(SESSION_STORAGE_KEY);
+        sessionStartRef.current = null;
+        screenHistoryRef.current = [];
+        actionsRef.current = [];
 
-      return session;
-    } catch (error) {
-      console.error('Error recording session:', error);
-    }
-  }, [userId]);
+        return session;
+      } catch (error) {
+        console.error('Error recording session:', error);
+      }
+    },
+    [userId]
+  );
 
   // Track screen view
   const trackScreen = useCallback((screenName) => {

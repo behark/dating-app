@@ -30,7 +30,7 @@ const csrfProtection = (options = {}) => {
     headerName = CSRF_HEADER_NAME,
     cookieOptions = {},
     ignoreMethods = ['GET', 'HEAD', 'OPTIONS'],
-    ignorePaths = []
+    ignorePaths = [],
   } = options;
 
   return (req, res, next) => {
@@ -40,7 +40,7 @@ const csrfProtection = (options = {}) => {
     }
 
     // Skip CSRF check for ignored paths
-    if (ignorePaths.some(path => req.path.startsWith(path))) {
+    if (ignorePaths.some((path) => req.path.startsWith(path))) {
       return next();
     }
 
@@ -62,9 +62,9 @@ const csrfProtection = (options = {}) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        ...cookieOptions
+        ...cookieOptions,
       });
-      
+
       // For first request, allow through but set token
       if (!headerToken) {
         req.csrfToken = () => newToken;
@@ -77,7 +77,7 @@ const csrfProtection = (options = {}) => {
       return res.status(403).json({
         success: false,
         message: 'Invalid CSRF token',
-        code: 'CSRF_VALIDATION_FAILED'
+        code: 'CSRF_VALIDATION_FAILED',
       });
     }
 
@@ -93,17 +93,17 @@ const csrfProtection = (options = {}) => {
  */
 const generateCsrfToken = (req, res, next) => {
   const token = generateToken();
-  
+
   res.cookie(CSRF_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
   });
-  
+
   req.csrfToken = () => token;
   res.locals.csrfToken = token;
-  
+
   next();
 };
 
@@ -112,17 +112,17 @@ const generateCsrfToken = (req, res, next) => {
  */
 const getCsrfToken = (req, res) => {
   const token = generateToken();
-  
+
   res.cookie(CSRF_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 24 * 60 * 60 * 1000
+    maxAge: 24 * 60 * 60 * 1000,
   });
-  
+
   res.json({
     success: true,
-    csrfToken: token
+    csrfToken: token,
   });
 };
 
@@ -130,5 +130,5 @@ module.exports = {
   csrfProtection,
   generateCsrfToken,
   getCsrfToken,
-  generateToken
+  generateToken,
 };

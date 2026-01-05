@@ -8,23 +8,24 @@ let admin = null;
 if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_PRIVATE_KEY) {
   try {
     const firebaseAdmin = require('firebase-admin');
-    
+
     // Initialize Firebase Admin
     if (!firebaseAdmin.apps.length) {
       firebaseAdmin.initializeApp({
         credential: firebaseAdmin.credential.cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-        })
+          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        }),
       });
     }
-    
+
     admin = firebaseAdmin;
     db = firebaseAdmin.firestore();
     console.log('Firebase Admin initialized successfully');
   } catch (error) {
-    console.warn('Firebase Admin initialization failed:', error.message);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn('Firebase Admin initialization failed:', errorMessage);
   }
 } else {
   console.warn('Firebase credentials not configured - using MongoDB fallback');
@@ -40,7 +41,7 @@ const mockDb = {
       },
       get: async () => ({
         exists: false,
-        data: () => null
+        data: () => null,
       }),
       update: async (data) => {
         console.log(`Mock Firestore: Would update ${name}/${id}`, data);
@@ -49,7 +50,7 @@ const mockDb = {
       delete: async () => {
         console.log(`Mock Firestore: Would delete ${name}/${id}`);
         return true;
-      }
+      },
     }),
     add: async (data) => {
       const id = Date.now().toString();
@@ -60,33 +61,33 @@ const mockDb = {
       get: async () => ({
         empty: true,
         docs: [],
-        forEach: () => {}
+        forEach: () => {},
       }),
       orderBy: () => ({
         limit: () => ({
           get: async () => ({
             empty: true,
-            docs: []
-          })
+            docs: [],
+          }),
         }),
         get: async () => ({
           empty: true,
-          docs: []
-        })
-      })
+          docs: [],
+        }),
+      }),
     }),
     orderBy: () => ({
       limit: () => ({
         get: async () => ({
           empty: true,
-          docs: []
-        })
-      })
-    })
-  })
+          docs: [],
+        }),
+      }),
+    }),
+  }),
 };
 
 module.exports = {
   db: db || mockDb,
-  admin
+  admin,
 };

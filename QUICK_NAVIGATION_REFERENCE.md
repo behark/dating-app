@@ -5,10 +5,11 @@
 ### AI/ML Features
 
 #### 1. Smart Photo Selection
+
 ```
 ProfileScreen OR HomeScreen (Premium only)
   ↓
-PhotoGalleryScreen 
+PhotoGalleryScreen
   ↓
 Click "Analyze" button (top-right header)
   ↓
@@ -16,9 +17,10 @@ Navigates to Premium → smartPhotos feature
 ```
 
 #### 2. Bio Suggestions
+
 ```
 METHOD 1:
-EditProfileScreen 
+EditProfileScreen
   ↓
 Click "✨ Suggestions" (next to Bio title)
   ↓
@@ -31,6 +33,7 @@ AI Insights section → "Bio Ideas"
 ```
 
 #### 3. Compatibility Score
+
 ```
 METHOD 1 (HomeScreen):
 HomeScreen (Premium only)
@@ -55,6 +58,7 @@ Toggle shows compatibility section with "View AI Analysis"
 ```
 
 #### 4. Conversation Starters
+
 ```
 HomeScreen (Premium only)
   ↓
@@ -84,6 +88,7 @@ SafetyAdvancedScreen opens with tabs:
 ```
 
 #### Quick Access to Date Plans
+
 ```
 MatchesScreen
   ↓
@@ -97,6 +102,7 @@ SafetyAdvanced opens (pre-selects date plans tab)
 ## 📍 File Locations
 
 ### Frontend Implementation
+
 ```
 src/screens/
 ├─ HomeScreen.js (AI Insights section)
@@ -120,6 +126,7 @@ src/services/
 ```
 
 ### Backend Implementation
+
 ```
 backend/routes/
 ├─ ai.js (9 AI endpoints)
@@ -137,6 +144,7 @@ backend/server.js (routes registered)
 ## 🔌 API Endpoints
 
 ### AI Endpoints
+
 ```
 GET  /api/ai/smart-photos/:userId
 POST /api/ai/bio-suggestions
@@ -150,6 +158,7 @@ POST /api/ai/icebreaker
 ```
 
 ### Safety Endpoints
+
 ```
 POST /api/safety/date-plan
 GET  /api/safety/date-plans/active
@@ -172,21 +181,25 @@ POST /api/safety/photo-verification/advanced
 ## 🎨 Component Props & Navigation Params
 
 ### HomeScreen (AI Insights Section)
+
 - Premium users see the AI Insights section with 4 buttons
 - Each button navigates with specific context
 
 ### SafetyAdvancedScreen
+
 - Receives params:
   - `userId` (required)
   - `isPremium` (optional, shows premium features)
   - `preSelectTab` (optional, can be 'date-plans', 'check-in', 'sos', etc.)
 
 ### ViewProfileScreen
+
 - Receives params:
   - `userId` (required, user to view)
   - `showCompatibility` (optional, shows compatibility section if true)
 
 ### MatchesScreen
+
 - Date Plan button passes: `preSelectTab: 'date-plans'`
 - Compatibility button passes: `showCompatibility: true`
 
@@ -212,18 +225,20 @@ POST /api/safety/photo-verification/advanced
 ## 🧪 Testing Commands
 
 ### Test API Connectivity
+
 ```bash
 # Test AI endpoints
 curl http://localhost:3000/api/ai/smart-photos/USER_ID \
   -H "x-user-id: USER_ID"
 
-# Test Safety endpoints  
+# Test Safety endpoints
 curl http://localhost:3000/api/safety/emergency-contacts \
   -H "Authorization: Bearer TOKEN" \
   -H "x-user-id: USER_ID"
 ```
 
 ### Test Navigation (in React Native)
+
 ```javascript
 // Test AI feature navigation
 navigation.navigate('Premium', { feature: 'bioSuggestions' });

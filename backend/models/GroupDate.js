@@ -4,132 +4,136 @@ const groupDateSchema = new mongoose.Schema({
   hostId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   title: {
     type: String,
     required: true,
-    maxlength: 100
+    maxlength: 100,
   },
   description: {
     type: String,
     required: true,
-    maxlength: 500
+    maxlength: 500,
   },
   eventType: {
     type: String,
     enum: ['dinner', 'drinks', 'activity', 'game_night', 'movie', 'sports', 'cultural', 'other'],
-    required: true
+    required: true,
   },
   location: {
     type: {
       type: String,
       enum: ['Point'],
-      required: true
+      required: true,
     },
     coordinates: {
       type: [Number], // [longitude, latitude]
-      required: true
-    }
+      required: true,
+    },
   },
   locationName: {
     type: String,
-    required: true
+    required: true,
   },
   address: {
-    type: String
+    type: String,
   },
   startTime: {
     type: Date,
-    required: true
+    required: true,
   },
   endTime: {
     type: Date,
-    required: true
+    required: true,
   },
   maxParticipants: {
     type: Number,
     required: true,
     min: 2,
-    max: 20
+    max: 20,
   },
-  currentParticipants: [{
-    userId: mongoose.Schema.Types.ObjectId,
-    joinedAt: {
-      type: Date,
-      default: Date.now
+  currentParticipants: [
+    {
+      userId: mongoose.Schema.Types.ObjectId,
+      joinedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      status: {
+        type: String,
+        enum: ['interested', 'going', 'not_going', 'attended', 'no_show'],
+        default: 'interested',
+      },
     },
-    status: {
-      type: String,
-      enum: ['interested', 'going', 'not_going', 'attended', 'no_show'],
-      default: 'interested'
-    }
-  }],
+  ],
   requiredCriteria: {
     ageRange: {
       min: Number,
-      max: Number
+      max: Number,
     },
-    genders: [String]
+    genders: [String],
   },
   status: {
     type: String,
     enum: ['planning', 'open', 'full', 'cancelled', 'completed'],
-    default: 'planning'
+    default: 'planning',
   },
   coverImage: {
-    type: String // URL to group date cover image
+    type: String, // URL to group date cover image
   },
   tags: [String],
   isPublic: {
     type: Boolean,
-    default: true
+    default: true,
   },
   isFriendsOnly: {
     type: Boolean,
-    default: false
+    default: false,
   },
-  reviews: [{
-    userId: mongoose.Schema.Types.ObjectId,
-    rating: {
-      type: Number,
-      min: 1,
-      max: 5
+  reviews: [
+    {
+      userId: mongoose.Schema.Types.ObjectId,
+      rating: {
+        type: Number,
+        min: 1,
+        max: 5,
+      },
+      comment: String,
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
     },
-    comment: String,
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
+  ],
   averageRating: {
     type: Number,
     default: 0,
     min: 0,
-    max: 5
+    max: 5,
   },
   chatGroupId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'ChatGroup' // For group messaging
+    ref: 'ChatGroup', // For group messaging
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Geospatial index for location-based queries
-groupDateSchema.index({ 'location': '2dsphere' });
+groupDateSchema.index({ location: '2dsphere' });
 groupDateSchema.index({ hostId: 1 });
 groupDateSchema.index({ status: 1 });
 groupDateSchema.index({ startTime: 1 });
 groupDateSchema.index({ 'currentParticipants.userId': 1 });
 
-groupDateSchema.pre('save', function(next) {
+groupDateSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });

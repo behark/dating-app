@@ -10,10 +10,10 @@ const PROFILE_PROMPTS = [
   { id: 'favorite_food', question: 'My comfort food is...' },
   { id: 'movie', question: 'My all-time favorite movie is...' },
   { id: 'book', question: 'A book that changed my life...' },
-  { id: 'learn', question: 'I\'d love to learn how to...' },
-  { id: 'proud', question: 'I\'m most proud of...' },
+  { id: 'learn', question: "I'd love to learn how to..." },
+  { id: 'proud', question: "I'm most proud of..." },
   { id: 'superpower', question: 'If I had a superpower, it would be...' },
-  { id: 'adventure', question: 'My craziest adventure was...' }
+  { id: 'adventure', question: 'My craziest adventure was...' },
 ];
 
 // @route   GET /api/profile/prompts/list
@@ -24,15 +24,15 @@ exports.getAllPrompts = async (req, res) => {
     res.json({
       success: true,
       data: {
-        prompts: PROFILE_PROMPTS
-      }
+        prompts: PROFILE_PROMPTS,
+      },
     });
   } catch (error) {
     console.error('Get prompts error:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching prompts',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -48,52 +48,48 @@ exports.updatePrompts = async (req, res) => {
     if (!Array.isArray(prompts)) {
       return res.status(400).json({
         success: false,
-        message: 'Prompts must be an array'
+        message: 'Prompts must be an array',
       });
     }
 
     if (prompts.length > 3) {
       return res.status(400).json({
         success: false,
-        message: 'Maximum 3 prompts allowed'
+        message: 'Maximum 3 prompts allowed',
       });
     }
 
     // Validate prompts
     for (const prompt of prompts) {
-      const validPrompt = PROFILE_PROMPTS.find(p => p.id === prompt.promptId);
+      const validPrompt = PROFILE_PROMPTS.find((p) => p.id === prompt.promptId);
       if (!validPrompt) {
         return res.status(400).json({
           success: false,
-          message: `Invalid prompt ID: ${prompt.promptId}`
+          message: `Invalid prompt ID: ${prompt.promptId}`,
         });
       }
 
       if (!prompt.answer || prompt.answer.trim().length === 0) {
         return res.status(400).json({
           success: false,
-          message: 'Prompt answer cannot be empty'
+          message: 'Prompt answer cannot be empty',
         });
       }
 
       if (prompt.answer.length > 300) {
         return res.status(400).json({
           success: false,
-          message: 'Prompt answer must not exceed 300 characters'
+          message: 'Prompt answer must not exceed 300 characters',
         });
       }
     }
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { profilePrompts: prompts },
-      { new: true }
-    );
+    const user = await User.findByIdAndUpdate(userId, { profilePrompts: prompts }, { new: true });
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -101,15 +97,15 @@ exports.updatePrompts = async (req, res) => {
       success: true,
       message: 'Profile prompts updated successfully',
       data: {
-        prompts: user.profilePrompts
-      }
+        prompts: user.profilePrompts,
+      },
     });
   } catch (error) {
     console.error('Update prompts error:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating prompts',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -128,7 +124,7 @@ exports.updateEducation = async (req, res) => {
         school: school?.trim(),
         degree: degree?.trim(),
         fieldOfStudy: fieldOfStudy?.trim(),
-        graduationYear
+        graduationYear,
       };
     }
 
@@ -137,7 +133,7 @@ exports.updateEducation = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -145,15 +141,15 @@ exports.updateEducation = async (req, res) => {
       success: true,
       message: 'Education information updated',
       data: {
-        education: user.education
-      }
+        education: user.education,
+      },
     });
   } catch (error) {
     console.error('Update education error:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating education',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -171,7 +167,7 @@ exports.updateOccupation = async (req, res) => {
       updateData.occupation = {
         jobTitle: jobTitle?.trim(),
         company: company?.trim(),
-        industry: industry?.trim()
+        industry: industry?.trim(),
       };
     }
 
@@ -180,7 +176,7 @@ exports.updateOccupation = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -188,15 +184,15 @@ exports.updateOccupation = async (req, res) => {
       success: true,
       message: 'Occupation information updated',
       data: {
-        occupation: user.occupation
-      }
+        occupation: user.occupation,
+      },
     });
   } catch (error) {
     console.error('Update occupation error:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating occupation',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -212,27 +208,23 @@ exports.updateHeight = async (req, res) => {
     if (!value || !unit) {
       return res.status(400).json({
         success: false,
-        message: 'Height value and unit are required'
+        message: 'Height value and unit are required',
       });
     }
 
     if (unit !== 'cm' && unit !== 'ft') {
       return res.status(400).json({
         success: false,
-        message: 'Unit must be "cm" or "ft"'
+        message: 'Unit must be "cm" or "ft"',
       });
     }
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { height: { value, unit } },
-      { new: true }
-    );
+    const user = await User.findByIdAndUpdate(userId, { height: { value, unit } }, { new: true });
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -240,15 +232,15 @@ exports.updateHeight = async (req, res) => {
       success: true,
       message: 'Height updated',
       data: {
-        height: user.height
-      }
+        height: user.height,
+      },
     });
   } catch (error) {
     console.error('Update height error:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating height',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -264,27 +256,27 @@ exports.updateEthnicity = async (req, res) => {
     if (!Array.isArray(ethnicity)) {
       return res.status(400).json({
         success: false,
-        message: 'Ethnicity must be an array'
+        message: 'Ethnicity must be an array',
       });
     }
 
     if (ethnicity.length > 3) {
       return res.status(400).json({
         success: false,
-        message: 'Maximum 3 ethnicities allowed'
+        message: 'Maximum 3 ethnicities allowed',
       });
     }
 
     const user = await User.findByIdAndUpdate(
       userId,
-      { ethnicity: ethnicity.map(e => e.trim()) },
+      { ethnicity: ethnicity.map((e) => e.trim()) },
       { new: true }
     );
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -292,15 +284,15 @@ exports.updateEthnicity = async (req, res) => {
       success: true,
       message: 'Ethnicity updated',
       data: {
-        ethnicity: user.ethnicity
-      }
+        ethnicity: user.ethnicity,
+      },
     });
   } catch (error) {
     console.error('Update ethnicity error:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating ethnicity',
-      error: error.message
+      error: error.message,
     });
   }
 };

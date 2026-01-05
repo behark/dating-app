@@ -1,6 +1,6 @@
 /**
  * Payment Transaction Model
- * 
+ *
  * Records all payment transactions including:
  * - Subscriptions
  * - One-time purchases
@@ -75,7 +75,15 @@ const paymentTransactionSchema = new mongoose.Schema({
   // Subscription details
   subscriptionPlan: {
     type: String,
-    enum: ['trial', 'monthly', 'yearly', 'premium_monthly', 'premium_yearly', 'platinum_monthly', 'platinum_yearly'],
+    enum: [
+      'trial',
+      'monthly',
+      'yearly',
+      'premium_monthly',
+      'premium_yearly',
+      'platinum_monthly',
+      'platinum_yearly',
+    ],
   },
 
   // Failure information
@@ -140,7 +148,7 @@ paymentTransactionSchema.index({ status: 1, createdAt: -1 });
 paymentTransactionSchema.index({ type: 1, status: 1 });
 
 // Update timestamp before saving
-paymentTransactionSchema.pre('save', function(next) {
+paymentTransactionSchema.pre('save', function (next) {
   this.updatedAt = new Date();
   if (this.status === 'completed' && !this.completedAt) {
     this.completedAt = new Date();
@@ -149,11 +157,11 @@ paymentTransactionSchema.pre('save', function(next) {
 });
 
 // Static method: Get user transaction history
-paymentTransactionSchema.statics.getUserTransactions = async function(userId, options = {}) {
+paymentTransactionSchema.statics.getUserTransactions = async function (userId, options = {}) {
   const { limit = 50, skip = 0, type, status, startDate, endDate } = options;
-  
+
   const query = { userId };
-  
+
   if (type) query.type = type;
   if (status) query.status = status;
   if (startDate || endDate) {
@@ -162,25 +170,22 @@ paymentTransactionSchema.statics.getUserTransactions = async function(userId, op
     if (endDate) query.createdAt.$lte = endDate;
   }
 
-  return this.find(query)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit);
+  return this.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit);
 };
 
 // Static method: Get transaction by provider ID
-paymentTransactionSchema.statics.findByProviderId = function(provider, providerTransactionId) {
+paymentTransactionSchema.statics.findByProviderId = function (provider, providerTransactionId) {
   return this.findOne({ provider, providerTransactionId });
 };
 
 // Static method: Calculate user total spend
-paymentTransactionSchema.statics.getUserTotalSpend = async function(userId) {
+paymentTransactionSchema.statics.getUserTotalSpend = async function (userId) {
   const mongoose = require('mongoose');
   const result = await this.aggregate([
     {
       $match: {
-        userId: mongoose.Types.ObjectId.isValid(userId) 
-          ? new mongoose.Types.ObjectId(userId) 
+        userId: mongoose.Types.ObjectId.isValid(userId)
+          ? new mongoose.Types.ObjectId(userId)
           : userId,
         status: 'completed',
         type: { $ne: 'refund' },
@@ -199,7 +204,7 @@ paymentTransactionSchema.statics.getUserTotalSpend = async function(userId) {
 };
 
 // Static method: Get revenue analytics
-paymentTransactionSchema.statics.getRevenueAnalytics = async function(startDate, endDate) {
+paymentTransactionSchema.statics.getRevenueAnalytics = async function (startDate, endDate) {
   return this.aggregate([
     {
       $match: {
@@ -226,7 +231,7 @@ paymentTransactionSchema.statics.getRevenueAnalytics = async function(startDate,
 };
 
 // Static method: Get refund statistics
-paymentTransactionSchema.statics.getRefundStats = async function(startDate, endDate) {
+paymentTransactionSchema.statics.getRefundStats = async function (startDate, endDate) {
   return this.aggregate([
     {
       $match: {
@@ -245,7 +250,7 @@ paymentTransactionSchema.statics.getRefundStats = async function(startDate, endD
 };
 
 // Instance method: Mark as completed
-paymentTransactionSchema.methods.markCompleted = function(additionalData = {}) {
+paymentTransactionSchema.methods.markCompleted = function (additionalData = {}) {
   this.status = 'completed';
   this.completedAt = new Date();
   Object.assign(this, additionalData);
@@ -253,7 +258,7 @@ paymentTransactionSchema.methods.markCompleted = function(additionalData = {}) {
 };
 
 // Instance method: Mark as failed
-paymentTransactionSchema.methods.markFailed = function(reason, code) {
+paymentTransactionSchema.methods.markFailed = function (reason, code) {
   this.status = 'failed';
   this.failureReason = reason;
   this.failureCode = code;
@@ -261,7 +266,7 @@ paymentTransactionSchema.methods.markFailed = function(reason, code) {
 };
 
 // Instance method: Process refund
-paymentTransactionSchema.methods.processRefund = function(refundAmount, refundId, reason) {
+paymentTransactionSchema.methods.processRefund = function (refundAmount, refundId, reason) {
   this.refundStatus = refundAmount >= this.amount ? 'refunded' : 'partial_refund';
   this.refundAmount = refundAmount;
   this.refundId = refundId;

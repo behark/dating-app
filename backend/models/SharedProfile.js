@@ -4,83 +4,85 @@ const sharedProfileSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   sharedByUserId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
   shareMethod: {
     type: String,
     enum: ['link', 'qr_code', 'social_media', 'email', 'direct_message', 'public_link'],
-    required: true
+    required: true,
   },
   shareToken: {
     type: String,
-    required: true
+    required: true,
   },
   expiresAt: {
     type: Date,
-    default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days default
+    default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days default
   },
   platform: {
     type: String,
     enum: ['instagram', 'facebook', 'twitter', 'whatsapp', 'telegram', 'email', 'link', 'qr'],
-    default: 'link'
+    default: 'link',
   },
   recipientInfo: {
     email: String,
     phoneNumber: String,
-    externalUserId: String
+    externalUserId: String,
   },
   viewCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
-  viewHistory: [{
-    viewedAt: {
-      type: Date,
-      default: Date.now
+  viewHistory: [
+    {
+      viewedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      viewerInfo: {
+        ipAddress: String,
+        userAgent: String,
+        location: String,
+      },
     },
-    viewerInfo: {
-      ipAddress: String,
-      userAgent: String,
-      location: String
-    }
-  }],
+  ],
   isPublic: {
     type: Boolean,
-    default: false
+    default: false,
   },
   allowComments: {
     type: Boolean,
-    default: false
+    default: false,
   },
   allowMessaging: {
     type: Boolean,
-    default: true
+    default: true,
   },
   customMessage: {
     type: String,
-    maxlength: 300
+    maxlength: 300,
   },
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   trackingEnabled: {
     type: Boolean,
-    default: true
+    default: true,
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Indexes for efficient queries
@@ -89,7 +91,7 @@ sharedProfileSchema.index({ shareToken: 1 }, { unique: true });
 sharedProfileSchema.index({ sharedByUserId: 1 });
 sharedProfileSchema.index({ createdAt: -1 });
 
-sharedProfileSchema.pre('save', function(next) {
+sharedProfileSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });

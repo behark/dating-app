@@ -5,14 +5,14 @@
 
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Dimensions,
-    FlatList,
-    Platform,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Platform,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -31,215 +31,222 @@ const DEFAULT_CONFIG = {
 /**
  * Optimized FlatList wrapper with built-in infinite scroll
  */
-const OptimizedList = memo(({
-  data,
-  renderItem,
-  keyExtractor,
-  onLoadMore,
-  onRefresh,
-  isLoading = false,
-  isRefreshing = false,
-  hasMore = true,
-  ListEmptyComponent,
-  ListHeaderComponent,
-  ListFooterComponent,
-  ItemSeparatorComponent,
-  estimatedItemSize = 100,
-  numColumns = 1,
-  horizontal = false,
-  config = {},
-  style,
-  contentContainerStyle,
-  ...restProps
-}) => {
-  const flatListRef = useRef(null);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+const OptimizedList = memo(
+  ({
+    data,
+    renderItem,
+    keyExtractor,
+    onLoadMore,
+    onRefresh,
+    isLoading = false,
+    isRefreshing = false,
+    hasMore = true,
+    ListEmptyComponent,
+    ListHeaderComponent,
+    ListFooterComponent,
+    ItemSeparatorComponent,
+    estimatedItemSize = 100,
+    numColumns = 1,
+    horizontal = false,
+    config = {},
+    style,
+    contentContainerStyle,
+    ...restProps
+  }) => {
+    const flatListRef = useRef(null);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  // Merge config with defaults
-  const listConfig = useMemo(() => ({
-    ...DEFAULT_CONFIG,
-    ...config,
-  }), [config]);
-
-  // Optimized key extractor
-  const optimizedKeyExtractor = useCallback((item, index) => {
-    if (keyExtractor) {
-      return keyExtractor(item, index);
-    }
-    return item._id || item.id || `item-${index}`;
-  }, [keyExtractor]);
-
-  // Get item layout for fixed-size items (massive performance boost)
-  const getItemLayout = useCallback((data, index) => ({
-    length: estimatedItemSize,
-    offset: estimatedItemSize * index,
-    index,
-  }), [estimatedItemSize]);
-
-  // Handle end reached with debounce
-  const handleEndReached = useCallback(async () => {
-    if (isLoadingMore || !hasMore || !onLoadMore) {
-      return;
-    }
-
-    setIsLoadingMore(true);
-    try {
-      await onLoadMore();
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [isLoadingMore, hasMore, onLoadMore]);
-
-  // Handle refresh
-  const handleRefresh = useCallback(async () => {
-    if (onRefresh) {
-      await onRefresh();
-    }
-  }, [onRefresh]);
-
-  // Loading footer component
-  const LoadingFooter = useMemo(() => {
-    if (!isLoadingMore && !isLoading) {
-      return null;
-    }
-
-    return (
-      <View style={styles.loadingFooter}>
-        <ActivityIndicator size="small" color="#667eea" />
-        <Text style={styles.loadingText}>Loading more...</Text>
-      </View>
+    // Merge config with defaults
+    const listConfig = useMemo(
+      () => ({
+        ...DEFAULT_CONFIG,
+        ...config,
+      }),
+      [config]
     );
-  }, [isLoadingMore, isLoading]);
 
-  // End of list indicator
-  const EndOfList = useMemo(() => {
-    if (hasMore || data.length === 0) {
-      return null;
-    }
-
-    return (
-      <View style={styles.endOfList}>
-        <Text style={styles.endOfListText}>You've reached the end</Text>
-      </View>
+    // Optimized key extractor
+    const optimizedKeyExtractor = useCallback(
+      (item, index) => {
+        if (keyExtractor) {
+          return keyExtractor(item, index);
+        }
+        return item._id || item.id || `item-${index}`;
+      },
+      [keyExtractor]
     );
-  }, [hasMore, data.length]);
 
-  // Combined footer
-  const Footer = useCallback(() => {
-    if (ListFooterComponent) {
+    // Get item layout for fixed-size items (massive performance boost)
+    const getItemLayout = useCallback(
+      (data, index) => ({
+        length: estimatedItemSize,
+        offset: estimatedItemSize * index,
+        index,
+      }),
+      [estimatedItemSize]
+    );
+
+    // Handle end reached with debounce
+    const handleEndReached = useCallback(async () => {
+      if (isLoadingMore || !hasMore || !onLoadMore) {
+        return;
+      }
+
+      setIsLoadingMore(true);
+      try {
+        await onLoadMore();
+      } finally {
+        setIsLoadingMore(false);
+      }
+    }, [isLoadingMore, hasMore, onLoadMore]);
+
+    // Handle refresh
+    const handleRefresh = useCallback(async () => {
+      if (onRefresh) {
+        await onRefresh();
+      }
+    }, [onRefresh]);
+
+    // Loading footer component
+    const LoadingFooter = useMemo(() => {
+      if (!isLoadingMore && !isLoading) {
+        return null;
+      }
+
+      return (
+        <View style={styles.loadingFooter}>
+          <ActivityIndicator size="small" color="#667eea" />
+          <Text style={styles.loadingText}>Loading more...</Text>
+        </View>
+      );
+    }, [isLoadingMore, isLoading]);
+
+    // End of list indicator
+    const EndOfList = useMemo(() => {
+      if (hasMore || data.length === 0) {
+        return null;
+      }
+
+      return (
+        <View style={styles.endOfList}>
+          <Text style={styles.endOfListText}>You&apos;ve reached the end</Text>
+        </View>
+      );
+    }, [hasMore, data.length]);
+
+    // Combined footer
+    const Footer = useCallback(() => {
+      if (ListFooterComponent) {
+        return (
+          <>
+            {LoadingFooter}
+            {EndOfList}
+            {ListFooterComponent}
+          </>
+        );
+      }
       return (
         <>
           {LoadingFooter}
           {EndOfList}
-          {ListFooterComponent}
         </>
       );
-    }
-    return (
-      <>
-        {LoadingFooter}
-        {EndOfList}
-      </>
-    );
-  }, [ListFooterComponent, LoadingFooter, EndOfList]);
+    }, [ListFooterComponent, LoadingFooter, EndOfList]);
 
-  // Empty component
-  const EmptyComponent = useMemo(() => {
-    if (isLoading) {
+    // Empty component
+    const EmptyComponent = useMemo(() => {
+      if (isLoading) {
+        return (
+          <View style={styles.emptyContainer}>
+            <ActivityIndicator size="large" color="#667eea" />
+            <Text style={styles.emptyText}>Loading...</Text>
+          </View>
+        );
+      }
+
+      if (ListEmptyComponent) {
+        return ListEmptyComponent;
+      }
+
       return (
         <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color="#667eea" />
-          <Text style={styles.emptyText}>Loading...</Text>
+          <Text style={styles.emptyText}>No items found</Text>
         </View>
       );
-    }
+    }, [isLoading, ListEmptyComponent]);
 
-    if (ListEmptyComponent) {
-      return ListEmptyComponent;
-    }
+    // Refresh control
+    const refreshControl = useMemo(() => {
+      if (!onRefresh) {
+        return undefined;
+      }
+
+      return (
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          colors={['#667eea', '#764ba2']}
+          tintColor="#667eea"
+        />
+      );
+    }, [onRefresh, isRefreshing, handleRefresh]);
 
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No items found</Text>
-      </View>
-    );
-  }, [isLoading, ListEmptyComponent]);
-
-  // Refresh control
-  const refreshControl = useMemo(() => {
-    if (!onRefresh) {
-      return undefined;
-    }
-
-    return (
-      <RefreshControl
-        refreshing={isRefreshing}
-        onRefresh={handleRefresh}
-        colors={['#667eea', '#764ba2']}
-        tintColor="#667eea"
+      <FlatList
+        ref={flatListRef}
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={optimizedKeyExtractor}
+        getItemLayout={estimatedItemSize ? getItemLayout : undefined}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={listConfig.onEndReachedThreshold}
+        refreshControl={refreshControl}
+        ListEmptyComponent={EmptyComponent}
+        ListHeaderComponent={ListHeaderComponent}
+        ListFooterComponent={Footer}
+        ItemSeparatorComponent={ItemSeparatorComponent}
+        numColumns={numColumns}
+        horizontal={horizontal}
+        // Performance optimizations
+        initialNumToRender={listConfig.initialNumToRender}
+        maxToRenderPerBatch={listConfig.maxToRenderPerBatch}
+        windowSize={listConfig.windowSize}
+        updateCellsBatchingPeriod={listConfig.updateCellsBatchingPeriod}
+        removeClippedSubviews={listConfig.removeClippedSubviews}
+        // Memory optimization
+        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+        // Disable scroll indicators for cleaner look
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        // Style
+        style={[styles.list, style]}
+        contentContainerStyle={[
+          styles.contentContainer,
+          data.length === 0 && styles.emptyContentContainer,
+          contentContainerStyle,
+        ]}
+        {...restProps}
       />
     );
-  }, [onRefresh, isRefreshing, handleRefresh]);
-
-  return (
-    <FlatList
-      ref={flatListRef}
-      data={data}
-      renderItem={renderItem}
-      keyExtractor={optimizedKeyExtractor}
-      getItemLayout={estimatedItemSize ? getItemLayout : undefined}
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={listConfig.onEndReachedThreshold}
-      refreshControl={refreshControl}
-      ListEmptyComponent={EmptyComponent}
-      ListHeaderComponent={ListHeaderComponent}
-      ListFooterComponent={Footer}
-      ItemSeparatorComponent={ItemSeparatorComponent}
-      numColumns={numColumns}
-      horizontal={horizontal}
-      // Performance optimizations
-      initialNumToRender={listConfig.initialNumToRender}
-      maxToRenderPerBatch={listConfig.maxToRenderPerBatch}
-      windowSize={listConfig.windowSize}
-      updateCellsBatchingPeriod={listConfig.updateCellsBatchingPeriod}
-      removeClippedSubviews={listConfig.removeClippedSubviews}
-      // Memory optimization
-      maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
-      // Disable scroll indicators for cleaner look
-      showsVerticalScrollIndicator={false}
-      showsHorizontalScrollIndicator={false}
-      // Style
-      style={[styles.list, style]}
-      contentContainerStyle={[
-        styles.contentContainer,
-        data.length === 0 && styles.emptyContentContainer,
-        contentContainerStyle,
-      ]}
-      {...restProps}
-    />
-  );
-});
+  }
+);
 
 /**
  * Memoized list item wrapper for performance
  */
-export const MemoizedListItem = memo(({ children, style }) => (
-  <View style={style}>
-    {children}
-  </View>
-), (prevProps, nextProps) => {
-  // Custom comparison - only re-render if children changed
-  return prevProps.children === nextProps.children;
-});
+export const MemoizedListItem = memo(
+  ({ children, style }) => <View style={style}>{children}</View>,
+  (prevProps, nextProps) => {
+    // Custom comparison - only re-render if children changed
+    return prevProps.children === nextProps.children;
+  }
+);
+MemoizedListItem.displayName = 'MemoizedListItem';
 
 /**
  * Hook for infinite scroll pagination
  */
-export const useInfiniteScroll = ({
-  fetchFn,
-  pageSize = 20,
-  enabled = true,
-}) => {
+export const useInfiniteScroll = ({ fetchFn, pageSize = 20, enabled = true }) => {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -257,7 +264,7 @@ export const useInfiniteScroll = ({
     try {
       const result = await fetchFn({ page: 1, pageSize });
       setData(result.items || result.data || []);
-      setHasMore(result.hasMore ?? (result.items?.length === pageSize));
+      setHasMore(result.hasMore ?? result.items?.length === pageSize);
       setPage(1);
     } catch (err) {
       setError(err.message);
@@ -277,8 +284,8 @@ export const useInfiniteScroll = ({
       const result = await fetchFn({ page: nextPage, pageSize });
       const newItems = result.items || result.data || [];
 
-      setData(prev => [...prev, ...newItems]);
-      setHasMore(result.hasMore ?? (newItems.length === pageSize));
+      setData((prev) => [...prev, ...newItems]);
+      setHasMore(result.hasMore ?? newItems.length === pageSize);
       setPage(nextPage);
     } catch (err) {
       setError(err.message);
@@ -295,7 +302,7 @@ export const useInfiniteScroll = ({
     try {
       const result = await fetchFn({ page: 1, pageSize });
       setData(result.items || result.data || []);
-      setHasMore(result.hasMore ?? (result.items?.length === pageSize));
+      setHasMore(result.hasMore ?? result.items?.length === pageSize);
       setPage(1);
     } catch (err) {
       setError(err.message);
@@ -306,19 +313,19 @@ export const useInfiniteScroll = ({
 
   // Prepend item (for real-time updates)
   const prependItem = useCallback((item) => {
-    setData(prev => [item, ...prev]);
+    setData((prev) => [item, ...prev]);
   }, []);
 
   // Remove item
   const removeItem = useCallback((id) => {
-    setData(prev => prev.filter(item => (item._id || item.id) !== id));
+    setData((prev) => prev.filter((item) => (item._id || item.id) !== id));
   }, []);
 
   // Update item
   const updateItem = useCallback((id, updates) => {
-    setData(prev => prev.map(item => 
-      (item._id || item.id) === id ? { ...item, ...updates } : item
-    ));
+    setData((prev) =>
+      prev.map((item) => ((item._id || item.id) === id ? { ...item, ...updates } : item))
+    );
   }, []);
 
   return {
@@ -339,48 +346,48 @@ export const useInfiniteScroll = ({
 /**
  * Optimized image list with lazy loading
  */
-export const OptimizedImageList = memo(({
-  images,
-  onImagePress,
-  numColumns = 3,
-  spacing = 2,
-  ...restProps
-}) => {
-  const imageSize = useMemo(() => 
-    (SCREEN_WIDTH - spacing * (numColumns + 1)) / numColumns,
-    [numColumns, spacing]
-  );
+export const OptimizedImageList = memo(
+  ({ images, onImagePress, numColumns = 3, spacing = 2, ...restProps }) => {
+    const imageSize = useMemo(
+      () => (SCREEN_WIDTH - spacing * (numColumns + 1)) / numColumns,
+      [numColumns, spacing]
+    );
 
-  const renderImage = useCallback(({ item, index }) => (
-    <MemoizedListItem
-      style={[
-        styles.imageItem,
-        { 
-          width: imageSize, 
-          height: imageSize,
-          marginLeft: spacing,
-          marginTop: spacing,
-        }
-      ]}
-    >
-      <OptimizedImage
-        source={{ uri: item.url || item }}
-        style={styles.image}
-        onPress={() => onImagePress?.(item, index)}
+    const renderImage = useCallback(
+      ({ item, index }) => (
+        <MemoizedListItem
+          style={[
+            styles.imageItem,
+            {
+              width: imageSize,
+              height: imageSize,
+              marginLeft: spacing,
+              marginTop: spacing,
+            },
+          ]}
+        >
+          <OptimizedImage
+            source={{ uri: item.url || item }}
+            style={styles.image}
+            onPress={() => onImagePress?.(item, index)}
+          />
+        </MemoizedListItem>
+      ),
+      [imageSize, spacing, onImagePress]
+    );
+
+    return (
+      <OptimizedList
+        data={images}
+        renderItem={renderImage}
+        numColumns={numColumns}
+        estimatedItemSize={imageSize}
+        {...restProps}
       />
-    </MemoizedListItem>
-  ), [imageSize, spacing, onImagePress]);
-
-  return (
-    <OptimizedList
-      data={images}
-      renderItem={renderImage}
-      numColumns={numColumns}
-      estimatedItemSize={imageSize}
-      {...restProps}
-    />
-  );
-});
+    );
+  }
+);
+OptimizedImageList.displayName = 'OptimizedImageList';
 
 /**
  * Optimized Image component with progressive loading
@@ -404,6 +411,7 @@ const OptimizedImage = memo(({ source, style, onPress }) => {
     </View>
   );
 });
+OptimizedImage.displayName = 'OptimizedImage';
 
 // Import Image separately to avoid circular dependency
 import { Image } from 'react-native';

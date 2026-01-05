@@ -13,12 +13,15 @@ import { ActivityIndicator, InteractionManager, View } from 'react-native';
  */
 export const lazyLoad = (importFn, fallback = null) => {
   const LazyComponent = lazy(importFn);
-  
-  return (props) => (
+
+  const LazyWrapper = (props) => (
     <Suspense fallback={fallback || <DefaultLoadingFallback />}>
       <LazyComponent {...props} />
     </Suspense>
   );
+  LazyWrapper.displayName = 'LazyWrapper';
+
+  return LazyWrapper;
 };
 
 /**
@@ -29,6 +32,7 @@ const DefaultLoadingFallback = () => (
     <ActivityIndicator size="large" color="#667eea" />
   </View>
 );
+DefaultLoadingFallback.displayName = 'DefaultLoadingFallback';
 
 // ==================== DEFERRED RENDERING ====================
 
@@ -137,15 +141,18 @@ export const useDebounce = (value, delay) => {
 export const useDebouncedCallback = (callback, delay) => {
   const timeoutRef = useRef(null);
 
-  const debouncedCallback = useCallback((...args) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+  const debouncedCallback = useCallback(
+    (...args) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
 
-    timeoutRef.current = setTimeout(() => {
-      callback(...args);
-    }, delay);
-  }, [callback, delay]);
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    },
+    [callback, delay]
+  );
 
   useEffect(() => {
     return () => {
@@ -225,7 +232,7 @@ export const getOptimizedImageUrl = (url, { width, height, format = 'webp' }) =>
  */
 export const generateSrcSet = (baseUrl, sizes = [320, 640, 960, 1280]) => {
   return sizes
-    .map(size => `${getOptimizedImageUrl(baseUrl, { width: size, height: size })} ${size}w`)
+    .map((size) => `${getOptimizedImageUrl(baseUrl, { width: size, height: size })} ${size}w`)
     .join(', ');
 };
 
@@ -236,10 +243,10 @@ export const generateSrcSet = (baseUrl, sizes = [320, 640, 960, 1280]) => {
  */
 export const preloadComponent = (importFn) => {
   const Component = lazy(importFn);
-  
+
   // Start loading immediately
   importFn();
-  
+
   return Component;
 };
 
@@ -247,7 +254,7 @@ export const preloadComponent = (importFn) => {
  * Preload multiple components
  */
 export const preloadComponents = (imports) => {
-  return imports.map(importFn => preloadComponent(importFn));
+  return imports.map((importFn) => preloadComponent(importFn));
 };
 
 // ==================== NETWORK OPTIMIZATION ====================
@@ -315,7 +322,7 @@ export const useSubscriptions = () => {
 
   useEffect(() => {
     return () => {
-      subscriptions.current.forEach(unsubscribe => {
+      subscriptions.current.forEach((unsubscribe) => {
         if (typeof unsubscribe === 'function') {
           unsubscribe();
         }
@@ -360,11 +367,14 @@ export const useSafeState = (initialValue) => {
   const mounted = useMounted();
   const [state, setState] = useState(initialValue);
 
-  const safeSetState = useCallback((value) => {
-    if (mounted.current) {
-      setState(value);
-    }
-  }, [mounted]);
+  const safeSetState = useCallback(
+    (value) => {
+      if (mounted.current) {
+        setState(value);
+      }
+    },
+    [mounted]
+  );
 
   return [state, safeSetState];
 };
@@ -377,7 +387,8 @@ export const useRenderCount = (componentName) => {
 
   useEffect(() => {
     renderCount.current += 1;
-    if (__DEV__) {
+    // eslint-disable-next-line no-undef
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
       console.log(`[Render] ${componentName}: ${renderCount.current}`);
     }
   });
@@ -400,30 +411,33 @@ export const useInfiniteScroll = ({
   const [hasMore, setHasMore] = useState(true);
   const prefetchTriggered = useRef(false);
 
-  const handleScroll = useCallback((event) => {
-    if (!hasMore || isLoading) return;
+  const handleScroll = useCallback(
+    (event) => {
+      if (!hasMore || isLoading) return;
 
-    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
-    const paddingToBottom = contentSize.height - layoutMeasurement.height - contentOffset.y;
-    const percentFromBottom = paddingToBottom / layoutMeasurement.height;
+      const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+      const paddingToBottom = contentSize.height - layoutMeasurement.height - contentOffset.y;
+      const percentFromBottom = paddingToBottom / layoutMeasurement.height;
 
-    // Prefetch when approaching threshold
-    if (percentFromBottom < prefetchThreshold && !prefetchTriggered.current) {
-      prefetchTriggered.current = true;
-      onPrefetch?.();
-    }
+      // Prefetch when approaching threshold
+      if (percentFromBottom < prefetchThreshold && !prefetchTriggered.current) {
+        prefetchTriggered.current = true;
+        onPrefetch?.();
+      }
 
-    // Load more when at threshold
-    if (percentFromBottom < threshold) {
-      setIsLoading(true);
-      fetchData()
-        .then((moreAvailable) => {
-          setHasMore(moreAvailable !== false);
-          prefetchTriggered.current = false;
-        })
-        .finally(() => setIsLoading(false));
-    }
-  }, [fetchData, hasMore, isLoading, threshold, prefetchThreshold, onPrefetch]);
+      // Load more when at threshold
+      if (percentFromBottom < threshold) {
+        setIsLoading(true);
+        fetchData()
+          .then((moreAvailable) => {
+            setHasMore(moreAvailable !== false);
+            prefetchTriggered.current = false;
+          })
+          .finally(() => setIsLoading(false));
+      }
+    },
+    [fetchData, hasMore, isLoading, threshold, prefetchThreshold, onPrefetch]
+  );
 
   const reset = useCallback(() => {
     setIsLoading(false);
@@ -452,7 +466,7 @@ export const useCursorPagination = (fetchFn, initialCursor = null) => {
 
     try {
       const result = await fetchFn(cursor);
-      setItems(prev => [...prev, ...result.items]);
+      setItems((prev) => [...prev, ...result.items]);
       setCursor(result.nextCursor);
       setHasMore(result.hasMore);
     } catch (err) {
@@ -530,14 +544,12 @@ export const getCdnImageUrl = (url, size = 'medium', format = 'webp') => {
  */
 export const preloadImages = async (urls, size = 'medium') => {
   const { Image, Platform } = require('react-native');
-  
-  const optimizedUrls = urls
-    .filter(Boolean)
-    .map(url => getCdnImageUrl(url, size));
+
+  const optimizedUrls = urls.filter(Boolean).map((url) => getCdnImageUrl(url, size));
 
   if (Platform.OS === 'web') {
     return Promise.all(
-      optimizedUrls.map(url => {
+      optimizedUrls.map((url) => {
         return new Promise((resolve) => {
           const img = new window.Image();
           img.onload = resolve;
@@ -548,9 +560,7 @@ export const preloadImages = async (urls, size = 'medium') => {
     );
   }
 
-  return Promise.all(
-    optimizedUrls.map(url => Image.prefetch(url).catch(() => null))
-  );
+  return Promise.all(optimizedUrls.map((url) => Image.prefetch(url).catch(() => null)));
 };
 
 // ==================== PERFORMANCE MONITORING ====================
@@ -564,8 +574,7 @@ export const performanceTracker = {
   start(label) {
     this.marks.set(label, {
       startTime: Date.now(),
-      startMemory: typeof performance !== 'undefined' ? 
-        performance?.memory?.usedJSHeapSize : null,
+      startMemory: typeof performance !== 'undefined' ? performance?.memory?.usedJSHeapSize : null,
     });
   },
 
@@ -577,7 +586,8 @@ export const performanceTracker = {
     this.marks.delete(label);
 
     // Log slow operations in development
-    if (__DEV__ && duration > 500) {
+    // eslint-disable-next-line no-undef
+    if (typeof __DEV__ !== 'undefined' && __DEV__ && duration > 500) {
       console.warn(`[Performance] ${label}: ${duration}ms`);
     }
 
@@ -587,9 +597,12 @@ export const performanceTracker = {
   async measure(label, fn) {
     this.start(label);
     try {
-      return await fn();
-    } finally {
-      return this.end(label);
+      const result = await fn();
+      this.end(label);
+      return result;
+    } catch (error) {
+      this.end(label);
+      throw error;
     }
   },
 };

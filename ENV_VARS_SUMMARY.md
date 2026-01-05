@@ -21,13 +21,16 @@ Using your Render API key, I successfully retrieved all environment variables fr
 ## 🚨 Issue Found & Fixed!
 
 ### Problem:
+
 - Your code expects: `MONGODB_URI`
 - Render has: `MONGODB_URL`
 
 ### Solution Applied:
+
 ✅ **I've updated your code** to support both `MONGODB_URI` and `MONGODB_URL`!
 
 **Files Updated:**
+
 - `backend/config/database.js`
 - `backend/server.js`
 - `backend/worker.js`
@@ -41,20 +44,25 @@ Now your code will work with either variable name.
 These are **not required** for basic functionality but may be needed for specific features:
 
 ### Redis (for caching/queues)
+
 - `REDIS_HOST` or `REDIS_URL`
 
 ### Firebase (for push notifications)
+
 - `FIREBASE_PRIVATE_KEY`
 - `FIREBASE_CLIENT_EMAIL`
 
 ### Storage (for file uploads)
+
 - `STORAGE_PROVIDER` (cloudinary or s3)
 - `CLOUDINARY_*` or `AWS_*` variables
 
 ### Payments
+
 - `STRIPE_SECRET_KEY`
 
 ### OAuth
+
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
@@ -84,12 +92,14 @@ These are **not required** for basic functionality but may be needed for specifi
 ## 🔧 Quick Commands
 
 ### Check variables anytime:
+
 ```bash
 export RENDER_API_KEY=rnd_uxGa5DLMWLzFvyvRlvhxslstAyaO
 node fetch-render-env-vars.js
 ```
 
 ### Test service:
+
 ```bash
 curl https://dating-app-backend-x4yq.onrender.com/health
 ```
@@ -99,6 +109,7 @@ curl https://dating-app-backend-x4yq.onrender.com/health
 ## 🔒 Security Reminder
 
 **Important:** Your API key is sensitive. Consider:
+
 - Not sharing it publicly
 - Rotating it periodically
 - Using it only in secure environments

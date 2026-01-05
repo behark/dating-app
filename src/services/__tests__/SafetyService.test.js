@@ -157,11 +157,11 @@ describe('SafetyService', () => {
   describe('getReportCategories', () => {
     it('should return all report categories', async () => {
       const categories = await SafetyService.getReportCategories();
-      
+
       expect(categories).toHaveLength(6);
-      expect(categories.map(c => c.id)).toContain('harassment');
-      expect(categories.map(c => c.id)).toContain('fake_profile');
-      expect(categories.map(c => c.id)).toContain('scam');
+      expect(categories.map((c) => c.id)).toContain('harassment');
+      expect(categories.map((c) => c.id)).toContain('fake_profile');
+      expect(categories.map((c) => c.id)).toContain('scam');
     });
   });
 
@@ -199,7 +199,7 @@ describe('SafetyService', () => {
       getDocs.mockResolvedValue({ empty: true, docs: [] });
 
       const result = await SafetyService.getPhotoVerificationStatus('user1');
-      
+
       expect(result.verified).toBe(false);
       expect(result.status).toBe('not_submitted');
     });

@@ -1,8 +1,8 @@
 /**
  * Repository Pattern Exports
- * 
+ *
  * Use these repositories to decouple your UI from specific data sources.
- * 
+ *
  * Usage:
  *   import { getUserRepository } from '../repositories';
  *   const repo = getUserRepository();

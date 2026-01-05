@@ -1,6 +1,6 @@
 /**
  * PayPal Payment Service
- * 
+ *
  * Handles all PayPal payment operations including:
  * - Subscription creation and management
  * - One-time payments
@@ -14,9 +14,10 @@ const Subscription = require('../models/Subscription');
 const PaymentTransaction = require('../models/PaymentTransaction');
 
 class PayPalService {
-  static baseUrl = paymentConfig.paypal.mode === 'live'
-    ? 'https://api-m.paypal.com'
-    : 'https://api-m.sandbox.paypal.com';
+  static baseUrl =
+    paymentConfig.paypal.mode === 'live'
+      ? 'https://api-m.paypal.com'
+      : 'https://api-m.sandbox.paypal.com';
 
   /**
    * Get PayPal access token
@@ -40,7 +41,8 @@ class PayPalService {
 
       return response.data.access_token;
     } catch (error) {
-      console.error('Error getting PayPal access token:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Error getting PayPal access token:', errorMessage);
       throw error;
     }
   }
@@ -89,9 +91,7 @@ class PayPalService {
         }
       );
 
-      const approvalUrl = response.data.links.find(
-        (link) => link.rel === 'approve'
-      )?.href;
+      const approvalUrl = response.data.links.find((link) => link.rel === 'approve')?.href;
 
       return {
         subscriptionId: response.data.id,
@@ -99,7 +99,9 @@ class PayPalService {
         status: response.data.status,
       };
     } catch (error) {
-      console.error('Error creating PayPal subscription:', error.response?.data || error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      console.error('Error creating PayPal subscription:', errorData || errorMessage);
       throw error;
     }
   }
@@ -130,7 +132,9 @@ class PayPalService {
         customId: response.data.custom_id,
       };
     } catch (error) {
-      console.error('Error getting PayPal subscription:', error.response?.data || error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      console.error('Error getting PayPal subscription:', errorData || errorMessage);
       throw error;
     }
   }
@@ -141,7 +145,7 @@ class PayPalService {
   static async activateSubscription(subscriptionId) {
     try {
       const subscription = await this.getSubscription(subscriptionId);
-      
+
       if (subscription.status !== 'active') {
         throw new Error('Subscription is not active');
       }
@@ -169,7 +173,8 @@ class PayPalService {
 
       return { success: true, subscription };
     } catch (error) {
-      console.error('Error activating PayPal subscription:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Error activating PayPal subscription:', errorMessage);
       throw error;
     }
   }
@@ -196,7 +201,9 @@ class PayPalService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error cancelling PayPal subscription:', error.response?.data || error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      console.error('Error cancelling PayPal subscription:', errorData || errorMessage);
       throw error;
     }
   }
@@ -223,7 +230,9 @@ class PayPalService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error suspending PayPal subscription:', error.response?.data || error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      console.error('Error suspending PayPal subscription:', errorData || errorMessage);
       throw error;
     }
   }
@@ -250,7 +259,9 @@ class PayPalService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error reactivating PayPal subscription:', error.response?.data || error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      console.error('Error reactivating PayPal subscription:', errorData || errorMessage);
       throw error;
     }
   }
@@ -261,13 +272,13 @@ class PayPalService {
   static async createOrder(user, productType, productId, quantity = 1) {
     try {
       const accessToken = await this.getAccessToken();
-      
+
       // Get product pricing
       const products = paymentConfig.consumableProducts[productType];
       if (!products || !products[productId]) {
         throw new Error(`Invalid product: ${productType}/${productId}`);
       }
-      
+
       const product = products[productId];
       const amount = (product.price * quantity).toFixed(2);
 
@@ -306,9 +317,7 @@ class PayPalService {
         }
       );
 
-      const approvalUrl = response.data.links.find(
-        (link) => link.rel === 'approve'
-      )?.href;
+      const approvalUrl = response.data.links.find((link) => link.rel === 'approve')?.href;
 
       return {
         orderId: response.data.id,
@@ -316,7 +325,9 @@ class PayPalService {
         status: response.data.status,
       };
     } catch (error) {
-      console.error('Error creating PayPal order:', error.response?.data || error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      console.error('Error creating PayPal order:', errorData || errorMessage);
       throw error;
     }
   }
@@ -348,10 +359,10 @@ class PayPalService {
         // Credit user's account
         const User = require('../models/User');
         const user = await User.findById(userId);
-        
+
         if (user) {
           const qty = parseInt(quantity) || 1;
-          
+
           switch (productType) {
             case 'superLikes':
               user.superLikesBalance = (user.superLikesBalance || 0) + qty;
@@ -363,7 +374,7 @@ class PayPalService {
               user.rewindsBalance = (user.rewindsBalance || 0) + qty;
               break;
           }
-          
+
           await user.save();
         }
 
@@ -387,7 +398,9 @@ class PayPalService {
         status: response.data.status,
       };
     } catch (error) {
-      console.error('Error capturing PayPal order:', error.response?.data || error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      console.error('Error capturing PayPal order:', errorData || errorMessage);
       throw error;
     }
   }
@@ -428,7 +441,9 @@ class PayPalService {
         currency: response.data.amount?.currency_code,
       };
     } catch (error) {
-      console.error('Error creating PayPal refund:', error.response?.data || error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      console.error('Error creating PayPal refund:', errorData || errorMessage);
       throw error;
     }
   }
@@ -461,7 +476,9 @@ class PayPalService {
 
       return response.data.verification_status === 'SUCCESS';
     } catch (error) {
-      console.error('Error verifying PayPal webhook:', error.response?.data || error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      console.error('Error verifying PayPal webhook:', errorData || errorMessage);
       return false;
     }
   }
@@ -478,7 +495,7 @@ class PayPalService {
       'BILLING.SUBSCRIPTION.CANCELLED': this.handleSubscriptionCancelled,
       'BILLING.SUBSCRIPTION.SUSPENDED': this.handleSubscriptionSuspended,
       'BILLING.SUBSCRIPTION.PAYMENT.FAILED': this.handlePaymentFailed,
-      
+
       // Payment events
       'PAYMENT.SALE.COMPLETED': this.handlePaymentCompleted,
       'PAYMENT.SALE.REFUNDED': this.handlePaymentRefunded,
@@ -528,7 +545,8 @@ class PayPalService {
         });
       }
     } catch (error) {
-      console.error('Error handling subscription activated:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Error handling subscription activated:', errorMessage);
     }
   }
 
@@ -548,7 +566,8 @@ class PayPalService {
         }
       }
     } catch (error) {
-      console.error('Error handling subscription updated:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Error handling subscription updated:', errorMessage);
     }
   }
 

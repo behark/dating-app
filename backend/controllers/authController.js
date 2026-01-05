@@ -20,7 +20,7 @@ const emailService = {
    * Initialize the email transporter
    * @memberof emailService
    */
-  init: function() {
+  init: function () {
     if (!this.transporter) {
       // Check if email credentials are configured
       if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
@@ -33,8 +33,8 @@ const emailService = {
         service: process.env.EMAIL_SERVICE || 'gmail',
         auth: {
           user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASSWORD
-        }
+          pass: process.env.EMAIL_PASSWORD,
+        },
       });
     }
   },
@@ -47,9 +47,9 @@ const emailService = {
    * @param {string} html - Email HTML content
    * @returns {Promise<boolean>} Success status
    */
-  sendEmail: async function(to, subject, html) {
+  sendEmail: async function (to, subject, html) {
     this.init();
-    
+
     if (!this.transporter) {
       console.warn('Email service not configured - cannot send email');
       return false;
@@ -60,14 +60,14 @@ const emailService = {
         from: process.env.EMAIL_USER,
         to,
         subject,
-        html
+        html,
       });
       return true;
     } catch (error) {
       console.error('Email sending failed:', error);
       return false;
     }
-  }
+  },
 };
 
 /**
@@ -91,7 +91,7 @@ exports.register = async (req, res) => {
     if (!email || !password || !name) {
       return res.status(400).json({
         success: false,
-        message: 'Email, password, and name are required'
+        message: 'Email, password, and name are required',
       });
     }
 
@@ -99,7 +99,7 @@ exports.register = async (req, res) => {
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
-        message: 'Password must be at least 8 characters long'
+        message: 'Password must be at least 8 characters long',
       });
     }
 
@@ -108,7 +108,7 @@ exports.register = async (req, res) => {
     if (user) {
       return res.status(400).json({
         success: false,
-        message: 'User with this email already exists'
+        message: 'User with this email already exists',
       });
     }
 
@@ -116,9 +116,9 @@ exports.register = async (req, res) => {
     // Location is required - use provided location or default to San Francisco
     const userLocation = req.body.location || {
       type: 'Point',
-      coordinates: [-122.4194, 37.7749] // San Francisco
+      coordinates: [-122.4194, 37.7749], // San Francisco
     };
-    
+
     user = new User({
       email: email.toLowerCase(),
       password,
@@ -127,10 +127,10 @@ exports.register = async (req, res) => {
       gender,
       location: {
         type: userLocation.type || 'Point',
-        coordinates: userLocation.coordinates || [-122.4194, 37.7749]
+        coordinates: userLocation.coordinates || [-122.4194, 37.7749],
       },
       photos: [],
-      interests: []
+      interests: [],
     });
 
     await user.save();
@@ -165,18 +165,18 @@ exports.register = async (req, res) => {
           email: user.email,
           name: user.name,
           age: user.age,
-          gender: user.gender
+          gender: user.gender,
         },
         authToken,
-        refreshToken
-      }
+        refreshToken,
+      },
     });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({
       success: false,
       message: 'Error during registration',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -192,7 +192,7 @@ exports.login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email and password are required'
+        message: 'Email and password are required',
       });
     }
 
@@ -201,7 +201,7 @@ exports.login = async (req, res) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid email or password',
       });
     }
 
@@ -209,7 +209,7 @@ exports.login = async (req, res) => {
     if (!user.password) {
       return res.status(401).json({
         success: false,
-        message: 'This account uses OAuth. Please login with your OAuth provider.'
+        message: 'This account uses OAuth. Please login with your OAuth provider.',
       });
     }
 
@@ -218,7 +218,7 @@ exports.login = async (req, res) => {
     if (!isPasswordMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid email or password',
       });
     }
 
@@ -240,18 +240,18 @@ exports.login = async (req, res) => {
           name: user.name,
           age: user.age,
           gender: user.gender,
-          isEmailVerified: user.isEmailVerified
+          isEmailVerified: user.isEmailVerified,
         },
         authToken,
-        refreshToken
-      }
+        refreshToken,
+      },
     });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
       message: 'Error during login',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -266,25 +266,22 @@ exports.verifyEmail = async (req, res) => {
     if (!token) {
       return res.status(400).json({
         success: false,
-        message: 'Verification token is required'
+        message: 'Verification token is required',
       });
     }
 
     // Hash token and find user
-    const hashedToken = crypto
-      .createHash('sha256')
-      .update(token)
-      .digest('hex');
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     const user = await User.findOne({
       emailVerificationToken: hashedToken,
-      emailVerificationTokenExpiry: { $gt: Date.now() }
+      emailVerificationTokenExpiry: { $gt: Date.now() },
     });
 
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired verification token'
+        message: 'Invalid or expired verification token',
       });
     }
 
@@ -296,14 +293,14 @@ exports.verifyEmail = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Email verified successfully'
+      message: 'Email verified successfully',
     });
   } catch (error) {
     console.error('Email verification error:', error);
     res.status(500).json({
       success: false,
       message: 'Error verifying email',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -318,7 +315,7 @@ exports.forgotPassword = async (req, res) => {
     if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Email is required'
+        message: 'Email is required',
       });
     }
 
@@ -327,16 +324,13 @@ exports.forgotPassword = async (req, res) => {
       // Don't reveal if email exists for security
       return res.json({
         success: true,
-        message: 'If email exists, a password reset link has been sent'
+        message: 'If email exists, a password reset link has been sent',
       });
     }
 
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
-    user.passwordResetToken = crypto
-      .createHash('sha256')
-      .update(resetToken)
-      .digest('hex');
+    user.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     user.passwordResetTokenExpiry = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
     await user.save();
 
@@ -350,14 +344,14 @@ exports.forgotPassword = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'If email exists, a password reset link has been sent'
+      message: 'If email exists, a password reset link has been sent',
     });
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({
       success: false,
       message: 'Error processing password reset',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -372,32 +366,29 @@ exports.resetPassword = async (req, res) => {
     if (!token || !newPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Token and new password are required'
+        message: 'Token and new password are required',
       });
     }
 
     if (newPassword.length < 8) {
       return res.status(400).json({
         success: false,
-        message: 'Password must be at least 8 characters long'
+        message: 'Password must be at least 8 characters long',
       });
     }
 
     // Hash token and find user
-    const hashedToken = crypto
-      .createHash('sha256')
-      .update(token)
-      .digest('hex');
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     const user = await User.findOne({
       passwordResetToken: hashedToken,
-      passwordResetTokenExpiry: { $gt: Date.now() }
+      passwordResetTokenExpiry: { $gt: Date.now() },
     });
 
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired reset token'
+        message: 'Invalid or expired reset token',
       });
     }
 
@@ -409,14 +400,14 @@ exports.resetPassword = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Password reset successfully'
+      message: 'Password reset successfully',
     });
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({
       success: false,
       message: 'Error resetting password',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -433,7 +424,7 @@ exports.deleteAccount = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -442,15 +433,15 @@ exports.deleteAccount = async (req, res) => {
       if (!password) {
         return res.status(400).json({
           success: false,
-          message: 'Password is required to delete account'
+          message: 'Password is required to delete account',
         });
       }
-      
+
       const isPasswordMatch = await user.matchPassword(password);
       if (!isPasswordMatch) {
         return res.status(401).json({
           success: false,
-          message: 'Invalid password'
+          message: 'Invalid password',
         });
       }
     }
@@ -462,14 +453,14 @@ exports.deleteAccount = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Account deleted successfully'
+      message: 'Account deleted successfully',
     });
   } catch (error) {
     console.error('Delete account error:', error);
     res.status(500).json({
       success: false,
       message: 'Error deleting account',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -484,7 +475,7 @@ exports.refreshToken = async (req, res) => {
     if (!refreshToken) {
       return res.status(400).json({
         success: false,
-        message: 'Refresh token is required'
+        message: 'Refresh token is required',
       });
     }
 
@@ -493,21 +484,18 @@ exports.refreshToken = async (req, res) => {
       console.error('JWT_REFRESH_SECRET is not configured');
       return res.status(500).json({
         success: false,
-        message: 'Authentication system is not properly configured'
+        message: 'Authentication system is not properly configured',
       });
     }
 
     const jwt = require('jsonwebtoken');
-    const decoded = jwt.verify(
-      refreshToken,
-      process.env.JWT_REFRESH_SECRET
-    );
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
     const user = await User.findById(decoded.userId);
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -516,15 +504,15 @@ exports.refreshToken = async (req, res) => {
     res.json({
       success: true,
       data: {
-        authToken: newAuthToken
-      }
+        authToken: newAuthToken,
+      },
     });
   } catch (error) {
     console.error('Refresh token error:', error);
     res.status(401).json({
       success: false,
       message: 'Invalid refresh token',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -539,7 +527,7 @@ exports.googleAuth = async (req, res) => {
     if (!googleId || !email) {
       return res.status(400).json({
         success: false,
-        message: 'Google ID and email are required'
+        message: 'Google ID and email are required',
       });
     }
 
@@ -555,13 +543,17 @@ exports.googleAuth = async (req, res) => {
         isEmailVerified: true,
         location: {
           type: 'Point',
-          coordinates: [-122.4194, 37.7749] // Default: San Francisco
+          coordinates: [-122.4194, 37.7749], // Default: San Francisco
         },
-        photos: photoUrl ? [{
-          url: photoUrl,
-          order: 0,
-          moderationStatus: 'approved'
-        }] : []
+        photos: photoUrl
+          ? [
+              {
+                url: photoUrl,
+                order: 0,
+                moderationStatus: 'approved',
+              },
+            ]
+          : [],
       });
       await user.save();
     } else if (!user.googleId) {
@@ -590,18 +582,18 @@ exports.googleAuth = async (req, res) => {
           name: user.name,
           age: user.age,
           gender: user.gender,
-          isEmailVerified: user.isEmailVerified
+          isEmailVerified: user.isEmailVerified,
         },
         authToken,
-        refreshToken
-      }
+        refreshToken,
+      },
     });
   } catch (error) {
     console.error('Google auth error:', error);
     res.status(500).json({
       success: false,
       message: 'Error with Google authentication',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -616,7 +608,7 @@ exports.facebookAuth = async (req, res) => {
     if (!facebookId || !email) {
       return res.status(400).json({
         success: false,
-        message: 'Facebook ID and email are required'
+        message: 'Facebook ID and email are required',
       });
     }
 
@@ -632,13 +624,17 @@ exports.facebookAuth = async (req, res) => {
         isEmailVerified: true,
         location: {
           type: 'Point',
-          coordinates: [-122.4194, 37.7749] // Default: San Francisco
+          coordinates: [-122.4194, 37.7749], // Default: San Francisco
         },
-        photos: photoUrl ? [{
-          url: photoUrl,
-          order: 0,
-          moderationStatus: 'approved'
-        }] : []
+        photos: photoUrl
+          ? [
+              {
+                url: photoUrl,
+                order: 0,
+                moderationStatus: 'approved',
+              },
+            ]
+          : [],
       });
       await user.save();
     } else if (!user.facebookId) {
@@ -666,18 +662,18 @@ exports.facebookAuth = async (req, res) => {
           name: user.name,
           age: user.age,
           gender: user.gender,
-          isEmailVerified: user.isEmailVerified
+          isEmailVerified: user.isEmailVerified,
         },
         authToken,
-        refreshToken
-      }
+        refreshToken,
+      },
     });
   } catch (error) {
     console.error('Facebook auth error:', error);
     res.status(500).json({
       success: false,
       message: 'Error with Facebook authentication',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -692,7 +688,7 @@ exports.appleAuth = async (req, res) => {
     if (!appleId) {
       return res.status(400).json({
         success: false,
-        message: 'Apple ID is required'
+        message: 'Apple ID is required',
       });
     }
 
@@ -708,8 +704,8 @@ exports.appleAuth = async (req, res) => {
         isEmailVerified: !!email,
         location: {
           type: 'Point',
-          coordinates: [-122.4194, 37.7749] // Default: San Francisco
-        }
+          coordinates: [-122.4194, 37.7749], // Default: San Francisco
+        },
       });
       await user.save();
     }
@@ -730,18 +726,18 @@ exports.appleAuth = async (req, res) => {
           name: user.name,
           age: user.age,
           gender: user.gender,
-          isEmailVerified: user.isEmailVerified
+          isEmailVerified: user.isEmailVerified,
         },
         authToken,
-        refreshToken
-      }
+        refreshToken,
+      },
     });
   } catch (error) {
     console.error('Apple auth error:', error);
     res.status(500).json({
       success: false,
       message: 'Error with Apple authentication',
-      error: error.message
+      error: error.message,
     });
   }
 };

@@ -2,32 +2,102 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import React, { useEffect } from 'react';
+import { createLazyScreen, usePreloadScreens } from '../components/LazyScreen';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
-import ChatScreen from '../screens/ChatScreen';
-import EventsScreen from '../screens/EventsScreen';
-import GroupDatesScreen from '../screens/GroupDatesScreen';
+import { UserBehaviorAnalytics } from '../services/UserBehaviorAnalytics';
+
+// Core screens - loaded immediately for fast initial render
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
-import MatchesScreen from '../screens/MatchesScreen';
 import PreviewHomeScreen from '../screens/PreviewHomeScreen';
-import NotificationPreferencesScreen from '../screens/NotificationPreferencesScreen';
-import PhotoGalleryScreen from '../screens/PhotoGalleryScreen';
-import PreferencesScreen from '../screens/PreferencesScreen';
-import PremiumScreen from '../screens/PremiumScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import ProfileSharingScreen from '../screens/ProfileSharingScreen';
-import ReportUserScreen from '../screens/ReportUserScreen';
-import SafetyAdvancedScreen from '../screens/SafetyAdvancedScreen';
-import SafetyTipsScreen from '../screens/SafetyTipsScreen';
-import VerificationScreen from '../screens/VerificationScreen';
-import ViewProfileScreen from '../screens/ViewProfileScreen';
+
+// Lazy-loaded screens - deferred for better startup performance
+// These screens are loaded on-demand when user navigates to them
+const ChatScreen = createLazyScreen(
+  () => import('../screens/ChatScreen'),
+  { loadingMessage: 'Loading chat...', displayName: 'ChatScreen' }
+);
+
+const MatchesScreen = createLazyScreen(
+  () => import('../screens/MatchesScreen'),
+  { loadingMessage: 'Loading matches...', displayName: 'MatchesScreen' }
+);
+
+const EventsScreen = createLazyScreen(
+  () => import('../screens/EventsScreen'),
+  { loadingMessage: 'Loading events...', displayName: 'EventsScreen' }
+);
+
+const GroupDatesScreen = createLazyScreen(
+  () => import('../screens/GroupDatesScreen'),
+  { loadingMessage: 'Loading social...', displayName: 'GroupDatesScreen' }
+);
+
+const NotificationPreferencesScreen = createLazyScreen(
+  () => import('../screens/NotificationPreferencesScreen'),
+  { loadingMessage: 'Loading preferences...', displayName: 'NotificationPreferencesScreen' }
+);
+
+const PhotoGalleryScreen = createLazyScreen(
+  () => import('../screens/PhotoGalleryScreen'),
+  { loadingMessage: 'Loading gallery...', displayName: 'PhotoGalleryScreen' }
+);
+
+const PreferencesScreen = createLazyScreen(
+  () => import('../screens/PreferencesScreen'),
+  { loadingMessage: 'Loading preferences...', displayName: 'PreferencesScreen' }
+);
+
+// Premium routes - code-split by feature
+const PremiumScreen = createLazyScreen(
+  () => import('../screens/PremiumScreen'),
+  { loadingMessage: 'Loading premium...', displayName: 'PremiumScreen' }
+);
+
+const ProfileSharingScreen = createLazyScreen(
+  () => import('../screens/ProfileSharingScreen'),
+  { loadingMessage: 'Loading...', displayName: 'ProfileSharingScreen' }
+);
+
+const ReportUserScreen = createLazyScreen(
+  () => import('../screens/ReportUserScreen'),
+  { loadingMessage: 'Loading...', displayName: 'ReportUserScreen' }
+);
+
+const SafetyAdvancedScreen = createLazyScreen(
+  () => import('../screens/SafetyAdvancedScreen'),
+  { loadingMessage: 'Loading safety...', displayName: 'SafetyAdvancedScreen' }
+);
+
+const SafetyTipsScreen = createLazyScreen(
+  () => import('../screens/SafetyTipsScreen'),
+  { loadingMessage: 'Loading safety tips...', displayName: 'SafetyTipsScreen' }
+);
+
+const VerificationScreen = createLazyScreen(
+  () => import('../screens/VerificationScreen'),
+  { loadingMessage: 'Loading verification...', displayName: 'VerificationScreen' }
+);
+
+const ViewProfileScreen = createLazyScreen(
+  () => import('../screens/ViewProfileScreen'),
+  { loadingMessage: 'Loading profile...', displayName: 'ViewProfileScreen' }
+);
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Screens to preload after initial render for smoother navigation
+const screensToPreload = [MatchesScreen, ChatScreen, ViewProfileScreen];
+
 const MainTabs = () => {
   const { unreadCount } = useChat();
+
+  // Preload commonly accessed screens after mount
+  usePreloadScreens(screensToPreload);
 
   return (
     <Tab.Navigator
@@ -97,9 +167,42 @@ const MainTabs = () => {
 
 const AppNavigator = () => {
   const { currentUser } = useAuth();
+  const navigationRef = React.useRef(null);
+  const routeNameRef = React.useRef(null);
+
+  // Initialize behavior analytics on mount
+  useEffect(() => {
+    UserBehaviorAnalytics.initialize();
+  }, []);
+
+  // Track screen changes for analytics
+  const onNavigationReady = () => {
+    routeNameRef.current = navigationRef.current?.getCurrentRoute()?.name;
+    if (routeNameRef.current) {
+      UserBehaviorAnalytics.startScreenTracking(routeNameRef.current);
+    }
+  };
+
+  const onNavigationStateChange = () => {
+    const previousRouteName = routeNameRef.current;
+    const currentRouteName = navigationRef.current?.getCurrentRoute()?.name;
+
+    if (previousRouteName !== currentRouteName && currentRouteName) {
+      // End tracking for previous screen
+      UserBehaviorAnalytics.endScreenTracking();
+      // Start tracking for new screen
+      UserBehaviorAnalytics.startScreenTracking(currentRouteName);
+    }
+
+    routeNameRef.current = currentRouteName;
+  };
 
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={onNavigationReady}
+      onStateChange={onNavigationStateChange}
+    >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {currentUser ? (
           <>
@@ -107,7 +210,7 @@ const AppNavigator = () => {
             <Stack.Screen
               name="Chat"
               component={ChatScreen}
-              options={{ 
+              options={{
                 headerShown: false,
                 presentation: 'card',
               }}
@@ -204,8 +307,8 @@ const AppNavigator = () => {
         ) : (
           <>
             <Stack.Screen name="Preview" component={PreviewHomeScreen} />
-            <Stack.Screen 
-              name="Login" 
+            <Stack.Screen
+              name="Login"
               component={LoginScreen}
               options={{
                 presentation: 'modal',

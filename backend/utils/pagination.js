@@ -32,7 +32,7 @@ const PAGINATION_LIMITS = {
  */
 const encodeCursor = (doc, sortFields = ['_id']) => {
   const cursorData = {};
-  sortFields.forEach(field => {
+  sortFields.forEach((field) => {
     const value = field.split('.').reduce((obj, key) => obj?.[key], doc);
     if (value !== undefined) {
       cursorData[field] = value instanceof Date ? value.toISOString() : value;
@@ -52,14 +52,14 @@ const decodeCursor = (cursor) => {
   try {
     const decoded = Buffer.from(cursor, 'base64').toString('utf8');
     const data = JSON.parse(decoded);
-    
+
     // Convert ISO strings back to dates
-    Object.keys(data).forEach(key => {
+    Object.keys(data).forEach((key) => {
       if (typeof data[key] === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(data[key])) {
         data[key] = new Date(data[key]);
       }
     });
-    
+
     return data;
   } catch (error) {
     return null;
@@ -74,17 +74,17 @@ const decodeCursor = (cursor) => {
  */
 const buildCursorQuery = (cursor, sortDirection = -1) => {
   if (!cursor) return {};
-  
+
   const cursorData = decodeCursor(cursor);
   if (!cursorData) return {};
-  
+
   const operator = sortDirection === -1 ? '$lt' : '$gt';
   const fields = Object.keys(cursorData);
-  
+
   if (fields.length === 1) {
     return { [fields[0]]: { [operator]: cursorData[fields[0]] } };
   }
-  
+
   // For compound sorts, use $or with compound conditions
   const conditions = [];
   for (let i = 0; i < fields.length; i++) {
@@ -95,7 +95,7 @@ const buildCursorQuery = (cursor, sortDirection = -1) => {
     condition[fields[i]] = { [operator]: cursorData[fields[i]] };
     conditions.push(condition);
   }
-  
+
   return conditions.length > 0 ? { $or: conditions } : {};
 };
 
@@ -219,7 +219,8 @@ const cursorPaginate = async (model, query, options = {}) => {
   }
 
   // Execute query with one extra to check for more
-  let queryBuilder = model.find(finalQuery)
+  let queryBuilder = model
+    .find(finalQuery)
     .sort({ [sortBy]: sortOrder })
     .limit(actualLimit + 1);
 
@@ -234,9 +235,8 @@ const cursorPaginate = async (model, query, options = {}) => {
     items.pop(); // Remove the extra item
   }
 
-  const nextCursor = hasMore && items.length > 0 
-    ? encodeCursor(items[items.length - 1], [sortBy])
-    : null;
+  const nextCursor =
+    hasMore && items.length > 0 ? encodeCursor(items[items.length - 1], [sortBy]) : null;
 
   return {
     items,
@@ -264,11 +264,7 @@ const aggregatePaginate = async (model, pipeline, options = {}) => {
   const total = countResult[0]?.total || 0;
 
   // Add pagination stages
-  const paginatedPipeline = [
-    ...pipeline,
-    { $skip: skip },
-    { $limit: limit },
-  ];
+  const paginatedPipeline = [...pipeline, { $skip: skip }, { $limit: limit }];
 
   const items = await model.aggregate(paginatedPipeline);
 
@@ -290,10 +286,7 @@ const paginationMiddleware = (defaults = {}) => {
  */
 const applyPagination = (query, pagination) => {
   const { skip, limit, sortBy, sortOrder } = pagination;
-  return query
-    .sort(buildSortObject(sortBy, sortOrder))
-    .skip(skip)
-    .limit(limit);
+  return query.sort(buildSortObject(sortBy, sortOrder)).skip(skip).limit(limit);
 };
 
 /**
@@ -343,14 +336,13 @@ const infiniteScrollPaginate = async (model, query, options = {}) => {
 
   const mainItems = result.items.slice(0, limit);
   const prefetchItems = result.items.slice(limit);
-  const prefetchIds = prefetchItems.map(item => item._id?.toString() || item._id);
+  const prefetchIds = prefetchItems.map((item) => item._id?.toString() || item._id);
 
   return {
     items: mainItems,
     hasMore: result.items.length > limit,
-    nextCursor: mainItems.length > 0 
-      ? encodeCursor(mainItems[mainItems.length - 1], [sortBy])
-      : null,
+    nextCursor:
+      mainItems.length > 0 ? encodeCursor(mainItems[mainItems.length - 1], [sortBy]) : null,
     prefetchIds,
     count: mainItems.length,
   };
@@ -360,15 +352,10 @@ const infiniteScrollPaginate = async (model, query, options = {}) => {
  * Batch cursor for streaming large datasets
  */
 const createBatchCursor = (model, query, options = {}) => {
-  const {
-    batchSize = 100,
-    sortBy = '_id',
-    sortOrder = 1,
-    select = '',
-    lean = true,
-  } = options;
+  const { batchSize = 100, sortBy = '_id', sortOrder = 1, select = '', lean = true } = options;
 
-  let queryBuilder = model.find(query)
+  let queryBuilder = model
+    .find(query)
     .sort({ [sortBy]: sortOrder })
     .lean(lean)
     .batchSize(batchSize);

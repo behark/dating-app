@@ -9,7 +9,7 @@ const {
   deletePhoto,
   approvePhoto,
   rejectPhoto,
-  getPendingPhotos
+  getPendingPhotos,
 } = require('../controllers/profileController');
 const { authenticate } = require('../middleware/auth');
 const { apiCache, invalidateUserCache } = require('../middleware/apiCache');
@@ -23,7 +23,7 @@ const handleValidationErrors = (req, res, next) => {
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
-      errors: errors.array().map(err => ({ field: err.param, message: err.msg }))
+      errors: errors.array().map((err) => ({ field: err.param, message: err.msg })),
     });
   }
   next();
@@ -51,32 +51,54 @@ router.get('/:userId', apiCache('profile', 300), getProfile);
 router.get('/me', authenticate, apiCache('profile', 300), getMyProfile);
 
 // Update profile - invalidates cache
-router.put('/update', authenticate, invalidateCacheAfterUpdate, [
-  body('name').optional().trim().notEmpty(),
-  body('age').optional().isInt({ min: 18, max: 100 }),
-  body('gender').optional().isIn(['male', 'female', 'other']),
-  body('bio').optional().isLength({ max: 500 })
-], handleValidationErrors, updateProfile);
+router.put(
+  '/update',
+  authenticate,
+  invalidateCacheAfterUpdate,
+  [
+    body('name').optional().trim().notEmpty(),
+    body('age').optional().isInt({ min: 18, max: 100 }),
+    body('gender').optional().isIn(['male', 'female', 'other']),
+    body('bio').optional().isLength({ max: 500 }),
+  ],
+  handleValidationErrors,
+  updateProfile
+);
 
 // Upload photos - invalidates cache
-router.post('/photos/upload', authenticate, invalidateCacheAfterUpdate, [
-  body('photos').isArray({ min: 1, max: 6 }).withMessage('Photos array must have 1-6 items'),
-  body('photos.*.url').isURL().withMessage('Invalid photo URL')
-], handleValidationErrors, uploadPhotos);
+router.post(
+  '/photos/upload',
+  authenticate,
+  invalidateCacheAfterUpdate,
+  [
+    body('photos').isArray({ min: 1, max: 6 }).withMessage('Photos array must have 1-6 items'),
+    body('photos.*.url').isURL().withMessage('Invalid photo URL'),
+  ],
+  handleValidationErrors,
+  uploadPhotos
+);
 
 // Reorder photos
-router.put('/photos/reorder', authenticate, [
-  body('photoIds').isArray().withMessage('Photo IDs array is required')
-], handleValidationErrors, reorderPhotos);
+router.put(
+  '/photos/reorder',
+  authenticate,
+  [body('photoIds').isArray().withMessage('Photo IDs array is required')],
+  handleValidationErrors,
+  reorderPhotos
+);
 
 // Delete photo
 router.delete('/photos/:photoId', authenticate, deletePhoto);
 
 // Photo moderation (admin only)
 router.put('/photos/:photoId/approve', authenticate, approvePhoto);
-router.put('/photos/:photoId/reject', authenticate, [
-  body('reason').optional().trim()
-], handleValidationErrors, rejectPhoto);
+router.put(
+  '/photos/:photoId/reject',
+  authenticate,
+  [body('reason').optional().trim()],
+  handleValidationErrors,
+  rejectPhoto
+);
 
 // Get pending photos for moderation
 router.get('/admin/photos/pending', authenticate, getPendingPhotos);

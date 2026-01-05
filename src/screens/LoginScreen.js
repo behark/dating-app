@@ -2,15 +2,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { validateEmail, validatePassword } from '../utils/validators';
@@ -38,7 +38,7 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
         Alert.alert('Error', 'Please fill in all required fields (name, age, gender)');
         return;
       }
-      
+
       const ageNum = parseInt(age);
       if (isNaN(ageNum) || ageNum < 18 || ageNum > 100) {
         Alert.alert('Error', 'Please enter a valid age (18-100)');
@@ -51,8 +51,8 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
       return;
     }
 
-    if (!isLogin && !validatePassword(password)) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+    if (!isLogin && !validatePassword(password, { minLength: 8 })) {
+      Alert.alert('Error', 'Password must be at least 8 characters long');
       return;
     }
 
@@ -67,7 +67,10 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
         onAuthSuccess();
       }
     } catch (error) {
-      Alert.alert('Error', error.message);
+      const errorMessage =
+        error.message ||
+        (isLogin ? 'Login failed. Please try again.' : 'Signup failed. Please try again.');
+      Alert.alert('Error', errorMessage);
     }
   };
 
@@ -79,15 +82,13 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
         onAuthSuccess();
       }
     } catch (error) {
-      Alert.alert('Error', error.message);
+      const errorMessage = error.message || 'Google sign-in failed. Please try again.';
+      Alert.alert('Error', errorMessage);
     }
   };
 
   return (
-    <LinearGradient
-      colors={['#667eea', '#764ba2', '#f093fb']}
-      style={styles.container}
-    >
+    <LinearGradient colors={['#667eea', '#764ba2', '#f093fb']} style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -100,13 +101,9 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
             <View style={styles.logoContainer}>
               <Ionicons name="heart" size={60} color="#fff" />
             </View>
-            <Text style={styles.title}>
-              {isLogin ? 'Welcome Back' : 'Join Us'}
-            </Text>
+            <Text style={styles.title}>{isLogin ? 'Welcome Back' : 'Join Us'}</Text>
             <Text style={styles.subtitle}>
-              {isLogin
-                ? 'Sign in to find your perfect match'
-                : 'Create an account to get started'}
+              {isLogin ? 'Sign in to find your perfect match' : 'Create an account to get started'}
             </Text>
           </View>
 
@@ -114,7 +111,12 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
             {!isLogin && (
               <>
                 <View style={styles.inputContainer}>
-                  <Ionicons name="person-outline" size={20} color="#667eea" style={styles.inputIcon} />
+                  <Ionicons
+                    name="person-outline"
+                    size={20}
+                    color="#667eea"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Name"
@@ -126,7 +128,12 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                 </View>
 
                 <View style={styles.inputContainer}>
-                  <Ionicons name="calendar-outline" size={20} color="#667eea" style={styles.inputIcon} />
+                  <Ionicons
+                    name="calendar-outline"
+                    size={20}
+                    color="#667eea"
+                    style={styles.inputIcon}
+                  />
                   <TextInput
                     style={styles.input}
                     placeholder="Age"
@@ -139,21 +146,33 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                 </View>
 
                 <View style={styles.inputContainer}>
-                  <Ionicons name="male-female-outline" size={20} color="#667eea" style={styles.inputIcon} />
+                  <Ionicons
+                    name="male-female-outline"
+                    size={20}
+                    color="#667eea"
+                    style={styles.inputIcon}
+                  />
                   <View style={styles.genderContainer}>
                     <TouchableOpacity
                       style={[styles.genderButton, gender === 'male' && styles.genderButtonActive]}
                       onPress={() => setGender('male')}
                     >
-                      <Text style={[styles.genderText, gender === 'male' && styles.genderTextActive]}>
+                      <Text
+                        style={[styles.genderText, gender === 'male' && styles.genderTextActive]}
+                      >
                         Male
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={[styles.genderButton, gender === 'female' && styles.genderButtonActive]}
+                      style={[
+                        styles.genderButton,
+                        gender === 'female' && styles.genderButtonActive,
+                      ]}
                       onPress={() => setGender('female')}
                     >
-                      <Text style={[styles.genderText, gender === 'female' && styles.genderTextActive]}>
+                      <Text
+                        style={[styles.genderText, gender === 'female' && styles.genderTextActive]}
+                      >
                         Female
                       </Text>
                     </TouchableOpacity>
@@ -161,7 +180,9 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                       style={[styles.genderButton, gender === 'other' && styles.genderButtonActive]}
                       onPress={() => setGender('other')}
                     >
-                      <Text style={[styles.genderText, gender === 'other' && styles.genderTextActive]}>
+                      <Text
+                        style={[styles.genderText, gender === 'other' && styles.genderTextActive]}
+                      >
                         Other
                       </Text>
                     </TouchableOpacity>
@@ -185,7 +206,12 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
             </View>
 
             <View style={styles.inputContainer}>
-              <Ionicons name="lock-closed-outline" size={20} color="#667eea" style={styles.inputIcon} />
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color="#667eea"
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Password"
@@ -207,20 +233,14 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              style={styles.primaryButton}
-              onPress={handleAuth}
-              activeOpacity={0.8}
-            >
+            <TouchableOpacity style={styles.primaryButton} onPress={handleAuth} activeOpacity={0.8}>
               <LinearGradient
                 colors={['#667eea', '#764ba2']}
                 style={styles.buttonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
               >
-                <Text style={styles.primaryButtonText}>
-                  {isLogin ? 'Sign In' : 'Sign Up'}
-                </Text>
+                <Text style={styles.primaryButtonText}>{isLogin ? 'Sign In' : 'Sign Up'}</Text>
               </LinearGradient>
             </TouchableOpacity>
 
@@ -239,17 +259,10 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
               <Text style={styles.googleButtonText}>Continue with Google</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => setIsLogin(!isLogin)}
-              style={styles.switchButton}
-            >
+            <TouchableOpacity onPress={() => setIsLogin(!isLogin)} style={styles.switchButton}>
               <Text style={styles.switchText}>
-                {isLogin
-                  ? "Don't have an account? "
-                  : 'Already have an account? '}
-                <Text style={styles.switchTextBold}>
-                  {isLogin ? 'Sign Up' : 'Sign In'}
-                </Text>
+                {isLogin ? "Don't have an account? " : 'Already have an account? '}
+                <Text style={styles.switchTextBold}>{isLogin ? 'Sign Up' : 'Sign In'}</Text>
               </Text>
             </TouchableOpacity>
           </View>

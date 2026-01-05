@@ -17,10 +17,10 @@ const MS_PER_DAY = 86400000;
  */
 export const formatRelativeTime = (dateInput) => {
   if (!dateInput) return '';
-  
+
   const date = new Date(dateInput);
   if (isNaN(date.getTime())) return '';
-  
+
   const now = new Date();
   const diffMs = now - date;
   const diffMins = Math.floor(diffMs / MS_PER_MINUTE);
@@ -31,7 +31,7 @@ export const formatRelativeTime = (dateInput) => {
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
-  
+
   return date.toLocaleDateString();
 };
 
@@ -43,17 +43,17 @@ export const formatRelativeTime = (dateInput) => {
  */
 export const formatDate = (dateInput, options = {}) => {
   if (!dateInput) return '';
-  
+
   const date = new Date(dateInput);
   if (isNaN(date.getTime())) return '';
-  
+
   const defaultOptions = {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     ...options,
   };
-  
+
   return date.toLocaleDateString(undefined, defaultOptions);
 };
 
@@ -65,10 +65,10 @@ export const formatDate = (dateInput, options = {}) => {
  */
 export const formatDateTime = (dateInput, options = {}) => {
   if (!dateInput) return '';
-  
+
   const date = new Date(dateInput);
   if (isNaN(date.getTime())) return '';
-  
+
   const defaultOptions = {
     year: 'numeric',
     month: 'short',
@@ -77,7 +77,7 @@ export const formatDateTime = (dateInput, options = {}) => {
     minute: '2-digit',
     ...options,
   };
-  
+
   return date.toLocaleString(undefined, defaultOptions);
 };
 
@@ -89,16 +89,16 @@ export const formatDateTime = (dateInput, options = {}) => {
  */
 export const formatTime = (dateInput, options = {}) => {
   if (!dateInput) return '';
-  
+
   const date = new Date(dateInput);
   if (isNaN(date.getTime())) return '';
-  
+
   const defaultOptions = {
     hour: '2-digit',
     minute: '2-digit',
     ...options,
   };
-  
+
   return date.toLocaleTimeString(undefined, defaultOptions);
 };
 
@@ -109,10 +109,10 @@ export const formatTime = (dateInput, options = {}) => {
  */
 export const isToday = (dateInput) => {
   if (!dateInput) return false;
-  
+
   const date = new Date(dateInput);
   const today = new Date();
-  
+
   return (
     date.getDate() === today.getDate() &&
     date.getMonth() === today.getMonth() &&

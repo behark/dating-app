@@ -10,7 +10,7 @@ const generateIcebreakersMock = (interests, bio) => {
   // Generate icebreakers based on interests
   if (interests && interests.length > 0) {
     const interest = interests[Math.floor(Math.random() * interests.length)];
-    
+
     icebreakers.push(
       `I noticed you're into ${interest.toLowerCase()}. What got you started with that?`,
       `Your ${interest.toLowerCase()} interest caught my eye! Are you more of a casual enthusiast or full-on obsessed? 😄`,
@@ -23,9 +23,9 @@ const generateIcebreakersMock = (interests, bio) => {
     const generic = [
       `Hey! I saw your profile and thought we might have some things in common. What's something you're passionate about?`,
       `Hi there! I'm curious - what's the best part of your day usually?`,
-      `Hey! I'd love to get to know you better. What's something that always makes you smile?`
+      `Hey! I'd love to get to know you better. What's something that always makes you smile?`,
     ];
-    
+
     // Add generic ones to fill up to 3
     while (icebreakers.length < 3) {
       const randomGeneric = generic[Math.floor(Math.random() * generic.length)];
@@ -59,18 +59,17 @@ const generateIcebreakersOpenAI = async (interests, bio) => {
     console.warn('OpenAI package not installed, falling back to mock');
     return generateIcebreakersMock(interests, bio);
   }
-  
+
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
 
-  const interestsText = interests && interests.length > 0 
-    ? `Interests: ${interests.join(', ')}` 
-    : 'No specific interests listed';
-  
-  const bioText = bio && bio.length > 0 
-    ? `Bio: ${bio}` 
-    : 'No bio provided';
+  const interestsText =
+    interests && interests.length > 0
+      ? `Interests: ${interests.join(', ')}`
+      : 'No specific interests listed';
+
+  const bioText = bio && bio.length > 0 ? `Bio: ${bio}` : 'No bio provided';
 
   const prompt = `You are a helpful assistant for a dating app. Generate 3 funny, interesting, and engaging opening lines (icebreakers) for someone to use when messaging a match. 
 
@@ -95,20 +94,21 @@ Return ONLY a JSON array of exactly 3 strings, no other text. Example format:
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that generates engaging icebreaker messages for a dating app. Always return a valid JSON array of exactly 3 strings.'
+          content:
+            'You are a helpful assistant that generates engaging icebreaker messages for a dating app. Always return a valid JSON array of exactly 3 strings.',
         },
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       temperature: 0.8,
       max_tokens: 300,
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
     });
 
     const response = completion.choices[0].message.content;
-    
+
     // Try to parse as JSON object first (if OpenAI returns wrapped JSON)
     try {
       const parsed = JSON.parse(response);
@@ -129,7 +129,7 @@ Return ONLY a JSON array of exactly 3 strings, no other text. Example format:
         }
       }
     }
-    
+
     // Fallback to mock if parsing fails
     return generateIcebreakersMock(interests, bio);
   } catch (error) {
@@ -151,7 +151,7 @@ const generateIcebreakers = async (req, res) => {
     if (!targetUserId) {
       return res.status(400).json({
         success: false,
-        message: 'targetUserId is required'
+        message: 'targetUserId is required',
       });
     }
 
@@ -159,7 +159,7 @@ const generateIcebreakers = async (req, res) => {
     if (!require('mongoose').Types.ObjectId.isValid(targetUserId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid targetUserId format'
+        message: 'Invalid targetUserId format',
       });
     }
 
@@ -169,7 +169,7 @@ const generateIcebreakers = async (req, res) => {
     if (!targetUser) {
       return res.status(404).json({
         success: false,
-        message: 'Target user not found'
+        message: 'Target user not found',
       });
     }
 
@@ -179,7 +179,7 @@ const generateIcebreakers = async (req, res) => {
 
     // Generate icebreakers
     let icebreakers;
-    
+
     // Use OpenAI if API key is available, otherwise use mock
     if (process.env.OPENAI_API_KEY && process.env.USE_OPENAI !== 'false') {
       try {
@@ -203,15 +203,14 @@ const generateIcebreakers = async (req, res) => {
     // Return the icebreakers as JSON array
     return res.status(200).json({
       success: true,
-      icebreakers: icebreakers.slice(0, 3)
+      icebreakers: icebreakers.slice(0, 3),
     });
-
   } catch (error) {
     console.error('Error generating icebreakers:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to generate icebreakers',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -228,7 +227,7 @@ const getSmartPhotoSelection = async (req, res) => {
     if (!require('mongoose').Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid userId format'
+        message: 'Invalid userId format',
       });
     }
 
@@ -236,7 +235,7 @@ const getSmartPhotoSelection = async (req, res) => {
     if (!user || !user.photos || user.photos.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'User not found or has no photos'
+        message: 'User not found or has no photos',
       });
     }
 
@@ -245,16 +244,9 @@ const getSmartPhotoSelection = async (req, res) => {
       photoIndex: index,
       photoUrl: photo,
       score: 50 + Math.random() * 50, // Score 50-100
-      reasons: [
-        'Clear face visible',
-        'Good lighting',
-        'Attractive composition'
-      ],
+      reasons: ['Clear face visible', 'Good lighting', 'Attractive composition'],
       priority: index === 0 ? 'high' : index < 3 ? 'medium' : 'low',
-      suggestions: [
-        'Consider using as primary photo',
-        'Great for second position'
-      ]
+      suggestions: ['Consider using as primary photo', 'Great for second position'],
     }));
 
     // Sort by score
@@ -266,22 +258,23 @@ const getSmartPhotoSelection = async (req, res) => {
         recommendations: recommendations.slice(0, 5),
         analysis: {
           totalPhotos: user.photos.length,
-          averageScore: recommendations.reduce((sum, r) => sum + r.score, 0) / recommendations.length,
+          averageScore:
+            recommendations.reduce((sum, r) => sum + r.score, 0) / recommendations.length,
           suggestedPrimaryPhoto: recommendations[0],
           improvementAreas: [
             'Add more diverse photos',
             'Ensure at least one full-body photo',
-            'Include photos of your hobbies'
-          ]
-        }
-      }
+            'Include photos of your hobbies',
+          ],
+        },
+      },
     });
   } catch (error) {
     console.error('Error analyzing photos:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to analyze photos',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -297,21 +290,22 @@ const generateBioSuggestions = async (req, res) => {
     if (!userId) {
       return res.status(400).json({
         success: false,
-        message: 'userId is required'
+        message: 'userId is required',
       });
     }
 
     // Mock bio suggestions based on interests
     const bioTemplates = {
-      sports: "Adventure seeker | ${sport} enthusiast | Always up for something new 🏃",
-      travel: "World explorer 🌍 | Love discovering new places | ${destination} was amazing",
-      reading: "Bookworm 📚 | Coffee lover ☕ | Always reading my next favorite",
-      fitness: "Gym regular 💪 | Health conscious | Fitness goals: ${goal}",
+      sports: 'Adventure seeker | ${sport} enthusiast | Always up for something new 🏃',
+      travel: 'World explorer 🌍 | Love discovering new places | ${destination} was amazing',
+      reading: 'Bookworm 📚 | Coffee lover ☕ | Always reading my next favorite',
+      fitness: 'Gym regular 💪 | Health conscious | Fitness goals: ${goal}',
       art: "Creative soul 🎨 | Artist/Art lover | Life's too short for boring walls",
-      music: "Music lover 🎵 | ${genre} fan | Spotify playlist curator",
+      music: 'Music lover 🎵 | ${genre} fan | Spotify playlist curator',
       cooking: "Food enthusiast 🍳 | Home cook | Let's grab something delicious",
-      pets: "Animal lover 🐕 | Have ${petType} | Pet parent life",
-      default: "Looking for something real ✨ | Interested in ${interests} | Let's see where this goes"
+      pets: 'Animal lover 🐕 | Have ${petType} | Pet parent life',
+      default:
+        "Looking for something real ✨ | Interested in ${interests} | Let's see where this goes",
     };
 
     const suggestions = [];
@@ -324,19 +318,19 @@ const generateBioSuggestions = async (req, res) => {
       suggestions.push({
         bio: template.replace(/\$\{[^}]+\}/g, 'your detail'),
         tone: 'casual',
-        reason: `Highlights your interest in ${interest}`
+        reason: `Highlights your interest in ${interest}`,
       });
 
       suggestions.push({
         bio: `${interests.join(', ')} | Looking to meet someone genuine | Open to new experiences`,
         tone: 'friendly',
-        reason: 'Lists multiple interests naturally'
+        reason: 'Lists multiple interests naturally',
       });
 
       suggestions.push({
         bio: `Passionate about ${interests.join(' and ')} | Believe in being authentic | Let's grab coffee and see if we click?`,
         tone: 'warm',
-        reason: 'Personal and inviting tone'
+        reason: 'Personal and inviting tone',
       });
     }
 
@@ -345,7 +339,7 @@ const generateBioSuggestions = async (req, res) => {
       suggestions.push({
         bio: "Looking for genuine connection | Open-minded | Let's see where this goes ✨",
         tone: 'friendly',
-        reason: 'Universal and approachable'
+        reason: 'Universal and approachable',
       });
     }
 
@@ -356,16 +350,21 @@ const generateBioSuggestions = async (req, res) => {
         explanations: {
           toneAdvice: 'Keep it genuine and approachable',
           lengthTip: 'Aim for 50-150 characters',
-          avoidList: ['Generic clichés', 'Excessive emojis', 'Negativity', 'Looking for free rides']
-        }
-      }
+          avoidList: [
+            'Generic clichés',
+            'Excessive emojis',
+            'Negativity',
+            'Looking for free rides',
+          ],
+        },
+      },
     });
   } catch (error) {
     console.error('Error generating bio suggestions:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to generate bio suggestions',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -378,21 +377,25 @@ const calculateCompatibilityScore = async (req, res) => {
   try {
     const { userId, targetUserId } = req.params;
 
-    if (!require('mongoose').Types.ObjectId.isValid(userId) || 
-        !require('mongoose').Types.ObjectId.isValid(targetUserId)) {
+    if (
+      !require('mongoose').Types.ObjectId.isValid(userId) ||
+      !require('mongoose').Types.ObjectId.isValid(targetUserId)
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid userId format'
+        message: 'Invalid userId format',
       });
     }
 
     const user = await User.findById(userId).select('interests ageRange values gender location');
-    const targetUser = await User.findById(targetUserId).select('interests ageRange values gender location');
+    const targetUser = await User.findById(targetUserId).select(
+      'interests ageRange values gender location'
+    );
 
     if (!user || !targetUser) {
       return res.status(404).json({
         success: false,
-        message: 'One or both users not found'
+        message: 'One or both users not found',
       });
     }
 
@@ -403,39 +406,42 @@ const calculateCompatibilityScore = async (req, res) => {
       valueMatch: 0,
       ageCompatibility: 0,
       locationProximity: 0,
-      genderPreference: 0
+      genderPreference: 0,
     };
 
     // Interest matching
-    const commonInterests = (user.interests || []).filter(i => 
+    const commonInterests = (user.interests || []).filter((i) =>
       (targetUser.interests || []).includes(i)
     );
-    breakdown.interestMatch = Math.min(100, (commonInterests.length / Math.max((user.interests || []).length, 1)) * 100);
+    breakdown.interestMatch = Math.min(
+      100,
+      (commonInterests.length / Math.max((user.interests || []).length, 1)) * 100
+    );
 
     // Age compatibility
     const ageDiff = Math.abs((user.age || 0) - (targetUser.age || 0));
-    breakdown.ageCompatibility = Math.max(0, 100 - (ageDiff * 5));
+    breakdown.ageCompatibility = Math.max(0, 100 - ageDiff * 5);
 
     // Gender preference (simplified)
     breakdown.genderPreference = 50; // Default to compatible
 
     // Value match
-    const commonValues = (user.values || []).filter(v => 
-      (targetUser.values || []).includes(v)
+    const commonValues = (user.values || []).filter((v) => (targetUser.values || []).includes(v));
+    breakdown.valueMatch = Math.min(
+      100,
+      (commonValues.length / Math.max((user.values || []).length, 1)) * 100
     );
-    breakdown.valueMatch = Math.min(100, (commonValues.length / Math.max((user.values || []).length, 1)) * 100);
 
     // Location (mock)
     breakdown.locationProximity = 70; // Would calculate real distance in production
 
     // Calculate weighted score
-    score = (
+    score =
       breakdown.interestMatch * 0.25 +
       breakdown.valueMatch * 0.25 +
-      breakdown.ageCompatibility * 0.20 +
-      breakdown.genderPreference * 0.20 +
-      breakdown.locationProximity * 0.10
-    );
+      breakdown.ageCompatibility * 0.2 +
+      breakdown.genderPreference * 0.2 +
+      breakdown.locationProximity * 0.1;
 
     return res.status(200).json({
       success: true,
@@ -446,17 +452,17 @@ const calculateCompatibilityScore = async (req, res) => {
           valueMatch: Math.round(breakdown.valueMatch),
           ageCompatibility: Math.round(breakdown.ageCompatibility),
           locationProximity: Math.round(breakdown.locationProximity),
-          genderPreference: Math.round(breakdown.genderPreference)
+          genderPreference: Math.round(breakdown.genderPreference),
         },
-        explanation: getCompatibilityExplanation(score, commonInterests, commonValues)
-      }
+        explanation: getCompatibilityExplanation(score, commonInterests, commonValues),
+      },
     });
   } catch (error) {
     console.error('Error calculating compatibility:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to calculate compatibility',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -472,7 +478,7 @@ const getConversationStarters = async (req, res) => {
     if (!userId || !targetUserId) {
       return res.status(400).json({
         success: false,
-        message: 'userId and targetUserId are required'
+        message: 'userId and targetUserId are required',
       });
     }
 
@@ -480,7 +486,7 @@ const getConversationStarters = async (req, res) => {
     if (!targetUser) {
       return res.status(404).json({
         success: false,
-        message: 'Target user not found'
+        message: 'Target user not found',
       });
     }
 
@@ -531,16 +537,16 @@ const getConversationStarters = async (req, res) => {
         reasoning: {
           interestBased: interests.length > 0 ? `Based on their interest in ${interests[0]}` : null,
           bioBased: bio ? 'Based on their bio' : null,
-          personalizationLevel: 'high'
-        }
-      }
+          personalizationLevel: 'high',
+        },
+      },
     });
   } catch (error) {
     console.error('Error getting conversation starters:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to get conversation starters',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -550,7 +556,7 @@ const getConversationStarters = async (req, res) => {
  */
 const getCompatibilityExplanation = (score, commonInterests, commonValues) => {
   let explanation = '';
-  
+
   if (score >= 80) {
     explanation = 'Excellent match! You have a lot in common.';
   } else if (score >= 60) {
@@ -558,7 +564,8 @@ const getCompatibilityExplanation = (score, commonInterests, commonValues) => {
   } else if (score >= 40) {
     explanation = 'You might be compatible! Worth exploring to see if there is chemistry.';
   } else {
-    explanation = 'Limited compatibility based on interests and values. Could still be worth trying!';
+    explanation =
+      'Limited compatibility based on interests and values. Could still be worth trying!';
   }
 
   if (commonInterests.length > 0) {
@@ -577,7 +584,7 @@ const analyzePhotoQuality = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: 'No photo provided'
+        message: 'No photo provided',
       });
     }
 
@@ -588,28 +595,24 @@ const analyzePhotoQuality = async (req, res) => {
         lighting: 75,
         composition: 80,
         facialVisibility: 95,
-        clarity: 88
+        clarity: 88,
       },
-      suggestions: [
-        'Excellent face visibility',
-        'Good natural lighting',
-        'Well-composed shot'
-      ],
+      suggestions: ['Excellent face visibility', 'Good natural lighting', 'Well-composed shot'],
       score: 87,
       suitableForProfile: true,
-      issues: []
+      issues: [],
     };
 
     return res.status(200).json({
       success: true,
-      data: analysis
+      data: analysis,
     });
   } catch (error) {
     console.error('Error analyzing photo:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to analyze photo',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -626,15 +629,17 @@ const getPersonalizedMatches = async (req, res) => {
     if (!require('mongoose').Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid userId format'
+        message: 'Invalid userId format',
       });
     }
 
-    const user = await User.findById(userId).select('interests values location age gender preference');
+    const user = await User.findById(userId).select(
+      'interests values location age gender preference'
+    );
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -648,7 +653,7 @@ const getPersonalizedMatches = async (req, res) => {
         compatibilityScore: 60 + Math.floor(Math.random() * 40),
         sharedInterests: (user.interests || []).slice(0, 2),
         distance: Math.floor(Math.random() * 20) + 1,
-        ranking: i + 1
+        ranking: i + 1,
       });
     }
 
@@ -661,17 +666,17 @@ const getPersonalizedMatches = async (req, res) => {
           factors: {
             useInterests,
             useValues,
-            useLocation
-          }
-        }
-      }
+            useLocation,
+          },
+        },
+      },
     });
   } catch (error) {
     console.error('Error getting personalized matches:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to get personalized matches',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -687,7 +692,7 @@ const getProfileImprovementSuggestions = async (req, res) => {
     if (!require('mongoose').Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid userId format'
+        message: 'Invalid userId format',
       });
     }
 
@@ -695,7 +700,7 @@ const getProfileImprovementSuggestions = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -707,7 +712,7 @@ const getProfileImprovementSuggestions = async (req, res) => {
         area: 'Photos',
         priority: 'high',
         suggestion: 'Add more photos to increase profile visibility',
-        impact: 'More photos increase match chances by 30%'
+        impact: 'More photos increase match chances by 30%',
       });
     }
 
@@ -716,7 +721,7 @@ const getProfileImprovementSuggestions = async (req, res) => {
         area: 'Bio',
         priority: 'high',
         suggestion: 'Write a more descriptive bio',
-        impact: 'Good bios lead to more meaningful matches'
+        impact: 'Good bios lead to more meaningful matches',
       });
     }
 
@@ -725,7 +730,7 @@ const getProfileImprovementSuggestions = async (req, res) => {
         area: 'Interests',
         priority: 'medium',
         suggestion: 'Add more interests to help with matching',
-        impact: '5+ interests improve match accuracy'
+        impact: '5+ interests improve match accuracy',
       });
     }
 
@@ -734,26 +739,26 @@ const getProfileImprovementSuggestions = async (req, res) => {
       area: 'Profile Completeness',
       priority: 'medium',
       suggestion: 'Fill in all optional fields for better matches',
-      impact: 'Complete profiles are 2x more likely to match'
+      impact: 'Complete profiles are 2x more likely to match',
     });
 
     return res.status(200).json({
       success: true,
       data: {
         suggestions: suggestions.slice(0, 5),
-        priority: suggestions.filter(s => s.priority === 'high').map(s => s.suggestion),
+        priority: suggestions.filter((s) => s.priority === 'high').map((s) => s.suggestion),
         impact: {
           completenessScore: calculateCompletenessScore(user),
-          potentialImprovementScore: 85
-        }
-      }
+          potentialImprovementScore: 85,
+        },
+      },
     });
   } catch (error) {
     console.error('Error getting suggestions:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to get profile suggestions',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -769,30 +774,30 @@ const getConversationInsights = async (req, res) => {
     if (!require('mongoose').Types.ObjectId.isValid(userId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid userId format'
+        message: 'Invalid userId format',
       });
     }
 
     // Mock insights based on user data
     const insights = [
       {
-        title: 'You\'re Great at Opening Lines',
+        title: "You're Great at Opening Lines",
         description: 'Your conversation starters have a 45% response rate (avg: 22%)',
         impact: 'positive',
-        tip: 'Keep being genuine and asking personalized questions'
+        tip: 'Keep being genuine and asking personalized questions',
       },
       {
         title: 'Response Time Matters',
         description: 'Users who respond within 2 hours are 3x more likely to meet',
         impact: 'neutral',
-        tip: 'Try to respond to messages within a few hours'
+        tip: 'Try to respond to messages within a few hours',
       },
       {
         title: 'Emoji Usage',
         description: 'Using 1-2 emojis increases response rates by 25%',
         impact: 'positive',
-        tip: 'Don\'t overuse emojis, but a couple can help break the ice'
-      }
+        tip: "Don't overuse emojis, but a couple can help break the ice",
+      },
     ];
 
     const tips = [
@@ -801,14 +806,14 @@ const getConversationInsights = async (req, res) => {
       'Show genuine interest in their hobbies and interests',
       'Avoid one-word responses',
       'Use humor when appropriate',
-      'Plan a date within 3-5 exchanges'
+      'Plan a date within 3-5 exchanges',
     ];
 
     const patterns = {
       averageMessageLength: '45 characters',
       averageResponseTime: '2 hours',
       mostCommonTopics: ['travel', 'food', 'hobbies'],
-      conversationDuration: '3-5 exchanges before meeting'
+      conversationDuration: '3-5 exchanges before meeting',
     };
 
     return res.status(200).json({
@@ -816,15 +821,15 @@ const getConversationInsights = async (req, res) => {
       data: {
         insights,
         tips,
-        patterns
-      }
+        patterns,
+      },
     });
   } catch (error) {
     console.error('Error getting insights:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to get conversation insights',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -860,8 +865,8 @@ const generateMatchIcebreakersMock = (currentUser, matchUser) => {
   const matchBio = matchUser.bio || '';
 
   // Find common interests
-  const commonInterests = currentInterests.filter(interest =>
-    matchInterests.some(mi => mi.toLowerCase() === interest.toLowerCase())
+  const commonInterests = currentInterests.filter((interest) =>
+    matchInterests.some((mi) => mi.toLowerCase() === interest.toLowerCase())
   );
 
   // Generate icebreakers based on common interests
@@ -874,8 +879,8 @@ const generateMatchIcebreakersMock = (currentUser, matchUser) => {
   }
 
   // Generate icebreaker based on match's unique interests
-  const uniqueMatchInterests = matchInterests.filter(interest =>
-    !currentInterests.some(ci => ci.toLowerCase() === interest.toLowerCase())
+  const uniqueMatchInterests = matchInterests.filter(
+    (interest) => !currentInterests.some((ci) => ci.toLowerCase() === interest.toLowerCase())
   );
   if (uniqueMatchInterests.length > 0) {
     const uniqueInterest = uniqueMatchInterests[0];
@@ -907,7 +912,7 @@ const generateMatchIcebreakersMock = (currentUser, matchUser) => {
   const genericIcebreakers = [
     `Hey ${matchUser.name || 'there'}! Your profile really stood out to me. What's something you're passionate about right now?`,
     `Hi! I'm curious - what's the most interesting thing that happened to you recently?`,
-    `Hey! If you could have dinner with anyone, who would it be and why?`
+    `Hey! If you could have dinner with anyone, who would it be and why?`,
   ];
 
   while (icebreakers.length < 3) {
@@ -942,19 +947,17 @@ const generateMatchIcebreakersOpenAI = async (currentUser, matchUser) => {
   });
 
   // Format user profiles for the prompt
-  const currentInterests = currentUser.interests?.length > 0
-    ? currentUser.interests.join(', ')
-    : 'Not specified';
-  const matchInterests = matchUser.interests?.length > 0
-    ? matchUser.interests.join(', ')
-    : 'Not specified';
-  
+  const currentInterests =
+    currentUser.interests?.length > 0 ? currentUser.interests.join(', ') : 'Not specified';
+  const matchInterests =
+    matchUser.interests?.length > 0 ? matchUser.interests.join(', ') : 'Not specified';
+
   const currentBio = currentUser.bio || 'No bio provided';
   const matchBio = matchUser.bio || 'No bio provided';
 
   // Find common interests for the prompt
-  const commonInterests = (currentUser.interests || []).filter(interest =>
-    (matchUser.interests || []).some(mi => mi.toLowerCase() === interest.toLowerCase())
+  const commonInterests = (currentUser.interests || []).filter((interest) =>
+    (matchUser.interests || []).some((mi) => mi.toLowerCase() === interest.toLowerCase())
   );
 
   const prompt = `You are a dating app conversation coach. Generate 3 unique, engaging, and non-generic conversation starters (icebreakers) for a user to send to their match.
@@ -989,16 +992,17 @@ Example format: {"icebreakers": ["First icebreaker...", "Second icebreaker...", 
       messages: [
         {
           role: 'system',
-          content: 'You are a witty dating coach who helps people start engaging conversations. You create personalized, fun, and thoughtful conversation starters that make people want to respond. Always return valid JSON with an "icebreakers" array.'
+          content:
+            'You are a witty dating coach who helps people start engaging conversations. You create personalized, fun, and thoughtful conversation starters that make people want to respond. Always return valid JSON with an "icebreakers" array.',
         },
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       temperature: 0.85,
       max_tokens: 400,
-      response_format: { type: 'json_object' }
+      response_format: { type: 'json_object' },
     });
 
     const response = completion.choices[0].message.content;
@@ -1033,10 +1037,10 @@ Example format: {"icebreakers": ["First icebreaker...", "Second icebreaker...", 
 /**
  * Generate icebreaker messages for a match (using both users' profiles)
  * POST /api/ai/icebreaker (with matchId parameter)
- * 
+ *
  * This endpoint generates personalized conversation starters based on
  * both users' interests and bios for more meaningful icebreakers.
- * 
+ *
  * @param {string} matchId - The user ID of the match (the other person)
  * @returns {object} - Object containing array of 3 icebreakers and match info
  */
@@ -1049,7 +1053,7 @@ const generateMatchIcebreakers = async (req, res) => {
     if (!matchId) {
       return res.status(400).json({
         success: false,
-        message: 'matchId is required'
+        message: 'matchId is required',
       });
     }
 
@@ -1057,7 +1061,7 @@ const generateMatchIcebreakers = async (req, res) => {
     if (!require('mongoose').Types.ObjectId.isValid(matchId)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid matchId format'
+        message: 'Invalid matchId format',
       });
     }
 
@@ -1073,19 +1077,17 @@ const generateMatchIcebreakers = async (req, res) => {
     if (!matchUser) {
       return res.status(404).json({
         success: false,
-        message: 'Match user not found'
+        message: 'Match user not found',
       });
     }
 
     // Verify that these users are actually matched (if current user is authenticated)
     if (currentUser && currentUser.matches) {
-      const isMatched = currentUser.matches.some(
-        m => m.toString() === matchId.toString()
-      );
+      const isMatched = currentUser.matches.some((m) => m.toString() === matchId.toString());
       if (!isMatched) {
         return res.status(403).json({
           success: false,
-          message: 'You are not matched with this user'
+          message: 'You are not matched with this user',
         });
       }
     }
@@ -1131,9 +1133,10 @@ const generateMatchIcebreakers = async (req, res) => {
     }
 
     // Find common interests for response
-    const commonInterests = currentUser?.interests?.filter(interest =>
-      matchUser.interests?.some(mi => mi.toLowerCase() === interest.toLowerCase())
-    ) || [];
+    const commonInterests =
+      currentUser?.interests?.filter((interest) =>
+        matchUser.interests?.some((mi) => mi.toLowerCase() === interest.toLowerCase())
+      ) || [];
 
     return res.status(200).json({
       success: true,
@@ -1142,16 +1145,15 @@ const generateMatchIcebreakers = async (req, res) => {
         matchId: matchId,
         matchName: matchUser.name,
         commonInterests: commonInterests,
-        hasCommonInterests: commonInterests.length > 0
-      }
+        hasCommonInterests: commonInterests.length > 0,
+      },
     });
-
   } catch (error) {
     console.error('Error generating match icebreakers:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to generate icebreakers',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -1166,5 +1168,5 @@ module.exports = {
   analyzePhotoQuality,
   getPersonalizedMatches,
   getProfileImprovementSuggestions,
-  getConversationInsights
+  getConversationInsights,
 };

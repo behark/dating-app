@@ -18,11 +18,13 @@ describe('ValidationService', () => {
   describe('validatePassword', () => {
     it('should validate passwords with minimum length', () => {
       expect(ValidationService.validatePassword('password123')).toBe(true);
-      expect(ValidationService.validatePassword('123456')).toBe(true);
+      expect(ValidationService.validatePassword('12345678')).toBe(true);
     });
 
     it('should reject passwords that are too short', () => {
       expect(ValidationService.validatePassword('12345')).toBe(false);
+      expect(ValidationService.validatePassword('123456')).toBe(false);
+      expect(ValidationService.validatePassword('1234567')).toBe(false);
       expect(ValidationService.validatePassword('')).toBe(false);
       expect(ValidationService.validatePassword(null)).toBe(false);
     });

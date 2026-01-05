@@ -1,18 +1,19 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { ProfileService } from '../services/ProfileService';
+import logger from '../utils/logger';
 
 export const EditProfileScreen = ({ navigation, route }) => {
   const { currentUser, authToken } = useAuth();
@@ -37,7 +38,7 @@ export const EditProfileScreen = ({ navigation, route }) => {
       setLoading(true);
       const userProfile = await ProfileService.getMyProfile();
       setProfile(userProfile);
-      
+
       setName(userProfile.name || '');
       setAge(userProfile.age?.toString() || '');
       setGender(userProfile.gender || '');
@@ -46,7 +47,7 @@ export const EditProfileScreen = ({ navigation, route }) => {
       setPhotos(userProfile.photos || []);
     } catch (error) {
       Alert.alert('Error', 'Failed to load profile');
-      console.error('Error loading profile:', error);
+      logger.error('Error loading profile:', error);
     } finally {
       setLoading(false);
     }
@@ -58,21 +59,22 @@ export const EditProfileScreen = ({ navigation, route }) => {
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [3, 4],
-        quality: 0.8
+        quality: 0.8,
       });
 
       if (!result.cancelled) {
-        // TODO: Upload image to Firebase Storage and get URL
+        // Upload image to storage and get URL
         const imageUri = result.assets[0].uri;
-        
-        // For now, we'll use the local URI (in production, upload to cloud storage)
+
+        // Note: Image upload to cloud storage should be handled by ProfileService.uploadPhotos()
+        // This local URI is used for preview; actual upload happens when user saves profile
         const newPhoto = {
           url: imageUri,
-          order: photos.length
+          order: photos.length,
         };
 
         const updatedPhotos = [...photos, newPhoto];
-        
+
         if (updatedPhotos.length > 6) {
           Alert.alert('Limit', 'Maximum 6 photos allowed');
           return;
@@ -88,7 +90,7 @@ export const EditProfileScreen = ({ navigation, route }) => {
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to pick image');
-      console.error('Error picking image:', error);
+      logger.error('Error picking image:', error);
     }
   };
 
@@ -130,7 +132,7 @@ export const EditProfileScreen = ({ navigation, route }) => {
         age: parseInt(age),
         gender,
         bio: bio.trim(),
-        interests
+        interests,
       });
 
       setProfile(updatedProfile);
@@ -156,17 +158,12 @@ export const EditProfileScreen = ({ navigation, route }) => {
       {/* Photos Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Photos</Text>
-        <Text style={styles.helperText}>
-          {photos.length}/6 photos uploaded
-        </Text>
+        <Text style={styles.helperText}>{photos.length}/6 photos uploaded</Text>
 
         <View style={styles.photosGrid}>
           {photos.map((photo, index) => (
             <View key={photo._id || index} style={styles.photoContainer}>
-              <Image
-                source={{ uri: photo.url }}
-                style={styles.photo}
-              />
+              <Image source={{ uri: photo.url }} style={styles.photo} />
               <TouchableOpacity
                 style={styles.photoDeleteBtn}
                 onPress={() => removePhoto(photo._id)}
@@ -182,10 +179,7 @@ export const EditProfileScreen = ({ navigation, route }) => {
           ))}
 
           {photos.length < 6 && (
-            <TouchableOpacity
-              style={styles.photoAddBtn}
-              onPress={pickImage}
-            >
+            <TouchableOpacity style={styles.photoAddBtn} onPress={pickImage}>
               <Text style={styles.photoAddBtnText}>+ Add Photo</Text>
             </TouchableOpacity>
           )}
@@ -223,16 +217,10 @@ export const EditProfileScreen = ({ navigation, route }) => {
             {['male', 'female', 'other'].map((g) => (
               <TouchableOpacity
                 key={g}
-                style={[
-                  styles.genderBtn,
-                  gender === g && styles.genderBtnActive
-                ]}
+                style={[styles.genderBtn, gender === g && styles.genderBtnActive]}
                 onPress={() => setGender(g)}
               >
-                <Text style={[
-                  styles.genderBtnText,
-                  gender === g && styles.genderBtnTextActive
-                ]}>
+                <Text style={[styles.genderBtnText, gender === g && styles.genderBtnTextActive]}>
                   {g.charAt(0).toUpperCase() + g.slice(1)}
                 </Text>
               </TouchableOpacity>
@@ -245,9 +233,15 @@ export const EditProfileScreen = ({ navigation, route }) => {
       <View style={styles.section}>
         <View style={styles.bioHeaderRow}>
           <Text style={styles.sectionTitle}>Bio</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.bioSuggestButton}
-            onPress={() => navigation.navigate('Premium', { feature: 'bioSuggestions', currentBio: bio, interests: interests })}
+            onPress={() =>
+              navigation.navigate('Premium', {
+                feature: 'bioSuggestions',
+                currentBio: bio,
+                interests: interests,
+              })
+            }
           >
             <Text style={styles.bioSuggestButtonText}>✨ Suggestions</Text>
           </TouchableOpacity>
@@ -263,9 +257,7 @@ export const EditProfileScreen = ({ navigation, route }) => {
             multiline
             numberOfLines={5}
           />
-          <Text style={styles.charCount}>
-            {bio.length}/500 characters
-          </Text>
+          <Text style={styles.charCount}>{bio.length}/500 characters</Text>
         </View>
       </View>
 
@@ -280,10 +272,7 @@ export const EditProfileScreen = ({ navigation, route }) => {
               value={interestInput}
               onChangeText={setInterestInput}
             />
-            <TouchableOpacity
-              style={styles.addInterestBtn}
-              onPress={addInterest}
-            >
+            <TouchableOpacity style={styles.addInterestBtn} onPress={addInterest}>
               <Text style={styles.addInterestBtnText}>Add</Text>
             </TouchableOpacity>
           </View>
@@ -322,39 +311,39 @@ export const EditProfileScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   section: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0'
+    borderBottomColor: '#f0f0f0',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333'
+    color: '#333',
   },
   helperText: {
     fontSize: 12,
     color: '#999',
-    marginBottom: 12
+    marginBottom: 12,
   },
   photosGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10
+    gap: 10,
   },
   photoContainer: {
     width: '31%',
     aspectRatio: 3 / 4,
-    position: 'relative'
+    position: 'relative',
   },
   photo: {
     width: '100%',
     height: '100%',
     borderRadius: 8,
-    backgroundColor: '#f0f0f0'
+    backgroundColor: '#f0f0f0',
   },
   photoDeleteBtn: {
     position: 'absolute',
@@ -365,12 +354,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: '#FF6B6B',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   photoDeletBtnText: {
     color: 'white',
     fontSize: 20,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   photoAddBtn: {
     width: '31%',
@@ -381,12 +370,12 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f9f9f9'
+    backgroundColor: '#f9f9f9',
   },
   photoAddBtnText: {
     color: '#999',
     fontSize: 14,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   moderationBadge: {
     position: 'absolute',
@@ -395,21 +384,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFC107',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 4
+    borderRadius: 4,
   },
   moderationText: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#fff'
+    color: '#fff',
   },
   inputGroup: {
-    marginBottom: 16
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333'
+    color: '#333',
   },
   input: {
     borderWidth: 1,
@@ -417,21 +406,21 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#333'
+    color: '#333',
   },
   bioInput: {
     textAlignVertical: 'top',
-    minHeight: 120
+    minHeight: 120,
   },
   charCount: {
     fontSize: 12,
     color: '#999',
     marginTop: 4,
-    textAlign: 'right'
+    textAlign: 'right',
   },
   genderOptions: {
     flexDirection: 'row',
-    gap: 10
+    gap: 10,
   },
   genderBtn: {
     flex: 1,
@@ -440,24 +429,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   genderBtnActive: {
     backgroundColor: '#FF6B6B',
-    borderColor: '#FF6B6B'
+    borderColor: '#FF6B6B',
   },
   genderBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333'
+    color: '#333',
   },
   genderBtnTextActive: {
-    color: 'white'
+    color: 'white',
   },
   interestInputRow: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 12
+    marginBottom: 12,
   },
   interestInput: {
     flex: 1,
@@ -465,24 +454,24 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 8,
     padding: 10,
-    fontSize: 14
+    fontSize: 14,
   },
   addInterestBtn: {
     paddingHorizontal: 16,
     paddingVertical: 10,
     backgroundColor: '#FF6B6B',
     borderRadius: 8,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   addInterestBtnText: {
     color: 'white',
     fontWeight: '600',
-    fontSize: 14
+    fontSize: 14,
   },
   interestsList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8
+    gap: 8,
   },
   interestTag: {
     flexDirection: 'row',
@@ -491,34 +480,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    gap: 6
+    gap: 6,
   },
   interestText: {
     fontSize: 13,
-    color: '#333'
+    color: '#333',
   },
   interestRemove: {
     fontSize: 18,
     color: '#999',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   saveBtn: {
     margin: 20,
     paddingVertical: 14,
     backgroundColor: '#FF6B6B',
     borderRadius: 8,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   saveBtnDisabled: {
-    opacity: 0.6
+    opacity: 0.6,
   },
   saveBtnText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   spacer: {
-    height: 20
+    height: 20,
   },
   bioHeaderRow: {
     flexDirection: 'row',

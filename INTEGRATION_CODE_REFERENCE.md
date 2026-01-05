@@ -9,65 +9,78 @@
 **Location**: [src/screens/HomeScreen.js](src/screens/HomeScreen.js) - After premium header
 
 ```javascript
-{/* AI Features Quick Access */}
-{isPremium && (
-  <View style={styles.aiQuickAccessContainer}>
-    <View style={styles.aiHeaderRow}>
-      <Ionicons name="sparkles" size={18} color="#667eea" style={{ marginRight: 8 }} />
-      <Text style={styles.aiQuickAccessTitle}>AI Insights</Text>
+{
+  /* AI Features Quick Access */
+}
+{
+  isPremium && (
+    <View style={styles.aiQuickAccessContainer}>
+      <View style={styles.aiHeaderRow}>
+        <Ionicons name="sparkles" size={18} color="#667eea" style={{ marginRight: 8 }} />
+        <Text style={styles.aiQuickAccessTitle}>AI Insights</Text>
+      </View>
+      <View style={styles.aiButtonsGrid}>
+        <TouchableOpacity
+          style={styles.aiQuickButton}
+          onPress={() =>
+            navigation.navigate('ViewProfile', {
+              userId: cards[currentIndex]?.id,
+              showCompatibility: true,
+            })
+          }
+          activeOpacity={0.7}
+        >
+          <Ionicons name="heart" size={20} color="#FF6B6B" />
+          <Text style={styles.aiButtonLabel}>Compatibility</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.aiQuickButton}
+          onPress={() =>
+            navigation.navigate('Premium', {
+              feature: 'conversationStarters',
+              targetUserId: cards[currentIndex]?.id,
+            })
+          }
+          activeOpacity={0.7}
+        >
+          <Ionicons name="chatbubbles" size={20} color="#4ECDC4" />
+          <Text style={styles.aiButtonLabel}>Talk Tips</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.aiQuickButton}
+          onPress={() =>
+            navigation.navigate('EditProfile', {
+              feature: 'bioSuggestions',
+            })
+          }
+          activeOpacity={0.7}
+        >
+          <Ionicons name="create" size={20} color="#FFD700" />
+          <Text style={styles.aiButtonLabel}>Bio Ideas</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.aiQuickButton}
+          onPress={() =>
+            navigation.navigate('Premium', {
+              feature: 'smartPhotos',
+            })
+          }
+          activeOpacity={0.7}
+        >
+          <Ionicons name="image" size={20} color="#667eea" />
+          <Text style={styles.aiButtonLabel}>Photo Tips</Text>
+        </TouchableOpacity>
+      </View>
     </View>
-    <View style={styles.aiButtonsGrid}>
-      <TouchableOpacity 
-        style={styles.aiQuickButton}
-        onPress={() => navigation.navigate('ViewProfile', { 
-          userId: cards[currentIndex]?.id,
-          showCompatibility: true 
-        })}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="heart" size={20} color="#FF6B6B" />
-        <Text style={styles.aiButtonLabel}>Compatibility</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={styles.aiQuickButton}
-        onPress={() => navigation.navigate('Premium', { 
-          feature: 'conversationStarters',
-          targetUserId: cards[currentIndex]?.id
-        })}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="chatbubbles" size={20} color="#4ECDC4" />
-        <Text style={styles.aiButtonLabel}>Talk Tips</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={styles.aiQuickButton}
-        onPress={() => navigation.navigate('EditProfile', { 
-          feature: 'bioSuggestions'
-        })}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="create" size={20} color="#FFD700" />
-        <Text style={styles.aiButtonLabel}>Bio Ideas</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={styles.aiQuickButton}
-        onPress={() => navigation.navigate('Premium', { 
-          feature: 'smartPhotos'
-        })}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="image" size={20} color="#667eea" />
-        <Text style={styles.aiButtonLabel}>Photo Tips</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-)}
+  );
+}
 ```
 
 **Styles to add**:
+
 ```javascript
 aiQuickAccessContainer: {
   backgroundColor: '#fff',
@@ -118,16 +131,19 @@ aiButtonLabel: {
 **Location**: [src/screens/EditProfileScreen.js](src/screens/EditProfileScreen.js) - Bio section
 
 Replace the Bio header with:
+
 ```javascript
 <View style={styles.bioHeaderRow}>
   <Text style={styles.sectionTitle}>Bio</Text>
-  <TouchableOpacity 
+  <TouchableOpacity
     style={styles.bioSuggestButton}
-    onPress={() => navigation.navigate('Premium', { 
-      feature: 'bioSuggestions', 
-      currentBio: bio, 
-      interests: interests 
-    })}
+    onPress={() =>
+      navigation.navigate('Premium', {
+        feature: 'bioSuggestions',
+        currentBio: bio,
+        interests: interests,
+      })
+    }
   >
     <Text style={styles.bioSuggestButtonText}>✨ Suggestions</Text>
   </TouchableOpacity>
@@ -135,6 +151,7 @@ Replace the Bio header with:
 ```
 
 **Styles to add**:
+
 ```javascript
 bioHeaderRow: {
   flexDirection: 'row',
@@ -162,25 +179,22 @@ bioSuggestButtonText: {
 **Location**: [src/screens/PhotoGalleryScreen.js](src/screens/PhotoGalleryScreen.js) - Header
 
 Replace header section with:
+
 ```javascript
-<LinearGradient
-  colors={['#667eea', '#764ba2']}
-  style={styles.header}
->
-  <TouchableOpacity
-    onPress={() => navigation.goBack()}
-    style={styles.backButton}
-  >
+<LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
     <Ionicons name="arrow-back" size={24} color="#fff" />
   </TouchableOpacity>
   <Text style={styles.headerTitle}>Photo Gallery</Text>
   <View style={styles.headerRightSection}>
     <TouchableOpacity
       style={styles.analyzeButton}
-      onPress={() => navigation.navigate('Premium', { 
-        feature: 'smartPhotos',
-        photos: photos 
-      })}
+      onPress={() =>
+        navigation.navigate('Premium', {
+          feature: 'smartPhotos',
+          photos: photos,
+        })
+      }
     >
       <Ionicons name="sparkles" size={18} color="#FFD700" style={{ marginRight: 4 }} />
       <Text style={styles.analyzeButtonText}>Analyze</Text>
@@ -191,6 +205,7 @@ Replace header section with:
 ```
 
 **Styles to add**:
+
 ```javascript
 headerRightSection: {
   flexDirection: 'row',
@@ -221,20 +236,16 @@ analyzeButtonText: {
 **Location**: [src/screens/ViewProfileScreen.js](src/screens/ViewProfileScreen.js)
 
 **State Addition**:
+
 ```javascript
 const [showCompatibilityScore, setShowCompatibilityScore] = useState(showCompatibility || false);
 ```
 
 **Header Update**:
+
 ```javascript
-<LinearGradient
-  colors={['#667eea', '#764ba2']}
-  style={styles.header}
->
-  <TouchableOpacity
-    onPress={() => navigation.goBack()}
-    style={styles.backButton}
-  >
+<LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
     <Ionicons name="arrow-back" size={24} color="#fff" />
   </TouchableOpacity>
   <Text style={styles.headerTitle}>Profile</Text>
@@ -248,28 +259,34 @@ const [showCompatibilityScore, setShowCompatibilityScore] = useState(showCompati
 ```
 
 **Add Compatibility Section** (after info section):
+
 ```javascript
-{showCompatibilityScore && (
-  <View style={styles.compatibilitySection}>
-    <View style={styles.compatibilityHeader}>
-      <Ionicons name="sparkles" size={18} color="#667eea" />
-      <Text style={styles.compatibilityTitle}>Compatibility Score</Text>
+{
+  showCompatibilityScore && (
+    <View style={styles.compatibilitySection}>
+      <View style={styles.compatibilityHeader}>
+        <Ionicons name="sparkles" size={18} color="#667eea" />
+        <Text style={styles.compatibilityTitle}>Compatibility Score</Text>
+      </View>
+      <TouchableOpacity
+        style={styles.viewCompatibilityButton}
+        onPress={() =>
+          navigation.navigate('Premium', {
+            feature: 'compatibility',
+            targetUserId: userId,
+          })
+        }
+      >
+        <Ionicons name="trending-up" size={16} color="#fff" />
+        <Text style={styles.viewCompatibilityText}>View AI Analysis</Text>
+      </TouchableOpacity>
     </View>
-    <TouchableOpacity
-      style={styles.viewCompatibilityButton}
-      onPress={() => navigation.navigate('Premium', {
-        feature: 'compatibility',
-        targetUserId: userId
-      })}
-    >
-      <Ionicons name="trending-up" size={16} color="#fff" />
-      <Text style={styles.viewCompatibilityText}>View AI Analysis</Text>
-    </TouchableOpacity>
-  </View>
-)}
+  );
+}
 ```
 
 **Styles to add**:
+
 ```javascript
 compatibilityButton: {
   width: 40,
@@ -330,11 +347,12 @@ viewCompatibilityText: {
 **Location**: [src/screens/MatchesScreen.js](src/screens/MatchesScreen.js) - Action buttons section
 
 Add to existing action buttons:
+
 ```javascript
 <TouchableOpacity
-  onPress={() => navigation.navigate('ViewProfile', { 
-    userId: item.otherUser._id, 
-    showCompatibility: true 
+  onPress={() => navigation.navigate('ViewProfile', {
+    userId: item.otherUser._id,
+    showCompatibility: true
   })}
   activeOpacity={0.8}
   style={styles.compatibilityButton}
@@ -343,10 +361,10 @@ Add to existing action buttons:
 </TouchableOpacity>
 
 <TouchableOpacity
-  onPress={() => navigation.navigate('SafetyAdvanced', { 
-    userId: currentUser.uid, 
-    isPremium: true, 
-    preSelectTab: 'date-plans' 
+  onPress={() => navigation.navigate('SafetyAdvanced', {
+    userId: currentUser.uid,
+    isPremium: true,
+    preSelectTab: 'date-plans'
   })}
   activeOpacity={0.8}
   style={styles.datePlanButton}
@@ -356,6 +374,7 @@ Add to existing action buttons:
 ```
 
 **Styles to add**:
+
 ```javascript
 compatibilityButton: {
   padding: 8,
@@ -372,13 +391,16 @@ datePlanButton: {
 **Location**: [src/screens/ProfileScreen.js](src/screens/ProfileScreen.js)
 
 Add navigation button to existing buttons section:
+
 ```javascript
 <TouchableOpacity
   style={styles.navigationButton}
-  onPress={() => navigation.navigate('SafetyAdvanced', { 
-    userId: currentUser.uid, 
-    isPremium: isPremium 
-  })}
+  onPress={() =>
+    navigation.navigate('SafetyAdvanced', {
+      userId: currentUser.uid,
+      isPremium: isPremium,
+    })
+  }
 >
   <View style={styles.buttonContent}>
     <Text style={styles.buttonLabel}>🛡️ Safety Center</Text>
@@ -394,14 +416,16 @@ Add navigation button to existing buttons section:
 **Location**: [src/navigation/AppNavigator.js](src/navigation/AppNavigator.js)
 
 Add import:
+
 ```javascript
 import SafetyAdvancedScreen from '../screens/SafetyAdvancedScreen';
 ```
 
 Add to Stack.Navigator:
+
 ```javascript
-<Stack.Screen 
-  name="SafetyAdvanced" 
+<Stack.Screen
+  name="SafetyAdvanced"
   component={SafetyAdvancedScreen}
   options={{
     headerShown: false,
@@ -416,6 +440,7 @@ Add to Stack.Navigator:
 **Location**: [backend/server.js](backend/server.js)
 
 Already configured:
+
 ```javascript
 // Import routes
 const aiRoutes = require('./routes/ai');
@@ -431,6 +456,7 @@ app.use('/api/safety', safetyRoutes);
 ## Testing Integration
 
 ### Test Scenario 1: AI Insights Navigation
+
 ```javascript
 // HomeScreen Premium user
 1. Verify AI Insights section visible
@@ -441,6 +467,7 @@ app.use('/api/safety', safetyRoutes);
 ```
 
 ### Test Scenario 2: Safety Features Navigation
+
 ```javascript
 // ProfileScreen
 1. Click "🛡️ Safety Center" → SafetyAdvancedScreen opens
@@ -449,6 +476,7 @@ app.use('/api/safety', safetyRoutes);
 ```
 
 ### Test Scenario 3: Match Card Quick Actions
+
 ```javascript
 // MatchesScreen
 1. Click ❤️ on match card → ViewProfile opens with compatibility
@@ -458,6 +486,7 @@ app.use('/api/safety', safetyRoutes);
 ```
 
 ### Test Scenario 4: Photo Analysis
+
 ```javascript
 // PhotoGalleryScreen
 1. Click "Analyze" button in header
@@ -470,6 +499,7 @@ app.use('/api/safety', safetyRoutes);
 ## Debugging Tips
 
 ### Navigation Issues
+
 ```javascript
 // Check params are passed correctly
 console.log('Route params:', route.params);
@@ -481,6 +511,7 @@ if (navigation?.navigate) {
 ```
 
 ### Backend Issues
+
 ```bash
 # Check routes are registered
 curl http://localhost:3000/health
@@ -491,6 +522,7 @@ curl http://localhost:3000/api/ai/smart-photos/USER_ID \
 ```
 
 ### Styling Issues
+
 ```javascript
 // Ensure all style objects properly closed
 // Check for missing imports (TouchableOpacity, Ionicons, etc.)

@@ -63,15 +63,15 @@ describe('PaymentService', () => {
     });
 
     it('should validate plan ID', async () => {
-      await expect(
-        PaymentService.createSubscription('', 'pm_123')
-      ).rejects.toThrow('Plan ID is required');
+      await expect(PaymentService.createSubscription('', 'pm_123')).rejects.toThrow(
+        'Plan ID is required'
+      );
     });
 
     it('should validate payment method', async () => {
-      await expect(
-        PaymentService.createSubscription('premium', '')
-      ).rejects.toThrow('Payment method is required');
+      await expect(PaymentService.createSubscription('premium', '')).rejects.toThrow(
+        'Payment method is required'
+      );
     });
   });
 
@@ -90,9 +90,7 @@ describe('PaymentService', () => {
       const { API } = require('../api');
       API.post.mockRejectedValue(new Error('Cannot cancel subscription'));
 
-      await expect(
-        PaymentService.cancelSubscription('sub_123')
-      ).rejects.toThrow();
+      await expect(PaymentService.cancelSubscription('sub_123')).rejects.toThrow();
     });
   });
 

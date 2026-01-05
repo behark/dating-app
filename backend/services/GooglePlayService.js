@@ -1,6 +1,6 @@
 /**
  * Google Play Billing Service
- * 
+ *
  * Handles Google Play Store IAP operations including:
  * - Receipt validation
  * - Subscription management
@@ -63,9 +63,7 @@ class GooglePlayService {
         paymentState: subscription.paymentState,
         cancelReason: subscription.cancelReason,
         priceInfo: {
-          priceCurrencyCode: subscription.priceAmountMicros
-            ? subscription.priceCurrencyCode
-            : null,
+          priceCurrencyCode: subscription.priceAmountMicros ? subscription.priceCurrencyCode : null,
           priceAmount: subscription.priceAmountMicros
             ? parseInt(subscription.priceAmountMicros) / 1000000
             : null,
@@ -76,7 +74,7 @@ class GooglePlayService {
       };
     } catch (error) {
       console.error('Error validating Google subscription:', error);
-      
+
       if (error.code === 410) {
         return {
           valid: false,
@@ -381,16 +379,16 @@ class GooglePlayService {
 
     switch (productId) {
       case products.superLikePack5:
-        user.superLikesBalance = (user.superLikesBalance || 0) + (5 * quantity);
+        user.superLikesBalance = (user.superLikesBalance || 0) + 5 * quantity;
         break;
       case products.superLikePack15:
-        user.superLikesBalance = (user.superLikesBalance || 0) + (15 * quantity);
+        user.superLikesBalance = (user.superLikesBalance || 0) + 15 * quantity;
         break;
       case products.boostPack1:
-        user.boostsBalance = (user.boostsBalance || 0) + (1 * quantity);
+        user.boostsBalance = (user.boostsBalance || 0) + 1 * quantity;
         break;
       case products.boostPack5:
-        user.boostsBalance = (user.boostsBalance || 0) + (5 * quantity);
+        user.boostsBalance = (user.boostsBalance || 0) + 5 * quantity;
         break;
     }
 
@@ -555,7 +553,7 @@ class GooglePlayService {
     if (!userId) return;
 
     const validation = await this.validateSubscription(purchaseToken, subscriptionId);
-    
+
     const subscription = await Subscription.findOne({ userId });
     if (subscription) {
       subscription.status = 'active';
@@ -571,7 +569,7 @@ class GooglePlayService {
     if (!userId) return;
 
     const validation = await this.validateSubscription(purchaseToken, subscriptionId);
-    
+
     const subscription = await Subscription.findOne({ userId });
     if (subscription) {
       subscription.status = 'active';
@@ -626,7 +624,7 @@ class GooglePlayService {
     if (!userId) return;
 
     const validation = await this.validateSubscription(purchaseToken, subscriptionId);
-    
+
     const subscription = await Subscription.findOne({ userId });
     if (subscription) {
       subscription.status = 'grace_period';
@@ -649,7 +647,7 @@ class GooglePlayService {
     if (!userId) return;
 
     const validation = await this.validateSubscription(purchaseToken, subscriptionId);
-    
+
     const subscription = await Subscription.findOne({ userId });
     if (subscription) {
       subscription.endDate = validation.expiryTime;

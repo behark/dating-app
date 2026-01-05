@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { PremiumService } from '../services/PremiumService';
 import { useAuth } from '../context/AuthContext';
+import logger from '../utils/logger';
 
 const PremiumScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
@@ -27,7 +21,7 @@ const PremiumScreen = ({ navigation }) => {
       const status = await PremiumService.checkPremiumStatus(currentUser.uid);
       setPremiumStatus(status);
     } catch (error) {
-      console.error('Error loading premium status:', error);
+      logger.error('Error loading premium status:', error);
       Alert.alert('Error', 'Failed to load premium status');
     } finally {
       setLoading(false);
@@ -50,7 +44,7 @@ const PremiumScreen = ({ navigation }) => {
         Alert.alert('Error', result.error);
       }
     } catch (error) {
-      console.error('Error starting trial:', error);
+      logger.error('Error starting trial:', error);
       Alert.alert('Error', 'Failed to start trial');
     } finally {
       setProcessing(false);
@@ -73,7 +67,7 @@ const PremiumScreen = ({ navigation }) => {
         Alert.alert('Error', result.error);
       }
     } catch (error) {
-      console.error('Error upgrading:', error);
+      logger.error('Error upgrading:', error);
       Alert.alert('Error', 'Failed to upgrade');
     } finally {
       setProcessing(false);
@@ -86,9 +80,7 @@ const PremiumScreen = ({ navigation }) => {
         <Ionicons name={icon} size={24} color={isPremium ? '#FFD700' : '#667eea'} />
       </View>
       <View style={styles.featureText}>
-        <Text style={[styles.featureTitle, isPremium && styles.premiumFeatureTitle]}>
-          {title}
-        </Text>
+        <Text style={[styles.featureTitle, isPremium && styles.premiumFeatureTitle]}>{title}</Text>
         <Text style={styles.featureDescription}>{description}</Text>
       </View>
       {isPremium && (
@@ -140,8 +132,8 @@ const PremiumScreen = ({ navigation }) => {
             processing
               ? ['#ccc', '#bbb']
               : recommended
-              ? ['#FFD700', '#FFA500']
-              : ['#667eea', '#764ba2']
+                ? ['#FFD700', '#FFA500']
+                : ['#667eea', '#764ba2']
           }
           style={styles.selectButtonGradient}
         >
@@ -149,10 +141,10 @@ const PremiumScreen = ({ navigation }) => {
             {processing
               ? 'Processing...'
               : premiumStatus?.isPremium && planType !== 'trial'
-              ? 'Current Plan'
-              : planType === 'trial'
-              ? 'Start Free Trial'
-              : `Choose ${title}`}
+                ? 'Current Plan'
+                : planType === 'trial'
+                  ? 'Start Free Trial'
+                  : `Choose ${title}`}
           </Text>
         </LinearGradient>
       </TouchableOpacity>
@@ -172,14 +164,8 @@ const PremiumScreen = ({ navigation }) => {
 
   return (
     <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.header}
-      >
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Premium</Text>
@@ -259,12 +245,7 @@ const PremiumScreen = ({ navigation }) => {
               false
             )}
 
-            {renderFeatureItem(
-              'location',
-              'Location-Based Matching',
-              'Find matches nearby',
-              false
-            )}
+            {renderFeatureItem('location', 'Location-Based Matching', 'Find matches nearby', false)}
 
             {renderFeatureItem(
               'shield-checkmark',
@@ -279,18 +260,12 @@ const PremiumScreen = ({ navigation }) => {
             <Text style={styles.sectionTitle}>Choose Your Plan</Text>
 
             <View style={styles.pricingGrid}>
-              {renderPricingCard(
-                'trial',
-                'Free Trial',
-                '7 Days',
-                'Free',
-                [
-                  'All Premium Features',
-                  'No Payment Required',
-                  'Cancel Anytime',
-                  'Full Access'
-                ]
-              )}
+              {renderPricingCard('trial', 'Free Trial', '7 Days', 'Free', [
+                'All Premium Features',
+                'No Payment Required',
+                'Cancel Anytime',
+                'Full Access',
+              ])}
 
               {renderPricingCard(
                 'monthly',
@@ -301,30 +276,24 @@ const PremiumScreen = ({ navigation }) => {
                   'All Premium Features',
                   'Cancel Anytime',
                   'Priority Support',
-                  'New Features First'
+                  'New Features First',
                 ],
                 true
               )}
 
-              {renderPricingCard(
-                'yearly',
-                'Yearly',
-                '$49.99',
-                '/year',
-                [
-                  'All Premium Features',
-                  '2 Months Free',
-                  'Best Value',
-                  'VIP Support',
-                  'Exclusive Features'
-                ]
-              )}
+              {renderPricingCard('yearly', 'Yearly', '$49.99', '/year', [
+                'All Premium Features',
+                '2 Months Free',
+                'Best Value',
+                'VIP Support',
+                'Exclusive Features',
+              ])}
             </View>
           </View>
 
           <Text style={styles.disclaimer}>
-            * Prices are in USD. Subscription auto-renews. Cancel anytime in app settings.
-            7-day free trial available to new users only.
+            * Prices are in USD. Subscription auto-renews. Cancel anytime in app settings. 7-day
+            free trial available to new users only.
           </Text>
         </View>
       </ScrollView>

@@ -49,4 +49,55 @@ router.post('/rewards/:rewardId/claim', GamificationController.claimReward);
 // Get overall gamification stats
 router.get('/stats/:userId', GamificationController.getUserStats);
 
+/**
+ * LEVEL PROGRESSION
+ */
+// Get user level
+router.get('/levels/:userId', GamificationController.getUserLevel);
+
+// Add XP to user
+router.post('/levels/add-xp', GamificationController.addXP);
+
+// Get level rewards
+router.get('/levels/:level/rewards', GamificationController.getLevelRewards);
+
+/**
+ * DAILY CHALLENGES
+ */
+// Get daily challenges
+router.get('/challenges/daily/:userId', GamificationController.getDailyChallenges);
+
+// Update challenge progress
+router.post('/challenges/progress', GamificationController.updateChallengeProgress);
+
+// Track action for challenges
+router.post('/challenges/track', GamificationController.trackChallengeAction);
+
+// Claim challenge reward
+router.post('/challenges/claim', GamificationController.claimChallengeReward);
+
+// Get completion bonus
+router.get('/challenges/bonus/:userId', GamificationController.getCompletionBonus);
+
+// Claim completion bonus
+router.post('/challenges/bonus/:userId/claim', GamificationController.claimCompletionBonus);
+
+/**
+ * ACHIEVEMENTS
+ */
+// Get user achievements
+router.get('/achievements/:userId', GamificationController.getUserAchievements);
+
+// Check and unlock achievements
+router.post('/achievements/check', GamificationController.checkAchievements);
+
+// Unlock an achievement
+router.post('/achievements/unlock', GamificationController.unlockAchievement);
+
+// Get achievement progress
+router.get('/achievements/:userId/:achievementId/progress', GamificationController.getAchievementProgress);
+
+// Get recent achievements
+router.get('/achievements/:userId/recent', GamificationController.getRecentAchievements);
+
 module.exports = router;

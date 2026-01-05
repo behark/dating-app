@@ -1,10 +1,10 @@
 /**
  * useInAppPurchase Hook
- * 
+ *
  * React Native hook for handling in-app purchases with:
  * - iOS App Store
  * - Google Play Store
- * 
+ *
  * Uses react-native-iap library (must be installed separately)
  */
 
@@ -15,14 +15,8 @@ import { PaymentService } from '../services/PaymentService';
 
 // Product IDs - these must match App Store Connect / Google Play Console
 const SUBSCRIPTION_SKUS = Platform.select({
-  ios: [
-    'com.datingapp.premium.monthly',
-    'com.datingapp.premium.yearly',
-  ],
-  android: [
-    'premium_monthly',
-    'premium_yearly',
-  ],
+  ios: ['com.datingapp.premium.monthly', 'com.datingapp.premium.yearly'],
+  android: ['premium_monthly', 'premium_yearly'],
   default: [],
 });
 
@@ -33,12 +27,7 @@ const CONSUMABLE_SKUS = Platform.select({
     'com.datingapp.boost.1',
     'com.datingapp.boost.5',
   ],
-  android: [
-    'super_likes_5',
-    'super_likes_15',
-    'boost_1',
-    'boost_5',
-  ],
+  android: ['super_likes_5', 'super_likes_15', 'boost_1', 'boost_5'],
   default: [],
 });
 
@@ -141,7 +130,7 @@ export const useInAppPurchase = () => {
           // Finish the transaction
           const { finishTransaction } = await import('react-native-iap');
           await finishTransaction({ purchase, isConsumable: isConsumable(purchase.productId) });
-          
+
           Alert.alert('Success', 'Your purchase was successful!');
         } else {
           throw new Error(result.error || 'Validation failed');
@@ -163,7 +152,7 @@ export const useInAppPurchase = () => {
             purchase,
             isConsumable: !isSubscription,
           });
-          
+
           Alert.alert('Success', 'Your purchase was successful!');
         } else {
           throw new Error(result.error || 'Validation failed');
@@ -181,7 +170,7 @@ export const useInAppPurchase = () => {
   const handlePurchaseError = (error) => {
     console.error('Purchase error:', error);
     setPurchasing(false);
-    
+
     // Don't show alert for user cancellation
     if (error.code !== 'E_USER_CANCELLED') {
       Alert.alert('Purchase Failed', error.message || 'An error occurred during purchase');
@@ -194,35 +183,38 @@ export const useInAppPurchase = () => {
   };
 
   // Purchase a subscription
-  const purchaseSubscription = useCallback(async (productId) => {
-    try {
-      setPurchasing(true);
-      setError(null);
+  const purchaseSubscription = useCallback(
+    async (productId) => {
+      try {
+        setPurchasing(true);
+        setError(null);
 
-      const { requestSubscription } = await import('react-native-iap');
+        const { requestSubscription } = await import('react-native-iap');
 
-      if (Platform.OS === 'android') {
-        // Get offer token for Android
-        const subscription = subscriptions.find(s => s.productId === productId);
-        const offerToken = subscription?.subscriptionOfferDetails?.[0]?.offerToken;
+        if (Platform.OS === 'android') {
+          // Get offer token for Android
+          const subscription = subscriptions.find((s) => s.productId === productId);
+          const offerToken = subscription?.subscriptionOfferDetails?.[0]?.offerToken;
 
-        await requestSubscription({
-          sku: productId,
-          subscriptionOffers: [{ sku: productId, offerToken }],
-        });
-      } else {
-        await requestSubscription({ sku: productId });
+          await requestSubscription({
+            sku: productId,
+            subscriptionOffers: [{ sku: productId, offerToken }],
+          });
+        } else {
+          await requestSubscription({ sku: productId });
+        }
+      } catch (err) {
+        console.error('Error purchasing subscription:', err);
+        setError(err.message);
+        setPurchasing(false);
+
+        if (err.code !== 'E_USER_CANCELLED') {
+          Alert.alert('Error', err.message || 'Failed to start purchase');
+        }
       }
-    } catch (err) {
-      console.error('Error purchasing subscription:', err);
-      setError(err.message);
-      setPurchasing(false);
-      
-      if (err.code !== 'E_USER_CANCELLED') {
-        Alert.alert('Error', err.message || 'Failed to start purchase');
-      }
-    }
-  }, [subscriptions]);
+    },
+    [subscriptions]
+  );
 
   // Purchase a consumable product
   const purchaseProduct = useCallback(async (productId) => {
@@ -236,7 +228,7 @@ export const useInAppPurchase = () => {
       console.error('Error purchasing product:', err);
       setError(err.message);
       setPurchasing(false);
-      
+
       if (err.code !== 'E_USER_CANCELLED') {
         Alert.alert('Error', err.message || 'Failed to start purchase');
       }
@@ -256,7 +248,7 @@ export const useInAppPurchase = () => {
 
         if (purchases.length > 0) {
           // Find the latest receipt
-          const latestPurchase = purchases.reduce((a, b) => 
+          const latestPurchase = purchases.reduce((a, b) =>
             new Date(a.transactionDate) > new Date(b.transactionDate) ? a : b
           );
 
@@ -278,15 +270,12 @@ export const useInAppPurchase = () => {
         const purchases = await getAvailablePurchases();
 
         if (purchases.length > 0) {
-          const purchaseData = purchases.map(p => ({
+          const purchaseData = purchases.map((p) => ({
             purchaseToken: p.purchaseToken,
             productId: p.productId,
           }));
 
-          const result = await PaymentService.restoreGooglePurchases(
-            purchaseData,
-            token
-          );
+          const result = await PaymentService.restoreGooglePurchases(purchaseData, token);
 
           if (result.success) {
             Alert.alert('Success', 'Purchases restored successfully!');
@@ -307,15 +296,20 @@ export const useInAppPurchase = () => {
   }, [getAuthToken]);
 
   // Get product by ID
-  const getProduct = useCallback((productId) => {
-    return products.find(p => p.productId === productId) ||
-           subscriptions.find(s => s.productId === productId);
-  }, [products, subscriptions]);
+  const getProduct = useCallback(
+    (productId) => {
+      return (
+        products.find((p) => p.productId === productId) ||
+        subscriptions.find((s) => s.productId === productId)
+      );
+    },
+    [products, subscriptions]
+  );
 
   // Format price for display
   const formatPrice = useCallback((product) => {
     if (!product) return '';
-    
+
     if (Platform.OS === 'ios') {
       return product.localizedPrice;
     } else if (Platform.OS === 'android') {
@@ -327,7 +321,7 @@ export const useInAppPurchase = () => {
       }
       return product.localizedPrice || '';
     }
-    
+
     return '';
   }, []);
 
@@ -338,17 +332,17 @@ export const useInAppPurchase = () => {
     loading,
     purchasing,
     error,
-    
+
     // Actions
     purchaseSubscription,
     purchaseProduct,
     restorePurchases,
-    
+
     // Helpers
     getProduct,
     formatPrice,
     isIAPAvailable: Platform.OS !== 'web',
-    
+
     // Product SKUs for reference
     SUBSCRIPTION_SKUS,
     CONSUMABLE_SKUS,

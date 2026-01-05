@@ -3,11 +3,13 @@
 ## Status: ⚠️ Partial Success
 
 ### What Worked:
+
 - ✅ SSH connection is being **established** (authentication successful)
 - ✅ Your SSH key is **recognized** by Render
 - ✅ Connection reaches the server
 
 ### What Didn't Work:
+
 - ❌ Command execution via SSH is being **restricted** or **closed**
 - ❌ This might be due to:
   1. Render's security restrictions on non-interactive SSH sessions
@@ -15,6 +17,7 @@
   3. Command execution might require an interactive TTY
 
 ### Service Status:
+
 - ⚠️ Service is returning **502 Bad Gateway** (not running properly)
 - This is likely due to **missing MONGODB_URI** environment variable
 
@@ -65,15 +68,18 @@ render ssh dating-app-backend
 ## What We Know
 
 ### Your SSH Keys:
+
 - ✅ **ED25519 Key**: `ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKnHzlKrRfwas0/M00S0g0hzEEL+zJy+fXC+h6AQvhXO`
 - ✅ **RSA Key**: Also available
 
 ### Service Details:
+
 - **Service ID**: `srv-d5cooc2li9vc73ct9j70`
 - **SSH Address**: `srv-d5cooc2li9vc73ct9j70@ssh.oregon.render.com`
 - **Status**: Not suspended, but returning 502 errors
 
 ### Variables Configured (from render.yaml):
+
 - ✅ `NODE_ENV=production`
 - ✅ `PORT=10000`
 - ✅ `FIREBASE_PROJECT_ID=my-project-de65d`
@@ -82,6 +88,7 @@ render ssh dating-app-backend
 - ✅ `ENCRYPTION_KEY` (auto-generated)
 
 ### Critical Missing:
+
 - ❌ **MONGODB_URI** - Must be set manually in Dashboard
 
 ---

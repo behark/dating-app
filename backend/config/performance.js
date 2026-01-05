@@ -14,7 +14,7 @@ const COMPRESSION_CONFIG = {
     const contentType = res.getHeader('Content-Type');
     if (typeof contentType !== 'string') return true;
     // Don't compress already compressed formats
-    const skip = ['image/', 'video/', 'audio/'].some(t => contentType.includes(t));
+    const skip = ['image/', 'video/', 'audio/'].some((t) => contentType.includes(t));
     return !skip;
   },
 };
@@ -67,29 +67,29 @@ const PAGINATION_CONFIG = {
 // Cache TTL settings (seconds)
 const CACHE_CONFIG = {
   // User data
-  userProfile: 300,           // 5 minutes
-  userPreferences: 600,       // 10 minutes
-  userOnlineStatus: 30,       // 30 seconds
-  
+  userProfile: 300, // 5 minutes
+  userPreferences: 600, // 10 minutes
+  userOnlineStatus: 30, // 30 seconds
+
   // Discovery
-  discoveryProfiles: 60,      // 1 minute (changes frequently)
-  discoveryExcluded: 3600,    // 1 hour
-  topPicks: 3600,             // 1 hour
-  
+  discoveryProfiles: 60, // 1 minute (changes frequently)
+  discoveryExcluded: 3600, // 1 hour
+  topPicks: 3600, // 1 hour
+
   // Social
-  matches: 120,               // 2 minutes
-  conversations: 180,         // 3 minutes
-  messageHistory: 60,         // 1 minute
-  
+  matches: 120, // 2 minutes
+  conversations: 180, // 3 minutes
+  messageHistory: 60, // 1 minute
+
   // Gamification
-  leaderboard: 300,           // 5 minutes
-  achievements: 3600,         // 1 hour
-  dailyRewards: 1800,         // 30 minutes
-  
+  leaderboard: 300, // 5 minutes
+  achievements: 3600, // 1 hour
+  dailyRewards: 1800, // 30 minutes
+
   // Static data
-  interests: 86400,           // 24 hours
-  prompts: 86400,             // 24 hours
-  staticContent: 86400,       // 24 hours
+  interests: 86400, // 24 hours
+  prompts: 86400, // 24 hours
+  staticContent: 86400, // 24 hours
 };
 
 // Database query optimization
@@ -165,7 +165,7 @@ const CDN_CONFIG = {
   cacheHeaders: {
     images: {
       'Cache-Control': 'public, max-age=31536000, immutable', // 1 year
-      'Vary': 'Accept',
+      Vary: 'Accept',
     },
     staticAssets: {
       'Cache-Control': 'public, max-age=31536000, immutable', // 1 year
@@ -185,10 +185,10 @@ const CDN_CONFIG = {
 const PERFORMANCE_TARGETS = {
   // Target load times (ms)
   loadTime: {
-    initial: 2000,          // First contentful paint
-    interactive: 3000,      // Time to interactive
-    apiResponse: 500,       // API response time
-    imageLoad: 1000,        // Image load time
+    initial: 2000, // First contentful paint
+    interactive: 3000, // Time to interactive
+    apiResponse: 500, // API response time
+    imageLoad: 1000, // Image load time
   },
   // Bundle size limits (KB)
   bundleSize: {

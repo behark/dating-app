@@ -20,10 +20,7 @@ const createIndexes = async () => {
     const usersCollection = db.collection('users');
 
     // Geospatial index for location-based discovery (most critical)
-    await usersCollection.createIndex(
-      { location: '2dsphere' },
-      { name: 'location_2dsphere' }
-    );
+    await usersCollection.createIndex({ location: '2dsphere' }, { name: 'location_2dsphere' });
 
     // Compound index for discovery queries
     await usersCollection.createIndex(
@@ -31,11 +28,11 @@ const createIndexes = async () => {
         isActive: 1,
         gender: 1,
         age: 1,
-        location: '2dsphere'
+        location: '2dsphere',
       },
-      { 
+      {
         name: 'discovery_compound',
-        partialFilterExpression: { isActive: true }
+        partialFilterExpression: { isActive: true },
       }
     );
 
@@ -52,10 +49,7 @@ const createIndexes = async () => {
     );
 
     // Email lookup (unique)
-    await usersCollection.createIndex(
-      { email: 1 },
-      { unique: true, name: 'email_unique' }
-    );
+    await usersCollection.createIndex({ email: 1 }, { unique: true, name: 'email_unique' });
 
     // Phone lookup (sparse unique)
     await usersCollection.createIndex(
@@ -64,18 +58,9 @@ const createIndexes = async () => {
     );
 
     // OAuth provider lookups
-    await usersCollection.createIndex(
-      { googleId: 1 },
-      { sparse: true, name: 'google_oauth' }
-    );
-    await usersCollection.createIndex(
-      { facebookId: 1 },
-      { sparse: true, name: 'facebook_oauth' }
-    );
-    await usersCollection.createIndex(
-      { appleId: 1 },
-      { sparse: true, name: 'apple_oauth' }
-    );
+    await usersCollection.createIndex({ googleId: 1 }, { sparse: true, name: 'google_oauth' });
+    await usersCollection.createIndex({ facebookId: 1 }, { sparse: true, name: 'facebook_oauth' });
+    await usersCollection.createIndex({ appleId: 1 }, { sparse: true, name: 'apple_oauth' });
 
     // Top picks scoring
     await usersCollection.createIndex(
@@ -109,10 +94,7 @@ const createIndexes = async () => {
     );
 
     // Finding all swipes by a user
-    await swipesCollection.createIndex(
-      { swiperId: 1, createdAt: -1 },
-      { name: 'swiper_recent' }
-    );
+    await swipesCollection.createIndex({ swiperId: 1, createdAt: -1 }, { name: 'swiper_recent' });
 
     // Finding who swiped on a user
     await swipesCollection.createIndex(
@@ -129,18 +111,18 @@ const createIndexes = async () => {
     // SuperLike queries
     await swipesCollection.createIndex(
       { action: 1, swipedId: 1, createdAt: -1 },
-      { 
+      {
         name: 'superlike_lookup',
-        partialFilterExpression: { action: 'superlike' }
+        partialFilterExpression: { action: 'superlike' },
       }
     );
 
     // Priority likes
     await swipesCollection.createIndex(
       { isPriority: 1, swipedId: 1, createdAt: -1 },
-      { 
+      {
         name: 'priority_likes',
-        partialFilterExpression: { isPriority: true }
+        partialFilterExpression: { isPriority: true },
       }
     );
 
@@ -166,9 +148,9 @@ const createIndexes = async () => {
     // Unread messages count
     await messagesCollection.createIndex(
       { receiverId: 1, isRead: 1, matchId: 1 },
-      { 
+      {
         name: 'unread_messages',
-        partialFilterExpression: { isRead: false }
+        partialFilterExpression: { isRead: false },
       }
     );
 
@@ -185,17 +167,14 @@ const createIndexes = async () => {
     // Media messages
     await messagesCollection.createIndex(
       { type: 1, matchId: 1, createdAt: -1 },
-      { 
+      {
         name: 'media_messages',
-        partialFilterExpression: { type: { $in: ['image', 'gif', 'voice', 'video_call'] } }
+        partialFilterExpression: { type: { $in: ['image', 'gif', 'voice', 'video_call'] } },
       }
     );
 
     // Message search (text index)
-    await messagesCollection.createIndex(
-      { content: 'text' },
-      { name: 'message_text_search' }
-    );
+    await messagesCollection.createIndex({ content: 'text' }, { name: 'message_text_search' });
 
     console.log('✅ Message indexes created');
 
@@ -238,9 +217,9 @@ const createIndexes = async () => {
     // Pending reports for moderation
     await reportsCollection.createIndex(
       { status: 1, createdAt: 1 },
-      { 
+      {
         name: 'pending_reports',
-        partialFilterExpression: { status: 'pending' }
+        partialFilterExpression: { status: 'pending' },
       }
     );
 
@@ -258,10 +237,7 @@ const createIndexes = async () => {
     );
 
     // User's blocked list
-    await blocksCollection.createIndex(
-      { blockerId: 1, createdAt: -1 },
-      { name: 'blocker_list' }
-    );
+    await blocksCollection.createIndex({ blockerId: 1, createdAt: -1 }, { name: 'blocker_list' });
 
     console.log('✅ Block indexes created');
 
@@ -302,16 +278,10 @@ const createIndexes = async () => {
     );
 
     // Upcoming events
-    await eventsCollection.createIndex(
-      { date: 1, isActive: 1 },
-      { name: 'upcoming_events' }
-    );
+    await eventsCollection.createIndex({ date: 1, isActive: 1 }, { name: 'upcoming_events' });
 
     // User's events
-    await eventsCollection.createIndex(
-      { creatorId: 1, date: -1 },
-      { name: 'creator_events' }
-    );
+    await eventsCollection.createIndex({ creatorId: 1, date: -1 }, { name: 'creator_events' });
 
     console.log('✅ Event indexes created');
 
@@ -344,10 +314,7 @@ const createIndexes = async () => {
     );
 
     // Expiring boosts
-    await boostsCollection.createIndex(
-      { expiresAt: 1, isActive: 1 },
-      { name: 'expiring_boosts' }
-    );
+    await boostsCollection.createIndex({ expiresAt: 1, isActive: 1 }, { name: 'expiring_boosts' });
 
     console.log('✅ BoostProfile indexes created');
 
@@ -370,9 +337,21 @@ const createIndexes = async () => {
 
     // ==================== PRINT INDEX STATS ====================
     console.log('\n📊 Index Statistics:');
-    
-    const collections = ['users', 'swipes', 'messages', 'subscriptions', 'reports', 'blocks', 'useractivities', 'events', 'superlikes', 'boostprofiles', 'toppicks'];
-    
+
+    const collections = [
+      'users',
+      'swipes',
+      'messages',
+      'subscriptions',
+      'reports',
+      'blocks',
+      'useractivities',
+      'events',
+      'superlikes',
+      'boostprofiles',
+      'toppicks',
+    ];
+
     for (const collName of collections) {
       try {
         const coll = db.collection(collName);
@@ -384,7 +363,6 @@ const createIndexes = async () => {
     }
 
     console.log('\n✅ All indexes created successfully!');
-    
   } catch (error) {
     console.error('Error creating indexes:', error);
   } finally {

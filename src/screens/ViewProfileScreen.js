@@ -3,15 +3,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import {
-    Dimensions,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { db } from '../config/firebase';
+import logger from '../utils/logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -33,7 +34,7 @@ const ViewProfileScreen = ({ route, navigation }) => {
       }
       setLoading(false);
     } catch (error) {
-      console.error('Error loading profile:', error);
+      logger.error('Error loading profile:', error);
       setLoading(false);
     }
   };
@@ -62,14 +63,8 @@ const ViewProfileScreen = ({ route, navigation }) => {
 
   return (
     <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.header}
-      >
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
@@ -129,10 +124,12 @@ const ViewProfileScreen = ({ route, navigation }) => {
               </View>
               <TouchableOpacity
                 style={styles.viewCompatibilityButton}
-                onPress={() => navigation.navigate('Premium', {
-                  feature: 'compatibility',
-                  targetUserId: userId
-                })}
+                onPress={() =>
+                  navigation.navigate('Premium', {
+                    feature: 'compatibility',
+                    targetUserId: userId,
+                  })
+                }
               >
                 <Ionicons name="trending-up" size={16} color="#fff" />
                 <Text style={styles.viewCompatibilityText}>View AI Analysis</Text>

@@ -1,21 +1,21 @@
 import { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
 export const EmailVerificationScreen = ({ navigation, route }) => {
   const { verifyEmail, currentUser } = useAuth();
   const { token } = route.params || {};
-  
+
   const [verificationCode, setVerificationCode] = useState(token || '');
   const [loading, setLoading] = useState(false);
   const [verified, setVerified] = useState(false);
@@ -29,18 +29,14 @@ export const EmailVerificationScreen = ({ navigation, route }) => {
 
       setLoading(true);
       await verifyEmail(verificationCode);
-      
+
       setVerified(true);
-      Alert.alert(
-        'Success',
-        'Your email has been verified!',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('Home')
-          }
-        ]
-      );
+      Alert.alert('Success', 'Your email has been verified!', [
+        {
+          text: 'OK',
+          onPress: () => navigation.navigate('Home'),
+        },
+      ]);
     } catch (error) {
       Alert.alert('Error', error.message || 'Verification failed');
     } finally {
@@ -63,10 +59,7 @@ export const EmailVerificationScreen = ({ navigation, route }) => {
             </Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate('Home')}
-          >
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Home')}>
             <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
         </View>
@@ -83,7 +76,7 @@ export const EmailVerificationScreen = ({ navigation, route }) => {
         <View style={styles.header}>
           <Text style={styles.title}>Verify Your Email</Text>
           <Text style={styles.subtitle}>
-            We've sent a verification link to your email. Enter the code below.
+            We&apos;ve sent a verification link to your email. Enter the code below.
           </Text>
         </View>
 
@@ -112,10 +105,7 @@ export const EmailVerificationScreen = ({ navigation, route }) => {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Home')}
-            disabled={loading}
-          >
+          <TouchableOpacity onPress={() => navigation.navigate('Home')} disabled={loading}>
             <Text style={styles.skipLink}>Verify later</Text>
           </TouchableOpacity>
         </View>
@@ -127,40 +117,40 @@ export const EmailVerificationScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   content: {
     flex: 1,
     padding: 20,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   header: {
     marginBottom: 30,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 12
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
     color: '#999',
     textAlign: 'center',
-    lineHeight: 24
+    lineHeight: 24,
   },
   form: {
-    marginBottom: 20
+    marginBottom: 20,
   },
   inputGroup: {
-    marginBottom: 20
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333'
+    color: '#333',
   },
   input: {
     borderWidth: 1,
@@ -168,50 +158,50 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#333'
+    color: '#333',
   },
   button: {
     paddingVertical: 14,
     backgroundColor: '#FF6B6B',
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 16
+    marginBottom: 16,
   },
   buttonDisabled: {
-    opacity: 0.6
+    opacity: 0.6,
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   skipLink: {
     color: '#FF6B6B',
     textAlign: 'center',
     fontSize: 14,
     fontWeight: 'bold',
-    padding: 10
+    padding: 10,
   },
   successContainer: {
     alignItems: 'center',
-    marginBottom: 40
+    marginBottom: 40,
   },
   successIcon: {
     fontSize: 60,
-    marginBottom: 12
+    marginBottom: 12,
   },
   successTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 12
+    marginBottom: 12,
   },
   successText: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
-    lineHeight: 24
-  }
+    lineHeight: 24,
+  },
 });
 
 export default EmailVerificationScreen;

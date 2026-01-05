@@ -1,4 +1,13 @@
-import { addDoc, collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 export class SafetyService {
@@ -30,7 +39,7 @@ export class SafetyService {
       const userDoc = await getDoc(userRef);
       const blockedUsers = userDoc.data()?.blockedUsers || [];
 
-      const filtered = blockedUsers.filter(id => id !== blockedUserId);
+      const filtered = blockedUsers.filter((id) => id !== blockedUserId);
       await updateDoc(userRef, {
         blockedUsers: filtered,
         updatedAt: new Date(),
@@ -113,7 +122,7 @@ export class SafetyService {
           timestamp: new Date(),
           detectionMethod: livenessCheck.method || 'basic', // 'basic', 'advanced'
           passed: livenessCheck.passed || false,
-          ...livenessCheck
+          ...livenessCheck,
         },
         status: 'pending', // 'pending', 'approved', 'rejected'
         submittedAt: new Date(),
@@ -132,12 +141,9 @@ export class SafetyService {
 
   static async getPhotoVerificationStatus(userId) {
     try {
-      const q = query(
-        collection(db, 'verifications'),
-        where('userId', '==', userId)
-      );
+      const q = query(collection(db, 'verifications'), where('userId', '==', userId));
       const docs = await getDocs(q);
-      
+
       if (docs.empty) {
         return { verified: false, status: 'not_submitted' };
       }
@@ -184,12 +190,9 @@ export class SafetyService {
 
   static async getContentFlags(contentId) {
     try {
-      const q = query(
-        collection(db, 'flags'),
-        where('contentId', '==', contentId)
-      );
+      const q = query(collection(db, 'flags'), where('contentId', '==', contentId));
       const docs = await getDocs(q);
-      return docs.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return docs.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       console.error('Error getting content flags:', error);
       return [];
@@ -315,7 +318,7 @@ export class SafetyService {
 
   static getSafetyTipsByCategory(category) {
     const allTips = this.getSafetyTips();
-    return allTips.filter(tip => tip.category === category);
+    return allTips.filter((tip) => tip.category === category);
   }
 
   // User safety score (for moderation team)
@@ -380,7 +383,7 @@ export class SafetyService {
             datePlanId: docRef.id,
             userId,
             matchUserId: datePlanData.matchUserId,
-          }
+          },
         });
       }
 
@@ -403,10 +406,10 @@ export class SafetyService {
       );
       const docs = await getDocs(q);
 
-      return docs.docs.map(doc => ({
+      return docs.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-        dateTime: doc.data().dateTime?.toDate?.() || new Date(doc.data().dateTime)
+        dateTime: doc.data().dateTime?.toDate?.() || new Date(doc.data().dateTime),
       }));
     } catch (error) {
       console.error('Error getting date plans:', error);
@@ -419,16 +422,13 @@ export class SafetyService {
    */
   static async getSharedDatePlans(userId) {
     try {
-      const q = query(
-        collection(db, 'datePlans'),
-        where('sharedWith', 'array-contains', userId)
-      );
+      const q = query(collection(db, 'datePlans'), where('sharedWith', 'array-contains', userId));
       const docs = await getDocs(q);
 
-      return docs.docs.map(doc => ({
+      return docs.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-        dateTime: doc.data().dateTime?.toDate?.() || new Date(doc.data().dateTime)
+        dateTime: doc.data().dateTime?.toDate?.() || new Date(doc.data().dateTime),
       }));
     } catch (error) {
       console.error('Error getting shared date plans:', error);
@@ -443,7 +443,7 @@ export class SafetyService {
     try {
       await updateDoc(doc(db, 'datePlans', datePlanId), {
         status, // 'active', 'completed', 'cancelled'
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
       return { success: true };
     } catch (error) {
@@ -485,7 +485,7 @@ export class SafetyService {
     try {
       await updateDoc(doc(db, 'checkIns', checkInId), {
         status: 'checked_in',
-        checkedInAt: new Date()
+        checkedInAt: new Date(),
       });
 
       // Get the check-in details to notify friends
@@ -502,7 +502,7 @@ export class SafetyService {
           type: 'check_in_complete',
           title: 'Safe Check-in Received',
           message: 'Your friend checked in and is safe',
-          data: { userId: checkInData.userId }
+          data: { userId: checkInData.userId },
         });
       }
 
@@ -524,7 +524,7 @@ export class SafetyService {
         where('status', 'in', ['active', 'expired'])
       );
       const docs = await getDocs(q);
-      return docs.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return docs.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       console.error('Error getting check-ins:', error);
       return [];
@@ -576,9 +576,9 @@ export class SafetyService {
             sosAlertId: docRef.id,
             userId,
             location: sosAlert.location,
-            message: sosAlert.message
+            message: sosAlert.message,
           },
-          priority: 'high'
+          priority: 'high',
         });
       }
 
@@ -588,7 +588,7 @@ export class SafetyService {
         type: 'sos_triggered',
         timestamp: new Date(),
         location: sosAlert.location,
-        details: { sosAlertId: docRef.id }
+        details: { sosAlertId: docRef.id },
       });
 
       return { success: true, sosAlertId: docRef.id };
@@ -609,7 +609,7 @@ export class SafetyService {
         where('status', '==', 'active')
       );
       const docs = await getDocs(q);
-      return docs.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return docs.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       console.error('Error getting SOS alerts:', error);
       return [];
@@ -631,12 +631,12 @@ export class SafetyService {
         message: response.message || '',
         confirmedSafe: response.confirmedSafe || false,
         timestamp: new Date(),
-        contactInfo: response.contactInfo || ''
+        contactInfo: response.contactInfo || '',
       };
 
       await updateDoc(sosRef, {
         responses: [...currentResponses, newResponse],
-        respondedBy: [...respondedBy, responderId]
+        respondedBy: [...respondedBy, responderId],
       });
 
       // Notify the user who sent SOS
@@ -645,7 +645,7 @@ export class SafetyService {
         type: 'sos_response',
         title: 'Emergency Response Received',
         message: `${responderId} has responded to your SOS`,
-        data: { sosAlertId }
+        data: { sosAlertId },
       });
 
       return { success: true };
@@ -662,7 +662,7 @@ export class SafetyService {
     try {
       await updateDoc(doc(db, 'emergencyAlerts', sosAlertId), {
         status, // 'resolved' or 'false_alarm'
-        resolvedAt: new Date()
+        resolvedAt: new Date(),
       });
       return { success: true };
     } catch (error) {
@@ -688,7 +688,7 @@ export class SafetyService {
           email: userInfo.email || '',
           phone: userInfo.phone || '',
           address: userInfo.address || '',
-          ...userInfo
+          ...userInfo,
         },
         checks: {
           criminalRecord: false,
@@ -718,10 +718,7 @@ export class SafetyService {
    */
   static async getBackgroundCheckStatus(userId) {
     try {
-      const q = query(
-        collection(db, 'backgroundChecks'),
-        where('userId', '==', userId)
-      );
+      const q = query(collection(db, 'backgroundChecks'), where('userId', '==', userId));
       const docs = await getDocs(q);
 
       if (docs.empty) {
@@ -753,7 +750,7 @@ export class SafetyService {
       await updateDoc(doc(db, 'backgroundChecks', backgroundCheckId), {
         status: 'completed',
         results,
-        completedAt: new Date()
+        completedAt: new Date(),
       });
       return { success: true };
     } catch (error) {
@@ -788,7 +785,7 @@ export class SafetyService {
           imageQuality: livenessData.imageQuality || 0,
           spoofingRisk: livenessData.spoofingRisk || 'low', // 'low', 'medium', 'high'
           matchWithProfilePhoto: livenessData.matchWithProfilePhoto || 0,
-        }
+        },
       };
 
       const docRef = await addDoc(collection(db, 'advancedVerifications'), verification);
@@ -832,7 +829,7 @@ export class SafetyService {
       };
 
       await updateDoc(userRef, {
-        emergencyContacts: [...emergencyContacts, newContact]
+        emergencyContacts: [...emergencyContacts, newContact],
       });
 
       return { success: true, contact: newContact };

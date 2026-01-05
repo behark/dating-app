@@ -1,28 +1,44 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
+import logger from '../utils/logger';
+import { validateUserId, validateNotEmpty, validateNumberRange } from '../utils/validators';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 
 export class ProfileService {
   static async getAuthToken() {
     try {
       return await AsyncStorage.getItem('authToken');
     } catch (error) {
-      console.error('Error retrieving auth token:', error);
+      logger.error('Error retrieving auth token:', error);
       return null;
     }
   }
 
   static async getProfile(userId) {
     try {
-      const response = await fetch(`${API_URL}/profile/${userId}`);
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch profile');
+      if (!validateUserId(userId)) {
+        throw new Error('Invalid user ID provided');
       }
-      
-      return data.data.user;
+
+      const response = await fetch(`${API_URL}/profile/${userId}`);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch profile'));
+      }
+
+      return data.data?.user || null;
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      logger.error('Error fetching profile:', error);
       throw error;
     }
   }
@@ -36,19 +52,27 @@ export class ProfileService {
 
       const response = await fetch(`${API_URL}/profile/me`, {
         headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+          Authorization: `Bearer ${authToken}`,
+        },
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch profile');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
-      return data.data.user;
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch profile'));
+      }
+
+      return data.data?.user || null;
     } catch (error) {
-      console.error('Error fetching my profile:', error);
+      logger.error('Error fetching my profile:', error);
       throw error;
     }
   }
@@ -64,20 +88,28 @@ export class ProfileService {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(profileData)
+        body: JSON.stringify(profileData),
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to update profile');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
-      return data.data.user;
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to update profile'));
+      }
+
+      return data.data?.user || null;
     } catch (error) {
-      console.error('Error updating profile:', error);
+      logger.error('Error updating profile:', error);
       throw error;
     }
   }
@@ -93,20 +125,28 @@ export class ProfileService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ photos })
+        body: JSON.stringify({ photos }),
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to upload photos');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
-      return data.data.photos;
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to upload photos'));
+      }
+
+      return data.data?.photos || [];
     } catch (error) {
-      console.error('Error uploading photos:', error);
+      logger.error('Error uploading photos:', error);
       throw error;
     }
   }
@@ -122,26 +162,38 @@ export class ProfileService {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ photoIds })
+        body: JSON.stringify({ photoIds }),
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to reorder photos');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
-      return data.data.photos;
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to reorder photos'));
+      }
+
+      return data.data?.photos || [];
     } catch (error) {
-      console.error('Error reordering photos:', error);
+      logger.error('Error reordering photos:', error);
       throw error;
     }
   }
 
   static async deletePhoto(photoId) {
     try {
+      if (!validateNotEmpty(photoId)) {
+        throw new Error('Invalid photo ID provided');
+      }
+
       const authToken = await this.getAuthToken();
       if (!authToken) {
         throw new Error('No authentication token found');
@@ -150,19 +202,27 @@ export class ProfileService {
       const response = await fetch(`${API_URL}/profile/photos/${photoId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+          Authorization: `Bearer ${authToken}`,
+        },
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete photo');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
-      return data.data.photos;
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to delete photo'));
+      }
+
+      return data.data?.photos || [];
     } catch (error) {
-      console.error('Error deleting photo:', error);
+      logger.error('Error deleting photo:', error);
       throw error;
     }
   }

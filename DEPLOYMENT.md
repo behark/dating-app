@@ -30,6 +30,7 @@ gh repo create dating-app --public --source=. --remote=origin --push
 1. Create a new repository on GitHub (don't initialize with README)
 
 2. Add remote and push:
+
 ```bash
 cd /home/behar/dating-app
 git add .
@@ -120,6 +121,7 @@ const firebaseConfig = {
 ## Continuous Deployment
 
 Once connected to GitHub, Vercel will automatically deploy:
+
 - Every push to `main` branch → Production
 - Pull requests → Preview deployments
 

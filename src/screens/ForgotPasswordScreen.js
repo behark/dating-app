@@ -1,21 +1,21 @@
 import { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { validateEmail } from '../utils/validators';
 
 export const ForgotPasswordScreen = ({ navigation }) => {
   const { forgotPassword } = useAuth();
-  
+
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -34,7 +34,7 @@ export const ForgotPasswordScreen = ({ navigation }) => {
 
       setLoading(true);
       await forgotPassword(email);
-      
+
       setSent(true);
       Alert.alert('Success', 'Check your email for password reset instructions');
     } catch (error) {
@@ -55,17 +55,13 @@ export const ForgotPasswordScreen = ({ navigation }) => {
             <Text style={styles.successIcon}>✓</Text>
             <Text style={styles.successTitle}>Check Your Email</Text>
             <Text style={styles.successText}>
-              We've sent a password reset link to {email}. Click the link in the email to reset your password.
+              We&apos;ve sent a password reset link to {email}. Click the link in the email to reset
+              your password.
             </Text>
-            <Text style={styles.successSubtext}>
-              The link will expire in 1 hour.
-            </Text>
+            <Text style={styles.successSubtext}>The link will expire in 1 hour.</Text>
           </View>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate('Login')}
-          >
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
             <Text style={styles.buttonText}>Back to Login</Text>
           </TouchableOpacity>
         </View>
@@ -82,7 +78,7 @@ export const ForgotPasswordScreen = ({ navigation }) => {
         <View style={styles.header}>
           <Text style={styles.title}>Reset Password</Text>
           <Text style={styles.subtitle}>
-            Enter your email address and we'll send you a link to reset your password
+            Enter your email address and we&apos;ll send you a link to reset your password
           </Text>
         </View>
 
@@ -112,10 +108,7 @@ export const ForgotPasswordScreen = ({ navigation }) => {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Login')}
-            disabled={loading}
-          >
+          <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={loading}>
             <Text style={styles.backLink}>Back to Login</Text>
           </TouchableOpacity>
         </View>
@@ -127,38 +120,38 @@ export const ForgotPasswordScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   content: {
     flex: 1,
     padding: 20,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   header: {
-    marginBottom: 30
+    marginBottom: 30,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 12
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
     color: '#999',
-    lineHeight: 24
+    lineHeight: 24,
   },
   form: {
-    marginBottom: 20
+    marginBottom: 20,
   },
   inputGroup: {
-    marginBottom: 20
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333'
+    color: '#333',
   },
   input: {
     borderWidth: 1,
@@ -166,56 +159,56 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#333'
+    color: '#333',
   },
   button: {
     paddingVertical: 14,
     backgroundColor: '#FF6B6B',
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 16
+    marginBottom: 16,
   },
   buttonDisabled: {
-    opacity: 0.6
+    opacity: 0.6,
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   backLink: {
     color: '#FF6B6B',
     textAlign: 'center',
     fontSize: 14,
     fontWeight: 'bold',
-    padding: 10
+    padding: 10,
   },
   successContainer: {
     alignItems: 'center',
-    marginBottom: 40
+    marginBottom: 40,
   },
   successIcon: {
     fontSize: 60,
-    marginBottom: 12
+    marginBottom: 12,
   },
   successTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 12
+    marginBottom: 12,
   },
   successText: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
     marginBottom: 8,
-    lineHeight: 24
+    lineHeight: 24,
   },
   successSubtext: {
     fontSize: 14,
     color: '#999',
-    textAlign: 'center'
-  }
+    textAlign: 'center',
+  },
 });
 
 export default ForgotPasswordScreen;

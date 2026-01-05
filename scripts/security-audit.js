@@ -48,7 +48,7 @@ const securityPatterns = {
     description: 'Hardcoded sensitive data',
     severity: 'critical',
   },
-  
+
   // SQL Injection patterns
   sqlInjection: {
     patterns: [
@@ -59,7 +59,7 @@ const securityPatterns = {
     description: 'Potential SQL injection vulnerability',
     severity: 'critical',
   },
-  
+
   // XSS vulnerabilities
   xss: {
     patterns: [
@@ -72,16 +72,14 @@ const securityPatterns = {
     description: 'Potential XSS vulnerability',
     severity: 'high',
   },
-  
+
   // Insecure randomness
   insecureRandom: {
-    patterns: [
-      /Math\.random\(\)/gi,
-    ],
+    patterns: [/Math\.random\(\)/gi],
     description: 'Insecure random number generation (use crypto)',
     severity: 'medium',
   },
-  
+
   // Weak cryptography
   weakCrypto: {
     patterns: [
@@ -92,7 +90,7 @@ const securityPatterns = {
     description: 'Weak cryptographic algorithm',
     severity: 'high',
   },
-  
+
   // Command injection
   commandInjection: {
     patterns: [
@@ -103,25 +101,21 @@ const securityPatterns = {
     description: 'Potential command injection',
     severity: 'critical',
   },
-  
+
   // Path traversal
   pathTraversal: {
-    patterns: [
-      /\.\.\/|\.\.\\|%2e%2e%2f|%2e%2e\//gi,
-    ],
+    patterns: [/\.\.\/|\.\.\\|%2e%2e%2f|%2e%2e\//gi],
     description: 'Potential path traversal vulnerability',
     severity: 'high',
   },
-  
+
   // Insecure HTTP
   insecureHttp: {
-    patterns: [
-      /http:\/\/(?!localhost|127\.0\.0\.1)/gi,
-    ],
+    patterns: [/http:\/\/(?!localhost|127\.0\.0\.1)/gi],
     description: 'Insecure HTTP connection (use HTTPS)',
     severity: 'medium',
   },
-  
+
   // Debug/console statements
   debugStatements: {
     patterns: [
@@ -159,14 +153,14 @@ const excludePatterns = [
  */
 function scanFile(filePath) {
   const issues = [];
-  
+
   try {
     const content = fs.readFileSync(filePath, 'utf8');
     const lines = content.split('\n');
-    
+
     // Check each security pattern
     Object.entries(securityPatterns).forEach(([name, config]) => {
-      config.patterns.forEach(pattern => {
+      config.patterns.forEach((pattern) => {
         lines.forEach((line, index) => {
           if (pattern.test(line)) {
             issues.push({
@@ -184,7 +178,7 @@ function scanFile(filePath) {
   } catch (error) {
     log.error(`Error scanning ${filePath}: ${error.message}`);
   }
-  
+
   return issues;
 }
 
@@ -194,22 +188,22 @@ function scanFile(filePath) {
 function getFiles(patterns, excludes) {
   const files = [];
   const rootDir = process.cwd();
-  
+
   function walkDir(dir) {
     try {
       const items = fs.readdirSync(dir);
-      
-      items.forEach(item => {
+
+      items.forEach((item) => {
         const fullPath = path.join(dir, item);
         const relativePath = path.relative(rootDir, fullPath);
-        
+
         // Check if should exclude
-        if (excludes.some(ex => relativePath.includes(ex))) {
+        if (excludes.some((ex) => relativePath.includes(ex))) {
           return;
         }
-        
+
         const stat = fs.statSync(fullPath);
-        
+
         if (stat.isDirectory()) {
           walkDir(fullPath);
         } else if (stat.isFile() && /\.(js|jsx|ts|tsx)$/.test(item)) {
@@ -220,7 +214,7 @@ function getFiles(patterns, excludes) {
       // Ignore permission errors
     }
   }
-  
+
   walkDir(rootDir);
   return files;
 }
@@ -230,14 +224,14 @@ function getFiles(patterns, excludes) {
  */
 function runNpmAudit() {
   log.section('NPM Dependency Audit');
-  
+
   try {
     const result = execSync('npm audit --json 2>/dev/null', { encoding: 'utf8' });
     const audit = JSON.parse(result);
-    
+
     if (audit.metadata) {
       const { vulnerabilities } = audit.metadata;
-      
+
       if (vulnerabilities.critical > 0 || vulnerabilities.high > 0) {
         log.error(`Critical: ${vulnerabilities.critical}, High: ${vulnerabilities.high}`);
         auditResults.failed.push('npm audit found critical/high vulnerabilities');
@@ -270,15 +264,15 @@ function runNpmAudit() {
  */
 function checkEnvSecurity() {
   log.section('Environment Configuration');
-  
+
   const envFiles = ['.env', '.env.local', '.env.development', '.env.production'];
   let foundEnvFile = false;
-  
-  envFiles.forEach(envFile => {
+
+  envFiles.forEach((envFile) => {
     const envPath = path.join(process.cwd(), envFile);
     if (fs.existsSync(envPath)) {
       foundEnvFile = true;
-      
+
       // Check if in .gitignore
       const gitignorePath = path.join(process.cwd(), '.gitignore');
       if (fs.existsSync(gitignorePath)) {
@@ -293,7 +287,7 @@ function checkEnvSecurity() {
       }
     }
   });
-  
+
   if (!foundEnvFile) {
     log.info('No .env files found');
   }
@@ -304,7 +298,7 @@ function checkEnvSecurity() {
  */
 function checkSecurityHeaders() {
   log.section('Security Headers Configuration');
-  
+
   const headersToCheck = [
     'helmet',
     'cors',
@@ -313,12 +307,12 @@ function checkSecurityHeaders() {
     'X-Content-Type-Options',
     'X-XSS-Protection',
   ];
-  
+
   // Check backend for helmet usage
   const serverPath = path.join(process.cwd(), 'backend', 'server.js');
   if (fs.existsSync(serverPath)) {
     const serverContent = fs.readFileSync(serverPath, 'utf8');
-    
+
     if (serverContent.includes('helmet')) {
       log.success('Helmet security middleware is configured');
       auditResults.passed.push('Helmet middleware enabled');
@@ -326,7 +320,7 @@ function checkSecurityHeaders() {
       log.warn('Helmet security middleware not found');
       auditResults.warnings.push('Consider adding Helmet middleware');
     }
-    
+
     if (serverContent.includes('cors')) {
       log.success('CORS is configured');
       auditResults.passed.push('CORS configured');
@@ -339,26 +333,26 @@ function checkSecurityHeaders() {
  */
 function checkAuthSecurity() {
   log.section('Authentication Security');
-  
+
   const authPatterns = {
     jwtVerify: /verifyIdToken|verify\s*\(/gi,
     passwordHash: /bcrypt|argon2|scrypt/gi,
     rateLimit: /rateLimiter|rate-limit|express-rate-limit/gi,
   };
-  
+
   const backendFiles = getFiles(['backend/**/*.js'], excludePatterns);
-  
+
   let hasJwtVerify = false;
   let hasPasswordHash = false;
   let hasRateLimit = false;
-  
-  backendFiles.forEach(file => {
+
+  backendFiles.forEach((file) => {
     const content = fs.readFileSync(file, 'utf8');
     if (authPatterns.jwtVerify.test(content)) hasJwtVerify = true;
     if (authPatterns.passwordHash.test(content)) hasPasswordHash = true;
     if (authPatterns.rateLimit.test(content)) hasRateLimit = true;
   });
-  
+
   if (hasJwtVerify) {
     log.success('JWT/Token verification implemented');
     auditResults.passed.push('JWT verification found');
@@ -366,7 +360,7 @@ function checkAuthSecurity() {
     log.warn('JWT/Token verification not detected');
     auditResults.warnings.push('Verify JWT implementation');
   }
-  
+
   if (hasPasswordHash) {
     log.success('Secure password hashing detected');
     auditResults.passed.push('Password hashing implemented');
@@ -374,7 +368,7 @@ function checkAuthSecurity() {
     log.warn('Secure password hashing not detected');
     auditResults.warnings.push('Verify password hashing');
   }
-  
+
   if (hasRateLimit) {
     log.success('Rate limiting implemented');
     auditResults.passed.push('Rate limiting found');
@@ -394,67 +388,67 @@ async function runSecurityAudit() {
 ║           Dating App Security Scanner                   ║
 ╚════════════════════════════════════════════════════════╝
 `);
-  
+
   log.info(`Audit started at ${new Date().toISOString()}`);
   log.info(`Scanning directory: ${process.cwd()}`);
-  
+
   // Run npm audit
   runNpmAudit();
-  
+
   // Check environment
   checkEnvSecurity();
-  
+
   // Check security headers
   checkSecurityHeaders();
-  
+
   // Check authentication
   checkAuthSecurity();
-  
+
   // Scan source files
   log.section('Source Code Security Scan');
-  
+
   const files = getFiles(filesToScan, excludePatterns);
   log.info(`Scanning ${files.length} files...`);
-  
+
   const allIssues = [];
-  
-  files.forEach(file => {
+
+  files.forEach((file) => {
     const issues = scanFile(file);
     allIssues.push(...issues);
   });
-  
+
   // Group issues by severity
-  const critical = allIssues.filter(i => i.severity === 'critical');
-  const high = allIssues.filter(i => i.severity === 'high');
-  const medium = allIssues.filter(i => i.severity === 'medium');
-  
+  const critical = allIssues.filter((i) => i.severity === 'critical');
+  const high = allIssues.filter((i) => i.severity === 'high');
+  const medium = allIssues.filter((i) => i.severity === 'medium');
+
   if (critical.length > 0) {
     log.error(`Found ${critical.length} critical issues:`);
-    critical.forEach(issue => {
+    critical.forEach((issue) => {
       console.log(`  - ${issue.file}:${issue.line} - ${issue.description}`);
       console.log(`    ${issue.content}`);
     });
     auditResults.failed.push(`${critical.length} critical security issues`);
   }
-  
+
   if (high.length > 0) {
     log.warn(`Found ${high.length} high severity issues:`);
-    high.forEach(issue => {
+    high.forEach((issue) => {
       console.log(`  - ${issue.file}:${issue.line} - ${issue.description}`);
     });
     auditResults.failed.push(`${high.length} high severity issues`);
   }
-  
+
   if (medium.length > 0) {
     log.info(`Found ${medium.length} medium severity issues`);
     auditResults.warnings.push(`${medium.length} medium severity issues`);
   }
-  
+
   if (allIssues.length === 0) {
     log.success('No security issues found in source code');
     auditResults.passed.push('Source code scan passed');
   }
-  
+
   // Print summary
   console.log(`
 ╔════════════════════════════════════════════════════════╗

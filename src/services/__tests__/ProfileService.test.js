@@ -39,7 +39,7 @@ describe('ProfileService', () => {
     interests: ['hiking', 'coffee', 'photography'],
     location: {
       latitude: 40.7128,
-      longitude: -74.0060,
+      longitude: -74.006,
     },
     preferences: {
       ageRange: { min: 25, max: 35 },
@@ -96,10 +96,8 @@ describe('ProfileService', () => {
 
     it('should validate required fields', async () => {
       const invalidUpdates = { name: '' };
-      
-      await expect(
-        ProfileService.updateProfile('user_123', invalidUpdates)
-      ).rejects.toThrow();
+
+      await expect(ProfileService.updateProfile('user_123', invalidUpdates)).rejects.toThrow();
     });
   });
 
@@ -141,9 +139,7 @@ describe('ProfileService', () => {
       const { uploadBytes } = require('firebase/storage');
       uploadBytes.mockRejectedValue(new Error('Upload failed'));
 
-      await expect(
-        ProfileService.uploadPhoto('user_123', 'base64data')
-      ).rejects.toThrow();
+      await expect(ProfileService.uploadPhoto('user_123', 'base64data')).rejects.toThrow();
     });
   });
 
@@ -164,14 +160,12 @@ describe('ProfileService', () => {
       const { updateDoc } = require('firebase/firestore');
       updateDoc.mockResolvedValue();
 
-      await ProfileService.updateLocation('user_123', 40.7128, -74.0060);
+      await ProfileService.updateLocation('user_123', 40.7128, -74.006);
       expect(updateDoc).toHaveBeenCalled();
     });
 
     it('should validate coordinates', async () => {
-      await expect(
-        ProfileService.updateLocation('user_123', 999, -74.0060)
-      ).rejects.toThrow();
+      await expect(ProfileService.updateLocation('user_123', 999, -74.006)).rejects.toThrow();
     });
   });
 

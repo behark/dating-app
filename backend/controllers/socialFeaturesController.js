@@ -10,12 +10,12 @@ class SocialFeaturesController {
 
       res.status(201).json({
         success: true,
-        groupDate
+        groupDate,
       });
     } catch (error) {
       res.status(400).json({
         error: 'Failed to create group date',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -32,12 +32,12 @@ class SocialFeaturesController {
 
       res.json({
         success: true,
-        groupDate
+        groupDate,
       });
     } catch (error) {
       res.status(400).json({
         error: 'Failed to join group date',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -54,12 +54,12 @@ class SocialFeaturesController {
 
       res.json({
         success: true,
-        groupDate
+        groupDate,
       });
     } catch (error) {
       res.status(400).json({
         error: 'Failed to leave group date',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -73,7 +73,7 @@ class SocialFeaturesController {
 
       if (!longitude || !latitude) {
         return res.status(400).json({
-          error: 'Longitude and latitude are required'
+          error: 'Longitude and latitude are required',
         });
       }
 
@@ -85,12 +85,12 @@ class SocialFeaturesController {
 
       res.json({
         groupDates,
-        count: groupDates.length
+        count: groupDates.length,
       });
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get nearby group dates',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -104,12 +104,12 @@ class SocialFeaturesController {
 
       res.status(201).json({
         success: true,
-        review
+        review,
       });
     } catch (error) {
       res.status(400).json({
         error: 'Failed to create review',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -127,12 +127,12 @@ class SocialFeaturesController {
       res.json({
         reviews,
         stats,
-        count: reviews.length
+        count: reviews.length,
       });
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get reviews',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -146,12 +146,12 @@ class SocialFeaturesController {
 
       res.status(201).json({
         success: true,
-        event
+        event,
       });
     } catch (error) {
       res.status(400).json({
         error: 'Failed to create event',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -168,12 +168,12 @@ class SocialFeaturesController {
 
       res.json({
         success: true,
-        event
+        event,
       });
     } catch (error) {
       res.status(400).json({
         error: 'Failed to register for event',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -187,7 +187,7 @@ class SocialFeaturesController {
 
       if (!longitude || !latitude) {
         return res.status(400).json({
-          error: 'Longitude and latitude are required'
+          error: 'Longitude and latitude are required',
         });
       }
 
@@ -200,12 +200,12 @@ class SocialFeaturesController {
 
       res.json({
         events,
-        count: events.length
+        count: events.length,
       });
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get nearby events',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -226,12 +226,12 @@ class SocialFeaturesController {
 
       res.json({
         success: true,
-        ...shareLink
+        ...shareLink,
       });
     } catch (error) {
       res.status(400).json({
         error: 'Failed to create share link',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -248,12 +248,12 @@ class SocialFeaturesController {
 
       res.status(201).json({
         success: true,
-        shared
+        shared,
       });
     } catch (error) {
       res.status(400).json({
         error: 'Failed to share profile',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -271,7 +271,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(404).json({
         error: 'Shared profile not found',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -287,12 +287,12 @@ class SocialFeaturesController {
 
       res.json({
         sharedProfiles,
-        count: sharedProfiles.length
+        count: sharedProfiles.length,
       });
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get shared profiles',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -308,12 +308,12 @@ class SocialFeaturesController {
 
       res.json({
         success: true,
-        result
+        result,
       });
     } catch (error) {
       res.status(400).json({
         error: 'Failed to deactivate share link',
-        message: error.message
+        message: error.message,
       });
     }
   }

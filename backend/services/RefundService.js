@@ -1,6 +1,6 @@
 /**
  * Refund Service
- * 
+ *
  * Handles refund processing for all payment providers
  * including automatic approvals and manual review queue
  */
@@ -36,7 +36,12 @@ class RefundService {
 
       if (eligibility.autoApprove) {
         // Process automatic refund
-        return await this.processRefund(transaction, requestedAmount || transaction.amount, reason, true);
+        return await this.processRefund(
+          transaction,
+          requestedAmount || transaction.amount,
+          reason,
+          true
+        );
       } else {
         // Queue for manual review
         transaction.refundStatus = 'pending';
@@ -208,9 +213,9 @@ class RefundService {
    */
   static mapReasonToStripe(reason) {
     const reasonMap = {
-      'duplicate': 'duplicate',
-      'fraudulent': 'fraudulent',
-      'requested_by_customer': 'requested_by_customer',
+      duplicate: 'duplicate',
+      fraudulent: 'fraudulent',
+      requested_by_customer: 'requested_by_customer',
     };
     return reasonMap[reason] || 'requested_by_customer';
   }
@@ -248,7 +253,7 @@ class RefundService {
   static async processGoogleRefund(transaction, amount, reason) {
     try {
       const GooglePlayService = require('./GooglePlayService');
-      
+
       // For subscriptions
       if (transaction.type === 'subscription') {
         await GooglePlayService.refundSubscription(
@@ -284,7 +289,7 @@ class RefundService {
    */
   static async handleSubscriptionRefund(userId, transaction) {
     const subscription = await Subscription.findOne({ userId });
-    
+
     if (!subscription) return;
 
     // Cancel subscription and revoke access
@@ -360,14 +365,10 @@ class RefundService {
       };
     }
 
-    const amount = approvedAmount || transaction.metadata?.requestedRefundAmount || transaction.amount;
+    const amount =
+      approvedAmount || transaction.metadata?.requestedRefundAmount || transaction.amount;
 
-    const result = await this.processRefund(
-      transaction,
-      amount,
-      transaction.refundReason,
-      false
-    );
+    const result = await this.processRefund(transaction, amount, transaction.refundReason, false);
 
     if (result.success) {
       transaction.metadata = {
@@ -463,7 +464,7 @@ class RefundService {
           const User = require('../models/User');
           const user = await User.findById(userId);
           const stripeSubscription = await StripeService.getActiveSubscription(user);
-          
+
           if (stripeSubscription) {
             result = await StripeService.cancelSubscription(
               stripeSubscription.id,
@@ -550,7 +551,7 @@ class RefundService {
           const User = require('../models/User');
           const user = await User.findById(userId);
           const stripeSubscription = await StripeService.getActiveSubscription(user);
-          
+
           if (stripeSubscription && stripeSubscription.cancelAtPeriodEnd) {
             await StripeService.resumeSubscription(stripeSubscription.id);
           }

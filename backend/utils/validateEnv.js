@@ -17,20 +17,20 @@ const CRITICAL_ENV_VARS = [
     name: 'JWT_SECRET',
     description: 'Secret key for JWT authentication tokens',
     minLength: 32,
-    secure: true
+    secure: true,
   },
   {
     name: 'JWT_REFRESH_SECRET',
     description: 'Secret key for JWT refresh tokens',
     minLength: 32,
-    secure: true
+    secure: true,
   },
   {
     name: 'HASH_SALT',
     description: 'Salt for hashing sensitive data',
     minLength: 16,
-    secure: true
-  }
+    secure: true,
+  },
 ];
 
 /**
@@ -40,18 +40,18 @@ const IMPORTANT_ENV_VARS = [
   {
     name: 'MONGODB_URI',
     description: 'MongoDB connection string',
-    alternative: 'MONGODB_URL'
+    alternative: 'MONGODB_URL',
   },
   {
     name: 'NODE_ENV',
     description: 'Environment mode (development/production)',
-    default: 'development'
+    default: 'development',
   },
   {
     name: 'PORT',
     description: 'Server port',
-    default: '3000'
-  }
+    default: '3000',
+  },
 ];
 
 /**
@@ -65,7 +65,7 @@ const OPTIONAL_ENV_VARS = [
   'EMAIL_PASSWORD',
   'SENTRY_DSN',
   'STRIPE_SECRET_KEY',
-  'CLOUDINARY_CLOUD_NAME'
+  'CLOUDINARY_CLOUD_NAME',
 ];
 
 /**
@@ -87,19 +87,22 @@ function validateEnvironment() {
       errors.push({
         var: envVar.name,
         message: `${envVar.description} is required but not set`,
-        hint: `Set ${envVar.name} in your .env file`
+        hint: `Set ${envVar.name} in your .env file`,
       });
     } else if (envVar.minLength && value.length < envVar.minLength) {
       errors.push({
         var: envVar.name,
         message: `${envVar.description} must be at least ${envVar.minLength} characters`,
-        hint: `Current length: ${value.length}`
+        hint: `Current length: ${value.length}`,
       });
-    } else if (envVar.secure && value.includes('default') || value.includes('change-in-production')) {
+    } else if (
+      (envVar.secure && value.includes('default')) ||
+      value.includes('change-in-production')
+    ) {
       errors.push({
         var: envVar.name,
         message: `${envVar.description} is using default/placeholder value`,
-        hint: 'Generate a secure random value'
+        hint: 'Generate a secure random value',
       });
     } else {
       info.push(`✅ ${envVar.name} is set (${value.length} chars)`);
@@ -116,13 +119,15 @@ function validateEnvironment() {
         warnings.push({
           var: envVar.name,
           message: `${envVar.description} not set, using default: ${envVar.default}`,
-          hint: 'Consider setting explicitly'
+          hint: 'Consider setting explicitly',
         });
       } else {
         warnings.push({
           var: envVar.name,
           message: `${envVar.description} is not set`,
-          hint: envVar.alternative ? `Alternative: ${envVar.alternative}` : 'Some features may not work'
+          hint: envVar.alternative
+            ? `Alternative: ${envVar.alternative}`
+            : 'Some features may not work',
         });
       }
     } else {
@@ -132,7 +137,7 @@ function validateEnvironment() {
   }
 
   // Check optional variables
-  const missingOptional = OPTIONAL_ENV_VARS.filter(name => !process.env[name]);
+  const missingOptional = OPTIONAL_ENV_VARS.filter((name) => !process.env[name]);
   if (missingOptional.length > 0) {
     info.push(`ℹ️  Optional variables not set: ${missingOptional.join(', ')}`);
   }
@@ -140,13 +145,13 @@ function validateEnvironment() {
   // Print results
   if (info.length > 0) {
     console.log('📋 Configuration Status:');
-    info.forEach(msg => console.log(`   ${msg}`));
+    info.forEach((msg) => console.log(`   ${msg}`));
     console.log();
   }
 
   if (warnings.length > 0) {
     console.log('⚠️  Warnings:');
-    warnings.forEach(w => {
+    warnings.forEach((w) => {
       console.log(`   ${w.var}: ${w.message}`);
       console.log(`      Hint: ${w.hint}`);
     });
@@ -155,7 +160,7 @@ function validateEnvironment() {
 
   if (errors.length > 0) {
     console.log('❌ Critical Errors:');
-    errors.forEach(e => {
+    errors.forEach((e) => {
       console.log(`   ${e.var}: ${e.message}`);
       console.log(`      Hint: ${e.hint}`);
     });
@@ -164,7 +169,7 @@ function validateEnvironment() {
     return {
       valid: false,
       errors,
-      warnings
+      warnings,
     };
   }
 
@@ -173,7 +178,7 @@ function validateEnvironment() {
   return {
     valid: true,
     errors: [],
-    warnings
+    warnings,
   };
 }
 
@@ -183,11 +188,11 @@ function validateEnvironment() {
  */
 function generateSecrets() {
   const crypto = require('crypto');
-  
+
   return {
     JWT_SECRET: crypto.randomBytes(64).toString('hex'),
     JWT_REFRESH_SECRET: crypto.randomBytes(64).toString('hex'),
-    HASH_SALT: crypto.randomBytes(32).toString('hex')
+    HASH_SALT: crypto.randomBytes(32).toString('hex'),
   };
 }
 
@@ -196,7 +201,7 @@ function generateSecrets() {
  */
 function printExampleEnv() {
   const secrets = generateSecrets();
-  
+
   console.log('\n📝 Example .env configuration with generated secrets:\n');
   console.log('# Critical Security Settings (MUST CHANGE IN PRODUCTION)');
   console.log(`JWT_SECRET=${secrets.JWT_SECRET}`);
@@ -226,14 +231,14 @@ function validateOrExit() {
 
   if (!result.valid) {
     console.error('💥 Environment validation failed!\n');
-    
+
     if (process.env.NODE_ENV === 'production') {
       console.error('🚨 Cannot start server in production without proper configuration.\n');
       process.exit(1);
     } else {
       console.warn('⚠️  Starting server with missing configuration (development mode).');
       console.warn('    Some features may not work correctly.\n');
-      
+
       // Show example configuration
       printExampleEnv();
     }
@@ -246,5 +251,5 @@ module.exports = {
   validateEnvironment,
   validateOrExit,
   generateSecrets,
-  printExampleEnv
+  printExampleEnv,
 };

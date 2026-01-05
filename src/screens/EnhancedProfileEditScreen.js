@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { EnhancedProfileService } from '../services/EnhancedProfileService';
 
@@ -21,7 +21,7 @@ const ETHNICITIES = [
   'Pacific Islander',
   'White',
   'Mixed',
-  'Other'
+  'Other',
 ];
 
 const HEIGHT_UNITS = ['cm', 'ft'];
@@ -35,16 +35,16 @@ export default function EnhancedProfileEditScreen() {
     school: '',
     degree: '',
     fieldOfStudy: '',
-    graduationYear: new Date().getFullYear()
+    graduationYear: new Date().getFullYear(),
   });
   const [occupation, setOccupation] = useState({
     jobTitle: '',
     company: '',
-    industry: ''
+    industry: '',
   });
   const [height, setHeight] = useState({
     value: '',
-    unit: 'cm'
+    unit: 'cm',
   });
   const [selectedEthnicities, setSelectedEthnicities] = useState([]);
   const [promptAnswers, setPromptAnswers] = useState({});
@@ -68,7 +68,7 @@ export default function EnhancedProfileEditScreen() {
 
   const handleSelectPrompt = (prompt) => {
     if (selectedPrompts.includes(prompt)) {
-      setSelectedPrompts(selectedPrompts.filter(p => p !== prompt));
+      setSelectedPrompts(selectedPrompts.filter((p) => p !== prompt));
       const newAnswers = { ...promptAnswers };
       delete newAnswers[prompt];
       setPromptAnswers(newAnswers);
@@ -81,7 +81,7 @@ export default function EnhancedProfileEditScreen() {
 
   const handleEthnicityToggle = (ethnicity) => {
     if (selectedEthnicities.includes(ethnicity)) {
-      setSelectedEthnicities(selectedEthnicities.filter(e => e !== ethnicity));
+      setSelectedEthnicities(selectedEthnicities.filter((e) => e !== ethnicity));
     } else if (selectedEthnicities.length < 3) {
       setSelectedEthnicities([...selectedEthnicities, ethnicity]);
     } else {
@@ -148,9 +148,9 @@ export default function EnhancedProfileEditScreen() {
         return;
       }
 
-      const promptsToSave = selectedPrompts.map(prompt => ({
+      const promptsToSave = selectedPrompts.map((prompt) => ({
         prompt,
-        answer: promptAnswers[prompt] || ''
+        answer: promptAnswers[prompt] || '',
       }));
 
       // Validate answers
@@ -244,7 +244,7 @@ export default function EnhancedProfileEditScreen() {
                 <TouchableOpacity
                   style={[
                     styles.promptCard,
-                    selectedPrompts.includes(item) && styles.selectedPrompt
+                    selectedPrompts.includes(item) && styles.selectedPrompt,
                   ]}
                   onPress={() => handleSelectPrompt(item)}
                 >
@@ -255,7 +255,7 @@ export default function EnhancedProfileEditScreen() {
 
             {selectedPrompts.map((prompt, index) => (
               <View key={index} style={styles.answerContainer}>
-                <Text style={styles.answerLabel}>Your answer to "{prompt}"</Text>
+                <Text style={styles.answerLabel}>Your answer to &quot;{prompt}&quot;</Text>
                 <TextInput
                   style={styles.answerInput}
                   placeholder="Type your answer here..."
@@ -264,7 +264,7 @@ export default function EnhancedProfileEditScreen() {
                     if (text.length <= 300) {
                       setPromptAnswers({
                         ...promptAnswers,
-                        [prompt]: text
+                        [prompt]: text,
                       });
                     }
                   }}
@@ -282,9 +282,7 @@ export default function EnhancedProfileEditScreen() {
               onPress={savePrompts}
               disabled={loading}
             >
-              <Text style={styles.saveButtonText}>
-                {loading ? 'Saving...' : 'Save Prompts'}
-              </Text>
+              <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Prompts'}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -343,9 +341,7 @@ export default function EnhancedProfileEditScreen() {
               onPress={saveEducation}
               disabled={loading}
             >
-              <Text style={styles.saveButtonText}>
-                {loading ? 'Saving...' : 'Save Education'}
-              </Text>
+              <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Education'}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -390,9 +386,7 @@ export default function EnhancedProfileEditScreen() {
               onPress={saveOccupation}
               disabled={loading}
             >
-              <Text style={styles.saveButtonText}>
-                {loading ? 'Saving...' : 'Save Occupation'}
-              </Text>
+              <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Occupation'}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -419,16 +413,13 @@ export default function EnhancedProfileEditScreen() {
                 {HEIGHT_UNITS.map((unit) => (
                   <TouchableOpacity
                     key={unit}
-                    style={[
-                      styles.unitButton,
-                      height.unit === unit && styles.unitButtonActive
-                    ]}
+                    style={[styles.unitButton, height.unit === unit && styles.unitButtonActive]}
                     onPress={() => setHeight({ ...height, unit })}
                   >
                     <Text
                       style={[
                         styles.unitButtonText,
-                        height.unit === unit && styles.unitButtonTextActive
+                        height.unit === unit && styles.unitButtonTextActive,
                       ]}
                     >
                       {unit}
@@ -443,9 +434,7 @@ export default function EnhancedProfileEditScreen() {
               onPress={saveHeight}
               disabled={loading}
             >
-              <Text style={styles.saveButtonText}>
-                {loading ? 'Saving...' : 'Save Height'}
-              </Text>
+              <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Height'}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -462,14 +451,14 @@ export default function EnhancedProfileEditScreen() {
                   key={ethnicity}
                   style={[
                     styles.ethnicityChip,
-                    selectedEthnicities.includes(ethnicity) && styles.ethnicityChipActive
+                    selectedEthnicities.includes(ethnicity) && styles.ethnicityChipActive,
                   ]}
                   onPress={() => handleEthnicityToggle(ethnicity)}
                 >
                   <Text
                     style={[
                       styles.ethnicityChipText,
-                      selectedEthnicities.includes(ethnicity) && styles.ethnicityChipTextActive
+                      selectedEthnicities.includes(ethnicity) && styles.ethnicityChipTextActive,
                     ]}
                   >
                     {ethnicity}
@@ -497,53 +486,53 @@ export default function EnhancedProfileEditScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#f5f5f5',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   tabContainer: {
     flexDirection: 'row',
     backgroundColor: '#fff',
     borderBottomColor: '#ddd',
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
   },
   tab: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
     borderBottomColor: 'transparent',
-    borderBottomWidth: 3
+    borderBottomWidth: 3,
   },
   activeTab: {
-    borderBottomColor: '#007AFF'
+    borderBottomColor: '#007AFF',
   },
   tabText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#666'
+    color: '#666',
   },
   activeTabText: {
-    color: '#007AFF'
+    color: '#007AFF',
   },
   content: {
-    flex: 1
+    flex: 1,
   },
   tabContent: {
-    padding: 16
+    padding: 16,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#000'
+    color: '#000',
   },
   sectionSubtitle: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 16
+    marginBottom: 16,
   },
   promptCard: {
     backgroundColor: '#fff',
@@ -551,27 +540,27 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderRadius: 8,
     borderColor: '#ddd',
-    borderWidth: 1
+    borderWidth: 1,
   },
   selectedPrompt: {
     backgroundColor: '#E3F2FD',
     borderColor: '#007AFF',
-    borderWidth: 2
+    borderWidth: 2,
   },
   promptText: {
     fontSize: 14,
     color: '#333',
-    fontWeight: '500'
+    fontWeight: '500',
   },
   answerContainer: {
     marginTop: 16,
-    marginBottom: 16
+    marginBottom: 16,
   },
   answerLabel: {
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#000'
+    color: '#000',
   },
   answerInput: {
     backgroundColor: '#fff',
@@ -582,22 +571,22 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
     fontSize: 14,
-    color: '#000'
+    color: '#000',
   },
   characterCount: {
     fontSize: 12,
     color: '#999',
     marginTop: 4,
-    textAlign: 'right'
+    textAlign: 'right',
   },
   inputGroup: {
-    marginBottom: 16
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#000'
+    color: '#000',
   },
   input: {
     backgroundColor: '#fff',
@@ -606,11 +595,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#000'
+    color: '#000',
   },
   unitContainer: {
     flexDirection: 'row',
-    gap: 12
+    gap: 12,
   },
   unitButton: {
     flex: 1,
@@ -620,25 +609,25 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderWidth: 1,
     backgroundColor: '#fff',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   unitButtonActive: {
     backgroundColor: '#007AFF',
-    borderColor: '#007AFF'
+    borderColor: '#007AFF',
   },
   unitButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666'
+    color: '#666',
   },
   unitButtonTextActive: {
-    color: '#fff'
+    color: '#fff',
   },
   ethnicityGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginBottom: 24
+    marginBottom: 24,
   },
   ethnicityChip: {
     paddingVertical: 8,
@@ -646,19 +635,19 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderColor: '#ddd',
     borderWidth: 1,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   ethnicityChipActive: {
     backgroundColor: '#007AFF',
-    borderColor: '#007AFF'
+    borderColor: '#007AFF',
   },
   ethnicityChipText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#333'
+    color: '#333',
   },
   ethnicityChipTextActive: {
-    color: '#fff'
+    color: '#fff',
   },
   saveButton: {
     backgroundColor: '#007AFF',
@@ -666,14 +655,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 20,
-    marginBottom: 40
+    marginBottom: 40,
   },
   disabledButton: {
-    opacity: 0.6
+    opacity: 0.6,
   },
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600'
-  }
+    fontWeight: '600',
+  },
 });

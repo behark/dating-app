@@ -1,36 +1,46 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Dimensions, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ProgressiveImage from '../Common/ProgressiveImage';
 import { LocationService } from '../../services/LocationService';
 import { VerificationService } from '../../services/VerificationService';
 
 // Only import gesture handlers on native platforms
-const PanGestureHandler = Platform.OS !== 'web' 
-  ? require('react-native-gesture-handler').PanGestureHandler 
-  : View;
+const PanGestureHandler =
+  Platform.OS !== 'web' ? require('react-native-gesture-handler').PanGestureHandler : View;
 
-const Animated = Platform.OS !== 'web'
-  ? require('react-native-reanimated').default
-  : require('react-native').Animated;
+const Animated =
+  Platform.OS !== 'web'
+    ? require('react-native-reanimated').default
+    : require('react-native').Animated;
 
-const { useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withSpring, withTiming, runOnJS, Easing } = Platform.OS !== 'web'
-  ? require('react-native-reanimated')
-  : {
-      useAnimatedGestureHandler: () => ({}),
-      useAnimatedStyle: () => ({}),
-      useSharedValue: (val) => ({ value: val }),
-      withSpring: (val) => val,
-      withTiming: (val) => val,
-      runOnJS: (fn) => fn,
-      Easing: { inOut: () => ({})},
-    };
+const {
+  useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  runOnJS,
+  Easing,
+} =
+  Platform.OS !== 'web'
+    ? require('react-native-reanimated')
+    : {
+        useAnimatedGestureHandler: () => ({}),
+        useAnimatedStyle: () => ({}),
+        useSharedValue: (val) => ({ value: val }),
+        withSpring: (val) => val,
+        withTiming: (val) => val,
+        runOnJS: (fn) => fn,
+        Easing: { inOut: () => ({}) },
+      };
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
 const CARD_HEIGHT = SCREEN_HEIGHT * 0.75;
-const CARD_SPACING = 15;
+// CARD_SPACING removed - unused
 
-const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) => {
+const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -45,22 +55,23 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) =>
     onActive: (event, ctx) => {
       translateX.value = ctx.startX + event.translationX;
       translateY.value = ctx.startY + event.translationY;
-      
+
       rotation.value = translateX.value / 20;
       // Smoother scale effect
       const absTranslateX = Math.abs(translateX.value);
       scale.value = Math.max(0.8, 1 - absTranslateX / 2000);
     },
-    onEnd: (event) => {
+    onEnd: () => {
       const shouldSwipeLeft = translateX.value < -SWIPE_THRESHOLD;
       const shouldSwipeRight = translateX.value > SWIPE_THRESHOLD;
 
       if (shouldSwipeLeft) {
         // Smooth exit animation to the left
-        translateX.value = withSpring(
-          -SCREEN_WIDTH * 1.5,
-          { damping: 10, mass: 1, overshootClamping: true }
-        );
+        translateX.value = withSpring(-SCREEN_WIDTH * 1.5, {
+          damping: 10,
+          mass: 1,
+          overshootClamping: true,
+        });
         rotation.value = withTiming(-45, {
           duration: 400,
           easing: Easing.inOut(Easing.ease),
@@ -72,10 +83,11 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) =>
         runOnJS(onSwipeLeft)(card);
       } else if (shouldSwipeRight) {
         // Smooth exit animation to the right
-        translateX.value = withSpring(
-          SCREEN_WIDTH * 1.5,
-          { damping: 10, mass: 1, overshootClamping: true }
-        );
+        translateX.value = withSpring(SCREEN_WIDTH * 1.5, {
+          damping: 10,
+          mass: 1,
+          overshootClamping: true,
+        });
         rotation.value = withTiming(45, {
           duration: 400,
           easing: Easing.inOut(Easing.ease),
@@ -113,18 +125,19 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) =>
   });
 
   const nopeOpacity = useAnimatedStyle(() => {
-    const opacity = translateX.value < 0 ? Math.min(Math.abs(translateX.value) / SWIPE_THRESHOLD, 1) : 0;
+    const opacity =
+      translateX.value < 0 ? Math.min(Math.abs(translateX.value) / SWIPE_THRESHOLD, 1) : 0;
     return { opacity };
   });
 
   return (
     <PanGestureHandler onGestureEvent={gestureHandler}>
       <Animated.View style={[styles.card, cardStyle]} testID="swipe-card">
-        <Image 
-          source={{ uri: card.photoURL || 'https://via.placeholder.com/400' }} 
+        <ProgressiveImage
+          source={{ uri: card.photoURL || 'https://via.placeholder.com/400' }}
           style={styles.image}
         />
-        
+
         <TouchableOpacity
           style={styles.infoButton}
           onPress={() => onViewProfile && onViewProfile()}
@@ -138,7 +151,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) =>
             <Ionicons name="information-circle" size={24} color="#fff" />
           </LinearGradient>
         </TouchableOpacity>
-        
+
         <LinearGradient
           colors={['transparent', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.95)']}
           locations={[0.4, 0.7, 1]}
@@ -149,8 +162,20 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) =>
               <Text style={styles.name}>{card.name || 'Unknown'}</Text>
               {card.age && <Text style={styles.age}>, {card.age}</Text>}
               {VerificationService.getVerificationBadgeInfo(card).showBadge && (
-                <View style={[styles.verificationBadge, { backgroundColor: VerificationService.getVerificationBadgeInfo(card).badgeColor }]}>
-                  <Ionicons name={VerificationService.getVerificationBadgeInfo(card).iconName} size={12} color="#fff" />
+                <View
+                  style={[
+                    styles.verificationBadge,
+                    {
+                      backgroundColor:
+                        VerificationService.getVerificationBadgeInfo(card).badgeColor,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={VerificationService.getVerificationBadgeInfo(card).iconName}
+                    size={12}
+                    color="#fff"
+                  />
                 </View>
               )}
             </View>
@@ -164,28 +189,20 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, index, onViewProfile }) =>
                 {card.bio}
               </Text>
             )}
-            {!card.bio && (
-              <Text style={styles.bioPlaceholder}>No bio yet</Text>
-            )}
+            {!card.bio && <Text style={styles.bioPlaceholder}>No bio yet</Text>}
           </View>
         </LinearGradient>
-        
+
         {/* Like Label */}
         <Animated.View style={[styles.likeLabel, likeOpacity]}>
-          <LinearGradient
-            colors={['#4ECDC4', '#44A08D']}
-            style={styles.labelGradient}
-          >
+          <LinearGradient colors={['#4ECDC4', '#44A08D']} style={styles.labelGradient}>
             <Text style={styles.likeText}>LIKE</Text>
           </LinearGradient>
         </Animated.View>
-        
+
         {/* Nope Label */}
         <Animated.View style={[styles.nopeLabel, nopeOpacity]}>
-          <LinearGradient
-            colors={['#FF6B6B', '#EE5A6F']}
-            style={styles.labelGradient}
-          >
+          <LinearGradient colors={['#FF6B6B', '#EE5A6F']} style={styles.labelGradient}>
             <Text style={styles.nopeText}>NOPE</Text>
           </LinearGradient>
         </Animated.View>
@@ -254,19 +271,33 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontWeight: '800',
     color: '#fff',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
     letterSpacing: 0.5,
+    ...Platform.select({
+      web: {
+        textShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
+      },
+      default: {
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 4,
+      },
+    }),
   },
   age: {
     fontSize: 32,
     fontWeight: '600',
     color: '#fff',
     opacity: 0.9,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    ...Platform.select({
+      web: {
+        textShadow: '0px 2px 4px rgba(0, 0, 0, 0.5)',
+      },
+      default: {
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 4,
+      },
+    }),
   },
   verificationBadge: {
     marginLeft: 8,
@@ -282,18 +313,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     opacity: 0.8,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    ...Platform.select({
+      web: {
+        textShadow: '0px 1px 2px rgba(0, 0, 0, 0.5)',
+      },
+      default: {
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
+      },
+    }),
   },
   bio: {
     fontSize: 17,
     color: '#fff',
     lineHeight: 24,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
     opacity: 0.95,
+    ...Platform.select({
+      web: {
+        textShadow: '0px 1px 3px rgba(0, 0, 0, 0.5)',
+      },
+      default: {
+        textShadowColor: 'rgba(0, 0, 0, 0.5)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 3,
+      },
+    }),
   },
   bioPlaceholder: {
     fontSize: 16,
@@ -324,9 +369,16 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#fff',
     letterSpacing: 2,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    ...Platform.select({
+      web: {
+        textShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)',
+      },
+      default: {
+        textShadowColor: 'rgba(0, 0, 0, 0.3)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 4,
+      },
+    }),
   },
   nopeLabel: {
     position: 'absolute',
@@ -344,9 +396,16 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#fff',
     letterSpacing: 2,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    ...Platform.select({
+      web: {
+        textShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)',
+      },
+      default: {
+        textShadowColor: 'rgba(0, 0, 0, 0.3)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 4,
+      },
+    }),
   },
 });
 

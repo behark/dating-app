@@ -56,7 +56,11 @@ router.get('/date-plans/active', authenticateToken, safetyAdvancedController.get
 
 // Check-in Features
 router.post('/checkin/start', authenticateToken, safetyAdvancedController.startCheckIn);
-router.post('/checkin/:checkInId/complete', authenticateToken, safetyAdvancedController.completeCheckIn);
+router.post(
+  '/checkin/:checkInId/complete',
+  authenticateToken,
+  safetyAdvancedController.completeCheckIn
+);
 
 // Emergency SOS Button
 router.post('/sos', authenticateToken, safetyAdvancedController.sendEmergencySOS);
@@ -65,15 +69,31 @@ router.post('/sos/:sosAlertId/respond', authenticateToken, safetyAdvancedControl
 router.put('/sos/:sosAlertId/resolve', authenticateToken, safetyAdvancedController.resolveSOS);
 
 // Background Checks (Premium Feature)
-router.post('/background-check', authenticateToken, safetyAdvancedController.initiateBackgroundCheck);
-router.get('/background-check/:backgroundCheckId', authenticateToken, safetyAdvancedController.getBackgroundCheckStatus);
+router.post(
+  '/background-check',
+  authenticateToken,
+  safetyAdvancedController.initiateBackgroundCheck
+);
+router.get(
+  '/background-check/:backgroundCheckId',
+  authenticateToken,
+  safetyAdvancedController.getBackgroundCheckStatus
+);
 
 // Emergency Contacts
 router.post('/emergency-contact', authenticateToken, safetyAdvancedController.addEmergencyContact);
 router.get('/emergency-contacts', authenticateToken, safetyAdvancedController.getEmergencyContacts);
-router.delete('/emergency-contact/:contactId', authenticateToken, safetyAdvancedController.deleteEmergencyContact);
+router.delete(
+  '/emergency-contact/:contactId',
+  authenticateToken,
+  safetyAdvancedController.deleteEmergencyContact
+);
 
 // Advanced Photo Verification with Liveness Detection
-router.post('/photo-verification/advanced', authenticateToken, safetyAdvancedController.submitAdvancedPhotoVerification);
+router.post(
+  '/photo-verification/advanced',
+  authenticateToken,
+  safetyAdvancedController.submitAdvancedPhotoVerification
+);
 
 module.exports = router;

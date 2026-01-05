@@ -96,11 +96,7 @@ describe('BetaTestingService', () => {
         description: 'Login button does not respond to taps',
         severity: 'high',
         reproducibility: 'always',
-        stepsToReproduce: [
-          'Open app',
-          'Enter credentials',
-          'Tap login button',
-        ],
+        stepsToReproduce: ['Open app', 'Enter credentials', 'Tap login button'],
         expectedBehavior: 'Should navigate to home screen',
         actualBehavior: 'Nothing happens',
       });
@@ -217,10 +213,10 @@ describe('BetaTestingService', () => {
 
     it('should update feedback status', () => {
       const feedback = service.submitFeedback('user_1', { title: 'Test' });
-      
+
       service.updateFeedbackStatus(feedback.id, 'reviewing', 'admin_1', 'Looking into this');
 
-      const updated = service.getAllFeedback().find(f => f.id === feedback.id);
+      const updated = service.getAllFeedback().find((f) => f.id === feedback.id);
       expect(updated.status).toBe('reviewing');
       expect(updated.assignee).toBe('admin_1');
       expect(updated.notes).toBe('Looking into this');

@@ -1,6 +1,6 @@
 /**
  * Payment Configuration
- * 
+ *
  * Centralized configuration for all payment providers:
  * - Stripe (credit cards, Apple Pay, Google Pay)
  * - PayPal

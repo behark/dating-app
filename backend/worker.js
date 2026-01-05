@@ -17,7 +17,7 @@ let isShuttingDown = false;
 const connectDB = async () => {
   // Support both MONGODB_URI and MONGODB_URL for compatibility
   const mongoURI = process.env.MONGODB_URI || process.env.MONGODB_URL;
-  
+
   if (!mongoURI) {
     throw new Error('MONGODB_URI or MONGODB_URL is required');
   }
@@ -26,7 +26,7 @@ const connectDB = async () => {
     maxPoolSize: 5,
     serverSelectionTimeoutMS: 5000,
   });
-  
+
   console.log('Worker connected to MongoDB');
 };
 
@@ -44,18 +44,17 @@ const startWorker = async () => {
     // Connect to databases
     await connectDB();
     await initRedis();
-    
+
     console.log('Database connections established');
 
     // Initialize job processors
     initializeProcessors();
-    
+
     // Schedule recurring jobs
     await scheduleRecurringJobs();
-    
+
     console.log('Worker started successfully');
     console.log('Listening for jobs...');
-    
   } catch (error) {
     console.error('Failed to start worker:', error);
     process.exit(1);
@@ -68,21 +67,21 @@ const startWorker = async () => {
 const shutdown = async (signal) => {
   if (isShuttingDown) return;
   isShuttingDown = true;
-  
+
   console.log(`\n${signal} received. Starting graceful shutdown...`);
-  
+
   try {
     // Close queue connections
     const QueueService = require('./services/QueueService');
     await QueueService.closeAll();
-    
+
     // Close Redis
     const { closeRedis } = require('./config/redis');
     await closeRedis();
-    
+
     // Close MongoDB
     await mongoose.connection.close();
-    
+
     console.log('Worker shut down gracefully');
     process.exit(0);
   } catch (error) {

@@ -16,7 +16,7 @@ const ENCRYPTED_FIELDS = [
   'bankAccountNumber',
   'creditCardNumber',
   'address',
-  'dateOfBirth'
+  'dateOfBirth',
 ];
 
 /**
@@ -26,13 +26,13 @@ const ENCRYPTED_FIELDS = [
  */
 const fieldEncryptionPlugin = (schema, options = {}) => {
   const fieldsToEncrypt = options.fields || [];
-  
+
   if (fieldsToEncrypt.length === 0) {
     return; // No fields to encrypt
   }
 
   // Pre-save middleware: encrypt fields before saving
-  schema.pre('save', function(next) {
+  schema.pre('save', function (next) {
     try {
       for (const field of fieldsToEncrypt) {
         const value = this.get(field);
@@ -49,22 +49,22 @@ const fieldEncryptionPlugin = (schema, options = {}) => {
   });
 
   // Pre-findOneAndUpdate middleware: encrypt fields in updates
-  schema.pre('findOneAndUpdate', function(next) {
+  schema.pre('findOneAndUpdate', function (next) {
     try {
       const update = this.getUpdate();
-      
+
       for (const field of fieldsToEncrypt) {
         // Handle direct field updates
         if (update[field] && !isEncrypted(update[field])) {
           update[field] = encrypt(update[field]);
         }
-        
+
         // Handle $set updates
         if (update.$set && update.$set[field] && !isEncrypted(update.$set[field])) {
           update.$set[field] = encrypt(update.$set[field]);
         }
       }
-      
+
       next();
     } catch (error) {
       next(error);
@@ -72,37 +72,37 @@ const fieldEncryptionPlugin = (schema, options = {}) => {
   });
 
   // Post-find middleware: decrypt fields after reading
-  schema.post('find', function(docs) {
+  schema.post('find', (docs) => {
     if (!Array.isArray(docs)) return docs;
-    
-    return docs.map(doc => decryptDocument(doc, fieldsToEncrypt));
+
+    return docs.map((doc) => decryptDocument(doc, fieldsToEncrypt));
   });
 
-  schema.post('findOne', function(doc) {
+  schema.post('findOne', (doc) => {
     if (!doc) return doc;
     return decryptDocument(doc, fieldsToEncrypt);
   });
 
-  schema.post('findById', function(doc) {
+  schema.post('findById', (doc) => {
     if (!doc) return doc;
     return decryptDocument(doc, fieldsToEncrypt);
   });
 
   // Add method to get decrypted value
-  schema.methods.getDecrypted = function(field) {
+  schema.methods.getDecrypted = function (field) {
     const value = this.get(field);
     if (!value) return value;
     return decrypt(value);
   };
 
   // Add method to set encrypted value
-  schema.methods.setEncrypted = function(field, value) {
+  schema.methods.setEncrypted = function (field, value) {
     this.set(field, encrypt(value));
     this.set(`_${field}Encrypted`, true);
   };
 
   // Add static method to find by encrypted field
-  schema.statics.findByEncryptedField = async function(field, value) {
+  schema.statics.findByEncryptedField = async function (field, value) {
     // For searching encrypted fields, we need to encrypt the search value
     const encryptedValue = encrypt(value);
     return this.findOne({ [field]: encryptedValue });
@@ -118,9 +118,11 @@ const isEncrypted = (value) => {
   if (typeof value !== 'string') return false;
   // Our encryption format: iv:authTag:ciphertext
   const parts = value.split(':');
-  return parts.length === 3 && 
-         parts[0].length === 24 && // Base64 IV (16 bytes = 24 chars)
-         parts[1].length === 24;   // Base64 auth tag (16 bytes = 24 chars)
+  return (
+    parts.length === 3 &&
+    parts[0].length === 24 && // Base64 IV (16 bytes = 24 chars)
+    parts[1].length === 24
+  ); // Base64 auth tag (16 bytes = 24 chars)
 };
 
 /**
@@ -131,10 +133,10 @@ const isEncrypted = (value) => {
  */
 const decryptDocument = (doc, fields) => {
   if (!doc) return doc;
-  
+
   // Handle both plain objects and Mongoose documents
   const obj = doc.toObject ? doc.toObject() : doc;
-  
+
   for (const field of fields) {
     if (obj[field] && isEncrypted(obj[field])) {
       try {
@@ -145,7 +147,7 @@ const decryptDocument = (doc, fields) => {
       }
     }
   }
-  
+
   return obj;
 };
 
@@ -157,13 +159,13 @@ const decryptDocument = (doc, fields) => {
  */
 const encryptFields = (data, fields) => {
   const result = { ...data };
-  
+
   for (const field of fields) {
     if (result[field] && !isEncrypted(result[field])) {
       result[field] = encrypt(result[field]);
     }
   }
-  
+
   return result;
 };
 
@@ -175,7 +177,7 @@ const encryptFields = (data, fields) => {
  */
 const decryptFields = (data, fields) => {
   const result = { ...data };
-  
+
   for (const field of fields) {
     if (result[field] && isEncrypted(result[field])) {
       try {
@@ -185,7 +187,7 @@ const decryptFields = (data, fields) => {
       }
     }
   }
-  
+
   return result;
 };
 
@@ -195,5 +197,5 @@ module.exports = {
   decryptDocument,
   encryptFields,
   decryptFields,
-  ENCRYPTED_FIELDS
+  ENCRYPTED_FIELDS,
 };

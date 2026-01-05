@@ -38,18 +38,8 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": [
-    "./**/*.js",
-    "./**/*.ts",
-    "./types/**/*.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "__tests__",
-    "coverage",
-    "*.test.js",
-    "*.spec.js"
-  ],
+  "include": ["./**/*.js", "./**/*.ts", "./types/**/*.d.ts"],
+  "exclude": ["node_modules", "__tests__", "coverage", "*.test.js", "*.spec.js"],
   "ts-node": {
     "transpileOnly": true,
     "compilerOptions": {

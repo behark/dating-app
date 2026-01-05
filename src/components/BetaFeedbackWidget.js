@@ -1,18 +1,18 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useRef, useState } from 'react';
 import {
-    Alert,
-    Animated,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Animated,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const FEEDBACK_TYPES = [
@@ -45,7 +45,7 @@ export const BetaFeedbackWidget = ({
   const [screenshot, setScreenshot] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  
+
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -63,7 +63,8 @@ export const BetaFeedbackWidget = ({
         useNativeDriver: true,
       }).start();
     }
-  }, [isVisible]);
+    // slideAnim is stable (created with useRef), but included to satisfy exhaustive-deps
+  }, [isVisible, slideAnim]);
 
   const handlePickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -162,12 +163,8 @@ export const BetaFeedbackWidget = ({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.modalContainer}
       >
-        <TouchableOpacity
-          style={styles.backdrop}
-          activeOpacity={1}
-          onPress={onClose}
-        />
-        
+        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+
         <Animated.View
           style={[
             styles.feedbackPanel,
@@ -187,9 +184,7 @@ export const BetaFeedbackWidget = ({
             <View style={styles.successContainer}>
               <Text style={styles.successEmoji}>🎉</Text>
               <Text style={styles.successText}>Thank you for your feedback!</Text>
-              <Text style={styles.successSubtext}>
-                Your input helps us improve the app
-              </Text>
+              <Text style={styles.successSubtext}>Your input helps us improve the app</Text>
             </View>
           ) : (
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -227,10 +222,7 @@ export const BetaFeedbackWidget = ({
                 {RATINGS.map((r) => (
                   <TouchableOpacity
                     key={r.value}
-                    style={[
-                      styles.ratingButton,
-                      rating === r.value && styles.ratingButtonActive,
-                    ]}
+                    style={[styles.ratingButton, rating === r.value && styles.ratingButtonActive]}
                     onPress={() => setRating(r.value)}
                   >
                     <Text style={styles.ratingEmoji}>{r.emoji}</Text>
@@ -267,10 +259,7 @@ export const BetaFeedbackWidget = ({
               <View style={styles.screenshotContainer}>
                 {screenshot ? (
                   <View style={styles.screenshotPreview}>
-                    <Image
-                      source={{ uri: screenshot }}
-                      style={styles.screenshotImage}
-                    />
+                    <Image source={{ uri: screenshot }} style={styles.screenshotImage} />
                     <TouchableOpacity
                       style={styles.removeScreenshot}
                       onPress={() => setScreenshot(null)}
@@ -280,10 +269,7 @@ export const BetaFeedbackWidget = ({
                   </View>
                 ) : (
                   <View style={styles.screenshotButtons}>
-                    <TouchableOpacity
-                      style={styles.screenshotButton}
-                      onPress={handlePickImage}
-                    >
+                    <TouchableOpacity style={styles.screenshotButton} onPress={handlePickImage}>
                       <Text style={styles.screenshotButtonText}>📷 Gallery</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -298,10 +284,7 @@ export const BetaFeedbackWidget = ({
 
               {/* Submit Button */}
               <TouchableOpacity
-                style={[
-                  styles.submitButton,
-                  isSubmitting && styles.submitButtonDisabled,
-                ]}
+                style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
                 onPress={handleSubmit}
                 disabled={isSubmitting}
               >

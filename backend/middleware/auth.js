@@ -9,7 +9,7 @@ exports.authenticate = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'No authorization token provided'
+        message: 'No authorization token provided',
       });
     }
 
@@ -18,20 +18,17 @@ exports.authenticate = async (req, res, next) => {
       console.error('JWT_SECRET is not configured');
       return res.status(500).json({
         success: false,
-        message: 'Authentication system is not properly configured'
+        message: 'Authentication system is not properly configured',
       });
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     const user = await User.findById(decoded.userId);
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -41,13 +38,13 @@ exports.authenticate = async (req, res, next) => {
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
-        message: 'Token expired'
+        message: 'Token expired',
       });
     }
     return res.status(401).json({
       success: false,
       message: 'Invalid token',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -58,10 +55,7 @@ exports.optionalAuth = async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
 
     if (token && process.env.JWT_SECRET) {
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET
-      );
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await User.findById(decoded.userId);
       if (user) {
         req.user = user;
@@ -78,14 +72,14 @@ exports.isAdmin = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
       success: false,
-      message: 'Authentication required'
+      message: 'Authentication required',
     });
   }
 
   if (req.user.role !== 'admin') {
     return res.status(403).json({
       success: false,
-      message: 'Admin access required'
+      message: 'Admin access required',
     });
   }
 
