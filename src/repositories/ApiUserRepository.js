@@ -121,16 +121,20 @@ export class ApiUserRepository extends UserRepository {
       } = options;
 
       // Build query params - lat and lng are required by backend
-      // If not provided, use default location (center of world) or skip the request
+      // If not provided, use default location (center of world) to allow discovery to work
+      const finalLat = lat || 0;
+      const finalLng = lng || 0;
+
       if (!lat || !lng) {
-        logger.warn('ApiUserRepository: Missing lat/lng for discovery, returning empty array');
-        return [];
+        logger.warn(
+          'ApiUserRepository: Missing lat/lng for discovery, using default location (0,0)'
+        );
       }
 
       const params = new URLSearchParams({
         limit: limit.toString(),
-        lat: lat.toString(),
-        lng: lng.toString(),
+        lat: finalLat.toString(),
+        lng: finalLng.toString(),
         ...(radius && { radius: radius.toString() }),
         minAge: minAge.toString(),
         maxAge: maxAge.toString(),

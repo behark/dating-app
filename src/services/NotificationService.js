@@ -1,5 +1,6 @@
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import logger from '../utils/logger';
@@ -15,6 +16,13 @@ Notifications.setNotificationHandler({
 export class NotificationService {
   static async registerForPushNotifications(userId) {
     try {
+      // On web, push notifications require VAPID key setup
+      // Skip registration on web to avoid errors
+      if (Platform.OS === 'web') {
+        logger.debug('Push notifications on web require VAPID key setup, skipping registration');
+        return null;
+      }
+
       if (!Device.isDevice) {
         logger.warn('Push notifications only work on physical devices');
         return null;
@@ -37,10 +45,25 @@ export class NotificationService {
       const tokenData = token.data;
 
       // Save token to user's profile
-      await updateDoc(doc(db, 'users', userId), {
-        pushToken: tokenData,
-        notificationsEnabled: true,
-      });
+      try {
+        await updateDoc(doc(db, 'users', userId), {
+          pushToken: tokenData,
+          notificationsEnabled: true,
+        });
+      } catch (firestoreError) {
+        // Handle ERR_BLOCKED_BY_CLIENT (ad blockers) gracefully
+        if (
+          firestoreError.message?.includes('ERR_BLOCKED_BY_CLIENT') ||
+          firestoreError.code === 'permission-denied'
+        ) {
+          logger.warn('Firestore write blocked (likely by ad blocker), push token not saved', {
+            userId,
+          });
+          // Return token anyway - app can still function
+          return tokenData;
+        }
+        throw firestoreError;
+      }
 
       logger.info('Push notification token saved', { userId, tokenData });
       return tokenData;

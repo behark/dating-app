@@ -1,6 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../constants/colors';
-import { UI_MESSAGES } from '../constants/constants';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -15,6 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { UI_MESSAGES } from '../constants/constants';
+import { Colors } from '../constants/colors';
 import SkeletonCard from '../components/Card/SkeletonCard';
 import SwipeCard from '../components/Card/SwipeCard';
 import MicroAnimations from '../components/Common/MicroAnimations';
@@ -73,10 +73,12 @@ const HomeScreen = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       if (userId) {
-        loadCards();
+        // Initialize location first, then load cards after location is available
+        initializeLocation().then(() => {
+          loadCards();
+        });
         loadPremiumStatus();
         loadGamificationData();
-        initializeLocation();
       }
     }, [userId])
   );
@@ -110,9 +112,26 @@ const HomeScreen = ({ navigation }) => {
 
         // Start periodic location updates (every 5 minutes)
         LocationService.startPeriodicLocationUpdates(userId);
+      } else {
+        // If location permission denied or unavailable, use a default location
+        // This allows discovery to work even without location permission
+        logger.warn('Location not available, using default location for discovery');
+        const defaultLocation = {
+          latitude: 0, // Center of world as fallback
+          longitude: 0,
+          accuracy: null,
+        };
+        setUserLocation(defaultLocation);
       }
     } catch (error) {
       logger.error('Error initializing location:', error);
+      // Set default location on error to allow discovery to work
+      const defaultLocation = {
+        latitude: 0,
+        longitude: 0,
+        accuracy: null,
+      };
+      setUserLocation(defaultLocation);
     } finally {
       setLocationUpdating(false);
     }
