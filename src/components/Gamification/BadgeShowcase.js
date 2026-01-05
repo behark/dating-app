@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../constants/colors';
 import { StyleSheet, Text, View } from 'react-native';
 
 const BadgeShowcase = ({ badges = [] }) => {

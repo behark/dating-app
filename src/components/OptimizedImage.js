@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Image, Platform, StyleSheet, View } from 'react-native';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../constants/colors';
 
 // Image cache manager
 const imageCache = new Map();

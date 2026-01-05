@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../constants/colors';
 import { View, StyleSheet, PanResponder, Animated, Text } from 'react-native';
 
 const RangeSlider = ({

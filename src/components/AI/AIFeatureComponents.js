@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../constants/colors';
 import {
   View,
   Text,

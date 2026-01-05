@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../constants/colors';
 import { useCallback, useEffect, useRef } from 'react';
 import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useOffline } from '../hooks/useOffline';

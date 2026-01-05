@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../constants/colors';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ActivityService } from '../services/ActivityService';
 import logger from '../utils/logger';

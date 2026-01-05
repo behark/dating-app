@@ -1,5 +1,5 @@
 import React from 'react';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../constants/colors';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { BREAKPOINTS, useResponsive } from '../../hooks/useResponsive';
 

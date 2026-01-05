@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../constants/colors';
 import { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
