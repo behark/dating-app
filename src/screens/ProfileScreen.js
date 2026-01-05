@@ -384,6 +384,20 @@ const ProfileScreen = () => {
 
             <TouchableOpacity
               style={styles.secondaryButton}
+              onPress={() => navigation.navigate('SocialMediaConnection')}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="share-social"
+                size={20}
+                color="#1DB954"
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.secondaryButtonText}>Social Media</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
               onPress={() => navigation.navigate('SafetyTips')}
               activeOpacity={0.8}
             >
