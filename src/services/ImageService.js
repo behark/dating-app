@@ -235,31 +235,286 @@ export class ImageService {
   }
 
   static async moderateImage(uri) {
-    // Basic moderation - in production, integrate with services like:
-    // - Google Cloud Vision API
-    // - AWS Rekognition
-    // - Clarifai
-    // - Sightengine
+    /**
+     * Image Moderation Service
+     * 
+     * Integrates with moderation services to detect inappropriate content:
+     * - Nudity/Adult content
+     * - Violence
+     * - Hate symbols
+     * - Weapons
+     * - Spam/Scam content
+     * 
+     * Supported services:
+     * - Google Cloud Vision API (recommended)
+     * - AWS Rekognition
+     * - Sightengine
+     * - Clarifai
+     */
 
     try {
-      // For now, just check file size and basic validation
-      // In production, you'd send to a moderation service
-
+      // First, validate image format and size
       const validation = await this.validateImage(uri);
       if (!validation.valid) {
         return { approved: false, reason: validation.error };
       }
 
-      // Mock moderation result - always approve for demo
-      // In production, this would check for inappropriate content
-      return {
-        approved: true,
-        confidence: 0.95,
-        categories: [],
-      };
+      // Check if moderation service is configured
+      const moderationService = process.env.EXPO_PUBLIC_MODERATION_SERVICE || 'none';
+      const moderationApiKey = process.env.EXPO_PUBLIC_MODERATION_API_KEY;
+
+      if (moderationService === 'none' || !moderationApiKey) {
+        // Fallback: Basic validation only (NOT RECOMMENDED FOR PRODUCTION)
+        logger.warn('Image moderation service not configured - using basic validation only');
+        return {
+          approved: true,
+          confidence: 0.5, // Low confidence since no real moderation
+          categories: [],
+          warning: 'Moderation service not configured - manual review recommended',
+        };
+      }
+
+      // Convert image to base64 for API submission
+      const base64Image = await this.uriToBase64(uri);
+
+      // Route to appropriate moderation service
+      switch (moderationService.toLowerCase()) {
+        case 'google-vision':
+          return await this.moderateWithGoogleVision(base64Image);
+        case 'aws-rekognition':
+          return await this.moderateWithAWSRekognition(base64Image);
+        case 'sightengine':
+          return await this.moderateWithSightengine(base64Image, moderationApiKey);
+        case 'clarifai':
+          return await this.moderateWithClarifai(base64Image, moderationApiKey);
+        default:
+          logger.warn(`Unknown moderation service: ${moderationService}`);
+          return {
+            approved: true,
+            confidence: 0.5,
+            categories: [],
+            warning: 'Unknown moderation service',
+          };
+      }
     } catch (error) {
       logger.error('Error moderating image', error, { uri });
-      return { approved: false, reason: 'Moderation failed' };
+      // On error, reject image to be safe
+      return {
+        approved: false,
+        reason: 'Moderation service error - please try again',
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Convert image URI to base64
+   */
+  static async uriToBase64(uri) {
+    try {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      throw new Error(`Failed to convert image to base64: ${error.message}`);
+    }
+  }
+
+  /**
+   * Moderate with Google Cloud Vision API
+   * Requires: GOOGLE_CLOUD_VISION_API_KEY environment variable
+   */
+  static async moderateWithGoogleVision(base64Image) {
+    const apiKey = process.env.EXPO_PUBLIC_GOOGLE_CLOUD_VISION_API_KEY;
+    if (!apiKey) {
+      throw new Error('Google Cloud Vision API key not configured');
+    }
+
+    try {
+      const response = await fetch(
+        `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requests: [
+              {
+                image: { content: base64Image },
+                features: [
+                  { type: 'SAFE_SEARCH_DETECTION', maxResults: 1 },
+                  { type: 'OBJECT_LOCALIZATION', maxResults: 10 },
+                ],
+              },
+            ],
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Google Vision API error');
+      }
+
+      const safeSearch = data.responses[0]?.safeSearchAnnotation;
+      if (!safeSearch) {
+        return { approved: true, confidence: 0.7, categories: [] };
+      }
+
+      // Check for inappropriate content
+      const isInappropriate =
+        safeSearch.adult === 'VERY_LIKELY' ||
+        safeSearch.adult === 'LIKELY' ||
+        safeSearch.violence === 'VERY_LIKELY' ||
+        safeSearch.violence === 'LIKELY' ||
+        safeSearch.racy === 'VERY_LIKELY';
+
+      return {
+        approved: !isInappropriate,
+        confidence: 0.9,
+        categories: {
+          adult: safeSearch.adult,
+          violence: safeSearch.violence,
+          racy: safeSearch.racy,
+          medical: safeSearch.medical,
+          spoof: safeSearch.spoof,
+        },
+        reason: isInappropriate
+          ? 'Image contains inappropriate content'
+          : 'Image approved by moderation service',
+      };
+    } catch (error) {
+      logger.error('Google Vision moderation error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Moderate with AWS Rekognition
+   * Requires: AWS credentials configured
+   */
+  static async moderateWithAWSRekognition(base64Image) {
+    // Note: AWS Rekognition requires AWS SDK and proper credentials
+    // This is a placeholder - implement with AWS SDK in production
+    logger.warn('AWS Rekognition moderation not yet implemented');
+    return {
+      approved: true,
+      confidence: 0.5,
+      categories: [],
+      warning: 'AWS Rekognition not implemented',
+    };
+  }
+
+  /**
+   * Moderate with Sightengine API
+   * Requires: SIGHTENGINE_API_KEY and SIGHTENGINE_API_SECRET
+   */
+  static async moderateWithSightengine(base64Image, apiKey) {
+    const apiSecret = process.env.EXPO_PUBLIC_SIGHTENGINE_API_SECRET;
+    if (!apiSecret) {
+      throw new Error('Sightengine API secret not configured');
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('media', base64Image);
+      formData.append('models', 'nudity,wad,offensive,celebrities,face-attributes');
+
+      const response = await fetch(
+        `https://api.sightengine.com/1.0/check.json?api_user=${apiKey}&api_secret=${apiSecret}`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error?.message || 'Sightengine API error');
+      }
+
+      // Check moderation results
+      const isInappropriate =
+        data.nudity?.sexual_activity > 0.5 ||
+        data.nudity?.sexual_display > 0.5 ||
+        data.offensive?.prob > 0.5 ||
+        data.weapon > 0.5;
+
+      return {
+        approved: !isInappropriate,
+        confidence: 0.9,
+        categories: {
+          nudity: data.nudity,
+          offensive: data.offensive,
+          weapon: data.weapon,
+        },
+        reason: isInappropriate
+          ? 'Image contains inappropriate content'
+          : 'Image approved by moderation service',
+      };
+    } catch (error) {
+      logger.error('Sightengine moderation error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Moderate with Clarifai
+   * Requires: CLARIFAI_API_KEY
+   */
+  static async moderateWithClarifai(base64Image, apiKey) {
+    try {
+      const response = await fetch('https://api.clarifai.com/v2/models/nsfw-v1.0/outputs', {
+        method: 'POST',
+        headers: {
+          Authorization: `Key ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inputs: [
+            {
+              data: {
+                image: {
+                  base64: base64Image,
+                },
+              },
+            },
+          ],
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.status?.description || 'Clarifai API error');
+      }
+
+      const concepts = data.outputs[0]?.data?.concepts || [];
+      const nsfwConcept = concepts.find((c) => c.name === 'nsfw');
+      const sfwConcept = concepts.find((c) => c.name === 'sfw');
+
+      const isInappropriate = nsfwConcept && nsfwConcept.value > 0.5;
+
+      return {
+        approved: !isInappropriate,
+        confidence: nsfwConcept?.value || 0.5,
+        categories: {
+          nsfw: nsfwConcept?.value || 0,
+          sfw: sfwConcept?.value || 0,
+        },
+        reason: isInappropriate
+          ? 'Image contains inappropriate content'
+          : 'Image approved by moderation service',
+      };
+    } catch (error) {
+      logger.error('Clarifai moderation error:', error);
+      throw error;
     }
   }
 

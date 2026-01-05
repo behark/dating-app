@@ -1,7 +1,11 @@
 /**
  * Beta Testing Service
  * Manages beta user enrollment, feedback collection, and analytics
+ * Now integrates with backend API for server-side management
  */
+
+import logger from '../utils/logger';
+import api from './api';
 
 class BetaTestingService {
   constructor() {
@@ -10,120 +14,236 @@ class BetaTestingService {
     this.bugs = [];
     this.featureRequests = [];
     this.sessions = [];
+    this.cachedStatus = null;
+    this.cacheExpiry = 5 * 60 * 1000; // 5 minutes
+    this.lastStatusFetch = 0;
   }
 
-  // Enroll user in beta program
-  enrollUser(userId, userData = {}) {
-    const enrollment = {
-      userId,
-      email: userData.email,
-      name: userData.name,
-      enrolledAt: new Date(),
-      features: userData.features || ['all'],
-      tier: userData.tier || 'standard', // 'standard', 'premium', 'vip'
-      deviceInfo: userData.deviceInfo || {},
-      consent: {
-        dataCollection: true,
-        crashReporting: true,
-        analytics: true,
-        screenshots: userData.screenshotConsent || false,
-      },
-      status: 'active',
-    };
+  /**
+   * Enroll user in beta program via API
+   * @param {string} userId - User ID
+   * @param {Object} userData - Additional user data
+   * @returns {Promise<Object>} Enrollment result
+   */
+  async enrollUser(userId, userData = {}) {
+    try {
+      const response = await api.post('/beta/enroll', {
+        userId,
+        email: userData.email,
+        name: userData.name,
+        features: userData.features || ['all'],
+        tier: userData.tier || 'standard',
+        deviceInfo: userData.deviceInfo || {},
+        consent: {
+          dataCollection: true,
+          crashReporting: true,
+          analytics: true,
+          screenshots: userData.screenshotConsent || false,
+        },
+      });
 
-    this.betaUsers.set(userId, enrollment);
-    return enrollment;
+      if (response.success && response.data) {
+        // Update local cache
+        this.betaUsers.set(userId, response.data);
+        this.cachedStatus = response.data;
+        this.lastStatusFetch = Date.now();
+        logger.info('User enrolled in beta program', { userId });
+        return response.data;
+      }
+
+      throw new Error(response.message || 'Failed to enroll in beta');
+    } catch (error) {
+      logger.error('Error enrolling user in beta:', error);
+      
+      // Fall back to local enrollment if API fails
+      const enrollment = {
+        userId,
+        email: userData.email,
+        name: userData.name,
+        enrolledAt: new Date(),
+        features: userData.features || ['all'],
+        tier: userData.tier || 'standard',
+        deviceInfo: userData.deviceInfo || {},
+        consent: {
+          dataCollection: true,
+          crashReporting: true,
+          analytics: true,
+          screenshots: userData.screenshotConsent || false,
+        },
+        status: 'pending', // Mark as pending since API failed
+      };
+      this.betaUsers.set(userId, enrollment);
+      return enrollment;
+    }
   }
 
-  // Check if user is beta tester
-  isBetaTester(userId) {
-    const user = this.betaUsers.get(userId);
-    return user && user.status === 'active';
+  /**
+   * Check if user is beta tester via API
+   * @param {string} userId - User ID
+   * @returns {Promise<boolean>} Whether user is a beta tester
+   */
+  async isBetaTester(userId) {
+    try {
+      const status = await this.getBetaStatus(userId);
+      return status && status.isEnrolled && status.status === 'active';
+    } catch (error) {
+      // Fall back to local cache
+      const user = this.betaUsers.get(userId);
+      return user && user.status === 'active';
+    }
   }
 
-  // Submit feedback
-  submitFeedback(userId, feedbackData) {
-    const feedback = {
-      id: `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      userId,
-      type: feedbackData.type || 'general', // 'general', 'feature', 'bug', 'suggestion'
-      category: feedbackData.category,
-      title: feedbackData.title,
-      description: feedbackData.description,
-      rating: feedbackData.rating, // 1-5 stars
-      screenshot: feedbackData.screenshot || null,
-      screenName: feedbackData.screenName,
-      deviceInfo: feedbackData.deviceInfo,
-      appVersion: feedbackData.appVersion,
-      timestamp: new Date(),
-      status: 'new', // 'new', 'reviewing', 'acknowledged', 'implemented', 'wont-fix'
-      priority: null,
-      assignee: null,
-      tags: feedbackData.tags || [],
-    };
-
-    this.feedback.push(feedback);
-
-    // Auto-categorize
-    if (feedbackData.type === 'bug') {
-      this.bugs.push(feedback);
-    } else if (feedbackData.type === 'feature') {
-      this.featureRequests.push(feedback);
+  /**
+   * Get beta status from API
+   * @param {string} userId - User ID (optional, uses current user if not provided)
+   * @returns {Promise<Object>} Beta status
+   */
+  async getBetaStatus(userId = null) {
+    // Check cache
+    if (this.cachedStatus && Date.now() - this.lastStatusFetch < this.cacheExpiry) {
+      return this.cachedStatus;
     }
 
-    return feedback;
+    try {
+      const response = await api.get('/beta/status');
+      if (response.success && response.data) {
+        this.cachedStatus = response.data;
+        this.lastStatusFetch = Date.now();
+        return response.data;
+      }
+      return { isEnrolled: false, status: null };
+    } catch (error) {
+      logger.warn('Error fetching beta status:', error.message);
+      return { isEnrolled: false, status: null };
+    }
   }
 
-  // Submit bug report
-  submitBugReport(userId, bugData) {
-    const bug = {
-      id: `bug_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      userId,
-      title: bugData.title,
-      description: bugData.description,
-      severity: bugData.severity || 'medium', // 'low', 'medium', 'high', 'critical'
-      reproducibility: bugData.reproducibility || 'sometimes', // 'always', 'sometimes', 'rarely'
-      stepsToReproduce: bugData.stepsToReproduce || [],
-      expectedBehavior: bugData.expectedBehavior,
-      actualBehavior: bugData.actualBehavior,
-      screenshot: bugData.screenshot,
-      screenRecording: bugData.screenRecording,
-      logs: bugData.logs || [],
-      deviceInfo: bugData.deviceInfo,
-      appVersion: bugData.appVersion,
-      osVersion: bugData.osVersion,
-      timestamp: new Date(),
-      status: 'new',
-      assignee: null,
-    };
+  /**
+   * Submit feedback via API
+   * @param {string} userId - User ID
+   * @param {Object} feedbackData - Feedback data
+   * @returns {Promise<Object>} Submitted feedback
+   */
+  async submitFeedback(userId, feedbackData) {
+    try {
+      const response = await api.post('/beta/feedback', {
+        type: feedbackData.type || 'general',
+        category: feedbackData.category,
+        title: feedbackData.title,
+        description: feedbackData.description,
+        rating: feedbackData.rating,
+        screenshot: feedbackData.screenshot || null,
+        screenName: feedbackData.screenName,
+        deviceInfo: feedbackData.deviceInfo,
+        appVersion: feedbackData.appVersion,
+        tags: feedbackData.tags || [],
+      });
 
-    this.bugs.push(bug);
-    return bug;
+      if (response.success && response.data) {
+        // Add to local cache
+        this.feedback.push(response.data);
+        if (feedbackData.type === 'bug') {
+          this.bugs.push(response.data);
+        } else if (feedbackData.type === 'feature') {
+          this.featureRequests.push(response.data);
+        }
+        logger.info('Feedback submitted successfully', { feedbackId: response.data.id });
+        return response.data;
+      }
+
+      throw new Error(response.message || 'Failed to submit feedback');
+    } catch (error) {
+      logger.error('Error submitting feedback:', error);
+      
+      // Store locally if API fails (will sync later)
+      const feedback = {
+        id: `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        userId,
+        ...feedbackData,
+        timestamp: new Date(),
+        status: 'pending_sync',
+        priority: null,
+        assignee: null,
+      };
+      this.feedback.push(feedback);
+      return feedback;
+    }
   }
 
-  // Record session analytics
-  recordSession(userId, sessionData) {
-    const session = {
-      id: `session_${Date.now()}`,
-      userId,
-      startTime: sessionData.startTime || new Date(),
-      endTime: sessionData.endTime,
-      duration: sessionData.duration,
-      screens: sessionData.screens || [],
-      actions: sessionData.actions || [],
-      errors: sessionData.errors || [],
-      performance: {
-        loadTimes: sessionData.loadTimes || {},
-        crashes: sessionData.crashes || 0,
-        networkErrors: sessionData.networkErrors || 0,
-      },
-      features: sessionData.featuresUsed || [],
-      device: sessionData.deviceInfo,
-      appVersion: sessionData.appVersion,
-    };
+  /**
+   * Submit bug report (convenience method)
+   * @param {string} userId - User ID
+   * @param {Object} bugData - Bug report data
+   * @returns {Promise<Object>} Submitted bug report
+   */
+  async submitBugReport(userId, bugData) {
+    return this.submitFeedback(userId, {
+      ...bugData,
+      type: 'bug',
+    });
+  }
 
-    this.sessions.push(session);
-    return session;
+  /**
+   * Record session via API
+   * @param {string} userId - User ID
+   * @param {Object} sessionData - Session data
+   * @returns {Promise<Object>} Recorded session
+   */
+  async recordSession(userId, sessionData) {
+    try {
+      const response = await api.post('/beta/session', {
+        startTime: sessionData.startTime || new Date(),
+        endTime: sessionData.endTime,
+        duration: sessionData.duration,
+        screens: sessionData.screens || [],
+        actions: sessionData.actions || [],
+        errors: sessionData.errors || [],
+        performance: {
+          loadTimes: sessionData.loadTimes || {},
+          crashes: sessionData.crashes || 0,
+          networkErrors: sessionData.networkErrors || 0,
+        },
+        features: sessionData.featuresUsed || [],
+        device: sessionData.deviceInfo,
+        appVersion: sessionData.appVersion,
+      });
+
+      if (response.success && response.data) {
+        this.sessions.push(response.data);
+        return response.data;
+      }
+
+      throw new Error(response.message || 'Failed to record session');
+    } catch (error) {
+      logger.warn('Error recording beta session:', error.message);
+      
+      // Store locally if API fails
+      const session = {
+        id: `session_${Date.now()}`,
+        userId,
+        ...sessionData,
+        status: 'pending_sync',
+      };
+      this.sessions.push(session);
+      return session;
+    }
+  }
+
+  /**
+   * Get user's feedback history from API
+   * @returns {Promise<Array>} User's feedback
+   */
+  async getUserFeedback() {
+    try {
+      const response = await api.get('/beta/feedback');
+      if (response.success && response.data) {
+        return response.data;
+      }
+      return this.feedback;
+    } catch (error) {
+      logger.warn('Error fetching user feedback:', error.message);
+      return this.feedback;
+    }
   }
 
   // Get feedback statistics
@@ -253,12 +373,28 @@ class BetaTestingService {
     }
     return feedback;
   }
+
+  // Sync pending feedback to API (call this when coming online)
+  async syncPendingFeedback() {
+    const pendingFeedback = this.feedback.filter(f => f.status === 'pending_sync');
+    
+    for (const feedback of pendingFeedback) {
+      try {
+        const response = await api.post('/beta/feedback', feedback);
+        if (response.success) {
+          feedback.status = 'new';
+          feedback.id = response.data?.id || feedback.id;
+          logger.info('Synced pending feedback', { feedbackId: feedback.id });
+        }
+      } catch (error) {
+        logger.warn('Failed to sync feedback:', error.message);
+      }
+    }
+  }
 }
 
 // Export singleton
 const betaTestingService = new BetaTestingService();
 
-module.exports = {
-  BetaTestingService,
-  betaTestingService,
-};
+export { BetaTestingService, betaTestingService };
+export default betaTestingService;

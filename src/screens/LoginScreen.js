@@ -241,6 +241,9 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                 autoCapitalize="none"
                 keyboardType="email-address"
                 autoComplete="email"
+                accessibilityLabel="Email address input"
+                accessibilityHint="Enter your email address to sign in"
+                accessibilityRole="textbox"
               />
             </View>
 
@@ -259,10 +262,16 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 autoComplete="password"
+                accessibilityLabel="Password input"
+                accessibilityHint="Enter your password"
+                accessibilityRole="textbox"
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeIcon}
+                accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                accessibilityHint="Tap to toggle password visibility"
+                accessibilityRole="button"
               >
                 <Ionicons
                   name={showPassword ? 'eye-outline' : 'eye-off-outline'}
@@ -277,6 +286,10 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
               onPress={handleAuth}
               activeOpacity={0.8}
               disabled={loading || isAuthPending}
+              accessibilityLabel={isLogin ? 'Sign in button' : 'Sign up button'}
+              accessibilityHint={isLogin ? 'Tap to sign in with your email and password' : 'Tap to create a new account'}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: loading || isAuthPending }}
             >
               <LinearGradient
                 colors={loading ? Colors.gradient.disabled || ['#999', '#777'] : Colors.gradient.primary}

@@ -3,22 +3,22 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
-import { showStandardError, STANDARD_ERROR_MESSAGES } from '../utils/errorHandler';
+import { showStandardError } from '../utils/errorHandler';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 
@@ -116,6 +116,17 @@ const ChatScreen = ({ route, navigation }) => {
       loadMessages();
     }
   }, [matchId, joinRoom, loadMessages]);
+
+  // Cleanup read receipt timers on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      readReceiptTimers.current.forEach((timer) => clearTimeout(timer));
+      readReceiptTimers.current.clear();
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Auto-scroll when new messages arrive
   useEffect(() => {
