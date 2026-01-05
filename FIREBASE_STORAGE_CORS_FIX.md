@@ -23,16 +23,21 @@ Firebase Storage needs to be configured to allow requests from your Vercel domai
 
 6. **Important**: CORS for Firebase Storage is configured via **Google Cloud Console**, not Firebase Console directly.
 
-### Option 2: Using Google Cloud Console (Required for CORS)
+### Option 2: Using Google Cloud Console (Required for CORS) ⭐ RECOMMENDED
 
+**Quick Steps:**
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Select your Firebase project (`my-project-de65d`)
-3. In the left sidebar, go to **"Cloud Storage"** > **"Buckets"**
-4. Click on your storage bucket (usually `my-project-de65d.firebasestorage.app` or `my-project-de65d.appspot.com`)
-5. Click on the **"Configuration"** tab
-6. Scroll down to **"CORS configuration"**
-7. Click **"Edit CORS configuration"**
-8. Add the following CORS configuration:
+2. Make sure you're in the correct project (top dropdown) - select `my-project-de65d`
+3. In the left sidebar menu (☰), navigate to **"Cloud Storage"** > **"Buckets"**
+4. You should see a bucket named something like:
+   - `my-project-de65d.firebasestorage.app` (newer Firebase projects)
+   - `my-project-de65d.appspot.com` (older Firebase projects)
+5. **Click on the bucket name** (not the checkbox, but the actual name/link)
+6. You'll see tabs at the top: **"Overview"**, **"Configuration"**, **"Permissions"**, etc.
+7. Click on the **"Configuration"** tab
+8. Scroll down to find **"CORS configuration"** section
+9. Click **"Edit CORS configuration"** button
+10. You'll see a text area - replace any existing content with the following CORS configuration:
 
 ```json
 [
