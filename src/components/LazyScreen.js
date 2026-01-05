@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Animated, StyleSheet, Text, View } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { Colors } from '../constants/colors';
 import logger from '../utils/logger';
 
 /**
