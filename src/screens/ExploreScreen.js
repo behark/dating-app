@@ -98,11 +98,21 @@ const ExploreScreen = ({ navigation }) => {
     }
   }, []);
 
-  const exploreUsers = useCallback(async () => {
+  const exploreUsers = useCallback(async (loadMore = false) => {
     if (!location) return;
 
-    setLoading(true);
+    if (loadMore) {
+      if (!hasMore || loadingMore) return;
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setPage(1);
+      setUsers([]);
+      setHasMore(true);
+    }
+
     try {
+      const currentPage = loadMore ? page + 1 : 1;
       const queryParams = new URLSearchParams({
         lat: location.latitude,
         lng: location.longitude,
@@ -111,6 +121,7 @@ const ExploreScreen = ({ navigation }) => {
         maxAge: filters.maxAge,
         gender: filters.gender,
         sortBy: sortBy,
+        page: currentPage.toString(),
         limit: '20',
       });
 
@@ -125,15 +136,26 @@ const ExploreScreen = ({ navigation }) => {
 
       const data = await response.json();
       if (data.success) {
-        setUsers(data.data.users);
+        const newUsers = data.data?.users || data.data || [];
+        const pagination = data.pagination || {};
+        
+        if (loadMore) {
+          setUsers((prev) => [...prev, ...newUsers]);
+        } else {
+          setUsers(newUsers);
+        }
+        
+        setHasMore(pagination.hasMore !== false && newUsers.length === 20);
+        setPage(currentPage);
       }
     } catch (error) {
       logger.error('Error exploring users:', error);
       showStandardError(error, 'load', 'Unable to Load');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, [location, sortBy, filters, user, authToken]);
+  }, [location, sortBy, filters, user, authToken, page, hasMore, loadingMore]);
 
   useEffect(() => {
     getLocation();
@@ -269,6 +291,19 @@ const ExploreScreen = ({ navigation }) => {
           numColumns={2}
           columnWrapperStyle={styles.columnWrapper}
           contentContainerStyle={styles.listContent}
+          onEndReached={() => {
+            if (hasMore && !loadingMore) {
+              exploreUsers(true);
+            }
+          }}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={styles.loadMoreContainer}>
+                <ActivityIndicator size="small" color={Colors.primary} />
+              </View>
+            ) : null
+          }
         />
       ) : (
         <View style={styles.emptyContainer}>
