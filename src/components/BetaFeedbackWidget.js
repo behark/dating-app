@@ -1,5 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../constants/colors';
 import { useEffect, useRef, useState } from 'react';
 import {
   Alert,

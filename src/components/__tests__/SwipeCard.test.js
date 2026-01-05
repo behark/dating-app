@@ -1,5 +1,5 @@
 import React from 'react';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../constants/colors';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import SwipeCard from '../Card/SwipeCard';
 

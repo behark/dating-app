@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../constants/colors';
 import { Animated, Dimensions, Platform, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 

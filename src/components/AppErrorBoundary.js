@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../constants/colors';
 import { AnalyticsService } from '../services/AnalyticsService';
 import logger from '../utils/logger';
 
