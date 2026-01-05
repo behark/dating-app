@@ -269,7 +269,9 @@ export const useInfiniteScroll = ({ fetchFn, pageSize = 20, enabled = true }) =>
       setHasMore(result.hasMore ?? result.items?.length === pageSize);
       setPage(1);
     } catch (err) {
-      setError(err.message);
+      // Ensure error is always a string, not an object
+      const errorMessage = err?.message || err?.toString() || 'Failed to load items';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -290,7 +292,9 @@ export const useInfiniteScroll = ({ fetchFn, pageSize = 20, enabled = true }) =>
       setHasMore(result.hasMore ?? newItems.length === pageSize);
       setPage(nextPage);
     } catch (err) {
-      setError(err.message);
+      // Ensure error is always a string, not an object
+      const errorMessage = err?.message || err?.toString() || 'Failed to load more items';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -307,7 +311,9 @@ export const useInfiniteScroll = ({ fetchFn, pageSize = 20, enabled = true }) =>
       setHasMore(result.hasMore ?? result.items?.length === pageSize);
       setPage(1);
     } catch (err) {
-      setError(err.message);
+      // Ensure error is always a string, not an object
+      const errorMessage = err?.message || err?.toString() || 'Failed to refresh items';
+      setError(errorMessage);
     } finally {
       setIsRefreshing(false);
     }

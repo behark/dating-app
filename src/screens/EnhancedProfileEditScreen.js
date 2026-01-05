@@ -317,7 +317,9 @@ export default function EnhancedProfileEditScreen() {
       }
     } catch (error) {
       logger.error('Error loading initial data:', error);
-      setError(error.message || 'Failed to load profile data');
+      // Ensure error is always a string, not an object
+      const errorMessage = error?.message || error?.toString() || 'Failed to load profile data';
+      setError(errorMessage);
       Alert.alert(
         'Error Loading Data',
         error.message || 'Failed to load profile information. Please check your connection and try again.',

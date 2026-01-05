@@ -112,7 +112,9 @@ export function createLazyScreen(importFn, options = {}) {
         setComponent(() => cachedComponent);
       } catch (err) {
         logger.error('Lazy loading error', err);
-        setError(err);
+        // Ensure error is always a string, not an object
+        const errorMessage = err?.message || err?.toString() || 'Failed to load component';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }

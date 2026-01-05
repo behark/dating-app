@@ -488,7 +488,9 @@ export const useCursorPagination = (fetchFn, initialCursor = null) => {
       setCursor(result.nextCursor);
       setHasMore(result.hasMore);
     } catch (err) {
-      setError(err);
+      // Ensure error is always a string, not an object
+      const errorMessage = err?.message || err?.toString() || 'Failed to load items';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -507,7 +509,9 @@ export const useCursorPagination = (fetchFn, initialCursor = null) => {
       setCursor(result.nextCursor);
       setHasMore(result.hasMore);
     } catch (err) {
-      setError(err);
+      // Ensure error is always a string, not an object
+      const errorMessage = err?.message || err?.toString() || 'Failed to refresh items';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

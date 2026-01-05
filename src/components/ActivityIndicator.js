@@ -17,7 +17,9 @@ const ActivityIndicatorComponent = ({ userId, showLabel = true }) => {
       setError(null);
     } catch (err) {
       logger.error('Error fetching activity status', err, { userId });
-      setError(err.message);
+      // Ensure error is always a string, not an object
+      const errorMessage = err?.message || err?.toString() || 'Failed to load activity status';
+      setError(errorMessage);
     } finally {
       setLoading(false);
       setRefreshing(false);
