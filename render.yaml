@@ -33,9 +33,9 @@ services:
       - key: FIREBASE_CLIENT_EMAIL
         sync: false  # Set manually in dashboard for security
       - key: CORS_ORIGIN
-        value: https://dating-app-beharks-projects.vercel.app
+        value: https://dating-app-seven-peach.vercel.app
       - key: FRONTEND_URL
-        value: https://dating-app-beharks-projects.vercel.app
+        value: https://dating-app-seven-peach.vercel.app
       - key: GOOGLE_CLIENT_ID
         value: 489822402223-ijgd0vvfbma9s22944go4e2gnqk92ipd.apps.googleusercontent.com
       - key: GOOGLE_CLIENT_SECRET

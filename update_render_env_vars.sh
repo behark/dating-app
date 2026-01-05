@@ -72,8 +72,8 @@ delete_env_var "GOOGLE_CLIENT_ID1"
 echo ""
 
 echo "2️⃣  Setting critical variables..."
-set_env_var "CORS_ORIGIN" "https://dating-app-beharks-projects.vercel.app"
-set_env_var "FRONTEND_URL" "https://dating-app-beharks-projects.vercel.app"
+set_env_var "CORS_ORIGIN" "https://dating-app-seven-peach.vercel.app"
+set_env_var "FRONTEND_URL" "https://dating-app-seven-peach.vercel.app"
 set_env_var "PORT" "10000"
 echo ""
 

@@ -92,6 +92,9 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (email, password, name, age, gender) => {
     try {
+      // Log API URL for debugging
+      console.log('🔍 Signup - API_URL:', API_URL);
+      console.log('🔍 Signup - Full URL:', `${API_URL}/auth/register`);
       logger.debug('Signup attempt:', { email, name, apiUrl: API_URL });
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
@@ -109,22 +112,28 @@ export const AuthProvider = ({ children }) => {
 
       // Handle network errors
       if (!response) {
+        console.error('❌ Signup - No response received');
         throw new Error('Network error. Please check your connection and try again.');
       }
+
+      console.log('✅ Signup - Response status:', response.status, response.statusText);
 
       let data;
       try {
         const responseText = await response.text();
+        console.log('📥 Signup - Response text:', responseText.substring(0, 200));
         if (!responseText) {
           throw new Error('Empty response from server');
         }
         data = JSON.parse(responseText);
       } catch (jsonError) {
+        console.error('❌ Signup - JSON parse error:', jsonError);
         logger.error('Failed to parse signup response:', jsonError);
         throw new Error('Invalid response from server. Please try again.');
       }
 
       if (!response.ok) {
+        console.error('❌ Signup - Response not OK:', data);
         throw new Error(getUserFriendlyMessage(data.message || 'Registration failed'));
       }
 
@@ -141,8 +150,12 @@ export const AuthProvider = ({ children }) => {
 
       await saveUserSession(user, token, refToken);
 
+      console.log('✅ Signup - Success!');
       return { user, authToken: token };
     } catch (error) {
+      console.error('❌ Signup - Error caught:', error);
+      console.error('❌ Signup - Error message:', error.message);
+      console.error('❌ Signup - Error stack:', error.stack);
       // Re-throw with better error message if it's not already a user-friendly error
       if (error.message && !error.message.includes('Network error') && !error.message.includes('Invalid')) {
         throw error;
@@ -153,6 +166,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      // Log API URL for debugging
+      console.log('🔍 Login - API_URL:', API_URL);
+      console.log('🔍 Login - Full URL:', `${API_URL}/auth/login`);
       logger.debug('Login attempt:', { email, apiUrl: API_URL });
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -164,22 +180,28 @@ export const AuthProvider = ({ children }) => {
 
       // Handle network errors
       if (!response) {
+        console.error('❌ Login - No response received');
         throw new Error('Network error. Please check your connection and try again.');
       }
+
+      console.log('✅ Login - Response status:', response.status, response.statusText);
 
       let data;
       try {
         const responseText = await response.text();
+        console.log('📥 Login - Response text:', responseText.substring(0, 200));
         if (!responseText) {
           throw new Error('Empty response from server');
         }
         data = JSON.parse(responseText);
       } catch (jsonError) {
+        console.error('❌ Login - JSON parse error:', jsonError);
         logger.error('Failed to parse login response:', jsonError);
         throw new Error('Invalid response from server. Please try again.');
       }
 
       if (!response.ok) {
+        console.error('❌ Login - Response not OK:', data);
         throw new Error(getUserFriendlyMessage(data.message || 'Login failed'));
       }
 
@@ -196,8 +218,12 @@ export const AuthProvider = ({ children }) => {
 
       await saveUserSession(user, token, refToken);
 
+      console.log('✅ Login - Success!');
       return { user, authToken: token };
     } catch (error) {
+      console.error('❌ Login - Error caught:', error);
+      console.error('❌ Login - Error message:', error.message);
+      console.error('❌ Login - Error stack:', error.stack);
       // Re-throw with better error message if it's not already a user-friendly error
       if (error.message && !error.message.includes('Network error') && !error.message.includes('Invalid')) {
         throw error;
