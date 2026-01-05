@@ -4,7 +4,26 @@
  *
  * This document provides patterns and examples for converting older callback-style
  * code to modern async/await syntax for improved readability and error handling.
+ *
+ * NOTE: This is a documentation file with example code patterns.
+ * The models/services referenced are placeholders to demonstrate patterns.
  */
+
+// ============================================================
+// PLACEHOLDER DECLARATIONS (for example code to work)
+// These represent the actual models/services in the codebase
+// ============================================================
+
+/* eslint-disable no-unused-vars */
+/** @type {any} */ let db;
+/** @type {any} */ let User;
+/** @type {any} */ let Match;
+/** @type {any} */ let Notification;
+/** @type {any} */ let Stats;
+/** @type {any} */ let NotificationService;
+/** @type {any} */ let mongoose;
+/** @type {any} */ let processUser;
+/* eslint-enable no-unused-vars */
 
 // ============================================================
 // SECTION 1: CALLBACK TO PROMISE PATTERNS

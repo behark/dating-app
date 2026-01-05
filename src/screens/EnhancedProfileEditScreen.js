@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Colors } from '../constants/colors';
 import {
   ActivityIndicator,
   Alert,
@@ -11,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Colors } from '../constants/colors';
 import { EnhancedProfileService } from '../services/EnhancedProfileService';
 
 const ETHNICITIES = [

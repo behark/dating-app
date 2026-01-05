@@ -328,13 +328,14 @@ describe('Security Tests', () => {
   });
 
   describe('File Upload Security', () => {
+    const INVALID_FILE_TYPE_ERROR = 'Invalid file type';
     const validateFile = (file) => {
       const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
       const maxSize = 10 * 1024 * 1024; // 10MB
       const errors = [];
 
       if (!allowedTypes.includes(file.type)) {
-        errors.push('Invalid file type');
+        errors.push(INVALID_FILE_TYPE_ERROR);
       }
 
       if (file.size > maxSize) {
@@ -353,7 +354,7 @@ describe('Security Tests', () => {
       const file = { name: 'malware.exe', type: 'application/x-executable', size: 1000 };
       const result = validateFile(file);
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Invalid file type');
+      expect(result.errors).toContain(INVALID_FILE_TYPE_ERROR);
     });
 
     it('should reject oversized files', () => {
@@ -391,13 +392,16 @@ describe('Security Tests', () => {
     it('should validate CSRF token', () => {
       const validateCsrf = (sentToken, storedToken) => {
         if (!sentToken || !storedToken) return false;
+        // Ensure both tokens are the same length for timingSafeEqual
+        if (sentToken.length !== storedToken.length) return false;
         return require('crypto').timingSafeEqual(Buffer.from(sentToken), Buffer.from(storedToken));
       };
 
       const token = require('crypto').randomBytes(32).toString('hex');
+      const wrongToken = require('crypto').randomBytes(32).toString('hex');
 
       expect(validateCsrf(token, token)).toBe(true);
-      expect(validateCsrf('wrong', token)).toBe(false);
+      expect(validateCsrf(wrongToken, token)).toBe(false);
       expect(validateCsrf(null, token)).toBe(false);
     });
   });

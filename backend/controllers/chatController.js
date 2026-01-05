@@ -65,6 +65,7 @@ const getMessages = async (req, res) => {
             : match.swiperId.toString();
         const conversationKey = generateConversationKey(userId, otherUserId);
 
+        // @ts-ignore - Type mismatch after mapping with decrypted content
         messages = messages.map((msg) => {
           if (msg.isEncrypted && msg.content) {
             try {

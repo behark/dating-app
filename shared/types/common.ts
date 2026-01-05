@@ -3,10 +3,12 @@
  * Common types used across the application
  */
 
+import type { UserProfile } from './user';
+
 /**
  * API Response wrapper
  */
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message?: string;
   data?: T;
@@ -14,7 +16,7 @@ export interface ApiResponse<T = any> {
   errors?: Array<{
     field: string;
     message: string;
-    value?: any;
+    value?: unknown;
   }>;
 }
 
@@ -58,7 +60,7 @@ export interface DiscoveryOptions {
  * Discovery result with user and metadata
  */
 export interface DiscoveryResult {
-  user: any; // UserProfile type
+  user: UserProfile;
   distance: number;
   compatibilityScore?: number;
 }
@@ -66,12 +68,12 @@ export interface DiscoveryResult {
 /**
  * Notification types
  */
-export type NotificationType = 
-  | 'match' 
-  | 'message' 
-  | 'like' 
-  | 'superlike' 
-  | 'profile_view' 
+export type NotificationType =
+  | 'match'
+  | 'message'
+  | 'like'
+  | 'superlike'
+  | 'profile_view'
   | 'system';
 
 /**
@@ -83,7 +85,7 @@ export interface INotification {
   type: NotificationType;
   title: string;
   body: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   read?: boolean;
   createdAt?: Date | string;
 }
@@ -99,7 +101,7 @@ export interface ErrorResponse {
   errors?: Array<{
     field: string;
     message: string;
-    value?: any;
+    value?: unknown;
   }>;
 }
 
@@ -117,7 +119,7 @@ export interface AuthTokens {
  */
 export interface AuthResponse extends ApiResponse {
   data?: {
-    user: any; // User type
+    user: UserProfile;
     tokens: AuthTokens;
   };
 }
@@ -161,7 +163,7 @@ export interface FileUploadResult {
 export interface ValidationError {
   field: string;
   message: string;
-  value?: any;
+  value?: unknown;
 }
 
 /**

@@ -9,8 +9,16 @@ export class ValidationService {
   static validateEmail(email) {
     if (!email || typeof email !== 'string') return false;
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email.trim());
+    // More strict email regex that doesn't allow consecutive dots or dots at start/end of domain parts
+    const emailRegex = /^[^\s@]+@[^\s@]+(\.[^\s@]+)+$/;
+    const trimmed = email.trim();
+
+    // Additional check: no consecutive dots, no dot immediately after @
+    if (trimmed.includes('..') || trimmed.match(/@\./)) {
+      return false;
+    }
+
+    return emailRegex.test(trimmed);
   }
 
   static validatePassword(password) {
@@ -81,9 +89,11 @@ export class ValidationService {
   static sanitizeInput(input) {
     if (typeof input !== 'string') return input;
 
-    // Remove potentially harmful characters
+    // Remove potentially harmful characters and patterns
     return input
       .replace(/[<>]/g, '') // Remove < and >
+      .replace(/\.\./g, '') // Remove path traversal sequences
+      .replace(/\bon\w+\s*=/gi, '') // Remove event handlers (onclick=, onerror=, etc.)
       .trim();
   }
 

@@ -4,17 +4,18 @@
  */
 
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
-import { Colors } from '../constants/colors';
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
+  Image,
   Platform,
   RefreshControl,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { Colors } from '../constants/colors';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -414,8 +415,7 @@ const OptimizedImage = memo(({ source, style, onPress }) => {
 });
 OptimizedImage.displayName = 'OptimizedImage';
 
-// Import Image separately to avoid circular dependency
-import { Image } from 'react-native';
+// Image is imported at the top with other react-native imports
 
 const styles = StyleSheet.create({
   list: {

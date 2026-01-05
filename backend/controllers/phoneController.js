@@ -174,7 +174,7 @@ exports.resendPhoneVerification = async (req, res) => {
     // Check if user requested code too recently (cooldown)
     if (
       user.phoneVerificationCodeExpiry &&
-      new Date(user.phoneVerificationCodeExpiry.getTime() - 15 * 60 * 1000) > Date.now()
+      new Date(user.phoneVerificationCodeExpiry.getTime() - 15 * 60 * 1000).getTime() > Date.now()
     ) {
       return res.status(429).json({
         success: false,

@@ -156,6 +156,7 @@ async function createIndexes() {
 
           // Create the index
           console.log(`   🔧 Creating index '${indexDef.name}'...`);
+          // @ts-ignore - MongoDB driver types may be strict about index keys
           await collection.createIndex(indexDef.keys, {
             ...indexDef.options,
             name: indexDef.name,
@@ -183,19 +184,23 @@ async function createIndexes() {
     // Verify indexes
     console.log('\n🔍 Verifying indexes on key collections:\n');
 
-    for (const collectionDef of INDEXES_TO_CREATE) {
-      const collections = await db.listCollections({ name: collectionDef.collection }).toArray();
-      if (collections.length === 0) continue;
+    if (!db) {
+      console.error('Database connection is undefined, skipping verification');
+    } else {
+      for (const collectionDef of INDEXES_TO_CREATE) {
+        const collections = await db.listCollections({ name: collectionDef.collection }).toArray();
+        if (collections.length === 0) continue;
 
-      const collection = db.collection(collectionDef.collection);
+        const collection = db.collection(collectionDef.collection);
       const indexes = await collection.indexes();
       console.log(`📁 ${collectionDef.collection}:`);
-      indexes.forEach((idx) => {
-        if (idx.name !== '_id_') {
-          console.log(`   - ${idx.name}: ${JSON.stringify(idx.key)}`);
-        }
-      });
-      console.log('');
+        indexes.forEach((idx) => {
+          if (idx.name !== '_id_') {
+            console.log(`   - ${idx.name}: ${JSON.stringify(idx.key)}`);
+          }
+        });
+        console.log('');
+      }
     }
 
     console.log('✅ Migration completed successfully!\n');

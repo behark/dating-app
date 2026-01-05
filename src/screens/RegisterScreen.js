@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Colors } from '../constants/colors';
 import {
   ActivityIndicator,
   Alert,
@@ -12,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { validateEmail } from '../utils/validators';
 

@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../constants/colors';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -13,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Colors } from '../constants/colors';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
 import logger from '../utils/logger';
@@ -33,7 +33,7 @@ import DailyChallenges from '../components/Gamification/DailyChallenges';
 import LevelProgressionCard from '../components/Gamification/LevelProgressionCard';
 
 // Services
-import GamificationService from '../services/GamificationService';
+import { GamificationService } from '../services/GamificationService';
 
 const EnhancedProfileScreen = () => {
   const navigation = useNavigation();

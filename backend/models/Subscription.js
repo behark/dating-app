@@ -150,7 +150,7 @@ subscriptionSchema.pre('save', function (next) {
 // Virtual for checking if premium is active
 subscriptionSchema.virtual('isActive').get(function () {
   const now = new Date();
-  return this.status === 'active' && this.endDate > now;
+  return this.status === 'active' && this.endDate && this.endDate > now;
 });
 
 // Method to check if trial is available
@@ -159,21 +159,23 @@ subscriptionSchema.methods.isTrialAvailable = function () {
 };
 
 // Method to check if premium features are available
+/** @this {import('../types/index').SubscriptionDocument} */
 subscriptionSchema.methods.hasFeature = function (featureName) {
-  if (this.status !== 'active' || this.endDate <= new Date()) {
+  if (this.status !== 'active' || (this.endDate && this.endDate <= new Date())) {
     return false;
   }
+  // @ts-ignore
   return this.features[featureName] === true;
 };
 
 // Static method to get or create subscription for user
 /**
+ * @this {import('../types/index').SubscriptionModel}
  * @param {string} userId
- * @returns {Promise<any>}
+ * @returns {Promise<import('../types/index').SubscriptionDocument>}
  */
+// @ts-ignore
 subscriptionSchema.statics.getOrCreate = async function (userId) {
-  /** @type {any} */
-  // @ts-ignore - Mongoose static method context
   let subscription = await this.findOne({ userId });
   if (!subscription) {
     subscription = new this({ userId });
@@ -184,12 +186,12 @@ subscriptionSchema.statics.getOrCreate = async function (userId) {
 
 // Static method to activate trial
 /**
+ * @this {import('../types/index').SubscriptionModel}
  * @param {string} userId
  * @returns {Promise<{success: boolean, message?: string, subscription?: any}>}
  */
+// @ts-ignore
 subscriptionSchema.statics.activateTrial = async function (userId) {
-  // @ts-ignore - Mongoose static method context
-  /** @type {any} */
   const subscription = await this.getOrCreate(userId);
 
   if (!subscription.isTrialAvailable()) {
@@ -200,9 +202,14 @@ subscriptionSchema.statics.activateTrial = async function (userId) {
   trialEndDate.setDate(trialEndDate.getDate() + 7); // 7-day trial
 
   subscription.status = 'trial';
-  subscription.trial.startDate = new Date();
-  subscription.trial.endDate = trialEndDate;
-  subscription.trial.isUsed = true;
+  if (!subscription.trial) {
+    subscription.trial = {};
+  }
+  if (subscription.trial) {
+    subscription.trial.startDate = new Date();
+    subscription.trial.endDate = trialEndDate;
+    subscription.trial.isUsed = true;
+  }
   subscription.startDate = new Date();
   subscription.endDate = trialEndDate;
   subscription.features = {
@@ -221,14 +228,14 @@ subscriptionSchema.statics.activateTrial = async function (userId) {
 
 // Static method to upgrade to paid subscription
 /**
+ * @this {import('../types/index').SubscriptionModel}
  * @param {string} userId
  * @param {string} planType
  * @param {any} paymentData
  * @returns {Promise<{success: boolean, subscription?: any}>}
  */
-// @ts-ignore - Mongoose static method context
+// @ts-ignore
 subscriptionSchema.statics.upgradeToPremium = async function (userId, planType, paymentData = {}) {
-  /** @type {any} */
   const subscription = await this.getOrCreate(userId);
 
   const endDate = new Date();
@@ -267,9 +274,11 @@ subscriptionSchema.statics.upgradeToPremium = async function (userId, planType, 
 
 // Static method to cancel subscription
 /**
+ * @this {import('../types/index').SubscriptionModel}
  * @param {string} userId
  * @returns {Promise<{success: boolean, subscription?: any}>}
  */
+// @ts-ignore
 subscriptionSchema.statics.cancelSubscription = async function (userId) {
   const subscription = await this.getOrCreate(userId);
 
@@ -287,6 +296,7 @@ subscriptionSchema.statics.cancelSubscription = async function (userId) {
  */
 
 /** @type {SubscriptionModel} */
+// @ts-ignore
 const SubscriptionModel = mongoose.model('Subscription', subscriptionSchema);
 
 module.exports = SubscriptionModel;

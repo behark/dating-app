@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Colors } from '../../constants/colors';
 import {
   View,
   Text,
@@ -14,6 +13,7 @@ import {
   Image,
 } from 'react-native';
 import * as Location from 'expo-location';
+import { Colors } from '../../constants/colors';
 import { SafetyService } from '../../services/SafetyService';
 import logger from '../../utils/logger';
 

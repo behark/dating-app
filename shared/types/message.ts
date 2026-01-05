@@ -29,14 +29,7 @@ export interface VideoCall {
 /**
  * Message type
  */
-export type MessageType = 
-  | 'text' 
-  | 'image' 
-  | 'gif' 
-  | 'sticker' 
-  | 'voice' 
-  | 'video_call' 
-  | 'system';
+export type MessageType = 'text' | 'image' | 'gif' | 'sticker' | 'voice' | 'video_call' | 'system';
 
 /**
  * Message status
@@ -58,12 +51,12 @@ export interface IMessage {
   type?: MessageType;
   mediaUrl?: string;
   createdAt?: Date | string;
-  metadata?: Record<string, any>;
-  
+  metadata?: Record<string, unknown>;
+
   // Media message fields
   voiceMessage?: VoiceMessage;
   videoCall?: VideoCall;
-  
+
   // Frontend-only fields
   status?: MessageStatus;
   deliveredAt?: Date | string;
@@ -133,7 +126,7 @@ export interface SendMessagePayload {
   content: string;
   type?: MessageType;
   mediaUrl?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   voiceMessage?: VoiceMessage;
   videoCall?: VideoCall;
   tempId?: string;

@@ -16,6 +16,10 @@ import { Colors } from '../constants/colors';
 import { AnalyticsService } from '../services/AnalyticsService';
 import logger from '../utils/logger';
 
+// Constants for repeated color values
+const SEMI_TRANSPARENT_WHITE_02 = 'rgba(255,255,255,0.2)';
+const SEMI_TRANSPARENT_WHITE_01 = 'rgba(255,255,255,0.1)';
+
 // SCREEN_WIDTH removed - unused
 
 /**
@@ -469,7 +473,7 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   retryCounter: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: SEMI_TRANSPARENT_WHITE_02,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -481,7 +485,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   devErrorContainer: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: SEMI_TRANSPARENT_WHITE_01,
     borderRadius: 10,
     padding: 15,
     marginBottom: 20,
@@ -543,7 +547,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: SEMI_TRANSPARENT_WHITE_02,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
     borderRadius: 15,
@@ -561,7 +565,7 @@ const styles = StyleSheet.create({
   },
   maxRetriesReached: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: SEMI_TRANSPARENT_WHITE_01,
     borderRadius: 15,
     padding: 20,
   },
@@ -573,7 +577,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   reportButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: SEMI_TRANSPARENT_WHITE_02,
     borderRadius: 15,
     paddingVertical: 12,
     paddingHorizontal: 24,

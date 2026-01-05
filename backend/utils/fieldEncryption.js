@@ -3,6 +3,7 @@
  * Automatically encrypts sensitive fields before saving and decrypts after reading
  */
 
+const { Schema } = require('mongoose');
 const { encrypt, decrypt } = require('./encryption');
 
 /**
@@ -32,7 +33,7 @@ const fieldEncryptionPlugin = (schema, options = {}) => {
   }
 
   // Pre-save middleware: encrypt fields before saving
-  schema.pre('save', function (next) {
+  schema.pre('save', /** @this {any} */ function (next) {
     try {
       for (const field of fieldsToEncrypt) {
         const value = this.get(field);
@@ -44,12 +45,12 @@ const fieldEncryptionPlugin = (schema, options = {}) => {
       }
       next();
     } catch (error) {
-      next(error);
+      next(/** @type {import('mongoose').CallbackError} */ (error));
     }
   });
 
   // Pre-findOneAndUpdate middleware: encrypt fields in updates
-  schema.pre('findOneAndUpdate', function (next) {
+  schema.pre('findOneAndUpdate', /** @this {any} */ function (next) {
     try {
       const update = this.getUpdate();
 
@@ -67,7 +68,7 @@ const fieldEncryptionPlugin = (schema, options = {}) => {
 
       next();
     } catch (error) {
-      next(error);
+      next(/** @type {import('mongoose').CallbackError} */ (error));
     }
   });
 
@@ -83,7 +84,8 @@ const fieldEncryptionPlugin = (schema, options = {}) => {
     return decryptDocument(doc, fieldsToEncrypt);
   });
 
-  schema.post('findById', (doc) => {
+  // Use 'init' hook to decrypt documents when they are loaded from DB
+  schema.post('init', (doc) => {
     if (!doc) return doc;
     return decryptDocument(doc, fieldsToEncrypt);
   });

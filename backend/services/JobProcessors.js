@@ -48,7 +48,7 @@ const setupNotificationProcessors = () => {
   const notificationQueue = require('bull')(queue, {
     redis: process.env.REDIS_URL || {
       host: process.env.REDIS_HOST || 'localhost',
-      port: process.env.REDIS_PORT || 6379,
+      port: Number(process.env.REDIS_PORT) || 6379,
       password: process.env.REDIS_PASSWORD,
     },
     prefix: 'dating-app',
@@ -63,10 +63,7 @@ const setupNotificationProcessors = () => {
       /** @type {any} */
       const user = await User.findById(userId).select('expoPushToken notificationPreferences');
       if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found',
-        });
+        return { success: false, reason: 'User not found' };
       }
 
       if (!user?.expoPushToken) {
@@ -91,11 +88,11 @@ const setupNotificationProcessors = () => {
 
       const message = {
         to: user.expoPushToken,
-        sound: 'default',
+        sound: /** @type {const} */ ('default'),
         title,
         body,
         data,
-        priority: 'high',
+        priority: /** @type {const} */ ('high'),
       };
 
       const ticket = await expo.sendPushNotificationsAsync([message]);
@@ -119,10 +116,7 @@ const setupNotificationProcessors = () => {
       /** @type {any} */
       const user = await User.findById(notif.userId).select('expoPushToken');
       if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found',
-        });
+        continue; // Skip users not found in batch processing
       }
 
       if (user?.expoPushToken && Expo.isExpoPushToken(user.expoPushToken)) {
@@ -160,7 +154,7 @@ const setupMatchProcessors = () => {
   const matchQueue = new Bull(QUEUES.MATCHES, {
     redis: process.env.REDIS_URL || {
       host: process.env.REDIS_HOST || 'localhost',
-      port: process.env.REDIS_PORT || 6379,
+      port: Number(process.env.REDIS_PORT) || 6379,
       password: process.env.REDIS_PASSWORD,
     },
     prefix: 'dating-app',
@@ -306,7 +300,7 @@ const setupEmailProcessors = () => {
   const emailQueue = new Bull(QUEUES.EMAILS, {
     redis: process.env.REDIS_URL || {
       host: process.env.REDIS_HOST || 'localhost',
-      port: process.env.REDIS_PORT || 6379,
+      port: Number(process.env.REDIS_PORT) || 6379,
       password: process.env.REDIS_PASSWORD,
     },
     prefix: 'dating-app',
@@ -317,7 +311,7 @@ const setupEmailProcessors = () => {
   // Create transporter only if credentials are configured
   let transporter = null;
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    transporter = nodemailer.createTransport({
+    transporter = nodemailer.createTransport(/** @type {any} */ ({
       host: process.env.SMTP_HOST,
       port: process.env.SMTP_PORT || 587,
       secure: process.env.SMTP_SECURE === 'true',
@@ -325,7 +319,7 @@ const setupEmailProcessors = () => {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
-    });
+    }));
   } else {
     console.warn('⚠️  SMTP credentials not configured - email job processing disabled');
   }
@@ -393,10 +387,7 @@ const setupEmailProcessors = () => {
 
     const user = await User.findById(userId).select('email name');
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
+      return { success: false, reason: 'User not found' };
     }
     if (!user || !user.email) {
       return { success: false, reason: 'User not found or no email' };
@@ -456,7 +447,7 @@ const setupModerationProcessors = () => {
   const moderationQueue = new Bull(QUEUES.MODERATION, {
     redis: process.env.REDIS_URL || {
       host: process.env.REDIS_HOST || 'localhost',
-      port: process.env.REDIS_PORT || 6379,
+      port: Number(process.env.REDIS_PORT) || 6379,
       password: process.env.REDIS_PASSWORD,
     },
     prefix: 'dating-app',
@@ -534,7 +525,7 @@ const setupAnalyticsProcessors = () => {
   const analyticsQueue = new Bull(QUEUES.ANALYTICS, {
     redis: process.env.REDIS_URL || {
       host: process.env.REDIS_HOST || 'localhost',
-      port: process.env.REDIS_PORT || 6379,
+      port: Number(process.env.REDIS_PORT) || 6379,
       password: process.env.REDIS_PASSWORD,
     },
     prefix: 'dating-app',
@@ -602,7 +593,7 @@ const setupCleanupProcessors = () => {
   const cleanupQueue = new Bull(QUEUES.CLEANUP, {
     redis: process.env.REDIS_URL || {
       host: process.env.REDIS_HOST || 'localhost',
-      port: process.env.REDIS_PORT || 6379,
+      port: Number(process.env.REDIS_PORT) || 6379,
       password: process.env.REDIS_PASSWORD,
     },
     prefix: 'dating-app',

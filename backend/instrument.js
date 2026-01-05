@@ -9,15 +9,20 @@ const { nodeProfilingIntegration } = require('@sentry/profiling-node');
 
 // Only initialize if DSN is provided
 if (process.env.SENTRY_DSN) {
+  // @ts-ignore - profiling-node uses different @sentry/core version
+  const profilingIntegration = nodeProfilingIntegration();
+  
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV || 'development',
     release: process.env.RELEASE_VERSION || 'unknown',
 
+    // @ts-ignore - integration types may differ between Sentry packages
     integrations: [
-      nodeProfilingIntegration(),
+      // @ts-ignore - profiling-node uses different @sentry/core version
+      profilingIntegration,
       // HTTP calls tracing
-      Sentry.httpIntegration({ tracing: true }),
+      Sentry.httpIntegration(),
       // Express integration for request/error handling
       Sentry.expressIntegration(),
       // Mongo tracing

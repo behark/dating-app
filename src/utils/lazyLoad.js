@@ -7,8 +7,8 @@
  */
 
 import { Component } from 'react';
-import { Colors } from '../constants/colors';
 import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
+import { Colors } from '../constants/colors';
 import logger from './logger';
 
 /**

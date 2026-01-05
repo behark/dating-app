@@ -58,6 +58,13 @@ const messageSchema = new mongoose.Schema(
       default: null,
     },
 
+    // Reply to another message
+    replyTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Message',
+      default: null,
+    },
+
     // Media metadata
     mediaMetadata: {
       width: Number,
@@ -146,6 +153,7 @@ messageSchema.virtual('age').get(function () {
 });
 
 // Method to mark message as read
+/** @this {import('../types/index').MessageDocument} */
 messageSchema.methods.markAsRead = function (timestamp = new Date()) {
   this.isRead = true;
   this.readAt = timestamp;
@@ -153,8 +161,9 @@ messageSchema.methods.markAsRead = function (timestamp = new Date()) {
 };
 
 // Static method to get all messages for a match
+/** @this {import('../types/index').MessageModel} */
+// @ts-ignore
 messageSchema.statics.getMessagesForMatch = function (matchId, limit = 50, skip = 0) {
-  // @ts-ignore - Mongoose static method context
   return this.find({ matchId })
     .populate('senderId', 'name photos')
     .populate('receiverId', 'name photos')
@@ -165,7 +174,8 @@ messageSchema.statics.getMessagesForMatch = function (matchId, limit = 50, skip 
 };
 
 // Static method to get unread messages count for a user
-// @ts-ignore - Mongoose static method context
+/** @this {import('../types/index').MessageModel} */
+// @ts-ignore
 messageSchema.statics.getUnreadCount = function (userId) {
   return this.countDocuments({
     receiverId: userId,
@@ -173,8 +183,9 @@ messageSchema.statics.getUnreadCount = function (userId) {
   });
 };
 
-// @ts-ignore - Mongoose static method context
 // Static method to mark all messages as read for a match
+/** @this {import('../types/index').MessageModel} */
+// @ts-ignore
 messageSchema.statics.markMatchAsRead = function (matchId, userId) {
   return this.updateMany(
     {
@@ -190,6 +201,7 @@ messageSchema.statics.markMatchAsRead = function (matchId, userId) {
 messageSchema.pre('save', function (next) {
   if (this.senderId.toString() === this.receiverId.toString()) {
     const error = new Error('Sender and receiver cannot be the same user');
+    // @ts-ignore
     error.statusCode = 400;
     return next(error);
   }
@@ -202,6 +214,7 @@ messageSchema.pre('save', function (next) {
  */
 
 /** @type {MessageModel} */
+// @ts-ignore
 const MessageModel = mongoose.model('Message', messageSchema);
 
 module.exports = MessageModel;

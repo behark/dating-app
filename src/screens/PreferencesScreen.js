@@ -1,8 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Colors } from '../constants/colors';
 import RangeSlider from '../components/Slider/RangeSlider';
 import SingleSlider from '../components/Slider/SingleSlider';
 import { useAuth } from '../context/AuthContext';

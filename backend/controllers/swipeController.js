@@ -69,7 +69,7 @@ const createSwipe = async (req, res) => {
     const isPremium = subscription && subscription.isActive;
 
     // Check swipe limit for free users
-    const limitCheck = await Swipe.canSwipe(swiperId, isPremium);
+    const limitCheck = await Swipe.canSwipe(swiperId, isPremium ?? false);
     if (!limitCheck.canSwipe) {
       return sendRateLimit(res, {
         message: 'Daily swipe limit reached',
@@ -152,7 +152,7 @@ const createSwipe = async (req, res) => {
         isMatch: result.isMatch,
         match: result.isMatch, // Keep for backward compatibility
         matchData: result.matchData,
-        remaining: limitCheck.remaining - 1,
+        remaining: (limitCheck.remaining ?? 0) - 1,
       },
     });
   } catch (error) {
@@ -445,17 +445,24 @@ const unmatch = async (req, res) => {
       });
     }
 
-    /** @type {import('../types/index.d.ts').MatchDocument} */
-    const match = await Match.unmatch(matchId, userId);
+    await Match.unmatch(matchId, userId);
+    const match = await Match.findById(matchId);
 
-    res.json({
-      success: true,
-      message: 'Successfully unmatched',
-      data: {
-        matchId: match._id,
-        status: match.status,
-      },
-    });
+    if (match) {
+      res.json({
+        success: true,
+        message: 'Successfully unmatched',
+        data: {
+          matchId: match._id,
+          status: match.status,
+        },
+      });
+    } else {
+      return res.status(404).json({
+        success: false,
+        message: 'Match not found',
+      });
+    }
   } catch (error) {
     console.error('Error unmatching:', error);
 

@@ -66,7 +66,7 @@ function makeRequest(path, method = 'GET') {
   });
 }
 
-async function checkEnvironmentVariables() {
+function printHeader() {
   console.log('='.repeat(80));
   console.log('Checking Render Environment Variables via API');
   console.log('='.repeat(80));
@@ -74,95 +74,113 @@ async function checkEnvironmentVariables() {
   console.log(`Service ID: ${SERVICE_ID}`);
   console.log(`Environment ID: ${ENVIRONMENT_ID}`);
   console.log('');
+}
+
+function printFooter() {
+  console.log(`\n${'='.repeat(80)}`);
+  console.log('Note: Render API may restrict access to environment variables');
+  console.log('      for security reasons. Use SSH method or Dashboard instead.');
+  console.log('='.repeat(80));
+}
+
+function printError(error) {
+  console.error('❌ Error:', error.message);
+  console.error('');
+  console.error('Possible issues:');
+  console.error('1. API key is invalid or expired');
+  console.error("2. API key doesn't have required permissions");
+  console.error("3. Render API doesn't expose env vars via API");
+  console.error('');
+  console.error('Alternative: Use SSH method (check-render-env-via-ssh.sh)');
+}
+
+async function checkServiceDetails() {
+  console.log('\n1. Fetching service details...');
+  const serviceResponse = await makeRequest(`/v1/services/${SERVICE_ID}`);
+  console.log(`   Status: ${serviceResponse.status}`);
+
+  if (serviceResponse.status === 200) {
+    console.log('   ✅ Service found');
+    if (serviceResponse.data.service) {
+      console.log(`   Name: ${serviceResponse.data.service.name}`);
+      console.log(`   Type: ${serviceResponse.data.service.type}`);
+    }
+  } else {
+    console.log(`   ❌ Failed: ${JSON.stringify(serviceResponse.data)}`);
+  }
+}
+
+async function checkEnvironmentDetails() {
+  console.log('\n2. Fetching environment details...');
+  const envResponse = await makeRequest(`/v1/environments/${ENVIRONMENT_ID}`);
+  console.log(`   Status: ${envResponse.status}`);
+
+  if (envResponse.status === 200) {
+    console.log('   ✅ Environment found');
+    if (envResponse.data.environment) {
+      console.log(`   Name: ${envResponse.data.environment.name}`);
+    }
+  } else {
+    console.log(`   ❌ Failed: ${JSON.stringify(envResponse.data)}`);
+  }
+}
+
+async function tryFetchEnvironmentVariables() {
+  console.log('\n3. Attempting to fetch environment variables...');
+  console.log('   ⚠️  Note: Render API may not expose env vars for security');
+
+  const endpoints = [
+    `/v1/services/${SERVICE_ID}/env-vars`,
+    `/v1/environments/${ENVIRONMENT_ID}/env-vars`,
+    `/v1/services/${SERVICE_ID}/environment-variables`,
+  ];
+
+  for (const endpoint of endpoints) {
+    try {
+      const response = await makeRequest(endpoint);
+      if (response.status === 200 && response.data) {
+        console.log(`   ✅ Found env vars at: ${endpoint}`);
+        displayEnvironmentVariables(response.data);
+        return true;
+      }
+    } catch (e) {
+      // Endpoint doesn't exist, try next
+    }
+  }
+  return false;
+}
+
+function displayEnvironmentVariables(data) {
+  if (Array.isArray(data)) {
+    data.forEach((env) => {
+      if (env.key) {
+        const value = env.value || env.sync === false ? '[HIDDEN - Set in Dashboard]' : env.value;
+        console.log(`      ${env.key} = ${value}`);
+      }
+    });
+  } else if (data.envVars) {
+    Object.entries(data.envVars).forEach(([key, value]) => {
+      console.log(
+        `      ${key} = ${typeof value === 'string' ? `${value.substring(0, 20)}...` : '[HIDDEN]'}`
+      );
+    });
+  }
+}
+
+async function checkEnvironmentVariables() {
+  printHeader();
 
   try {
-    // Try to get service environment variables
     console.log('Attempting to fetch environment variables...');
     console.log('-'.repeat(80));
 
-    // Note: Render API might not expose env vars directly for security
-    // Let's try a few endpoints
+    await checkServiceDetails();
+    await checkEnvironmentDetails();
+    await tryFetchEnvironmentVariables();
 
-    // Method 1: Get service details
-    console.log('\n1. Fetching service details...');
-    const serviceResponse = await makeRequest(`/v1/services/${SERVICE_ID}`);
-    console.log(`   Status: ${serviceResponse.status}`);
-
-    if (serviceResponse.status === 200) {
-      console.log('   ✅ Service found');
-      if (serviceResponse.data.service) {
-        console.log(`   Name: ${serviceResponse.data.service.name}`);
-        console.log(`   Type: ${serviceResponse.data.service.type}`);
-      }
-    } else {
-      console.log(`   ❌ Failed: ${JSON.stringify(serviceResponse.data)}`);
-    }
-
-    // Method 2: Get environment details
-    console.log('\n2. Fetching environment details...');
-    const envResponse = await makeRequest(`/v1/environments/${ENVIRONMENT_ID}`);
-    console.log(`   Status: ${envResponse.status}`);
-
-    if (envResponse.status === 200) {
-      console.log('   ✅ Environment found');
-      if (envResponse.data.environment) {
-        console.log(`   Name: ${envResponse.data.environment.name}`);
-      }
-    } else {
-      console.log(`   ❌ Failed: ${JSON.stringify(envResponse.data)}`);
-    }
-
-    // Method 3: Try to get env vars (may not be available)
-    console.log('\n3. Attempting to fetch environment variables...');
-    console.log('   ⚠️  Note: Render API may not expose env vars for security');
-
-    // Try different possible endpoints
-    const endpoints = [
-      `/v1/services/${SERVICE_ID}/env-vars`,
-      `/v1/environments/${ENVIRONMENT_ID}/env-vars`,
-      `/v1/services/${SERVICE_ID}/environment-variables`,
-    ];
-
-    for (const endpoint of endpoints) {
-      try {
-        const response = await makeRequest(endpoint);
-        if (response.status === 200 && response.data) {
-          console.log(`   ✅ Found env vars at: ${endpoint}`);
-          if (Array.isArray(response.data)) {
-            response.data.forEach((env) => {
-              if (env.key) {
-                const value =
-                  env.value || env.sync === false ? '[HIDDEN - Set in Dashboard]' : env.value;
-                console.log(`      ${env.key} = ${value}`);
-              }
-            });
-          } else if (response.data.envVars) {
-            Object.entries(response.data.envVars).forEach(([key, value]) => {
-              console.log(
-                `      ${key} = ${typeof value === 'string' ? `${value.substring(0, 20)}...` : '[HIDDEN]'}`
-              );
-            });
-          }
-          break;
-        }
-      } catch (e) {
-        // Endpoint doesn't exist, try next
-      }
-    }
-
-    console.log(`\n${'='.repeat(80)}`);
-    console.log('Note: Render API may restrict access to environment variables');
-    console.log('      for security reasons. Use SSH method or Dashboard instead.');
-    console.log('='.repeat(80));
+    printFooter();
   } catch (error) {
-    console.error('❌ Error:', error.message);
-    console.error('');
-    console.error('Possible issues:');
-    console.error('1. API key is invalid or expired');
-    console.error("2. API key doesn't have required permissions");
-    console.error("3. Render API doesn't expose env vars via API");
-    console.error('');
-    console.error('Alternative: Use SSH method (check-render-env-via-ssh.sh)');
+    printError(error);
   }
 }
 

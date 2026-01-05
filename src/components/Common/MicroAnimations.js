@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { Colors } from '../../constants/colors';
 import { Animated, Platform, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../../constants/colors';
 import { useTheme } from '../../context/ThemeContext';
 
 const HeartAnimation = ({ visible, onComplete }) => {

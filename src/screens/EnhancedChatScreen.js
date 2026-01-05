@@ -238,15 +238,18 @@ const EnhancedChatScreen = ({ route, navigation }) => {
       return currentTheme;
     }
     // Fallback to default theme
-    return CHAT_THEMES.default || CHAT_THEMES[Object.keys(CHAT_THEMES)[0]] || {
-      background: { type: 'solid', color: '#f5f7fa' },
-      myMessage: { gradient: Colors.gradient.primary, textColor: Colors.background.white },
-      theirMessage: { backgroundColor: Colors.background.white, textColor: Colors.text.dark },
-      receiverBubbleColor: Colors.background.light,
-      receiverTextColor: Colors.text.dark,
-      backgroundColor: '#f5f7fa',
-      pattern: null,
-    };
+    return (
+      CHAT_THEMES.default ||
+      CHAT_THEMES[Object.keys(CHAT_THEMES)[0]] || {
+        background: { type: 'solid', color: '#f5f7fa' },
+        myMessage: { gradient: Colors.gradient.primary, textColor: Colors.background.white },
+        theirMessage: { backgroundColor: Colors.background.white, textColor: Colors.text.dark },
+        receiverBubbleColor: Colors.background.light,
+        receiverTextColor: Colors.text.dark,
+        backgroundColor: '#f5f7fa',
+        pattern: null,
+      }
+    );
   };
 
   const themeStyles = getThemeStyles();

@@ -191,8 +191,9 @@ class SocialFeaturesService {
         query.isPublic = true;
       }
 
+      query.isAnonymous = false;
       return await FriendReview.find(query)
-        .populate('reviewerId', 'name photos', { isAnonymous: false })
+        .populate('reviewerId', 'name photos')
         .sort({ createdAt: -1 });
     } catch (error) {
       console.error('Error getting user reviews:', error);
@@ -397,6 +398,7 @@ class SocialFeaturesService {
         shareToken,
         shareUrl,
         qrCode: this.generateQRCode(shareUrl),
+        // @ts-ignore - expiresAt exists on the model but not in the type definition
         expiresAt: sharedProfile.expiresAt,
       };
     } catch (error) {

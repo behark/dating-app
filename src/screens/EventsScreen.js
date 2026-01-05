@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
-import SocialFeaturesService from '../services/SocialFeaturesService';
+import { SocialFeaturesService } from '../services/SocialFeaturesService';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 import { getUserId, userIdsMatch } from '../utils/userIdUtils';

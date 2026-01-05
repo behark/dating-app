@@ -24,11 +24,48 @@ jest.mock('expo-web-browser', () => ({
   maybeCompleteAuthSession: jest.fn(),
 }));
 
+jest.mock('expo-linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+  createURL: jest.fn(),
+  parseURL: jest.fn(),
+}));
+
 // Mock React Native
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   RN.Platform.OS = 'web';
+  RN.Dimensions = {
+    get: jest.fn(() => ({ width: 375, height: 812 })),
+  };
   return RN;
+});
+
+// Mock react-native-gesture-handler
+jest.mock('react-native-gesture-handler', () => {
+  const View = require('react-native').View;
+  return {
+    PanGestureHandler: View,
+    GestureHandlerRootView: View,
+  };
+});
+
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => {
+  const View = require('react-native').View;
+  return {
+    default: {
+      View: View,
+    },
+    useAnimatedGestureHandler: jest.fn(() => ({})),
+    useAnimatedStyle: jest.fn(() => ({})),
+    useSharedValue: jest.fn((val) => ({ value: val })),
+    withSpring: jest.fn((val) => val),
+    withTiming: jest.fn((val) => val),
+    runOnJS: jest.fn((fn) => fn),
+    Easing: {
+      inOut: jest.fn(() => ({})),
+    },
+  };
 });
 
 // Suppress console warnings in tests

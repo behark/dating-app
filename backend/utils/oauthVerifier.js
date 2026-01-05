@@ -150,15 +150,31 @@ const verifyFacebookToken = async (accessToken, facebookId) => {
       expiresAt: tokenData.expires_at,
     };
   } catch (err) {
-    const error = err;
-    if (error && typeof error === 'object' && 'response' in error && error.response?.data?.error) {
-      const fbError = error.response.data.error;
-      if (fbError.code === 190) {
-        throw new Error('Facebook OAuth token has expired or is invalid. Please sign in again.');
+    // Check if it's an axios error with response data
+    const isAxiosError = axios.isAxiosError
+      ? axios.isAxiosError(err)
+      : err && typeof err === 'object' && err !== null && 'response' in err && err.response !== null;
+    
+    if (isAxiosError && err && typeof err === 'object' && err !== null) {
+      // @ts-ignore - response property exists on axios errors
+      const response = err.response;
+      if (response && typeof response === 'object' && response !== null) {
+        const responseData = response.data;
+        if (responseData && typeof responseData === 'object' && responseData !== null) {
+          const errorObj = responseData.error;
+          if (errorObj && typeof errorObj === 'object' && errorObj !== null) {
+            if (errorObj.code === 190) {
+              throw new Error('Facebook OAuth token has expired or is invalid. Please sign in again.');
+            }
+            if (typeof errorObj.message === 'string' && errorObj.message.length > 0) {
+              throw new Error(`Facebook OAuth error: ${errorObj.message}`);
+            }
+          }
+        }
       }
-      throw new Error(`Facebook OAuth error: ${fbError.message}`);
     }
-    throw error;
+    // Re-throw the original error
+    throw err instanceof Error ? err : new Error(String(err));
   }
 };
 

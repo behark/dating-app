@@ -148,6 +148,10 @@ exports.viewProfile = async (req, res) => {
       });
     }
 
+    if (!user.profileViewedBy) {
+      user.profileViewedBy = [];
+    }
+
     const existingView = user.profileViewedBy.find(
       (view) => view.userId && view.userId.toString() === viewerId.toString()
     );
@@ -163,12 +167,12 @@ exports.viewProfile = async (req, res) => {
         existingView.viewedAt = new Date();
       } else {
         // Add as new view
-        user.profileViewedBy.push({ userId: viewerId });
+        user.profileViewedBy.push({ userId: viewerId, viewedAt: new Date() });
         user.profileViewCount = user.profileViewedBy.length;
       }
     } else {
       // Add new view
-      user.profileViewedBy.push({ userId: viewerId });
+      user.profileViewedBy.push({ userId: viewerId, viewedAt: new Date() });
       user.profileViewCount = user.profileViewedBy.length;
     }
 
@@ -219,7 +223,7 @@ exports.getProfileViews = async (req, res) => {
     }
 
     // Return views with user details (premium only)
-    const viewers = user.profileViewedBy
+    const viewers = (user.profileViewedBy || [])
       .filter((view) => view.userId != null) // Filter out null/undefined userIds
       .sort((a, b) => {
         const dateA = a.viewedAt instanceof Date ? a.viewedAt : new Date(a.viewedAt);
@@ -325,7 +329,8 @@ exports.getMultipleStatus = async (req, res) => {
       if (user.isOnline) {
         activityStatus = 'online';
       } else if (user.lastActive) {
-        const minutesAgo = Math.floor((new Date() - user.lastActive) / (1000 * 60));
+        const lastActiveDate = new Date(user.lastActive);
+        const minutesAgo = Math.floor((new Date().getTime() - lastActiveDate.getTime()) / (1000 * 60));
         if (minutesAgo < 5) {
           activityStatus = 'active_now';
         }

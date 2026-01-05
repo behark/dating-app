@@ -50,9 +50,10 @@ describe('Validators', () => {
     });
 
     it('should reject invalid inputs', () => {
-      expect(validatePassword('')).toBe(false);
-      expect(validatePassword(null)).toBe(false);
-      expect(validatePassword(undefined)).toBe(false);
+      const invalidInputs = ['', null, undefined];
+      invalidInputs.forEach((input) => {
+        expect(validatePassword(input)).toBe(false);
+      });
     });
   });
 

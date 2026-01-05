@@ -1,12 +1,14 @@
 import { PaymentService } from '../PaymentService';
 
-// Mock API module
-jest.mock('../api', () => ({
-  API: {
-    post: jest.fn(),
-    get: jest.fn(),
-  },
+// Mock expo-linking
+jest.mock('expo-linking', () => ({
+  openURL: jest.fn(() => Promise.resolve()),
+  createURL: jest.fn(),
+  parseURL: jest.fn(),
 }));
+
+// Mock fetch
+global.fetch = jest.fn();
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -16,208 +18,192 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 }));
 
 describe('PaymentService', () => {
+  const mockToken = 'mock-auth-token';
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('getSubscriptionPlans', () => {
-    it('should fetch available subscription plans', async () => {
-      const { API } = require('../api');
-      API.get.mockResolvedValue({
-        data: {
-          plans: [
-            { id: 'basic', name: 'Basic', price: 9.99 },
-            { id: 'premium', name: 'Premium', price: 19.99 },
-            { id: 'gold', name: 'Gold', price: 29.99 },
-          ],
-        },
+  describe('getSubscriptionTiers', () => {
+    it('should fetch subscription tiers successfully', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: {
+            tiers: [
+              { id: 'basic', name: 'Basic', price: 9.99 },
+              { id: 'premium', name: 'Premium', price: 19.99 },
+            ],
+            consumables: {},
+          },
+        }),
       });
 
-      const plans = await PaymentService.getSubscriptionPlans();
-      expect(plans).toHaveLength(3);
-      expect(plans[0].id).toBe('basic');
+      const result = await PaymentService.getSubscriptionTiers();
+      expect(result.tiers).toHaveLength(2);
+      expect(result.tiers[0].id).toBe('basic');
     });
 
-    it('should handle API errors', async () => {
-      const { API } = require('../api');
-      API.get.mockRejectedValue(new Error('Network error'));
+    it('should handle API errors gracefully', async () => {
+      global.fetch.mockRejectedValueOnce(new Error('Network error'));
 
-      await expect(PaymentService.getSubscriptionPlans()).rejects.toThrow();
+      const result = await PaymentService.getSubscriptionTiers();
+      expect(result.tiers).toEqual([]);
+      expect(result.consumables).toEqual({});
     });
   });
 
-  describe('createSubscription', () => {
-    it('should create subscription successfully', async () => {
-      const { API } = require('../api');
-      API.post.mockResolvedValue({
-        data: {
-          subscriptionId: 'sub_123',
-          clientSecret: 'secret_123',
-          status: 'pending',
-        },
+  describe('getPaymentStatus', () => {
+    it('should fetch payment status successfully', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: {
+            status: 'active',
+            plan: 'premium',
+            expiresAt: '2026-02-01T00:00:00Z',
+          },
+        }),
       });
 
-      const result = await PaymentService.createSubscription('premium', 'pm_123');
-      expect(result.subscriptionId).toBe('sub_123');
-      expect(result.clientSecret).toBeDefined();
+      const result = await PaymentService.getPaymentStatus(mockToken);
+      expect(result.status).toBe('active');
+      expect(result.plan).toBe('premium');
     });
 
-    it('should validate plan ID', async () => {
-      await expect(PaymentService.createSubscription('', 'pm_123')).rejects.toThrow(
-        'Plan ID is required'
-      );
+    it('should return null when token is missing', async () => {
+      const result = await PaymentService.getPaymentStatus('');
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('createStripeCheckout', () => {
+    it('should create Stripe checkout session', async () => {
+      const Linking = require('expo-linking');
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: { url: 'https://checkout.stripe.com/session' },
+        }),
+      });
+
+      const result = await PaymentService.createStripeCheckout('monthly', mockToken);
+      expect(result.success).toBe(true);
+      expect(Linking.openURL).toHaveBeenCalledWith('https://checkout.stripe.com/session');
     });
 
-    it('should validate payment method', async () => {
-      await expect(PaymentService.createSubscription('premium', '')).rejects.toThrow(
-        'Payment method is required'
-      );
+    it('should return error for invalid plan type', async () => {
+      const result = await PaymentService.createStripeCheckout('invalid', mockToken);
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Plan type must be monthly or yearly');
     });
   });
 
   describe('cancelSubscription', () => {
     it('should cancel subscription successfully', async () => {
-      const { API } = require('../api');
-      API.post.mockResolvedValue({
-        data: { success: true, message: 'Subscription cancelled' },
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: { message: 'Subscription cancelled' },
+        }),
       });
 
-      const result = await PaymentService.cancelSubscription('sub_123');
+      const result = await PaymentService.cancelSubscription(false, mockToken);
       expect(result.success).toBe(true);
     });
 
     it('should handle cancellation errors', async () => {
-      const { API } = require('../api');
-      API.post.mockRejectedValue(new Error('Cannot cancel subscription'));
+      global.fetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        json: async () => ({ message: 'Cannot cancel subscription' }),
+      });
 
-      await expect(PaymentService.cancelSubscription('sub_123')).rejects.toThrow();
+      const result = await PaymentService.cancelSubscription(false, mockToken);
+      expect(result.success).toBe(false);
     });
   });
 
-  describe('getSubscriptionStatus', () => {
-    it('should return active subscription status', async () => {
-      const { API } = require('../api');
-      API.get.mockResolvedValue({
-        data: {
-          status: 'active',
-          plan: 'premium',
-          expiresAt: '2026-02-01T00:00:00Z',
-          features: ['unlimited_likes', 'see_who_likes_you'],
-        },
-      });
-
-      const status = await PaymentService.getSubscriptionStatus('user_123');
-      expect(status.status).toBe('active');
-      expect(status.plan).toBe('premium');
-    });
-
-    it('should return inactive for non-subscribers', async () => {
-      const { API } = require('../api');
-      API.get.mockResolvedValue({
-        data: { status: 'inactive', plan: null },
-      });
-
-      const status = await PaymentService.getSubscriptionStatus('user_123');
-      expect(status.status).toBe('inactive');
-    });
-  });
-
-  describe('purchaseBoost', () => {
-    it('should purchase boost successfully', async () => {
-      const { API } = require('../api');
-      API.post.mockResolvedValue({
-        data: {
+  describe('validateAppleReceipt', () => {
+    it('should validate Apple receipt successfully', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
           success: true,
-          boostId: 'boost_123',
-          expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
-        },
+          data: { valid: true, productId: 'premium_monthly' },
+        }),
       });
 
-      const result = await PaymentService.purchaseBoost('pm_123');
+      const result = await PaymentService.validateAppleReceipt(
+        'receipt_data',
+        'product_id',
+        mockToken
+      );
       expect(result.success).toBe(true);
-      expect(result.boostId).toBeDefined();
+      expect(result.data.valid).toBe(true);
     });
   });
 
-  describe('purchaseSuperLike', () => {
-    it('should purchase super likes successfully', async () => {
-      const { API } = require('../api');
-      API.post.mockResolvedValue({
-        data: {
+  describe('validateGooglePurchase', () => {
+    it('should validate Google purchase successfully', async () => {
+      global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
           success: true,
-          quantity: 5,
-          totalSuperLikes: 10,
-        },
+          data: { valid: true, productId: 'premium_monthly' },
+        }),
       });
 
-      const result = await PaymentService.purchaseSuperLike(5, 'pm_123');
+      const result = await PaymentService.validateGooglePurchase(
+        'purchase_token',
+        'product_id',
+        true,
+        mockToken
+      );
       expect(result.success).toBe(true);
-      expect(result.quantity).toBe(5);
     });
   });
 
-  describe('getPaymentHistory', () => {
-    it('should fetch payment history', async () => {
-      const { API } = require('../api');
-      API.get.mockResolvedValue({
-        data: {
-          payments: [
-            { id: 'pay_1', amount: 19.99, date: '2025-12-01', type: 'subscription' },
-            { id: 'pay_2', amount: 4.99, date: '2025-12-15', type: 'boost' },
-          ],
-        },
-      });
+  describe('getRecommendedPaymentMethod', () => {
+    it('should return apple for iOS', () => {
+      const Platform = require('react-native').Platform;
+      Platform.OS = 'ios';
+      expect(PaymentService.getRecommendedPaymentMethod()).toBe('apple');
+    });
 
-      const history = await PaymentService.getPaymentHistory('user_123');
-      expect(history.payments).toHaveLength(2);
+    it('should return google for Android', () => {
+      const Platform = require('react-native').Platform;
+      Platform.OS = 'android';
+      expect(PaymentService.getRecommendedPaymentMethod()).toBe('google');
+    });
+
+    it('should return stripe for web', () => {
+      const Platform = require('react-native').Platform;
+      Platform.OS = 'web';
+      expect(PaymentService.getRecommendedPaymentMethod()).toBe('stripe');
     });
   });
 
-  describe('validateReceipt', () => {
-    it('should validate iOS receipt', async () => {
-      const { API } = require('../api');
-      API.post.mockResolvedValue({
-        data: { valid: true, productId: 'premium_monthly' },
-      });
-
-      const result = await PaymentService.validateReceipt('receipt_data', 'ios');
-      expect(result.valid).toBe(true);
+  describe('isIAPAvailable', () => {
+    it('should return true for iOS', () => {
+      const Platform = require('react-native').Platform;
+      Platform.OS = 'ios';
+      expect(PaymentService.isIAPAvailable()).toBe(true);
     });
 
-    it('should validate Android receipt', async () => {
-      const { API } = require('../api');
-      API.post.mockResolvedValue({
-        data: { valid: true, productId: 'premium_monthly' },
-      });
-
-      const result = await PaymentService.validateReceipt('receipt_data', 'android');
-      expect(result.valid).toBe(true);
+    it('should return true for Android', () => {
+      const Platform = require('react-native').Platform;
+      Platform.OS = 'android';
+      expect(PaymentService.isIAPAvailable()).toBe(true);
     });
 
-    it('should reject invalid receipts', async () => {
-      const { API } = require('../api');
-      API.post.mockResolvedValue({
-        data: { valid: false, error: 'Invalid receipt' },
-      });
-
-      const result = await PaymentService.validateReceipt('invalid_receipt', 'ios');
-      expect(result.valid).toBe(false);
-    });
-  });
-
-  describe('restorePurchases', () => {
-    it('should restore purchases successfully', async () => {
-      const { API } = require('../api');
-      API.post.mockResolvedValue({
-        data: {
-          restored: true,
-          subscriptions: ['premium_monthly'],
-          purchases: ['super_like_pack'],
-        },
-      });
-
-      const result = await PaymentService.restorePurchases('user_123');
-      expect(result.restored).toBe(true);
+    it('should return false for web', () => {
+      const Platform = require('react-native').Platform;
+      Platform.OS = 'web';
+      expect(PaymentService.isIAPAvailable()).toBe(false);
     });
   });
 });

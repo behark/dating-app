@@ -412,10 +412,12 @@ exports.getSafetyScore = async (req, res) => {
 
     // Deduct points for various risk factors
     if (user.suspended) score -= 100;
-    if (user.reportCount > 0) score -= Math.min(10 * user.reportCount, 50);
-    if (!user.emailVerified) score -= 10;
-    if (!user.phoneVerified) score -= 5;
-    if (user.blockedCount > 0) score -= Math.min(5 * user.blockedCount, 20);
+    const reportCount = user.reportCount || 0;
+    if (reportCount > 0) score -= Math.min(10 * reportCount, 50);
+    if (!user.isEmailVerified) score -= 10;
+    if (!user.isPhoneVerified) score -= 5;
+    const blockedCount = user.blockedCount || 0;
+    if (blockedCount > 0) score -= Math.min(5 * blockedCount, 20);
 
     const finalScore = Math.max(0, Math.min(100, score));
 
@@ -425,10 +427,10 @@ exports.getSafetyScore = async (req, res) => {
       safetyScore: finalScore,
       riskFactors: {
         suspended: user.suspended,
-        reportCount: user.reportCount || 0,
-        emailVerified: user.emailVerified,
-        phoneVerified: user.phoneVerified,
-        blockedCount: user.blockedCount || 0,
+        reportCount: reportCount,
+        emailVerified: user.isEmailVerified,
+        phoneVerified: user.isPhoneVerified,
+        blockedCount: blockedCount,
       },
     });
   } catch (error) {
@@ -658,9 +660,9 @@ exports.getAccountStatus = async (req, res) => {
     } else if (!user.isActive) {
       visibilityStatus = 'inactive';
       visibilityMessage = 'Your profile is currently hidden because your account is inactive';
-    } else if (user.reportCount > 0) {
+    } else if ((user.reportCount || 0) > 0) {
       visibilityStatus = 'under_review';
-      visibilityMessage = `Your profile is visible, but you have ${user.reportCount} pending report(s) that are being reviewed`;
+      visibilityMessage = `Your profile is visible, but you have ${user.reportCount || 0} pending report(s) that are being reviewed`;
     }
 
     res.json({

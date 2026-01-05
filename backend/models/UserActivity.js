@@ -114,7 +114,9 @@ userActivitySchema.statics.getRecentlyActiveUsers = async function (
 // Static method to log activity
 userActivitySchema.statics.logActivity = async function (userId, activityType, metadata = {}) {
   // @ts-ignore - Mongoose static method context
+// @ts-ignore
   try {
+    // @ts-ignore
     await this.create({
       userId,
       activityType,
@@ -136,6 +138,7 @@ userActivitySchema.statics.getUserRecentActivity = function (
   // @ts-ignore - Mongoose static method context
   timeframe.setHours(timeframe.getHours() - hoursBack);
 
+  // @ts-ignore
   return this.find({
     userId,
     createdAt: { $gte: timeframe },
@@ -158,6 +161,7 @@ userActivitySchema.statics.getActivitySummary = async function (userId, days = 7
         new mongoose.Types.ObjectId(userId)
     : userId;
 
+  // @ts-ignore
   return await this.aggregate([
     {
       $match: {
@@ -180,6 +184,7 @@ userActivitySchema.statics.getActivitySummary = async function (userId, days = 7
  */
 
 /** @type {UserActivityModel} */
+// @ts-ignore
 const UserActivityModel = mongoose.model('UserActivity', userActivitySchema);
 
 module.exports = UserActivityModel;

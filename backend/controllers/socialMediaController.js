@@ -50,7 +50,7 @@ exports.connectSpotify = async (req, res) => {
       success: true,
       message: 'Spotify connected successfully',
       data: {
-        spotify: user?.socialMedia.spotify,
+        spotify: user?.socialMedia?.spotify,
       },
     });
   } catch (error) {
@@ -102,7 +102,7 @@ exports.connectInstagram = async (req, res) => {
       success: true,
       message: 'Instagram connected successfully',
       data: {
-        instagram: user?.socialMedia.instagram,
+        instagram: user?.socialMedia?.instagram,
       },
     });
   } catch (error) {
@@ -215,16 +215,16 @@ exports.getSocialMedia = async (req, res) => {
 
     // Only return verified connections
     const socialMedia = {
-      spotify: user?.socialMedia.spotify.isVerified
+      spotify: user?.socialMedia?.spotify?.isVerified
         ? {
-            username: user?.socialMedia.spotify.username,
-            profileUrl: user?.socialMedia.spotify.profileUrl,
+            username: user?.socialMedia?.spotify?.username,
+            profileUrl: user?.socialMedia?.spotify?.profileUrl,
           }
         : null,
-      instagram: user?.socialMedia.instagram.isVerified
+      instagram: user?.socialMedia?.instagram?.isVerified
         ? {
-            username: user?.socialMedia.instagram.username,
-            profileUrl: user?.socialMedia.instagram.profileUrl,
+            username: user?.socialMedia?.instagram?.username,
+            profileUrl: user?.socialMedia?.instagram?.profileUrl,
           }
         : null,
     };

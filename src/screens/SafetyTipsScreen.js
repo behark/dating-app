@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
@@ -13,6 +12,7 @@ import {
   UIManager,
   View,
 } from 'react-native';
+import { Colors } from '../constants/colors';
 import { SafetyService } from '../services/SafetyService';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {

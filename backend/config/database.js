@@ -76,7 +76,7 @@ const connectDB = async () => {
     // Use circuit breaker for connection attempt
     return await dbCircuitBreaker.execute(async () => {
       // Add connection timeout to prevent hanging
-      const connectionPromise = mongoose.connect(mongoURI, mongoOptions);
+      const connectionPromise = mongoose.connect(mongoURI, /** @type {mongoose.ConnectOptions} */ (mongoOptions));
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Connection timeout after 15 seconds')), 15000);
       });
@@ -100,7 +100,8 @@ const connectDB = async () => {
       return conn.connection;
     }, 'mongodb_connection');
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const err = /** @type {Error} */ (error);
+    const errorMessage = err.message || String(err);
     console.error('MongoDB connection failed:', errorMessage);
     isConnected = false;
 
@@ -157,7 +158,8 @@ const gracefulShutdown = async (signal) => {
     await mongoose.connection.close();
     console.log('MongoDB connection closed');
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const err = /** @type {Error} */ (error);
+    const errorMessage = err.message || String(err);
     console.error('Error closing MongoDB connection:', errorMessage);
   }
 };
@@ -286,7 +288,8 @@ const enableSlowQueryProfiling = async (thresholdMs = 100) => {
       }, 60000); // Check every minute
     }
   } catch (error) {
-    const errorMessage = error && error.message ? error.message : String(error);
+    const err = /** @type {Error} */ (error);
+    const errorMessage = err.message || String(err);
 
     // MongoDB Atlas and other managed services often disable profiling
     if (errorMessage.includes('CMD_NOT_ALLOWED') || errorMessage.includes('profile')) {
@@ -319,7 +322,8 @@ const createIndexes = async () => {
           }
           await mongoose.connection.db.collection(collection).createIndexes(indexes);
         } catch (error) {
-          if (error && error.message && error.message.includes('already exists')) {
+          const err = /** @type {Error} */ (error);
+          if (err && err.message && err.message.includes('already exists')) {
             console.log(`⚠️ Some indexes for ${collection} already exist, skipping duplicates`);
           } else {
             throw error;
@@ -394,7 +398,8 @@ const createIndexes = async () => {
     // Enable slow query profiling after indexes are created
     await enableSlowQueryProfiling(100);
   } catch (error) {
-    const errorMessage = error && error.message ? error.message : String(error);
+    const err = /** @type {Error} */ (error);
+    const errorMessage = err.message || String(err);
     console.error('Error creating indexes:', errorMessage);
   }
 };

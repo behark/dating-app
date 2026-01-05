@@ -1,5 +1,6 @@
 // Simple test script to verify Socket.io functionality
-const io = require('socket.io-client');
+const ioModule = require('socket.io-client');
+const io = ioModule.default || ioModule;
 
 // Connect to the server
 const socket = io('http://localhost:3000', {

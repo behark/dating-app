@@ -13,7 +13,7 @@ async function globalSetup(config: FullConfig) {
   try {
     // Check if API is available
     const baseURL = config.projects[0].use.baseURL || 'http://localhost:19006';
-    
+
     // Wait for app to be ready
     let retries = 10;
     while (retries > 0) {
@@ -26,14 +26,13 @@ async function globalSetup(config: FullConfig) {
         if (retries === 0) {
           console.warn('⚠️ App may not be ready, continuing anyway...');
         } else {
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          await new Promise((resolve) => setTimeout(resolve, 3000));
         }
       }
     }
 
     // Set up test data via API if needed
     // await fetch('http://localhost:3001/api/test/seed');
-
   } catch (error) {
     console.error('Error in global setup:', error);
   } finally {

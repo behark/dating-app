@@ -68,6 +68,7 @@ swipeSchema.index({ swipedId: 1, action: 1, createdAt: -1 }, { name: 'who_liked_
  * @param {Object} swipeData - { swiperId, swipedId, action, isPriority }
  * @returns {Promise<{swipe: any, isNew: boolean, alreadyExists: boolean}>} { swipe, isNew } - The swipe document and whether it was newly created
  */
+// @ts-ignore
 swipeSchema.statics.createSwipeAtomic = async function (swipeData) {
   const { swiperId, swipedId, action, isPriority = false } = swipeData;
 
@@ -111,19 +112,25 @@ swipeSchema.statics.createSwipeAtomic = async function (swipeData) {
 
 // Static method to get swiped user IDs for a swiper
 // @ts-ignore - Mongoose static method context
+// @ts-ignore
 swipeSchema.statics.getSwipedUserIds = function (swiperId) {
+  // @ts-ignore
   return this.distinct('swipedId', { swiperId });
 };
 
 // @ts-ignore - Mongoose static method context
 // Static method to check if user has swiped on another user
+// @ts-ignore
 swipeSchema.statics.hasSwiped = function (swiperId, swipedId) {
+  // @ts-ignore
   return this.exists({ swiperId, swipedId });
 };
 // @ts-ignore - Mongoose static method context
 
 // Static method to get mutual likes (matches)
+// @ts-ignore
 swipeSchema.statics.getMatches = function (userId) {
+  // @ts-ignore
   return this.aggregate([
     {
       $match: {
@@ -165,6 +172,7 @@ swipeSchema.statics.getMatches = function (userId) {
 };
 
 // Static method to get swipe count for today
+// @ts-ignore
 swipeSchema.statics.getSwipeCountToday = async function (swiperId) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -173,6 +181,7 @@ swipeSchema.statics.getSwipeCountToday = async function (swiperId) {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
+  // @ts-ignore
   return this.countDocuments({
     swiperId: swiperId,
     createdAt: { $gte: today, $lt: tomorrow },
@@ -185,6 +194,7 @@ swipeSchema.statics.getSwipeCountToday = async function (swiperId) {
  * @param {boolean} isPremium
  * @returns {Promise<{canSwipe: boolean, remaining: number, used?: number}>}
  */
+// @ts-ignore
 swipeSchema.statics.canSwipe = async function (swiperId, isPremium = false) {
   if (isPremium) {
     // @ts-ignore - Mongoose static method context
@@ -193,6 +203,7 @@ swipeSchema.statics.canSwipe = async function (swiperId, isPremium = false) {
 
   const DAILY_SWIPE_LIMIT = 50;
   /** @type {number} */
+  // @ts-ignore
   const swipeCount = await this.getSwipeCountToday(swiperId);
   const remaining = Math.max(0, DAILY_SWIPE_LIMIT - swipeCount);
 
@@ -209,6 +220,7 @@ swipeSchema.statics.canSwipe = async function (swiperId, isPremium = false) {
  */
 
 /** @type {SwipeModel} */
+// @ts-ignore
 const SwipeModel = mongoose.model('Swipe', swipeSchema);
 
 module.exports = SwipeModel;

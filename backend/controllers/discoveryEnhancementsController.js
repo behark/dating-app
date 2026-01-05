@@ -131,10 +131,9 @@ const exploreUsers = async (req, res) => {
       .select(
         'name age gender bio photos interests location locationPrivacy profileCompleteness lastActivityAt isProfileVerified activityScore'
       )
-      .sort(sortQuery)
-      .skip(parseInt(skip))
-      .limit(parseInt(limit))
-      .lean();
+      .sort(/** @type {any} */ (sortQuery))
+      .skip(skip)
+      .limit(limit);
 
     // Enhance results with additional data and SANITIZE LOCATION
     const enhancedResults = await Promise.all(
@@ -292,7 +291,7 @@ const getRecentlyActiveUsers = async (req, res) => {
 
     // Filter out already swiped users
     const filteredUsers = recentlyActive.filter(
-      (activity) => !swipedUserIds.includes(activity._id.toString())
+      (activity) => !swipedUserIds.includes(activity._id)
     );
 
     // Log activity

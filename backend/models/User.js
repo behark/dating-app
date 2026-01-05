@@ -615,11 +615,16 @@ const userSchema = new mongoose.Schema(
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
+  if (!this.password) {
+    return next(new Error('Password is required'));
+  }
+
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
+    // @ts-ignore
     next(error);
   }
 });
@@ -709,6 +714,8 @@ userSchema.methods.updateLocation = function (longitude, latitude) {
 };
 
 // Static method to find users near a location
+/** @this {import('../types/index').UserModel} */
+// @ts-ignore
 userSchema.statics.findNearby = function (longitude, latitude, maxDistance, options = {}) {
   const query = {
     location: {
@@ -750,6 +757,7 @@ userSchema.statics.findNearby = function (longitude, latitude, maxDistance, opti
  */
 
 /** @type {UserModel} */
+// @ts-ignore
 const UserModel = mongoose.model('User', userSchema);
 
 module.exports = UserModel;

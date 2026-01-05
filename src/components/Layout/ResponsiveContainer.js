@@ -1,6 +1,6 @@
 import React from 'react';
-import { Colors } from '../../constants/colors';
 import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Colors } from '../../constants/colors';
 import { BREAKPOINTS, useResponsive } from '../../hooks/useResponsive';
 
 /**

@@ -1,29 +1,27 @@
 import React from 'react';
-import { Colors } from '../../constants/colors';
 import { render, screen, fireEvent } from '@testing-library/react-native';
+import { Colors } from '../../constants/colors';
 import SwipeCard from '../Card/SwipeCard';
 
-// Mock the PanGestureHandler
-jest.mock('react-native-gesture-handler', () => ({
-  PanGestureHandler: ({ children }) => children,
+// Mock LocationService
+jest.mock('../../services/LocationService', () => ({
+  LocationService: {
+    getDistance: jest.fn(() => 5),
+  },
 }));
 
-// Mock Reanimated
-jest.mock('react-native-reanimated', () => ({
-  useAnimatedGestureHandler: jest.fn(() => ({})),
-  useAnimatedStyle: jest.fn(() => ({})),
-  useSharedValue: jest.fn(() => ({ value: 0 })),
-  withSpring: jest.fn((value) => value),
-  runOnJS: jest.fn((fn) => fn),
+// Mock VerificationService
+jest.mock('../../services/VerificationService', () => ({
+  VerificationService: {
+    isVerified: jest.fn(() => false),
+  },
 }));
 
-// Mock LinearGradient
-jest.mock('expo-linear-gradient', () => ({
-  LinearGradient: ({ children }) => children,
-}));
-
-// Mock Ionicons
-jest.mock('@expo/vector-icons/Ionicons', () => 'Ionicons');
+// Mock ProgressiveImage
+jest.mock('../Common/ProgressiveImage', () => {
+  const { View, Image } = require('react-native');
+  return ({ source, ...props }) => <Image source={source} {...props} />;
+});
 
 const mockCard = {
   id: '1',

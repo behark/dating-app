@@ -97,7 +97,7 @@ const emailService = {
  * @param {string} [req.body.location.type] - Location type (Point)
  * @param {number[]} [req.body.location.coordinates] - Location coordinates [lng, lat]
  * @param {Object} res - Express response object
- * @returns {Object} JSON response with user data and token
+ * @returns {Promise<Object>} JSON response with user data and token
  */
 exports.register = async (req, res) => {
   try {
@@ -191,7 +191,7 @@ exports.register = async (req, res) => {
     return sendError(res, 500, {
       message: 'Error during registration',
       error: 'REGISTRATION_ERROR',
-      details: process.env.NODE_ENV === 'production' ? null : error.message,
+      details: process.env.NODE_ENV === 'production' ? null : (error instanceof Error ? error.message : String(error)),
     });
   }
 };
@@ -497,8 +497,12 @@ exports.refreshToken = async (req, res) => {
     }
 
     const jwt = require('jsonwebtoken');
-    /** @type {{ userId: string }} */
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    if (typeof decoded === 'string' || !decoded || typeof decoded !== 'object' || !decoded.userId) {
+      return sendError(res, 401, {
+        message: 'Invalid refresh token',
+      });
+    }
 
     const user = await User.findById(decoded.userId);
     if (!user) {

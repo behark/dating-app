@@ -191,16 +191,27 @@ const getReceivedLikes = async (req, res) => {
     for (const like of receivedLikes) {
       try {
         // Check if like is an object with details or just an ObjectId
-        if (typeof like === 'object' && like.fromUserId) {
+        if (
+          typeof like === 'object' &&
+          like !== null &&
+          'fromUserId' in like &&
+          !(
+            '_id' in like &&
+            like._id instanceof require('mongoose').Types.ObjectId &&
+            Object.keys(like).length === 1
+          )
+        ) {
           // Like is already a detailed object
-          const likerUser = await User.findById(like.fromUserId).select(
+          const likeObj = like;
+          const likerUser = await User.findById(likeObj.fromUserId).select(
             '_id name age gender photos location bio interests education'
           );
           if (likerUser) {
+            // @ts-ignore - fromUserId may not be in type
             likesWithDetails.push({
-              _id: like._id,
-              action: like.action,
-              receivedAt: like.receivedAt,
+              _id: likeObj.fromUserId,
+              action: likeObj.action || 'like',
+              receivedAt: likeObj.receivedAt || new Date(),
               user: likerUser,
             });
           }
@@ -227,7 +238,21 @@ const getReceivedLikes = async (req, res) => {
       success: true,
       data: {
         totalLikes: likesWithDetails.length,
-        likes: likesWithDetails.sort((a, b) => b.receivedAt - a.receivedAt),
+        likes: likesWithDetails.sort((a, b) => {
+          const dateA =
+            a.receivedAt instanceof Date
+              ? a.receivedAt.getTime()
+              : a.receivedAt
+                ? new Date(a.receivedAt).getTime()
+                : 0;
+          const dateB =
+            b.receivedAt instanceof Date
+              ? b.receivedAt.getTime()
+              : b.receivedAt
+                ? new Date(b.receivedAt).getTime()
+                : 0;
+          return dateB - dateA;
+        }),
       },
     });
   } catch (error) {
@@ -290,12 +315,20 @@ const setPassportLocation = async (req, res) => {
 
     // Save to change history
     if (!user.passportMode) {
-      user.passportMode = { changeHistory: [] };
+      user.passportMode = { isActive: true, changeHistory: [] };
     }
 
     if (user.passportMode) {
       user.passportMode.enabled = true;
-      user.passportMode.currentLocation = newLocation;
+      user.passportMode.isActive = true;
+      // Convert GeoJSON to latitude/longitude format
+      const coordinates = newLocation.coordinates || [];
+      user.passportMode.currentLocation = {
+        latitude: coordinates[1] || 0,
+        longitude: coordinates[0] || 0,
+        city: newLocation.city,
+        country: newLocation.country,
+      };
       user.passportMode.lastChanged = new Date();
       user.passportMode.changeHistory = user.passportMode.changeHistory || [];
       user.passportMode.changeHistory.push({

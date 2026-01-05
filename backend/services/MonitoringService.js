@@ -39,56 +39,35 @@ class MonitoringService {
    * Note: In Sentry v8+, expressIntegration handles this automatically
    */
   getRequestHandler() {
-    // Check if Sentry.Handlers exists (older API < v8)
-    if (Sentry.Handlers && Sentry.Handlers.requestHandler) {
-      return Sentry.Handlers.requestHandler({
-        // Include request body in events (be careful with sensitive data)
-        request: ['method', 'url', 'query_string', 'headers'],
-        serverName: true,
-        user: ['id', 'email'],
-      });
-    }
-    // For Sentry v8+, expressIntegration in instrument.js handles this
+    // For Sentry v8+, expressIntegration in instrument.js handles request tracking
     // Return a no-op middleware since expressIntegration does the work
     return (req, res, next) => next();
   }
 
   /**
    * Get Sentry tracing middleware
+   * Note: In Sentry v8+, tracing is handled by expressIntegration
    */
   getTracingHandler() {
-    // Check if Sentry.Handlers exists (older API < v8)
-    if (Sentry.Handlers && Sentry.Handlers.tracingHandler) {
-      return Sentry.Handlers.tracingHandler();
-    }
     // For Sentry v8+, tracing is handled by expressIntegration
     return (req, res, next) => next();
   }
 
   /**
    * Get Sentry error handler middleware (must be first error handler)
+   * Note: In Sentry v8+, use Sentry.setupExpressErrorHandler(app) instead
    */
   getErrorHandler() {
-    // Check if Sentry.Handlers exists (older API < v8)
-    if (Sentry.Handlers && Sentry.Handlers.errorHandler) {
-      return Sentry.Handlers.errorHandler({
-        shouldHandleError(error) {
-          // Capture all 400+ errors except 401/403
-          if (error.status >= 500 || !error.status) {
-            return true;
-          }
-          // Also capture 400 errors that aren't validation issues
-          if (error.status === 400 && !error.isValidationError) {
-            return true;
-          }
-          return false;
-        },
-      });
-    }
-    // For Sentry v8+, use setupExpressErrorHandler or handle manually
-    // Return an error handler that captures exceptions
+    // For Sentry v8+, return an error handler that captures exceptions
+    // For full integration, use Sentry.setupExpressErrorHandler(app) in server.js
     return (err, req, res, next) => {
-      if (this.initialized) {
+      // Only capture 500+ errors or errors without status
+      const shouldCapture =
+        err.status >= 500 ||
+        !err.status ||
+        (err.status === 400 && !err.isValidationError);
+
+      if (this.initialized && shouldCapture) {
         Sentry.captureException(err);
       }
       next(err);
@@ -124,12 +103,16 @@ class MonitoringService {
 
   /**
    * Capture a message manually
+   * @param {string} message - The message to capture
+   * @param {'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug'} level - Severity level
+   * @param {object} context - Additional context
    */
   captureMessage(message, level = 'info', context = {}) {
     if (!this.initialized) return;
 
     Sentry.withScope((scope) => {
-      scope.setLevel(level);
+      // Cast to SeverityLevel type
+      scope.setLevel(/** @type {import('@sentry/node').SeverityLevel} */ (level));
       if (context.tags) {
         Object.entries(context.tags).forEach(([key, value]) => {
           scope.setTag(key, value);
@@ -164,11 +147,31 @@ class MonitoringService {
   }
 
   /**
-   * Start a transaction for performance monitoring
+   * Start a span for performance monitoring (Sentry v8+ API)
+   * @param {string} name - The name of the span
+   * @param {string} op - The operation type
+   * @param {(span: import('@sentry/node').Span) => any} callback - Function to execute within the span
+   * @returns {any} Result of the callback
+   */
+  startSpan(name, op = 'function', callback) {
+    if (!this.initialized) {
+      return callback ? callback(/** @type {any} */ (null)) : null;
+    }
+    return Sentry.startSpan({ name, op }, (span) => callback(span));
+  }
+
+  /**
+   * @deprecated Use startSpan instead. This is kept for backward compatibility.
    */
   startTransaction(name, op = 'function') {
-    if (!this.initialized) return null;
-    return Sentry.startTransaction({ name, op });
+    console.warn('startTransaction is deprecated in Sentry v8+. Use startSpan instead.');
+    // Return a mock transaction object for backward compatibility
+    return {
+      name,
+      op,
+      finish: () => {},
+      setStatus: () => {},
+    };
   }
 
   /**
@@ -200,7 +203,8 @@ class DatadogService {
     }
 
     try {
-      // Initialize tracer with site configuration
+      // Initialize tracer
+      // Note: DD_SITE should be set via environment variable for regional endpoints
       this.tracer = require('dd-trace').init({
         service: 'dating-app-api',
         env: process.env.DD_ENV || process.env.NODE_ENV || 'development',
@@ -209,8 +213,6 @@ class DatadogService {
         runtimeMetrics: true,
         profiling: true,
         appsec: true,
-        // Use DD_SITE for EU or other regional endpoints
-        site: process.env.DD_SITE || 'datadoghq.com',
       });
 
       // Initialize StatsD for custom metrics

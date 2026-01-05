@@ -17,7 +17,7 @@ const PaymentTransaction = require('../models/PaymentTransaction');
 // Initialize Stripe with secret key (only if configured)
 let stripe = null;
 if (paymentConfig.stripe.secretKey) {
-  stripe = new Stripe(paymentConfig.stripe.secretKey, {
+  stripe = new /** @type {any} */ (Stripe)(paymentConfig.stripe.secretKey, {
     apiVersion: '2023-10-16',
   });
 } else {
@@ -502,6 +502,7 @@ class StripeService {
 
     if (session.mode === 'subscription') {
       // Update local subscription record
+      // @ts-ignore
       await Subscription.upgradeToPremium(userId, planType, {
         method: 'stripe',
         paymentId: session.subscription,
@@ -510,6 +511,7 @@ class StripeService {
     }
 
     // Log transaction
+    // @ts-ignore
     await PaymentTransaction.create({
       userId,
       provider: 'stripe',
@@ -528,6 +530,7 @@ class StripeService {
   static async handleCheckoutExpired(session, event) {
     const userId = session.metadata.userId;
 
+    // @ts-ignore
     await PaymentTransaction.create({
       userId,
       provider: 'stripe',
@@ -553,6 +556,7 @@ class StripeService {
     const userId = subscription.metadata.userId;
 
     if (subscription.status === 'active') {
+      // @ts-ignore
       const localSub = await Subscription.findOne({ userId });
       if (localSub) {
         localSub.status = 'active';
@@ -563,6 +567,7 @@ class StripeService {
       }
     } else if (subscription.status === 'past_due') {
       // Handle payment failure
+      // @ts-ignore
       const localSub = await Subscription.findOne({ userId });
       if (localSub) {
         localSub.status = 'past_due';
@@ -577,6 +582,7 @@ class StripeService {
   static async handleSubscriptionDeleted(subscription, event) {
     const userId = subscription.metadata.userId;
 
+    // @ts-ignore
     const localSub = await Subscription.findOne({ userId });
     if (localSub) {
       localSub.status = 'cancelled';
@@ -614,6 +620,7 @@ class StripeService {
     const user = await User.findOne({ stripeCustomerId: customerId });
 
     if (user) {
+      // @ts-ignore
       await PaymentTransaction.create({
         userId: user._id,
         provider: 'stripe',
@@ -637,6 +644,7 @@ class StripeService {
 
     if (user) {
       // Update subscription status
+      // @ts-ignore
       const subscription = await Subscription.findOne({ userId: user._id });
       if (subscription) {
         subscription.status = 'past_due';
@@ -644,6 +652,7 @@ class StripeService {
       }
 
       // Log failed transaction
+      // @ts-ignore
       await PaymentTransaction.create({
         userId: user._id,
         provider: 'stripe',
@@ -701,6 +710,7 @@ class StripeService {
     }
 
     // Log transaction
+    // @ts-ignore
     await PaymentTransaction.create({
       userId,
       provider: 'stripe',
@@ -720,6 +730,7 @@ class StripeService {
     const { userId, productType, productId } = paymentIntent.metadata;
 
     if (userId) {
+      // @ts-ignore
       await PaymentTransaction.create({
         userId,
         provider: 'stripe',
@@ -738,6 +749,7 @@ class StripeService {
    * Handle charge refund
    */
   static async handleChargeRefunded(charge, event) {
+    // @ts-ignore
     await PaymentTransaction.findOneAndUpdate(
       { providerTransactionId: charge.payment_intent },
       {

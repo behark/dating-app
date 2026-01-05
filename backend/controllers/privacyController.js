@@ -63,23 +63,31 @@ exports.exportUserData = async (req, res) => {
       })),
       swipes: swipes.map((swipe) => ({
         id: swipe._id,
-        direction: swipe.swiper.toString() === userId.toString() ? 'given' : 'received',
+        direction: swipe.swiperId?.toString() === userId.toString() ? 'given' : 'received',
         action: swipe.action,
         createdAt: swipe.createdAt,
       })),
       reports: {
-        filed: reports.filter((r) => r.reporter?.toString() === userId.toString()),
-        received: reports.filter((r) => r.reported?.toString() === userId.toString()).length, // Only count, not details
+        filed: reports.filter((r) => r.reporterId?.toString() === userId.toString()),
+        received: reports.filter((r) => {
+          // Check if report has reportedUserId property
+          const reportedId = r.reportedUserId;
+          return reportedId?.toString() === userId.toString();
+        }).length, // Only count, not details
       },
       blocks: {
-        blocked: blocks.filter((b) => b.blocker?.toString() === userId.toString()).length,
-        blockedBy: blocks.filter((b) => b.blocked?.toString() === userId.toString()).length,
+        blocked: blocks.filter((b) => b.blockerId?.toString() === userId.toString()).length,
+        blockedBy: blocks.filter((b) => {
+          // Check if block has blockedUserId property
+          const blockedId = b.blockedUserId;
+          return blockedId?.toString() === userId.toString();
+        }).length,
       },
       activities: activities,
       metadata: {
         accountCreated: userData?.createdAt,
         lastActive: userData?.lastActive,
-        totalLogins: activities?.filter((a) => a.type === 'login')?.length || 0,
+        totalLogins: activities?.filter((a) => a && typeof a === 'object' && 'type' in a && a.type === 'login')?.length || 0,
       },
     };
 

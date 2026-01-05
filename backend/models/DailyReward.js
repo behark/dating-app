@@ -64,7 +64,7 @@ dailyRewardSchema.index({ isClaimed: 1, expiresAt: 1 });
 dailyRewardSchema.index({ rewardDate: 1 }, { expireAfterSeconds: 2592000 }); // Auto-delete after 30 days
 
 dailyRewardSchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
+  this.updatedAt = new Date();
   next();
 });
 
@@ -74,6 +74,7 @@ dailyRewardSchema.pre('save', function (next) {
  */
 
 /** @type {DailyRewardModel} */
+// @ts-ignore
 const DailyRewardModel = mongoose.model('DailyReward', dailyRewardSchema);
 
 module.exports = DailyRewardModel;

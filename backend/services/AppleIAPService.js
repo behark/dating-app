@@ -7,7 +7,9 @@
  * - Server-to-server notifications (App Store Server Notifications v2)
  */
 
-const axios = require('axios');
+const axiosModule = require('axios');
+/** @type {import('axios').AxiosStatic} */
+const axios = axiosModule.default || axiosModule;
 const jwt = require('jsonwebtoken');
 const paymentConfig = require('../config/payment');
 const Subscription = require('../models/Subscription');
@@ -311,7 +313,9 @@ class AppleIAPService {
           await subscription.save();
         }
 
-        restored.subscription = validation.subscription;
+        /** @type {any} */
+        const restoredObj = restored;
+        restoredObj.subscription = validation.subscription;
       }
 
       return {
@@ -345,7 +349,12 @@ class AppleIAPService {
       typ: 'JWT',
     };
 
-    return jwt.sign(payload, paymentConfig.apple.privateKey, {
+    const privateKey = paymentConfig.apple.privateKey;
+    if (!privateKey) {
+      throw new Error('Apple private key is not configured');
+    }
+
+    return jwt.sign(payload, privateKey, {
       algorithm: 'ES256',
       header,
     });
@@ -362,6 +371,7 @@ class AppleIAPService {
           ? 'api.storekit.itunes.apple.com'
           : 'api.storekit-sandbox.itunes.apple.com';
 
+      /** @type {{ data: any }} */
       const response = await axios.get(
         `https://${environment}/inApps/v1/subscriptions/${originalTransactionId}`,
         {
@@ -373,8 +383,8 @@ class AppleIAPService {
 
       return response.data;
     } catch (error) {
-      const errorData =
-        error && typeof error === 'object' && 'response' in error ? error.response?.data : error;
+      const axiosError = /** @type {any} */ (error);
+      const errorData = axiosError?.response?.data;
       console.error('Error getting subscription status:', errorData || error);
       throw error;
     }
@@ -391,6 +401,7 @@ class AppleIAPService {
           ? 'api.storekit.itunes.apple.com'
           : 'api.storekit-sandbox.itunes.apple.com';
 
+      /** @type {{ data: any }} */
       const response = await axios.get(`https://${environment}/inApps/v1/lookup/${orderId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -399,8 +410,8 @@ class AppleIAPService {
 
       return response.data;
     } catch (error) {
-      const errorData =
-        error && typeof error === 'object' && 'response' in error ? error.response?.data : error;
+      const axiosError = /** @type {any} */ (error);
+      const errorData = axiosError?.response?.data;
       console.error('Error looking up order:', errorData || error);
       throw error;
     }

@@ -1,5 +1,4 @@
 import * as ImagePicker from 'expo-image-picker';
-import { Colors } from '../constants/colors';
 import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -15,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Colors } from '../constants/colors';
 
 const FEEDBACK_TYPES = [
   { id: 'bug', label: '🐛 Bug Report', color: Colors.accent.red },

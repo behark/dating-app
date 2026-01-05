@@ -9,7 +9,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Read render.yaml
-const renderYamlPath = path.join(__dirname, 'render.yaml');
+const renderYamlPath = path.join(__dirname, RENDER_YAML);
 const renderYaml = fs.readFileSync(renderYamlPath, 'utf8');
 
 // Parse render.yaml to extract env vars
@@ -18,13 +18,18 @@ const envVarRegex = /- key: (\w+)\s+value: (.+)/g;
 const generateValueRegex = /- key: (\w+)\s+generateValue: true/g;
 const syncFalseRegex = /- key: (\w+)[\s\S]*?sync: false/g;
 
+// Constants for repeated strings
+const RENDER_YAML = 'render.yaml';
+const DASH_LINE = '-'.repeat(80);
+const DASH_LINE_SHORT = '-'.repeat(50);
+
 let match;
 while ((match = envVarRegex.exec(renderYaml)) !== null) {
-  envVarsInRender[match[1]] = { value: match[2], source: 'render.yaml' };
+  envVarsInRender[match[1]] = { value: match[2], source: RENDER_YAML };
 }
 
 while ((match = generateValueRegex.exec(renderYaml)) !== null) {
-  envVarsInRender[match[1]] = { value: 'AUTO_GENERATED', source: 'render.yaml' };
+  envVarsInRender[match[1]] = { value: 'AUTO_GENERATED', source: RENDER_YAML };
 }
 
 // Read .env.example to get all possible variables
@@ -80,7 +85,7 @@ console.log();
 
 // Check what's in render.yaml
 console.log('📋 VARIABLES IN render.yaml:');
-console.log('-'.repeat(80));
+console.log(DASH_LINE);
 Object.keys(envVarsInRender).forEach((key) => {
   const config = envVarsInRender[key];
   if (config.value === 'AUTO_GENERATED') {
@@ -93,7 +98,7 @@ console.log();
 
 // Check critical variables
 console.log('🔴 CRITICAL VARIABLES (MUST BE SET):');
-console.log('-'.repeat(80));
+console.log(DASH_LINE);
 Object.keys(criticalVars).forEach((key) => {
   if (envVarsInRender[key]) {
     console.log(
@@ -107,7 +112,7 @@ console.log();
 
 // Check important variables
 console.log('🟡 IMPORTANT VARIABLES (FEATURES MAY BE DISABLED IF MISSING):');
-console.log('-'.repeat(80));
+console.log(DASH_LINE);
 Object.keys(importantVars).forEach((key) => {
   if (envVarsInRender[key]) {
     console.log(`  ✅ ${key}: SET`);
@@ -119,7 +124,7 @@ console.log();
 
 // Summary
 console.log('📊 SUMMARY:');
-console.log('-'.repeat(80));
+console.log(DASH_LINE);
 const criticalMissing = Object.keys(criticalVars).filter((k) => !envVarsInRender[k]);
 const importantMissing = Object.keys(importantVars).filter((k) => !envVarsInRender[k]);
 
@@ -134,7 +139,7 @@ console.log();
 
 if (criticalMissing.length > 0) {
   console.log('⚠️  ACTION REQUIRED:');
-  console.log('-'.repeat(80));
+  console.log(DASH_LINE);
   console.log('  The following CRITICAL variables need to be set in Render Dashboard:');
   criticalMissing.forEach((key) => {
     console.log(`    - ${key}: ${criticalVars[key]}`);
@@ -150,7 +155,7 @@ if (criticalMissing.length > 0) {
 
 if (importantMissing.length > 0) {
   console.log('💡 RECOMMENDED:');
-  console.log('-'.repeat(80));
+  console.log(DASH_LINE);
   console.log('  Consider setting these important variables for full functionality:');
   importantMissing.slice(0, 5).forEach((key) => {
     console.log(`    - ${key}: ${importantVars[key]}`);

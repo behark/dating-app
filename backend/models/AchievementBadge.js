@@ -92,7 +92,7 @@ achievementBadgeSchema.index({ userId: 1, badgeType: 1 }, { unique: true });
 achievementBadgeSchema.index({ isUnlocked: -1, unlockedAt: -1 });
 
 achievementBadgeSchema.pre('save', function (next) {
-  this.updatedAt = Date.now();
+  this.updatedAt = new Date();
   next();
 });
 
@@ -102,6 +102,7 @@ achievementBadgeSchema.pre('save', function (next) {
  */
 
 /** @type {AchievementBadgeModel} */
+// @ts-ignore
 const AchievementBadgeModel = mongoose.model('AchievementBadge', achievementBadgeSchema);
 
 module.exports = AchievementBadgeModel;

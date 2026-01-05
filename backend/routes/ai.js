@@ -29,9 +29,9 @@ router.use(authenticate);
 router.post('/icebreaker', (req, res, next) => {
   // Route to appropriate handler based on request body
   if (req.body.matchId) {
-    return generateMatchIcebreakers(req, res, next);
+    return generateMatchIcebreakers(req, res);
   }
-  return generateIcebreakers(req, res, next);
+  return generateIcebreakers(req, res);
 });
 
 // GET /api/ai/smart-photos/:userId - Get smart photo selection recommendations

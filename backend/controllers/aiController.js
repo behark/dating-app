@@ -65,7 +65,7 @@ const generateIcebreakersMock = (interests, bio) => {
 const generateIcebreakersOpenAI = async (interests, bio) => {
   let OpenAI;
   try {
-    OpenAI = require('openai');
+    OpenAI = require('openai').OpenAI;
   } catch (error) {
     console.warn('OpenAI package not installed, falling back to mock');
     return generateIcebreakersMock(interests, bio);
@@ -119,10 +119,15 @@ Return ONLY a JSON array of exactly 3 strings, no other text. Example format:
     });
 
     const response = completion.choices[0].message.content;
+    const responseString = response || '';
+
+    if (!responseString) {
+      return ['Hey! How are you?', "What's your favorite hobby?", 'Tell me about yourself!'];
+    }
 
     // Try to parse as JSON object first (if OpenAI returns wrapped JSON)
     try {
-      const parsed = JSON.parse(response);
+      const parsed = JSON.parse(responseString);
       if (parsed.icebreakers && Array.isArray(parsed.icebreakers)) {
         return parsed.icebreakers.slice(0, 3);
       }
@@ -131,7 +136,7 @@ Return ONLY a JSON array of exactly 3 strings, no other text. Example format:
       }
     } catch (e) {
       // If not JSON, try to extract array from text
-      const arrayMatch = response.match(/\[(.*?)\]/s);
+      const arrayMatch = responseString ? responseString.match(/\[(.*?)\]/s) : null;
       if (arrayMatch) {
         try {
           return JSON.parse(arrayMatch[0]).slice(0, 3);
@@ -988,7 +993,7 @@ const generateMatchIcebreakersMock = (currentUser, matchUser) => {
 const generateMatchIcebreakersOpenAI = async (currentUser, matchUser) => {
   let OpenAI;
   try {
-    OpenAI = require('openai');
+    OpenAI = require('openai').OpenAI;
   } catch (error) {
     console.warn('OpenAI package not installed, falling back to mock');
     return generateMatchIcebreakersMock(currentUser, matchUser);
@@ -1062,9 +1067,14 @@ Example format: {"icebreakers": ["First icebreaker...", "Second icebreaker...", 
     });
 
     const response = completion.choices[0].message.content;
+    const responseString = response || '';
+
+    if (!responseString) {
+      return ['Hey! How are you?', "What's your favorite hobby?", 'Tell me about yourself!'];
+    }
 
     try {
-      const parsed = JSON.parse(response);
+      const parsed = JSON.parse(responseString);
       if (parsed.icebreakers && Array.isArray(parsed.icebreakers)) {
         return parsed.icebreakers.slice(0, 3);
       }
@@ -1073,7 +1083,7 @@ Example format: {"icebreakers": ["First icebreaker...", "Second icebreaker...", 
       }
     } catch (e) {
       // Try to extract array from response if JSON parsing fails
-      const arrayMatch = response.match(/\[([\s\S]*?)\]/);
+      const arrayMatch = responseString ? responseString.match(/\[([\s\S]*?)\]/) : null;
       if (arrayMatch) {
         try {
           return JSON.parse(arrayMatch[0]).slice(0, 3);
@@ -1097,8 +1107,9 @@ Example format: {"icebreakers": ["First icebreaker...", "Second icebreaker...", 
  * This endpoint generates personalized conversation starters based on
  * both users' interests and bios for more meaningful icebreakers.
  *
- * @param {string} matchId - The user ID of the match (the other person)
- * @returns {object} - Object containing array of 3 icebreakers and match info
+ * @param {import('../types/index').AuthenticatedRequest} req - Express request object, containing matchId in the body.
+ * @param {import('express').Response} res - Express response object.
+ * @returns {Promise<any>} - A promise that resolves to an Express response.
  */
 const generateMatchIcebreakers = async (req, res) => {
   try {

@@ -3,15 +3,13 @@
  */
 import { FullConfig } from '@playwright/test';
 
-async function globalTeardown(config: FullConfig) {
+async function globalTeardown(_config: FullConfig) {
   console.log('🧹 Starting global E2E test teardown...');
 
   try {
     // Clean up test data
     // await fetch('http://localhost:3001/api/test/cleanup');
-    
     // Reset any global state
-    
   } catch (error) {
     console.error('Error in global teardown:', error);
   }

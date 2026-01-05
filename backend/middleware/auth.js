@@ -65,9 +65,12 @@ exports.optionalAuth = async (req, res, next) => {
 
     if (token && process.env.JWT_SECRET) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await User.findById(decoded.userId);
-      if (user) {
-        req.user = user;
+      const userId = typeof decoded === 'string' ? decoded : (decoded && typeof decoded === 'object' ? decoded.userId : null);
+      if (userId) {
+        const user = await User.findById(userId);
+        if (user) {
+          req.user = user;
+        }
       }
     }
   } catch (error) {
@@ -106,7 +109,7 @@ exports.authenticateToken = exports.authenticate;
  * @param {boolean} options.allowAdmin - Allow admins to bypass the check (default: true)
  * @param {string} options.paramName - The name of the URL param containing user ID (default: 'userId')
  */
-exports.authorizeOwner = (options = {}) => {
+exports.authorizeOwner = (options = { allowAdmin: false, paramName: 'userId' }) => {
   const { allowAdmin = true, paramName = 'userId' } = options;
 
   return (req, res, next) => {

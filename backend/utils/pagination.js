@@ -113,10 +113,11 @@ const buildCursorQuery = (cursor, sortDirection = -1) => {
  * // Returns: { page, limit, cursor, skip, sortBy, sortOrder }
  */
 const parsePaginationParams = (req, defaults = {}) => {
+  const defaultCursor = defaults && typeof defaults === 'object' && 'cursor' in defaults ? defaults.cursor : undefined;
   const {
     page = defaults.page || 1,
     limit = defaults.limit || 20,
-    cursor = defaults.cursor,
+    cursor = defaultCursor,
     sortBy = defaults.sortBy || 'createdAt',
     sortOrder = defaults.sortOrder || 'desc',
   } = req.query;
@@ -180,7 +181,7 @@ const createPaginatedResponse = (items, total, pagination) => {
 /**
  * Cursor-based pagination helper - optimized for infinite scroll
  * Uses cursor-based pagination for efficient deep pagination
- * @param {mongoose.Model} model - Mongoose model to query
+ * @param {any} model - Mongoose model to query
  * @param {Object} query - Base MongoDB query object
  * @param {Object} [options={}] - Pagination options
  * @param {string} [options.cursor] - Cursor for next page
@@ -247,7 +248,7 @@ const cursorPaginate = async (model, query, options = {}) => {
 
 /**
  * Aggregate pagination helper for complex queries
- * @param {mongoose.Model} model - Mongoose model to query
+ * @param {any} model - Mongoose model to query
  * @param {Array} pipeline - MongoDB aggregation pipeline
  * @param {Object} [options={}] - Pagination options
  * @param {number} [options.page=1] - Page number
