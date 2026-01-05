@@ -1,16 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Colors } from '../constants/colors';
+import ConsentBanner from '../components/ConsentBanner';
 import { createLazyScreen, usePreloadScreens } from '../components/LazyScreen';
+import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
-import { UserBehaviorAnalytics } from '../services/UserBehaviorAnalytics';
-import ConsentBanner from '../components/ConsentBanner';
 import PrivacyService from '../services/PrivacyService';
+import { UserBehaviorAnalytics } from '../services/UserBehaviorAnalytics';
 
 // Core screens - loaded immediately for fast initial render
 import HomeScreen from '../screens/HomeScreen';
@@ -164,6 +164,35 @@ const AddEmergencyContactScreen = createLazyScreen(
   {
     loadingMessage: 'Loading...',
     displayName: 'AddEmergencyContactScreen',
+  }
+);
+
+// Additional screens for discovery features
+const TopPicksScreen = createLazyScreen(() => import('../screens/TopPicksScreen'), {
+  loadingMessage: 'Loading top picks...',
+  displayName: 'TopPicksScreen',
+});
+
+const ExploreScreen = createLazyScreen(() => import('../screens/ExploreScreen'), {
+  loadingMessage: 'Loading explore...',
+  displayName: 'ExploreScreen',
+});
+
+const SuperLikeScreen = createLazyScreen(() => import('../screens/SuperLikeScreen'), {
+  loadingMessage: 'Loading...',
+  displayName: 'SuperLikeScreen',
+});
+
+const ProfileViewsScreen = createLazyScreen(() => import('../screens/ProfileViewsScreen'), {
+  loadingMessage: 'Loading profile views...',
+  displayName: 'ProfileViewsScreen',
+});
+
+const RegisterScreen = createLazyScreen(
+  () => import('../screens/RegisterScreen').then(module => ({ default: module.RegisterScreen })),
+  {
+    loadingMessage: 'Loading...',
+    displayName: 'RegisterScreen',
   }
 );
 
@@ -559,6 +588,38 @@ const AppNavigator = () => {
                 presentation: 'card',
               }}
             />
+            <Stack.Screen
+              name="TopPicks"
+              component={TopPicksScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="Explore"
+              component={ExploreScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="SuperLike"
+              component={SuperLikeScreen}
+              options={{
+                headerShown: false,
+                presentation: 'modal',
+              }}
+            />
+            <Stack.Screen
+              name="ProfileViews"
+              component={ProfileViewsScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
           </>
         ) : (
           <>
@@ -568,6 +629,14 @@ const AppNavigator = () => {
               component={LoginScreen}
               options={{
                 presentation: 'modal',
+              }}
+            />
+            <Stack.Screen
+              name="Register"
+              component={RegisterScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
               }}
             />
             <Stack.Screen

@@ -398,6 +398,20 @@ const ProfileScreen = () => {
 
             <TouchableOpacity
               style={styles.secondaryButton}
+              onPress={() => navigation.navigate('ProfileViews')}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name="eye"
+                size={20}
+                color={Colors.accent.teal}
+                style={{ marginRight: 8 }}
+              />
+              <Text style={styles.secondaryButtonText}>Who Viewed Me</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.secondaryButton}
               onPress={() => navigation.navigate('SafetyTips')}
               activeOpacity={0.8}
             >
