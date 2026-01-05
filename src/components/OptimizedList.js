@@ -4,7 +4,7 @@
  */
 
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
-import { Colors } from '../../constants/colors';
+import { Colors } from '../constants/colors';
 import {
   ActivityIndicator,
   Dimensions,

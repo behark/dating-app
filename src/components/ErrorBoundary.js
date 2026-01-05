@@ -4,7 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { AnalyticsService } from '../services/AnalyticsService';
-import { Colors } from '../../constants/colors';
+import { Colors } from '../constants/colors';
 import logger from '../utils/logger';
 
 class ErrorBoundary extends React.Component {
