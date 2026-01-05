@@ -60,8 +60,15 @@ router.post('/date-plan', authenticateToken, safetyAdvancedController.shareDateP
 // Get active date plans
 router.get('/date-plans/active', authenticateToken, safetyAdvancedController.getActiveDatePlans);
 
+// Get date plans shared with user
+router.get('/date-plans/shared', authenticateToken, safetyAdvancedController.getSharedDatePlans);
+
+// Update date plan status
+router.put('/date-plan/:datePlanId', authenticateToken, safetyAdvancedController.updateDatePlan);
+
 // Check-in Features
 router.post('/checkin/start', authenticateToken, safetyAdvancedController.startCheckIn);
+router.get('/checkin/active', authenticateToken, safetyAdvancedController.getActiveCheckIns);
 router.post(
   '/checkin/:checkInId/complete',
   authenticateToken,
@@ -85,6 +92,11 @@ router.get(
   authenticateToken,
   safetyAdvancedController.getBackgroundCheckStatus
 );
+router.put(
+  '/background-check/:backgroundCheckId',
+  authenticateToken,
+  safetyAdvancedController.updateBackgroundCheck
+);
 
 // Emergency Contacts
 router.post('/emergency-contact', authenticateToken, safetyAdvancedController.addEmergencyContact);
@@ -100,6 +112,13 @@ router.post(
   '/photo-verification/advanced',
   authenticateToken,
   safetyAdvancedController.submitAdvancedPhotoVerification
+);
+
+// Get photo verification status
+router.get(
+  '/photo-verification/status',
+  authenticateToken,
+  safetyAdvancedController.getPhotoVerificationStatus
 );
 
 module.exports = router;

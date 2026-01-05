@@ -1,6 +1,5 @@
 import { Swipe } from '../models/Swipe';
 import logger from '../utils/logger';
-import { NotificationService } from './NotificationService';
 import api from './api';
 
 /**

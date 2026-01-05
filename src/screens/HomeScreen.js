@@ -3,21 +3,21 @@ import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
-  Dimensions,
-  InteractionManager,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    InteractionManager,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { UI_MESSAGES } from '../constants/constants';
-import { Colors } from '../constants/colors';
 import SkeletonCard from '../components/Card/SkeletonCard';
 import SwipeCard from '../components/Card/SwipeCard';
 import MicroAnimations from '../components/Common/MicroAnimations';
+import { Colors } from '../constants/colors';
+import { UI_MESSAGES } from '../constants/constants';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { getUserRepository } from '../repositories';

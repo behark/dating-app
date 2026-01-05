@@ -132,10 +132,14 @@ export class SafetyService {
 
   static async getPhotoVerificationStatus() {
     try {
-      // TODO: Add backend endpoint GET /api/safety/photo-verification/status
-      // For now, return not_submitted since we can't query without backend endpoint
-      logger.warn('getPhotoVerificationStatus: Backend endpoint not available');
-      return { verified: false, status: 'not_submitted' };
+      const response = await api.get('/safety/photo-verification/status');
+      
+      if (!response.success) {
+        logger.error('Error getting verification status', new Error(response.message));
+        return { verified: false, status: 'error' };
+      }
+      
+      return response.data || { verified: false, status: 'not_submitted' };
     } catch (error) {
       logger.error('Error getting verification status', error);
       return { verified: false, status: 'error' };
@@ -426,13 +430,17 @@ export class SafetyService {
 
   /**
    * Get date plans shared with user
-   * Note: Backend doesn't have this endpoint yet - would need to be added
    */
   static async getSharedDatePlans() {
     try {
-      // TODO: Add backend endpoint GET /api/safety/date-plans/shared
-      logger.warn('getSharedDatePlans: Backend endpoint not available, returning empty array');
-      return [];
+      const response = await api.get('/safety/date-plans/shared');
+      
+      if (!response.success) {
+        logger.error('Error getting shared date plans', new Error(response.message));
+        return [];
+      }
+      
+      return response.data || [];
     } catch (error) {
       logger.error('Error getting shared date plans', error);
       return [];
@@ -441,13 +449,18 @@ export class SafetyService {
 
   /**
    * Update date plan status
-   * Note: Backend doesn't have this endpoint yet - would need to be added
    */
   static async updateDatePlanStatus(datePlanId, status) {
     try {
-      // TODO: Add backend endpoint PUT /api/safety/date-plan/:datePlanId
-      logger.warn('updateDatePlanStatus: Backend endpoint not available');
-      return { success: false, error: 'Backend endpoint not implemented' };
+      const response = await api.put(`/safety/date-plan/${datePlanId}`, { status });
+      
+      if (!response.success) {
+        logger.error('Error updating date plan', new Error(response.message), { datePlanId, status });
+        return { success: false, error: response.message || 'Failed to update date plan' };
+      }
+      
+      logger.info('Date plan updated', { datePlanId, status });
+      return { success: true, data: response.data };
     } catch (error) {
       logger.error('Error updating date plan', error, { datePlanId, status });
       return { success: false, error: error.message };
@@ -503,13 +516,17 @@ export class SafetyService {
 
   /**
    * Get active check-ins for user
-   * Note: Backend doesn't have this endpoint yet - would need to be added
    */
   static async getActiveCheckIns() {
     try {
-      // TODO: Add backend endpoint GET /api/safety/checkin/active
-      logger.warn('getActiveCheckIns: Backend endpoint not available, returning empty array');
-      return [];
+      const response = await api.get('/safety/checkin/active');
+      
+      if (!response.success) {
+        logger.error('Error getting active check-ins', new Error(response.message));
+        return [];
+      }
+      
+      return response.data || [];
     } catch (error) {
       logger.error('Error getting check-ins', error);
       return [];
@@ -678,14 +695,22 @@ export class SafetyService {
 
   /**
    * Update background check with external service results
-   * Note: This is typically an admin/internal operation, backend may not expose this endpoint
+   * Note: This is typically an admin/internal operation
    */
   static async updateBackgroundCheckResults(backgroundCheckId, results = {}) {
     try {
-      // TODO: Add backend endpoint PUT /api/safety/background-check/:backgroundCheckId
-      // This is typically an admin operation, may not be exposed to frontend
-      logger.warn('updateBackgroundCheckResults: Backend endpoint not available for frontend');
-      return { success: false, error: 'This operation is not available from the frontend' };
+      const response = await api.put(`/safety/background-check/${backgroundCheckId}`, {
+        results,
+        status: results.status || 'in_progress',
+      });
+      
+      if (!response.success) {
+        logger.error('Error updating background check', new Error(response.message), { backgroundCheckId });
+        return { success: false, error: response.message || 'Failed to update background check' };
+      }
+      
+      logger.info('Background check updated', { backgroundCheckId });
+      return { success: true, data: response.data };
     } catch (error) {
       logger.error('Error updating background check', error, { backgroundCheckId });
       return { success: false, error: error.message };
