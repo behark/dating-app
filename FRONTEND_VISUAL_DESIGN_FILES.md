@@ -5,9 +5,11 @@ This document lists all files related to the visual design and UI of the dating 
 ---
 
 ## 📱 **SCREENS** (32 files)
+
 All user-facing screens that define the app's visual layout:
 
 ### Authentication & Onboarding
+
 - `src/screens/LoginScreen.js` - Login interface
 - `src/screens/RegisterScreen.js` - Registration interface
 - `src/screens/ForgotPasswordScreen.js` - Password recovery
@@ -16,6 +18,7 @@ All user-facing screens that define the app's visual layout:
 - `src/screens/VerificationScreen.js` - General verification screen
 
 ### Main App Screens
+
 - `src/screens/HomeScreen.js` - Main home/dashboard screen
 - `src/screens/PreviewHomeScreen.js` - Preview version of home screen
 - `src/screens/ExploreScreen.js` - User discovery/exploration screen
@@ -25,6 +28,7 @@ All user-facing screens that define the app's visual layout:
 - `src/screens/EnhancedChatScreen.js` - Enhanced chat with more features
 
 ### Profile Screens
+
 - `src/screens/ProfileScreen.js` - User's own profile view
 - `src/screens/ViewProfileScreen.js` - Viewing other users' profiles
 - `src/screens/EditProfileScreen.js` - Profile editing interface
@@ -34,18 +38,21 @@ All user-facing screens that define the app's visual layout:
 - `src/screens/ProfileViewsScreen.js` - Who viewed your profile
 
 ### Premium & Features
+
 - `src/screens/PremiumScreen.js` - Premium subscription screen
 - `src/screens/SuperLikeScreen.js` - Super like interface
 - `src/screens/PreferencesScreen.js` - User preferences/settings
 - `src/screens/NotificationPreferencesScreen.js` - Notification settings
 
 ### Social Features
+
 - `src/screens/GroupDatesScreen.js` - Group dating features
 - `src/screens/EventsScreen.js` - Events screen
 - `src/screens/ProfileSharingScreen.js` - Share profile interface
 - `src/screens/SocialMediaConnectionScreen.js` - Social media integration
 
 ### Safety & Security
+
 - `src/screens/SafetyTipsScreen.js` - Safety tips and guidelines
 - `src/screens/SafetyAdvancedScreen.js` - Advanced safety settings
 - `src/screens/ReportUserScreen.js` - User reporting interface
@@ -55,10 +62,12 @@ All user-facing screens that define the app's visual layout:
 ## 🎨 **COMPONENTS** (UI Building Blocks)
 
 ### Card Components
+
 - `src/components/Card/SwipeCard.js` - Main swipeable card component
 - `src/components/Card/SkeletonCard.js` - Loading skeleton for cards
 
 ### Chat Components
+
 - `src/components/Chat/AnimatedTypingIndicator.js` - Typing animation
 - `src/components/Chat/ChatThemes.js` - Chat theme customization
 - `src/components/Chat/GifPickerModal.js` - GIF picker modal
@@ -67,12 +76,14 @@ All user-facing screens that define the app's visual layout:
 - `src/components/Chat/StickerPickerModal.js` - Sticker picker modal
 
 ### Profile Components
+
 - `src/components/Profile/InteractivePhotoGallery.js` - Interactive photo gallery
 - `src/components/Profile/ProfileCompletionProgress.js` - Profile completion indicator
 - `src/components/Profile/ProfileVideoIntroduction.js` - Video introduction player
 - `src/components/Profile/VerificationBadge.js` - Verification badge display
 
 ### Gamification Components
+
 - `src/components/Gamification/AchievementBadgeAnimated.js` - Animated achievement badges
 - `src/components/Gamification/BadgeShowcase.js` - Badge showcase display
 - `src/components/Gamification/DailyChallenges.js` - Daily challenges UI
@@ -81,19 +92,23 @@ All user-facing screens that define the app's visual layout:
 - `src/components/Gamification/StreakCard.js` - Streak counter display
 
 ### Common/Shared Components
+
 - `src/components/Common/ErrorNotification.js` - Error message display
 - `src/components/Common/MicroAnimations.js` - Small animations and transitions
 - `src/components/Common/ProgressiveImage.js` - Progressive image loading
 
 ### Form Components
+
 - `src/components/Slider/RangeSlider.js` - Range slider input
 - `src/components/Slider/SingleSlider.js` - Single value slider
 
 ### Layout Components
+
 - `src/components/Layout/ResponsiveContainer.js` - Responsive layout wrapper
 - `src/components/Layout/index.js` - Layout utilities
 
 ### Specialized Components
+
 - `src/components/AI/AIFeatureComponents.js` - AI feature UI components
 - `src/components/Safety/SafetyAdvancedComponents.js` - Safety feature components
 - `src/components/VisualEnhancements/index.js` - Visual enhancement utilities
@@ -111,10 +126,12 @@ All user-facing screens that define the app's visual layout:
 ## 🎨 **THEME & STYLING**
 
 ### Theme Configuration
+
 - `src/context/ThemeContext.js` - Theme context provider (light/dark mode)
 - `src/constants/colors.js` - Color palette and theme colors
 
 ### App Configuration
+
 - `app.config.js` - Expo app configuration (icons, splash screens, themes)
 - `App.js` - Main app entry point with theme providers
 
@@ -123,6 +140,7 @@ All user-facing screens that define the app's visual layout:
 ## 🖼️ **ASSETS** (Images & Icons)
 
 ### App Icons
+
 - `assets/icon.png` - Main app icon
 - `assets/adaptive-icon.png` - Android adaptive icon
 - `assets/favicon.png` - Web favicon
@@ -139,17 +157,23 @@ All user-facing screens that define the app's visual layout:
 ## 📐 **STYLING PATTERNS**
 
 ### Inline Styles
+
 Most components use React Native's `StyleSheet.create()` for styling. Look for:
+
 - `const styles = StyleSheet.create({...})` in component files
 - Style props passed to components: `style={styles.container}`
 
 ### Theme Usage
+
 Components access theme via:
+
 - `useTheme()` hook from `ThemeContext`
 - `theme.colors`, `theme.interactive`, etc.
 
 ### Color Constants
+
 Colors are defined in:
+
 - `src/constants/colors.js` - Centralized color definitions
 
 ---
@@ -157,17 +181,21 @@ Colors are defined in:
 ## 🔍 **HOW TO FIND STYLING IN FILES**
 
 ### Search Patterns:
+
 1. **StyleSheet usage:**
+
    ```bash
    grep -r "StyleSheet.create" src/
    ```
 
 2. **Style references:**
+
    ```bash
    grep -r "styles\." src/
    ```
 
 3. **Theme usage:**
+
    ```bash
    grep -r "useTheme\|theme\." src/
    ```
@@ -233,4 +261,4 @@ src/
 
 ---
 
-*Last updated: 2026-01-05*
+_Last updated: 2026-01-05_

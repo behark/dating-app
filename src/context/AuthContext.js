@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { API_URL } from '../config/api';
+import { ERROR_MESSAGES } from '../constants/constants';
 import api from '../services/api';
 import { LocationService } from '../services/LocationService';
 import { NotificationService } from '../services/NotificationService';
@@ -55,7 +56,7 @@ export const AuthProvider = ({ children }) => {
           setCurrentUser(JSON.parse(storedUser));
           setAuthToken(storedAuthToken);
           setRefreshToken(storedRefreshToken);
-          
+
           // Set tokens in api service for authenticated requests
           api.setAuthToken(storedAuthToken);
           if (storedRefreshToken) {
@@ -93,7 +94,12 @@ export const AuthProvider = ({ children }) => {
   const signup = async (email, password, name, age, gender) => {
     try {
       // Log API URL for debugging
-      logger.debug('Signup attempt', { email, name, apiUrl: API_URL, fullUrl: `${API_URL}/auth/register` });
+      logger.debug('Signup attempt', {
+        email,
+        name,
+        apiUrl: API_URL,
+        fullUrl: `${API_URL}/auth/register`,
+      });
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {
@@ -114,7 +120,10 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Network error. Please check your connection and try again.');
       }
 
-      logger.debug('Signup - Response received', { status: response.status, statusText: response.statusText });
+      logger.debug('Signup - Response received', {
+        status: response.status,
+        statusText: response.statusText,
+      });
 
       let data;
       try {
@@ -126,7 +135,7 @@ export const AuthProvider = ({ children }) => {
         data = JSON.parse(responseText);
       } catch (jsonError) {
         logger.error('Signup - JSON parse error', jsonError, { email });
-        throw new Error('Invalid response from server. Please try again.');
+        throw new Error(ERROR_MESSAGES.INVALID_SERVER_RESPONSE);
       }
 
       if (!response.ok) {
@@ -136,7 +145,7 @@ export const AuthProvider = ({ children }) => {
 
       // Validate response structure
       if (!data || !data.data) {
-        throw new Error('Invalid response from server. Please try again.');
+        throw new Error(ERROR_MESSAGES.INVALID_SERVER_RESPONSE);
       }
 
       // Handle both old format (flat) and new format (nested tokens)
@@ -155,7 +164,11 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       logger.error('Signup - Error caught', error, { email, message: error.message });
       // Re-throw with better error message if it's not already a user-friendly error
-      if (error.message && !error.message.includes('Network error') && !error.message.includes('Invalid')) {
+      if (
+        error.message &&
+        !error.message.includes('Network error') &&
+        !error.message.includes('Invalid')
+      ) {
         throw error;
       }
       throw new Error(error.message || 'Registration failed. Please try again.');
@@ -180,7 +193,10 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Network error. Please check your connection and try again.');
       }
 
-      logger.debug('Login - Response received', { status: response.status, statusText: response.statusText });
+      logger.debug('Login - Response received', {
+        status: response.status,
+        statusText: response.statusText,
+      });
 
       let data;
       try {
@@ -192,7 +208,7 @@ export const AuthProvider = ({ children }) => {
         data = JSON.parse(responseText);
       } catch (jsonError) {
         logger.error('Login - JSON parse error', jsonError, { email });
-        throw new Error('Invalid response from server. Please try again.');
+        throw new Error(ERROR_MESSAGES.INVALID_SERVER_RESPONSE);
       }
 
       if (!response.ok) {
@@ -202,7 +218,7 @@ export const AuthProvider = ({ children }) => {
 
       // Validate response structure
       if (!data || !data.data) {
-        throw new Error('Invalid response from server. Please try again.');
+        throw new Error(ERROR_MESSAGES.INVALID_SERVER_RESPONSE);
       }
 
       // Handle both old format (flat) and new format (nested tokens)
@@ -221,7 +237,11 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       logger.error('Login - Error caught', error, { email, message: error.message });
       // Re-throw with better error message if it's not already a user-friendly error
-      if (error.message && !error.message.includes('Network error') && !error.message.includes('Invalid')) {
+      if (
+        error.message &&
+        !error.message.includes('Network error') &&
+        !error.message.includes('Invalid')
+      ) {
         throw error;
       }
       throw new Error(error.message || 'Login failed. Please try again.');
@@ -233,10 +253,10 @@ export const AuthProvider = ({ children }) => {
       setCurrentUser(null);
       setAuthToken(null);
       setRefreshToken(null);
-      
+
       // Clear token from api service
       api.clearAuthToken();
-      
+
       await AsyncStorage.removeItem('currentUser');
       await AsyncStorage.removeItem('authToken');
       await AsyncStorage.removeItem('refreshToken');

@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc } from 'firebase/firestore';
@@ -139,7 +140,7 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
 
       {photo.isPrimary && (
         <View style={styles.primaryBadge}>
-          <Ionicons name="star" size={12} color="#FFD700" />
+          <Ionicons name="star" size={12} color={Colors.accent.gold} />
           <Text style={styles.primaryText}>PRIMARY</Text>
         </View>
       )}
@@ -148,7 +149,7 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
         <View style={styles.photoActions}>
           {!photo.isPrimary && (
             <TouchableOpacity style={styles.actionButton} onPress={() => setAsPrimary(photo)}>
-              <Ionicons name="star-outline" size={20} color="#fff" />
+              <Ionicons name="star-outline" size={20} color={Colors.background.white} />
             </TouchableOpacity>
           )}
 
@@ -156,7 +157,7 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
             style={[styles.actionButton, styles.deleteButton]}
             onPress={() => deletePhoto(photo)}
           >
-            <Ionicons name="trash" size={20} color="#fff" />
+            <Ionicons name="trash" size={20} color={Colors.background.white} />
           </TouchableOpacity>
         </View>
       </View>
@@ -169,8 +170,8 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.emptyCard}>
-        <Ionicons name="images-outline" size={80} color="#fff" />
+      <LinearGradient colors={Colors.gradient.primary} style={styles.emptyCard}>
+        <Ionicons name="images-outline" size={80} color={Colors.background.white} />
         <Text style={styles.emptyTitle}>No photos yet</Text>
         <Text style={styles.emptyText}>
           Add photos to make your profile stand out!{'\n'}
@@ -182,9 +183,9 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
 
   if (loading) {
     return (
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="images" size={60} color="#fff" />
+          <Ionicons name="images" size={60} color={Colors.background.white} />
           <Text style={styles.loadingText}>Loading photos...</Text>
         </View>
       </LinearGradient>
@@ -192,10 +193,10 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
   }
 
   return (
-    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+    <LinearGradient colors={Colors.gradient.light} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color={Colors.background.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Photo Gallery</Text>
         <View style={styles.headerRightSection}>
@@ -208,7 +209,12 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
               })
             }
           >
-            <Ionicons name="sparkles" size={18} color="#FFD700" style={{ marginRight: 4 }} />
+            <Ionicons
+              name="sparkles"
+              size={18}
+              color={Colors.accent.gold}
+              style={{ marginRight: 4 }}
+            />
             <Text style={styles.analyzeButtonText}>Analyze</Text>
           </TouchableOpacity>
           <Text style={styles.photoCount}>{photos.length}/6</Text>
@@ -227,13 +233,17 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
               disabled={uploading || photos.length >= 6}
             >
               <LinearGradient
-                colors={uploading || photos.length >= 6 ? ['#ccc', '#bbb'] : ['#667eea', '#764ba2']}
+                colors={
+                  uploading || photos.length >= 6
+                    ? Colors.gradient.disabled
+                    : Colors.gradient.primary
+                }
                 style={styles.uploadButtonGradient}
               >
                 {uploading ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={Colors.background.white} />
                 ) : (
-                  <Ionicons name="add" size={30} color="#fff" />
+                  <Ionicons name="add" size={30} color={Colors.background.white} />
                 )}
                 <Text style={styles.uploadButtonText}>
                   {uploading ? 'Uploading...' : 'Add Photo'}
@@ -279,7 +289,7 @@ const styles = StyleSheet.create({
     padding: 15,
     paddingTop: 50,
     paddingBottom: 15,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -293,11 +303,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
   },
   photoCount: {
     fontSize: 14,
-    color: '#fff',
+    color: Colors.background.white,
     opacity: 0.8,
   },
   loadingContainer: {
@@ -308,7 +318,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 20,
     fontSize: 18,
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '600',
   },
   scrollView: {
@@ -324,7 +334,7 @@ const styles = StyleSheet.create({
   uploadButton: {
     borderRadius: 15,
     overflow: 'hidden',
-    shadowColor: '#667eea',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -339,13 +349,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   uploadButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 18,
     fontWeight: '700',
     marginTop: 10,
   },
   uploadButtonSubtext: {
-    color: '#fff',
+    color: Colors.background.white,
     opacity: 0.8,
     fontSize: 14,
     marginTop: 5,
@@ -361,8 +371,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 15,
     overflow: 'hidden',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
+    backgroundColor: Colors.background.white,
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -406,7 +416,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   primaryText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 10,
     fontWeight: '800',
     marginLeft: 4,
@@ -414,7 +424,7 @@ const styles = StyleSheet.create({
   photoDate: {
     padding: 10,
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
   },
   emptyContainer: {
@@ -427,7 +437,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     padding: 40,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -436,22 +446,22 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#fff',
+    color: Colors.background.white,
     marginTop: 20,
     marginBottom: 15,
     textAlign: 'center',
   },
   emptyText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: Colors.text.white90,
     textAlign: 'center',
     lineHeight: 24,
   },
   tipsSection: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 15,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -460,7 +470,7 @@ const styles = StyleSheet.create({
   tipsTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 15,
     textAlign: 'center',
   },
@@ -469,7 +479,7 @@ const styles = StyleSheet.create({
   },
   tip: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     lineHeight: 20,
   },
   headerRightSection: {
@@ -488,7 +498,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   analyzeButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 12,
     fontWeight: '600',
   },

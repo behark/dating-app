@@ -35,28 +35,190 @@ const LEVELS = [
 
 // Achievement definitions
 const ACHIEVEMENTS = {
-  FIRST_MATCH: { id: 'first_match', name: 'First Spark', description: 'Get your first match', icon: '💫', xpReward: 50, rarity: 'common', category: 'matching', target: 1 },
-  TEN_MATCHES: { id: 'ten_matches', name: 'Popular', description: 'Get 10 matches', icon: '🌟', xpReward: 100, rarity: 'uncommon', category: 'matching', target: 10 },
-  HUNDRED_MATCHES: { id: 'hundred_matches', name: 'Magnetic', description: 'Get 100 matches', icon: '🧲', xpReward: 500, rarity: 'rare', category: 'matching', target: 100 },
-  FIRST_MESSAGE: { id: 'first_message', name: 'Ice Breaker', description: 'Send your first message', icon: '💬', xpReward: 25, rarity: 'common', category: 'conversation', target: 1 },
-  CONVERSATION_STARTER: { id: 'conversation_starter', name: 'Conversation Starter', description: 'Start 10 conversations', icon: '🎯', xpReward: 75, rarity: 'uncommon', category: 'conversation', target: 10 },
-  SEVEN_DAY_STREAK: { id: 'seven_day_streak', name: 'Weekly Warrior', description: 'Maintain a 7-day streak', icon: '🔥', xpReward: 100, rarity: 'uncommon', category: 'engagement', target: 7 },
-  THIRTY_DAY_STREAK: { id: 'thirty_day_streak', name: 'Dedication', description: 'Maintain a 30-day streak', icon: '💎', xpReward: 300, rarity: 'rare', category: 'engagement', target: 30 },
-  PROFILE_COMPLETE: { id: 'profile_complete', name: 'Perfect Profile', description: 'Complete your profile 100%', icon: '✅', xpReward: 100, rarity: 'uncommon', category: 'profile', target: 100 },
-  VERIFIED: { id: 'verified', name: 'Verified', description: 'Get photo verified', icon: '✓', xpReward: 50, rarity: 'common', category: 'profile', target: 1 },
-  SUPER_LIKER: { id: 'super_liker', name: 'Super Liker', description: 'Send 10 Super Likes', icon: '⭐', xpReward: 75, rarity: 'uncommon', category: 'interaction', target: 10 },
-  SOCIAL_BUTTERFLY: { id: 'social_butterfly', name: 'Social Butterfly', description: 'Have 5 active conversations', icon: '🦋', xpReward: 100, rarity: 'uncommon', category: 'conversation', target: 5 },
-  FIRST_DATE: { id: 'first_date', name: 'First Date', description: 'Schedule your first date', icon: '🌹', xpReward: 150, rarity: 'rare', category: 'dating', target: 1 },
+  FIRST_MATCH: {
+    id: 'first_match',
+    name: 'First Spark',
+    description: 'Get your first match',
+    icon: '💫',
+    xpReward: 50,
+    rarity: 'common',
+    category: 'matching',
+    target: 1,
+  },
+  TEN_MATCHES: {
+    id: 'ten_matches',
+    name: 'Popular',
+    description: 'Get 10 matches',
+    icon: '🌟',
+    xpReward: 100,
+    rarity: 'uncommon',
+    category: 'matching',
+    target: 10,
+  },
+  HUNDRED_MATCHES: {
+    id: 'hundred_matches',
+    name: 'Magnetic',
+    description: 'Get 100 matches',
+    icon: '🧲',
+    xpReward: 500,
+    rarity: 'rare',
+    category: 'matching',
+    target: 100,
+  },
+  FIRST_MESSAGE: {
+    id: 'first_message',
+    name: 'Ice Breaker',
+    description: 'Send your first message',
+    icon: '💬',
+    xpReward: 25,
+    rarity: 'common',
+    category: 'conversation',
+    target: 1,
+  },
+  CONVERSATION_STARTER: {
+    id: 'conversation_starter',
+    name: 'Conversation Starter',
+    description: 'Start 10 conversations',
+    icon: '🎯',
+    xpReward: 75,
+    rarity: 'uncommon',
+    category: 'conversation',
+    target: 10,
+  },
+  SEVEN_DAY_STREAK: {
+    id: 'seven_day_streak',
+    name: 'Weekly Warrior',
+    description: 'Maintain a 7-day streak',
+    icon: '🔥',
+    xpReward: 100,
+    rarity: 'uncommon',
+    category: 'engagement',
+    target: 7,
+  },
+  THIRTY_DAY_STREAK: {
+    id: 'thirty_day_streak',
+    name: 'Dedication',
+    description: 'Maintain a 30-day streak',
+    icon: '💎',
+    xpReward: 300,
+    rarity: 'rare',
+    category: 'engagement',
+    target: 30,
+  },
+  PROFILE_COMPLETE: {
+    id: 'profile_complete',
+    name: 'Perfect Profile',
+    description: 'Complete your profile 100%',
+    icon: '✅',
+    xpReward: 100,
+    rarity: 'uncommon',
+    category: 'profile',
+    target: 100,
+  },
+  VERIFIED: {
+    id: 'verified',
+    name: 'Verified',
+    description: 'Get photo verified',
+    icon: '✓',
+    xpReward: 50,
+    rarity: 'common',
+    category: 'profile',
+    target: 1,
+  },
+  SUPER_LIKER: {
+    id: 'super_liker',
+    name: 'Super Liker',
+    description: 'Send 10 Super Likes',
+    icon: '⭐',
+    xpReward: 75,
+    rarity: 'uncommon',
+    category: 'interaction',
+    target: 10,
+  },
+  SOCIAL_BUTTERFLY: {
+    id: 'social_butterfly',
+    name: 'Social Butterfly',
+    description: 'Have 5 active conversations',
+    icon: '🦋',
+    xpReward: 100,
+    rarity: 'uncommon',
+    category: 'conversation',
+    target: 5,
+  },
+  FIRST_DATE: {
+    id: 'first_date',
+    name: 'First Date',
+    description: 'Schedule your first date',
+    icon: '🌹',
+    xpReward: 150,
+    rarity: 'rare',
+    category: 'dating',
+    target: 1,
+  },
 };
 
 // Daily challenge templates
 const CHALLENGE_TEMPLATES = [
-  { id: 'send_messages', type: 'messages', title: 'Chat Champion', description: 'Send messages to matches', icon: '💬', targetCount: 5, xpReward: 30, difficulty: 'easy' },
-  { id: 'swipe_right', type: 'swipes', title: 'Spread the Love', description: 'Like profiles', icon: '❤️', targetCount: 20, xpReward: 25, difficulty: 'easy' },
-  { id: 'update_profile', type: 'profile', title: 'Fresh Look', description: 'Update your profile', icon: '✨', targetCount: 1, xpReward: 20, difficulty: 'easy' },
-  { id: 'super_like', type: 'super_like', title: 'Super Star', description: 'Send a Super Like', icon: '⭐', targetCount: 1, xpReward: 35, difficulty: 'medium' },
-  { id: 'start_conversations', type: 'conversation_start', title: 'Ice Breaker', description: 'Start new conversations', icon: '🎯', targetCount: 3, xpReward: 40, difficulty: 'medium' },
-  { id: 'view_profiles', type: 'profile_views', title: 'Explorer', description: 'View profiles', icon: '👀', targetCount: 30, xpReward: 20, difficulty: 'easy' },
+  {
+    id: 'send_messages',
+    type: 'messages',
+    title: 'Chat Champion',
+    description: 'Send messages to matches',
+    icon: '💬',
+    targetCount: 5,
+    xpReward: 30,
+    difficulty: 'easy',
+  },
+  {
+    id: 'swipe_right',
+    type: 'swipes',
+    title: 'Spread the Love',
+    description: 'Like profiles',
+    icon: '❤️',
+    targetCount: 20,
+    xpReward: 25,
+    difficulty: 'easy',
+  },
+  {
+    id: 'update_profile',
+    type: 'profile',
+    title: 'Fresh Look',
+    description: 'Update your profile',
+    icon: '✨',
+    targetCount: 1,
+    xpReward: 20,
+    difficulty: 'easy',
+  },
+  {
+    id: 'super_like',
+    type: 'super_like',
+    title: 'Super Star',
+    description: 'Send a Super Like',
+    icon: '⭐',
+    targetCount: 1,
+    xpReward: 35,
+    difficulty: 'medium',
+  },
+  {
+    id: 'start_conversations',
+    type: 'conversation_start',
+    title: 'Ice Breaker',
+    description: 'Start new conversations',
+    icon: '🎯',
+    targetCount: 3,
+    xpReward: 40,
+    difficulty: 'medium',
+  },
+  {
+    id: 'view_profiles',
+    type: 'profile_views',
+    title: 'Explorer',
+    description: 'View profiles',
+    icon: '👀',
+    targetCount: 30,
+    xpReward: 20,
+    difficulty: 'easy',
+  },
 ];
 
 class GamificationService {
@@ -528,7 +690,8 @@ class GamificationService {
 
       const currentXP = user.gamification?.xp || 0;
       const level = this.calculateLevel(currentXP);
-      const levelData = LEVELS.find(l => l.level === level) || (LEVELS.length > 0 ? LEVELS[0] : null);
+      const levelData =
+        LEVELS.find((l) => l.level === level) || (LEVELS.length > 0 ? LEVELS[0] : null);
       if (!levelData) {
         return null;
       }
@@ -591,7 +754,7 @@ class GamificationService {
         leveledUp,
         previousLevel,
         currentLevel,
-        newLevel: leveledUp ? LEVELS.find(l => l.level === currentLevel) : null,
+        newLevel: leveledUp ? LEVELS.find((l) => l.level === currentLevel) : null,
       };
     } catch (error) {
       console.error('Error adding XP:', error);
@@ -646,7 +809,7 @@ class GamificationService {
       // Generate new challenges if needed
       if (!lastChallengeDate || new Date(lastChallengeDate).toDateString() !== todayStr) {
         const newChallenges = this.generateDailyChallenges(todayStr);
-        
+
         user.gamification = user.gamification || {};
         user.gamification.dailyChallenges = newChallenges;
         user.gamification.lastChallengeDate = today;
@@ -667,7 +830,7 @@ class GamificationService {
    */
   static generateDailyChallenges(dateStr) {
     const seed = dateStr.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    
+
     const shuffled = [...CHALLENGE_TEMPLATES].sort((a, b) => {
       return ((seed * a.id.charCodeAt(0)) % 100) - ((seed * b.id.charCodeAt(0)) % 100);
     });
@@ -693,7 +856,7 @@ class GamificationService {
       if (!user) throw new Error('User not found');
 
       const challenges = user.gamification?.dailyChallenges || [];
-      const challengeIndex = challenges.findIndex(c => c.challengeId === challengeId);
+      const challengeIndex = challenges.findIndex((c) => c.challengeId === challengeId);
 
       if (challengeIndex === -1) {
         return { success: false, message: 'Challenge not found' };
@@ -758,7 +921,7 @@ class GamificationService {
       if (!user) throw new Error('User not found');
 
       const challenges = user.gamification?.dailyChallenges || [];
-      const challenge = challenges.find(c => c.challengeId === challengeId);
+      const challenge = challenges.find((c) => c.challengeId === challengeId);
 
       if (!challenge) throw new Error('Challenge not found');
       if (!challenge.completed) throw new Error('Challenge not completed');
@@ -790,12 +953,14 @@ class GamificationService {
       if (!user) return { available: false, bonusXP: 50 };
 
       const challenges = user.gamification?.dailyChallenges || [];
-      const allCompleted = challenges.length > 0 && challenges.every(c => c.completed && c.claimed);
+      const allCompleted =
+        challenges.length > 0 && challenges.every((c) => c.completed && c.claimed);
       const bonusClaimed = user.gamification?.dailyBonusClaimed;
       const lastBonusDate = user.gamification?.lastBonusDate;
       const today = new Date().toDateString();
 
-      const available = allCompleted && (!bonusClaimed || new Date(lastBonusDate).toDateString() !== today);
+      const available =
+        allCompleted && (!bonusClaimed || new Date(lastBonusDate).toDateString() !== today);
 
       return { available, bonusXP: 50 };
     } catch (error) {
@@ -845,13 +1010,13 @@ class GamificationService {
       const badges = await AchievementBadge.find({ userId, isUnlocked: true });
       const allAchievements = Object.values(ACHIEVEMENTS);
 
-      const unlocked = badges.map(b => b.badgeType);
+      const unlocked = badges.map((b) => b.badgeType);
       const progress = {};
 
       // Calculate progress for each achievement
       for (const achievement of allAchievements) {
         /** @type {any} */
-        const badge = badges.find(b => b.badgeType === achievement.id);
+        const badge = badges.find((b) => b.badgeType === achievement.id);
         progress[achievement.id] = {
           current: badge?.progressCurrent || 0,
           target: achievement.target,
@@ -912,14 +1077,15 @@ class GamificationService {
    */
   static async unlockAchievement(userId, achievementId) {
     try {
-      const achievement = ACHIEVEMENTS[achievementId.toUpperCase()] || 
-        Object.values(ACHIEVEMENTS).find(a => a.id === achievementId);
+      const achievement =
+        ACHIEVEMENTS[achievementId.toUpperCase()] ||
+        Object.values(ACHIEVEMENTS).find((a) => a.id === achievementId);
 
       if (!achievement) throw new Error('Achievement not found');
 
       // Check if already unlocked
       let badge = await AchievementBadge.findOne({ userId, badgeType: achievement.id });
-      
+
       if (badge && badge.isUnlocked) {
         return { success: true, newlyUnlocked: false, achievement };
       }
@@ -963,7 +1129,7 @@ class GamificationService {
     try {
       /** @type {any} */
       const badge = await AchievementBadge.findOne({ userId, badgeType: achievementId });
-      const achievement = Object.values(ACHIEVEMENTS).find(a => a.id === achievementId);
+      const achievement = Object.values(ACHIEVEMENTS).find((a) => a.id === achievementId);
 
       if (!achievement) {
         return { current: 0, target: 1, percentage: 0 };
@@ -989,7 +1155,7 @@ class GamificationService {
         .sort({ unlockedAt: -1 })
         .limit(limit);
 
-      return badges.map(b => ({
+      return badges.map((b) => ({
         id: b.badgeType,
         name: b.badgeName,
         description: b.badgeDescription,

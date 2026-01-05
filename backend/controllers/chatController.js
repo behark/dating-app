@@ -1,6 +1,16 @@
 const Message = require('../models/Message');
 const Swipe = require('../models/Swipe');
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
+const { ERROR_MESSAGES } = require('../constants/messages');
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 const { encryptMessage, decryptMessage, generateConversationKey } = require('../utils/encryption');
 
 // Get all messages for a specific match
@@ -27,7 +37,7 @@ const getMessages = async (req, res) => {
       }).lean();
 
       if (!match) {
-        return sendForbidden(res, 'Access denied to this conversation');
+        return sendForbidden(res, ERROR_MESSAGES.ACCESS_DENIED_CONVERSATION);
       }
     }
 
@@ -224,7 +234,7 @@ const markAsRead = async (req, res) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return sendUnauthorized(res, 'Authentication required');
+      return sendUnauthorized(res, ERROR_MESSAGES.AUTH_REQUIRED);
     }
 
     // Validate matchId
@@ -243,7 +253,7 @@ const markAsRead = async (req, res) => {
     }).lean();
 
     if (!match) {
-      return sendForbidden(res, 'Access denied to this conversation');
+      return sendForbidden(res, ERROR_MESSAGES.ACCESS_DENIED_CONVERSATION);
     }
 
     // Mark messages as read
@@ -270,7 +280,7 @@ const getUnreadCount = async (req, res) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return sendUnauthorized(res, 'Authentication required');
+      return sendUnauthorized(res, ERROR_MESSAGES.AUTH_REQUIRED);
     }
 
     const unreadCount = await Message.getUnreadCount(userId);

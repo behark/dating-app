@@ -13,9 +13,11 @@ The Datadog Agent installation command you saw is for **infrastructure monitorin
 ## ✅ What's Already Working
 
 ### Application APM (No Agent Needed)
+
 Your application-level monitoring is already configured:
+
 - ✅ API endpoint tracking
-- ✅ Database query monitoring  
+- ✅ Database query monitoring
 - ✅ Custom metrics
 - ✅ Error tracking
 - ✅ Performance traces
@@ -29,12 +31,14 @@ Your application-level monitoring is already configured:
 ### Option 1: Application APM Only (Recommended) ✅
 
 **What it does:**
+
 - Tracks your application performance
 - Monitors API endpoints
 - Tracks database queries
 - Custom business metrics
 
 **Setup:**
+
 1. Add environment variables to Render Dashboard (see below)
 2. Restart your Render service
 3. Check Datadog → APM → Services
@@ -44,6 +48,7 @@ Your application-level monitoring is already configured:
 ### Option 2: Infrastructure Monitoring (Not Available on Render)
 
 **What it does:**
+
 - Server CPU, memory, disk metrics
 - Host-level monitoring
 - System metrics
@@ -74,6 +79,7 @@ DD_AGENT_HOST=localhost
 ### Step 2: Restart Your Service
 
 After adding the variables:
+
 1. Go to **Render Dashboard** → Your Service
 2. Click **"Manual Deploy"** → **"Clear build cache & deploy"**
 3. Or just restart the service
@@ -81,6 +87,7 @@ After adding the variables:
 ### Step 3: Verify It's Working
 
 1. **Check Render Logs:**
+
    ```
    ✅ Datadog APM initialized
    ```
@@ -95,12 +102,14 @@ After adding the variables:
 ## 📊 What You'll See in Datadog
 
 ### Application APM (Working Now)
+
 - **Services**: `dating-app-api`
 - **Traces**: API request traces
 - **Metrics**: Custom metrics from your code
 - **Errors**: Application errors
 
 ### Infrastructure Agent (Not Available)
+
 - **Host Metrics**: CPU, memory, disk
 - **System Metrics**: Network, processes
 
@@ -119,16 +128,19 @@ After adding the variables:
 ### The Command You Saw
 
 The command:
+
 ```bash
 DD_API_KEY=... bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
 ```
 
 **This is for:**
+
 - Installing on a Linux server you control
 - Infrastructure/host monitoring
 - Not needed for application APM
 
 **For Render:**
+
 - Application APM works without it ✅
 - Infrastructure monitoring not available (use Render's built-in metrics)
 
@@ -148,11 +160,13 @@ DD_API_KEY=... bash -c "$(curl -L https://install.datadoghq.com/scripts/install_
 ## 🎯 Summary
 
 ### ✅ Application APM
+
 - **Status**: Ready to work
 - **Needs**: Environment variables in Render
 - **No agent needed** - sends directly to Datadog
 
 ### ⚠️ Infrastructure Agent
+
 - **Status**: Not available on Render
 - **Reason**: Render is a managed platform
 - **Alternative**: Use Render's built-in monitoring

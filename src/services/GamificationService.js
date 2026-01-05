@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from './api';
+import { Colors } from '../constants/colors';
 import logger from '../utils/logger';
+import api from './api';
 
 // XP amounts for different actions
 export const XP_ACTIONS = {
@@ -19,16 +20,65 @@ export const XP_ACTIONS = {
 
 // Level definitions
 export const LEVELS = [
-  { level: 1, name: 'Newcomer', minXP: 0, maxXP: 100, icon: '🌱', color: '#78909C' },
-  { level: 2, name: 'Explorer', minXP: 100, maxXP: 300, icon: '🧭', color: '#4CAF50' },
-  { level: 3, name: 'Connector', minXP: 300, maxXP: 600, icon: '🤝', color: '#2196F3' },
-  { level: 4, name: 'Social Butterfly', minXP: 600, maxXP: 1000, icon: '🦋', color: '#9C27B0' },
-  { level: 5, name: 'Charmer', minXP: 1000, maxXP: 1500, icon: '✨', color: '#FF9800' },
-  { level: 6, name: 'Heartbreaker', minXP: 1500, maxXP: 2200, icon: '💔', color: '#E91E63' },
-  { level: 7, name: 'Love Expert', minXP: 2200, maxXP: 3000, icon: '💝', color: '#F44336' },
-  { level: 8, name: 'Matchmaker', minXP: 3000, maxXP: 4000, icon: '💘', color: '#E040FB' },
-  { level: 9, name: 'Cupid', minXP: 4000, maxXP: 5500, icon: '🏹', color: '#FF4081' },
-  { level: 10, name: 'Cupid Elite', minXP: 5500, maxXP: Infinity, icon: '👑', color: '#FFD700' },
+  {
+    level: 1,
+    name: 'Newcomer',
+    minXP: 0,
+    maxXP: 100,
+    icon: '🌱',
+    color: Colors.gamification.newcomer,
+  },
+  { level: 2, name: 'Explorer', minXP: 100, maxXP: 300, icon: '🧭', color: Colors.status.success },
+  { level: 3, name: 'Connector', minXP: 300, maxXP: 600, icon: '🤝', color: Colors.status.info },
+  {
+    level: 4,
+    name: 'Social Butterfly',
+    minXP: 600,
+    maxXP: 1000,
+    icon: '🦋',
+    color: Colors.gamification.socialButterfly,
+  },
+  { level: 5, name: 'Charmer', minXP: 1000, maxXP: 1500, icon: '✨', color: Colors.status.warning },
+  {
+    level: 6,
+    name: 'Heartbreaker',
+    minXP: 1500,
+    maxXP: 2200,
+    icon: '💔',
+    color: Colors.gamification.heartbreaker,
+  },
+  {
+    level: 7,
+    name: 'Love Expert',
+    minXP: 2200,
+    maxXP: 3000,
+    icon: '💝',
+    color: Colors.status.error,
+  },
+  {
+    level: 8,
+    name: 'Matchmaker',
+    minXP: 3000,
+    maxXP: 4000,
+    icon: '💘',
+    color: Colors.gamification.matchmaker,
+  },
+  {
+    level: 9,
+    name: 'Cupid',
+    minXP: 4000,
+    maxXP: 5500,
+    icon: '🏹',
+    color: Colors.gamification.cupid,
+  },
+  {
+    level: 10,
+    name: 'Cupid Elite',
+    minXP: 5500,
+    maxXP: Infinity,
+    icon: '👑',
+    color: Colors.accent.gold,
+  },
 ];
 
 // Achievement definitions
@@ -376,20 +426,20 @@ export const GamificationService = {
         amount,
         action,
       });
-      
+
       // Check for level up
       const userData = response.data;
       const previousLevel = GamificationService.calculateLevel(userData.previousXP);
       const currentLevel = GamificationService.calculateLevel(userData.currentXP);
-      
+
       if (currentLevel > previousLevel) {
         userData.leveledUp = true;
-        const newLevelData = LEVELS.find(l => l.level === currentLevel);
+        const newLevelData = LEVELS.find((l) => l.level === currentLevel);
         if (newLevelData) {
           userData.newLevel = newLevelData;
         }
       }
-      
+
       return userData;
     } catch (error) {
       logger.error('Error adding XP', error, { userId, amount, action });
@@ -413,8 +463,8 @@ export const GamificationService = {
    * Get level details
    */
   getLevelDetails: (level) => {
-    const found = LEVELS.find(l => l.level === level);
-    return found || (LEVELS[0] || null);
+    const found = LEVELS.find((l) => l.level === level);
+    return found || LEVELS[0] || null;
   },
 
   /**
@@ -422,17 +472,17 @@ export const GamificationService = {
    */
   getXPProgress: (currentXP) => {
     const currentLevel = GamificationService.calculateLevel(currentXP);
-    const levelData = LEVELS.find(l => l.level === currentLevel);
-    const nextLevel = LEVELS.find(l => l.level === currentLevel + 1);
-    
+    const levelData = LEVELS.find((l) => l.level === currentLevel);
+    const nextLevel = LEVELS.find((l) => l.level === currentLevel + 1);
+
     if (!nextLevel || !levelData) {
       return { progress: 100, xpInLevel: 0, xpNeeded: 0, isMaxLevel: true };
     }
-    
+
     const xpInLevel = currentXP - levelData.minXP;
     const xpNeeded = nextLevel.minXP - levelData.minXP;
     const progress = (xpInLevel / xpNeeded) * 100;
-    
+
     return { progress, xpInLevel, xpNeeded, isMaxLevel: false };
   },
 
@@ -478,12 +528,12 @@ export const GamificationService = {
   generateLocalChallenges: () => {
     const today = new Date().toDateString();
     const seed = today.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-    
+
     // Shuffle and pick 3 challenges based on date seed
     const shuffled = [...CHALLENGE_TEMPLATES].sort((a, b) => {
       return ((seed * a.id.charCodeAt(0)) % 100) - ((seed * b.id.charCodeAt(0)) % 100);
     });
-    
+
     return shuffled.slice(0, 3).map((template, index) => ({
       ...template,
       challengeId: `${template.id}_${today}`,
@@ -538,13 +588,13 @@ export const GamificationService = {
         userId,
         challengeId,
       });
-      
+
       // Also add XP
-      const challenge = CHALLENGE_TEMPLATES.find(c => challengeId.startsWith(c.id));
+      const challenge = CHALLENGE_TEMPLATES.find((c) => challengeId.startsWith(c.id));
       if (challenge?.xpReward) {
         await GamificationService.addXP(userId, challenge.xpReward, 'challenge_complete');
       }
-      
+
       return response.data;
     } catch (error) {
       logger.error('Error claiming challenge reward', error, { userId, challengeId });
@@ -618,18 +668,20 @@ export const GamificationService = {
    */
   unlockAchievement: async (userId, achievementId) => {
     try {
-      const achievement = ACHIEVEMENTS[achievementId] || Object.values(ACHIEVEMENTS).find(a => a.id === achievementId);
-      
+      const achievement =
+        ACHIEVEMENTS[achievementId] ||
+        Object.values(ACHIEVEMENTS).find((a) => a.id === achievementId);
+
       const response = await api.post('/gamification/achievements/unlock', {
         userId,
         achievementId: achievement?.id || achievementId,
       });
-      
+
       // Award XP for achievement
       if (achievement?.xpReward) {
         await GamificationService.addXP(userId, achievement.xpReward, 'achievement_unlock');
       }
-      
+
       return {
         ...response.data,
         achievement: achievement || null,
@@ -645,7 +697,9 @@ export const GamificationService = {
    */
   getAchievementProgress: async (userId, achievementId) => {
     try {
-      const response = await api.get(`/gamification/achievements/${userId}/${achievementId}/progress`);
+      const response = await api.get(
+        `/gamification/achievements/${userId}/${achievementId}/progress`
+      );
       return response.data;
     } catch (error) {
       logger.error('Error getting achievement progress', error, { userId, achievementId });
@@ -671,7 +725,7 @@ export const GamificationService = {
    */
   getAchievementsByCategory: () => {
     const categories = {};
-    Object.values(ACHIEVEMENTS).forEach(achievement => {
+    Object.values(ACHIEVEMENTS).forEach((achievement) => {
       if (!categories[achievement.category]) {
         categories[achievement.category] = [];
       }
@@ -685,10 +739,10 @@ export const GamificationService = {
    */
   getRarityColor: (rarity) => {
     const colors = {
-      common: '#78909C',
-      uncommon: '#4CAF50',
-      rare: '#2196F3',
-      legendary: '#FFD700',
+      common: Colors.gamification.newcomer,
+      uncommon: Colors.status.success,
+      rare: Colors.status.info,
+      legendary: Colors.accent.gold,
     };
     return colors[rarity] || colors.common;
   },
@@ -709,7 +763,7 @@ export const GamificationService = {
         GamificationService.getSwipeStreak(userId),
         GamificationService.getUserBadges(userId),
       ]);
-      
+
       return {
         level,
         challenges,
@@ -730,16 +784,16 @@ export const GamificationService = {
     try {
       // Track for challenges
       await GamificationService.trackChallengeAction(userId, actionType, metadata.count || 1);
-      
+
       // Add XP if applicable
       const xpAmount = XP_ACTIONS[actionType.toUpperCase()];
       if (xpAmount) {
         await GamificationService.addXP(userId, xpAmount, actionType);
       }
-      
+
       // Check achievements
       await GamificationService.checkAchievements(userId, { actionType, ...metadata });
-      
+
       return { success: true };
     } catch (error) {
       logger.error('Error tracking action', error, { userId, actionType, metadata });

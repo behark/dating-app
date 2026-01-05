@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -16,76 +17,76 @@ import ProfileScreen from '../screens/ProfileScreen';
 
 // Lazy-loaded screens - deferred for better startup performance
 // These screens are loaded on-demand when user navigates to them
-const ChatScreen = createLazyScreen(
-  () => import('../screens/ChatScreen'),
-  { loadingMessage: 'Loading chat...', displayName: 'ChatScreen' }
-);
+const ChatScreen = createLazyScreen(() => import('../screens/ChatScreen'), {
+  loadingMessage: 'Loading chat...',
+  displayName: 'ChatScreen',
+});
 
-const MatchesScreen = createLazyScreen(
-  () => import('../screens/MatchesScreen'),
-  { loadingMessage: 'Loading matches...', displayName: 'MatchesScreen' }
-);
+const MatchesScreen = createLazyScreen(() => import('../screens/MatchesScreen'), {
+  loadingMessage: 'Loading matches...',
+  displayName: 'MatchesScreen',
+});
 
-const EventsScreen = createLazyScreen(
-  () => import('../screens/EventsScreen'),
-  { loadingMessage: 'Loading events...', displayName: 'EventsScreen' }
-);
+const EventsScreen = createLazyScreen(() => import('../screens/EventsScreen'), {
+  loadingMessage: 'Loading events...',
+  displayName: 'EventsScreen',
+});
 
-const GroupDatesScreen = createLazyScreen(
-  () => import('../screens/GroupDatesScreen'),
-  { loadingMessage: 'Loading social...', displayName: 'GroupDatesScreen' }
-);
+const GroupDatesScreen = createLazyScreen(() => import('../screens/GroupDatesScreen'), {
+  loadingMessage: 'Loading social...',
+  displayName: 'GroupDatesScreen',
+});
 
 const NotificationPreferencesScreen = createLazyScreen(
   () => import('../screens/NotificationPreferencesScreen'),
   { loadingMessage: 'Loading preferences...', displayName: 'NotificationPreferencesScreen' }
 );
 
-const PhotoGalleryScreen = createLazyScreen(
-  () => import('../screens/PhotoGalleryScreen'),
-  { loadingMessage: 'Loading gallery...', displayName: 'PhotoGalleryScreen' }
-);
+const PhotoGalleryScreen = createLazyScreen(() => import('../screens/PhotoGalleryScreen'), {
+  loadingMessage: 'Loading gallery...',
+  displayName: 'PhotoGalleryScreen',
+});
 
-const PreferencesScreen = createLazyScreen(
-  () => import('../screens/PreferencesScreen'),
-  { loadingMessage: 'Loading preferences...', displayName: 'PreferencesScreen' }
-);
+const PreferencesScreen = createLazyScreen(() => import('../screens/PreferencesScreen'), {
+  loadingMessage: 'Loading preferences...',
+  displayName: 'PreferencesScreen',
+});
 
 // Premium routes - code-split by feature
-const PremiumScreen = createLazyScreen(
-  () => import('../screens/PremiumScreen'),
-  { loadingMessage: 'Loading premium...', displayName: 'PremiumScreen' }
-);
+const PremiumScreen = createLazyScreen(() => import('../screens/PremiumScreen'), {
+  loadingMessage: 'Loading premium...',
+  displayName: 'PremiumScreen',
+});
 
-const ProfileSharingScreen = createLazyScreen(
-  () => import('../screens/ProfileSharingScreen'),
-  { loadingMessage: 'Loading...', displayName: 'ProfileSharingScreen' }
-);
+const ProfileSharingScreen = createLazyScreen(() => import('../screens/ProfileSharingScreen'), {
+  loadingMessage: 'Loading...',
+  displayName: 'ProfileSharingScreen',
+});
 
-const ReportUserScreen = createLazyScreen(
-  () => import('../screens/ReportUserScreen'),
-  { loadingMessage: 'Loading...', displayName: 'ReportUserScreen' }
-);
+const ReportUserScreen = createLazyScreen(() => import('../screens/ReportUserScreen'), {
+  loadingMessage: 'Loading...',
+  displayName: 'ReportUserScreen',
+});
 
-const SafetyAdvancedScreen = createLazyScreen(
-  () => import('../screens/SafetyAdvancedScreen'),
-  { loadingMessage: 'Loading safety...', displayName: 'SafetyAdvancedScreen' }
-);
+const SafetyAdvancedScreen = createLazyScreen(() => import('../screens/SafetyAdvancedScreen'), {
+  loadingMessage: 'Loading safety...',
+  displayName: 'SafetyAdvancedScreen',
+});
 
-const SafetyTipsScreen = createLazyScreen(
-  () => import('../screens/SafetyTipsScreen'),
-  { loadingMessage: 'Loading safety tips...', displayName: 'SafetyTipsScreen' }
-);
+const SafetyTipsScreen = createLazyScreen(() => import('../screens/SafetyTipsScreen'), {
+  loadingMessage: 'Loading safety tips...',
+  displayName: 'SafetyTipsScreen',
+});
 
-const VerificationScreen = createLazyScreen(
-  () => import('../screens/VerificationScreen'),
-  { loadingMessage: 'Loading verification...', displayName: 'VerificationScreen' }
-);
+const VerificationScreen = createLazyScreen(() => import('../screens/VerificationScreen'), {
+  loadingMessage: 'Loading verification...',
+  displayName: 'VerificationScreen',
+});
 
-const ViewProfileScreen = createLazyScreen(
-  () => import('../screens/ViewProfileScreen'),
-  { loadingMessage: 'Loading profile...', displayName: 'ViewProfileScreen' }
-);
+const ViewProfileScreen = createLazyScreen(() => import('../screens/ViewProfileScreen'), {
+  loadingMessage: 'Loading profile...',
+  displayName: 'ViewProfileScreen',
+});
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -102,17 +103,17 @@ const MainTabs = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#667eea',
-        tabBarInactiveTintColor: '#999',
+        tabBarActiveTintColor: Colors.primary,
+        tabBarInactiveTintColor: Colors.text.tertiary,
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: Colors.background.white,
           borderTopWidth: 1,
-          borderTopColor: '#e9ecef',
+          borderTopColor: Colors.border.gray,
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
-          shadowColor: '#000',
+          shadowColor: Colors.text.primary,
           shadowOffset: { width: 0, height: -2 },
           shadowOpacity: 0.1,
           shadowRadius: 8,

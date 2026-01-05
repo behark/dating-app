@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Colors } from '../constants/colors';
 import {
   ActivityIndicator,
   Alert,
@@ -200,7 +201,7 @@ export const PhoneVerificationScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
   },
   content: {
     flex: 1,
@@ -214,12 +215,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#999',
+    color: Colors.text.tertiary,
     textAlign: 'center',
   },
   form: {
@@ -232,24 +233,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333',
+    color: Colors.text.dark,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#333',
+    color: Colors.text.dark,
   },
   helperText: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 4,
   },
   button: {
     paddingVertical: 14,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 12,
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   skipText: {
-    color: '#999',
+    color: Colors.text.tertiary,
     textAlign: 'center',
     fontSize: 14,
     padding: 10,
@@ -276,20 +277,20 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   resendText: {
-    color: '#666',
+    color: Colors.text.secondary,
     fontSize: 14,
   },
   resendButton: {
-    color: '#FF6B6B',
+    color: Colors.accent.red,
     fontWeight: 'bold',
     fontSize: 14,
   },
   timerText: {
-    color: '#999',
+    color: Colors.text.tertiary,
     fontSize: 14,
   },
   changeNumber: {
-    color: '#FF6B6B',
+    color: Colors.accent.red,
     textAlign: 'center',
     fontSize: 14,
     fontWeight: 'bold',

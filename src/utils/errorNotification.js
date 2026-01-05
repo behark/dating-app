@@ -17,7 +17,7 @@ import logger from './logger';
  */
 export const showErrorAlert = (error, title = 'Error', options = {}) => {
   const { onDismiss, logError = true } = options;
-  
+
   if (logError) {
     logger.error(`Error alert shown: ${title}`, error);
   }
@@ -40,12 +40,12 @@ export const showErrorAlert = (error, title = 'Error', options = {}) => {
 };
 
 /**
- * Show a success alert to the user
- * @param {string} message - Success message
- * @param {string} title - Optional custom title (default: 'Success')
+ * Shared utility to show a simple alert (used by success and warning alerts)
+ * @param {string} message - Alert message
+ * @param {string} title - Alert title
  * @param {Function} onDismiss - Callback when alert is dismissed
  */
-export const showSuccessAlert = (message, title = 'Success', onDismiss) => {
+const showSimpleAlert = (message, title, onDismiss) => {
   Alert.alert(
     title,
     message,
@@ -60,23 +60,23 @@ export const showSuccessAlert = (message, title = 'Success', onDismiss) => {
 };
 
 /**
+ * Show a success alert to the user
+ * @param {string} message - Success message
+ * @param {string} title - Optional custom title (default: 'Success')
+ * @param {Function} onDismiss - Callback when alert is dismissed
+ */
+export const showSuccessAlert = (message, title = 'Success', onDismiss) => {
+  showSimpleAlert(message, title, onDismiss);
+};
+
+/**
  * Show a warning alert to the user
  * @param {string} message - Warning message
  * @param {string} title - Optional custom title (default: 'Warning')
  * @param {Function} onDismiss - Callback when alert is dismissed
  */
 export const showWarningAlert = (message, title = 'Warning', onDismiss) => {
-  Alert.alert(
-    title,
-    message,
-    [
-      {
-        text: 'OK',
-        onPress: onDismiss,
-      },
-    ],
-    { cancelable: true }
-  );
+  showSimpleAlert(message, title, onDismiss);
 };
 
 /**
@@ -126,12 +126,7 @@ export const showConfirmationAlert = (
  * @returns {string} - User-friendly error message
  */
 export const handleApiError = (error, options = {}) => {
-  const {
-    context = '',
-    showAlert = true,
-    logError = true,
-    onError,
-  } = options;
+  const { context = '', showAlert = true, logError = true, onError } = options;
 
   const errorMessage = getUserFriendlyMessage(
     typeof error === 'string' ? error : error?.message || error

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Colors } from '../constants/colors';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -77,7 +78,7 @@ const PremiumScreen = ({ navigation }) => {
   const renderFeatureItem = (icon, title, description, isPremium = false) => (
     <View style={styles.featureItem}>
       <View style={[styles.featureIcon, isPremium && styles.premiumFeatureIcon]}>
-        <Ionicons name={icon} size={24} color={isPremium ? '#FFD700' : '#667eea'} />
+        <Ionicons name={icon} size={24} color={isPremium ? Colors.accent.gold : Colors.primary} />
       </View>
       <View style={styles.featureText}>
         <Text style={[styles.featureTitle, isPremium && styles.premiumFeatureTitle]}>{title}</Text>
@@ -85,7 +86,7 @@ const PremiumScreen = ({ navigation }) => {
       </View>
       {isPremium && (
         <View style={styles.premiumBadge}>
-          <Ionicons name="diamond" size={12} color="#FFD700" />
+          <Ionicons name="diamond" size={12} color={Colors.accent.gold} />
         </View>
       )}
     </View>
@@ -110,7 +111,7 @@ const PremiumScreen = ({ navigation }) => {
       <View style={styles.planFeatures}>
         {features.map((feature, index) => (
           <View key={index} style={styles.planFeature}>
-            <Ionicons name="checkmark" size={16} color="#4ECDC4" />
+            <Ionicons name="checkmark" size={16} color={Colors.accent.teal} />
             <Text style={styles.planFeatureText}>{feature}</Text>
           </View>
         ))}
@@ -130,10 +131,10 @@ const PremiumScreen = ({ navigation }) => {
         <LinearGradient
           colors={
             processing
-              ? ['#ccc', '#bbb']
+              ? Colors.gradient.disabled
               : recommended
-                ? ['#FFD700', '#FFA500']
-                : ['#667eea', '#764ba2']
+                ? Colors.gradient.gold
+                : Colors.gradient.primary
           }
           style={styles.selectButtonGradient}
         >
@@ -153,9 +154,9 @@ const PremiumScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="diamond" size={60} color="#fff" />
+          <Ionicons name="diamond" size={60} color={Colors.background.white} />
           <Text style={styles.loadingText}>Loading premium...</Text>
         </View>
       </LinearGradient>
@@ -163,10 +164,10 @@ const PremiumScreen = ({ navigation }) => {
   }
 
   return (
-    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+    <LinearGradient colors={Colors.gradient.light} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color={Colors.background.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Premium</Text>
         <View style={{ width: 40 }} />
@@ -177,8 +178,8 @@ const PremiumScreen = ({ navigation }) => {
           {/* Current Status */}
           {premiumStatus?.isPremium ? (
             <View style={styles.statusCard}>
-              <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.statusBadge}>
-                <Ionicons name="diamond" size={24} color="#fff" />
+              <LinearGradient colors={Colors.gradient.gold} style={styles.statusBadge}>
+                <Ionicons name="diamond" size={24} color={Colors.background.white} />
                 <Text style={styles.statusText}>PREMIUM ACTIVE</Text>
               </LinearGradient>
               <Text style={styles.statusSubtext}>
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
     padding: 15,
     paddingTop: 50,
     paddingBottom: 15,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -325,7 +326,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
     textAlign: 'center',
   },
   loadingContainer: {
@@ -336,7 +337,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 20,
     fontSize: 18,
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '600',
   },
   scrollView: {
@@ -347,12 +348,12 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   statusCard: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 15,
     padding: 20,
     alignItems: 'center',
     marginBottom: 25,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -367,24 +368,24 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   statusText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 14,
     fontWeight: '800',
     marginLeft: 8,
   },
   statusSubtext: {
-    color: '#666',
+    color: Colors.text.secondary,
     fontSize: 14,
     textAlign: 'center',
   },
   freeStatusText: {
-    color: '#333',
+    color: Colors.text.dark,
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 5,
   },
   freeStatusSubtext: {
-    color: '#666',
+    color: Colors.text.secondary,
     fontSize: 14,
   },
   featuresSection: {
@@ -393,18 +394,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 20,
     textAlign: 'center',
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -416,13 +417,13 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     marginRight: 15,
   },
   premiumFeatureIcon: {
     backgroundColor: 'rgba(255, 215, 0, 0.1)',
     borderWidth: 2,
-    borderColor: '#FFD700',
+    borderColor: Colors.accent.gold,
   },
   featureText: {
     flex: 1,
@@ -430,15 +431,15 @@ const styles = StyleSheet.create({
   featureTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 4,
   },
   premiumFeatureTitle: {
-    color: '#FFD700',
+    color: Colors.accent.gold,
   },
   featureDescription: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     lineHeight: 20,
   },
   premiumBadge: {
@@ -446,7 +447,7 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#FFD700',
+    borderColor: Colors.accent.gold,
   },
   pricingSection: {
     marginBottom: 30,
@@ -455,10 +456,10 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   pricingCard: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 15,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -466,20 +467,20 @@ const styles = StyleSheet.create({
   },
   recommendedCard: {
     borderWidth: 2,
-    borderColor: '#FFD700',
+    borderColor: Colors.accent.gold,
   },
   recommendedBadge: {
     position: 'absolute',
     top: -10,
     left: '50%',
     transform: [{ translateX: -50 }],
-    backgroundColor: '#FFD700',
+    backgroundColor: Colors.accent.gold,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
   },
   recommendedText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 10,
     fontWeight: '800',
   },
@@ -490,7 +491,7 @@ const styles = StyleSheet.create({
   planTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   priceContainer: {
@@ -500,11 +501,11 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#667eea',
+    color: Colors.primary,
   },
   period: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
     marginLeft: 4,
   },
   planFeatures: {
@@ -517,21 +518,21 @@ const styles = StyleSheet.create({
   },
   planFeatureText: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     marginLeft: 8,
     flex: 1,
   },
   selectButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#667eea',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
   recommendedButton: {
-    shadowColor: '#FFD700',
+    shadowColor: Colors.accent.gold,
   },
   selectButtonGradient: {
     paddingVertical: 16,
@@ -539,16 +540,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   selectButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     fontWeight: '700',
   },
   recommendedButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
   },
   disclaimer: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: 20,

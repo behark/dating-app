@@ -92,7 +92,12 @@ exports.getUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error retrieving user',
-      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
     });
   }
 };

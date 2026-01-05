@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Colors } from '../constants/colors';
 import { Animated, Platform, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../../context/ThemeContext';
@@ -168,14 +169,19 @@ const SuccessAnimation = ({ visible, message, onComplete }) => {
           paddingHorizontal: 20,
           flexDirection: 'row',
           alignItems: 'center',
-          shadowColor: '#000',
+          shadowColor: Colors.text.primary,
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.25,
           shadowRadius: 4,
           elevation: 5,
         }}
       >
-        <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" style={{ marginRight: 12 }} />
+        <Ionicons
+          name="checkmark-circle"
+          size={24}
+          color={Colors.background.white}
+          style={{ marginRight: 12 }}
+        />
         <Animated.Text
           style={{
             color: '#FFFFFF',

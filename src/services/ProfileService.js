@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
-import logger from '../utils/logger';
-import { validateUserId, validateNotEmpty, validateNumberRange } from '../utils/validators';
+import { ERROR_MESSAGES } from '../constants/constants';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
+import logger from '../utils/logger';
+import { validateNotEmpty, validateUserId } from '../utils/validators';
 
 export class ProfileService {
   static async getAuthToken() {
@@ -17,7 +18,7 @@ export class ProfileService {
   static async getProfile(userId) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const response = await fetch(`${API_URL}/profile/${userId}`);

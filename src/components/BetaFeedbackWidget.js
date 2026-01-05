@@ -1,4 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
+import { Colors } from '../constants/colors';
 import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -16,8 +17,8 @@ import {
 } from 'react-native';
 
 const FEEDBACK_TYPES = [
-  { id: 'bug', label: '🐛 Bug Report', color: '#FF6B6B' },
-  { id: 'feature', label: '💡 Feature Request', color: '#4ECDC4' },
+  { id: 'bug', label: '🐛 Bug Report', color: Colors.accent.red },
+  { id: 'feature', label: '💡 Feature Request', color: Colors.accent.teal },
   { id: 'improvement', label: '✨ Improvement', color: '#FFE66D' },
   { id: 'general', label: '💬 General Feedback', color: '#95E1D3' },
 ];
@@ -235,7 +236,7 @@ export const BetaFeedbackWidget = ({
               <TextInput
                 style={styles.titleInput}
                 placeholder="Brief summary of your feedback"
-                placeholderTextColor="#999"
+                placeholderTextColor={Colors.text.tertiary}
                 value={title}
                 onChangeText={setTitle}
                 maxLength={100}
@@ -246,7 +247,7 @@ export const BetaFeedbackWidget = ({
               <TextInput
                 style={styles.descriptionInput}
                 placeholder="Tell us more details..."
-                placeholderTextColor="#999"
+                placeholderTextColor={Colors.text.tertiary}
                 value={description}
                 onChangeText={setDescription}
                 multiline
@@ -324,14 +325,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   feedbackPanel: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '85%',
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 40,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
@@ -346,19 +347,19 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.dark,
   },
   closeButton: {
     padding: 8,
   },
   closeButtonText: {
     fontSize: 20,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 16,
     marginBottom: 8,
   },
@@ -372,8 +373,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#f5f5f5',
+    borderColor: Colors.border.light,
+    backgroundColor: Colors.background.lighter,
   },
   typeLabel: {
     fontSize: 14,
@@ -386,7 +387,7 @@ const styles = StyleSheet.create({
   ratingButton: {
     padding: 12,
     borderRadius: 30,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background.lighter,
   },
   ratingButtonActive: {
     backgroundColor: '#FFE66D',
@@ -397,7 +398,7 @@ const styles = StyleSheet.create({
   },
   titleInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
@@ -405,7 +406,7 @@ const styles = StyleSheet.create({
   },
   descriptionInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
@@ -425,13 +426,13 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderStyle: 'dashed',
     alignItems: 'center',
   },
   screenshotButtonText: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   screenshotPreview: {
     position: 'relative',
@@ -454,11 +455,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   removeText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 14,
   },
   submitButton: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -468,14 +469,14 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 18,
     fontWeight: '600',
   },
   debugInfo: {
     textAlign: 'center',
     fontSize: 11,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 12,
   },
   successContainer: {
@@ -489,12 +490,12 @@ const styles = StyleSheet.create({
   successText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   successSubtext: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   floatingButton: {
     position: 'absolute',
@@ -503,10 +504,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

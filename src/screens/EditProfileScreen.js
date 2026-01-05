@@ -1,4 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
+import { Colors } from '../constants/colors';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -148,7 +149,7 @@ export const EditProfileScreen = ({ navigation, route }) => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#FF6B6B" />
+        <ActivityIndicator size="large" color={Colors.accent.red} />
       </View>
     );
   }
@@ -311,22 +312,22 @@ export const EditProfileScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
   },
   section: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Colors.background.light,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#333',
+    color: Colors.text.dark,
   },
   helperText: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginBottom: 12,
   },
   photosGrid: {
@@ -343,7 +344,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
   },
   photoDeleteBtn: {
     position: 'absolute',
@@ -352,7 +353,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -367,13 +368,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 2,
     borderStyle: 'dashed',
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f9f9f9',
   },
   photoAddBtnText: {
-    color: '#999',
+    color: Colors.text.tertiary,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -389,7 +390,7 @@ const styles = StyleSheet.create({
   moderationText: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#fff',
+    color: Colors.background.white,
   },
   inputGroup: {
     marginBottom: 16,
@@ -398,15 +399,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333',
+    color: Colors.text.dark,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
   },
   bioInput: {
     textAlignVertical: 'top',
@@ -414,7 +415,7 @@ const styles = StyleSheet.create({
   },
   charCount: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 4,
     textAlign: 'right',
   },
@@ -427,18 +428,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderRadius: 8,
     alignItems: 'center',
   },
   genderBtnActive: {
-    backgroundColor: '#FF6B6B',
-    borderColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
+    borderColor: Colors.accent.red,
   },
   genderBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   genderBtnTextActive: {
     color: 'white',
@@ -451,7 +452,7 @@ const styles = StyleSheet.create({
   interestInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderRadius: 8,
     padding: 10,
     fontSize: 14,
@@ -459,7 +460,7 @@ const styles = StyleSheet.create({
   addInterestBtn: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
     borderRadius: 8,
     justifyContent: 'center',
   },
@@ -476,7 +477,7 @@ const styles = StyleSheet.create({
   interestTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -484,17 +485,17 @@ const styles = StyleSheet.create({
   },
   interestText: {
     fontSize: 13,
-    color: '#333',
+    color: Colors.text.dark,
   },
   interestRemove: {
     fontSize: 18,
-    color: '#999',
+    color: Colors.text.tertiary,
     fontWeight: 'bold',
   },
   saveBtn: {
     margin: 20,
     paddingVertical: 14,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
     borderRadius: 8,
     alignItems: 'center',
   },
@@ -518,12 +519,12 @@ const styles = StyleSheet.create({
   bioSuggestButton: {
     paddingVertical: 6,
     paddingHorizontal: 12,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderRadius: 6,
   },
   bioSuggestButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#667eea',
+    color: Colors.primary,
   },
 });

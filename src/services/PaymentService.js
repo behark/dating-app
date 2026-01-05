@@ -10,9 +10,9 @@
 import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
 import { API_URL as API_BASE_URL } from '../config/api';
-import logger from '../utils/logger';
+import { ERROR_MESSAGES } from '../constants/constants';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
-import { validateNotEmpty } from '../utils/validators';
+import logger from '../utils/logger';
 
 export class PaymentService {
   // ==================== SUBSCRIPTION TIERS ====================
@@ -128,7 +128,7 @@ export class PaymentService {
         await Linking.openURL(data.data.url);
       }
 
-      return data || { success: false, error: 'No response from server' };
+      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error creating Stripe checkout:', error);
       return { success: false, error: getUserFriendlyMessage(error.message) };
@@ -157,7 +157,7 @@ export class PaymentService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error creating payment intent:', error);
       return { success: false, error: getUserFriendlyMessage(error.message) };
@@ -186,7 +186,7 @@ export class PaymentService {
         await Linking.openURL(data.data.url);
       }
 
-      return data || { success: false, error: 'No response from server' };
+      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error getting Stripe portal:', error);
       return { success: false, error: getUserFriendlyMessage(error.message) };
@@ -251,7 +251,7 @@ export class PaymentService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error activating PayPal subscription:', error);
       return { success: false, error: getUserFriendlyMessage(error.message) };
@@ -314,7 +314,7 @@ export class PaymentService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error capturing PayPal order:', error);
       return { success: false, error: getUserFriendlyMessage(error.message) };
@@ -345,7 +345,7 @@ export class PaymentService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error validating Apple receipt:', error);
       return { success: false, error: getUserFriendlyMessage(error.message) };
@@ -374,7 +374,7 @@ export class PaymentService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error restoring Apple purchases:', error);
       return { success: false, error: getUserFriendlyMessage(error.message) };
@@ -405,7 +405,7 @@ export class PaymentService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error validating Google purchase:', error);
       return { success: false, error: getUserFriendlyMessage(error.message) };
@@ -434,7 +434,7 @@ export class PaymentService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error restoring Google purchases:', error);
       return { success: false, error: getUserFriendlyMessage(error.message) };
@@ -465,7 +465,7 @@ export class PaymentService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error cancelling subscription:', error);
       return { success: false, error: getUserFriendlyMessage(error.message) };
@@ -493,7 +493,7 @@ export class PaymentService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error resuming subscription:', error);
       return { success: false, error: getUserFriendlyMessage(error.message) };
@@ -524,7 +524,7 @@ export class PaymentService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error requesting refund:', error);
       return { success: false, error: getUserFriendlyMessage(error.message) };

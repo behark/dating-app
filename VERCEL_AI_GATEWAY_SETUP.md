@@ -60,16 +60,19 @@ for await (const chunk of stream.textStream) {
 The AI Gateway supports 100+ models from various providers:
 
 ### Google
+
 - `google/gemini-3-flash`
 - `google/gemini-3-pro`
 - `google/gemini-2.0-flash-exp`
 
 ### OpenAI
+
 - `openai/gpt-4`
 - `openai/gpt-4-turbo`
 - `openai/gpt-3.5-turbo`
 
 ### Anthropic
+
 - `anthropic/claude-3-opus`
 - `anthropic/claude-3-sonnet`
 
@@ -82,6 +85,7 @@ See the full list in Vercel Dashboard → AI Gateway → Model List
 ## 💡 Example Use Cases for Dating App
 
 ### 1. Conversation Starters
+
 ```javascript
 const starters = await AIGatewayService.generateConversationStarters(
   currentUserProfile,
@@ -90,6 +94,7 @@ const starters = await AIGatewayService.generateConversationStarters(
 ```
 
 ### 2. Bio Suggestions
+
 ```javascript
 const bio = await AIGatewayService.generateBioSuggestion({
   interests: ['hiking', 'photography'],
@@ -99,14 +104,16 @@ const bio = await AIGatewayService.generateBioSuggestion({
 ```
 
 ### 3. Profile Matching Insights
+
 ```javascript
 const insights = await AIGatewayService.askQuestion(
-  `Analyze compatibility between these two profiles: ${JSON.stringify({user1, user2})}`,
+  `Analyze compatibility between these two profiles: ${JSON.stringify({ user1, user2 })}`,
   'google/gemini-3-flash'
 );
 ```
 
 ### 4. Date Ideas
+
 ```javascript
 const dateIdeas = await AIGatewayService.askQuestion(
   `Suggest 5 creative date ideas for someone who likes ${interests.join(', ')} in ${location}`,
@@ -135,7 +142,7 @@ const stream = await AIGatewayService.streamText({
 // Stream chunks in real-time
 for await (const chunk of stream.textStream) {
   // Update UI with each chunk
-  setResponse(prev => prev + chunk);
+  setResponse((prev) => prev + chunk);
 }
 ```
 
@@ -146,11 +153,11 @@ const result = await AIGatewayService.getText({
   model: 'openai/gpt-4',
   prompt: 'Your prompt here',
   config: {
-    temperature: 0.7,    // 0-1, higher = more creative
-    maxTokens: 500,      // Maximum response length
-    topP: 0.9,           // Nucleus sampling
+    temperature: 0.7, // 0-1, higher = more creative
+    maxTokens: 500, // Maximum response length
+    topP: 0.9, // Nucleus sampling
     frequencyPenalty: 0, // Reduce repetition
-    presencePenalty: 0,  // Encourage new topics
+    presencePenalty: 0, // Encourage new topics
   },
 });
 ```
@@ -160,10 +167,12 @@ const result = await AIGatewayService.getText({
 ## ⚠️ Important Notes
 
 ### Platform Support
+
 - ✅ **Web**: Fully supported
 - ❌ **iOS/Android**: Not directly supported (use API routes or backend)
 
 ### For React Native
+
 If you need AI features in native apps, you have two options:
 
 1. **Use Backend API Route** (Recommended)
@@ -176,6 +185,7 @@ If you need AI features in native apps, you have two options:
    - Less ideal for native experience
 
 ### API Key Security
+
 - ⚠️ **Never commit API keys to git**
 - ✅ Use environment variables
 - ✅ Set in Vercel Dashboard → Settings → Environment Variables
@@ -196,6 +206,7 @@ If you need AI features in native apps, you have two options:
 ## 📊 Monitoring
 
 View your AI Gateway usage in Vercel Dashboard:
+
 - **Usage**: Number of requests
 - **Spend**: Cost tracking
 - **Average TTFT**: Time to first token

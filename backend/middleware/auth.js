@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { ERROR_MESSAGES } = require('../constants/messages');
 
 // Middleware to verify JWT token
 exports.authenticate = async (req, res, next) => {
@@ -23,12 +24,12 @@ exports.authenticate = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Ensure decoded is an object with userId property
     if (typeof decoded === 'string' || !decoded.userId) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token format',
+        message: ERROR_MESSAGES.INVALID_TOKEN_FORMAT,
       });
     }
 
@@ -36,7 +37,7 @@ exports.authenticate = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'User not found',
+        message: ERROR_MESSAGES.USER_NOT_FOUND,
       });
     }
 
@@ -51,7 +52,7 @@ exports.authenticate = async (req, res, next) => {
     }
     return res.status(401).json({
       success: false,
-      message: 'Invalid token',
+      message: ERROR_MESSAGES.INVALID_TOKEN,
       error: error instanceof Error ? error.message : String(error),
     });
   }
@@ -80,7 +81,7 @@ exports.isAdmin = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({
       success: false,
-      message: 'Authentication required',
+      message: ERROR_MESSAGES.AUTH_REQUIRED,
     });
   }
 
@@ -112,7 +113,7 @@ exports.authorizeOwner = (options = {}) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required',
+        message: ERROR_MESSAGES.AUTH_REQUIRED,
       });
     }
 
@@ -136,7 +137,7 @@ exports.authorizeOwner = (options = {}) => {
       );
       return res.status(403).json({
         success: false,
-        message: 'Access denied. You can only access your own data.',
+        message: ERROR_MESSAGES.ACCESS_DENIED_OWN_DATA,
       });
     }
 
@@ -153,7 +154,7 @@ exports.authorizeMatchedUsers = async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required',
+        message: ERROR_MESSAGES.AUTH_REQUIRED,
       });
     }
 
@@ -175,7 +176,7 @@ exports.authorizeMatchedUsers = async (req, res, next) => {
     if (!isMatched && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        message: 'Access denied. You can only view profiles of your matches.',
+        message: ERROR_MESSAGES.ACCESS_DENIED_MATCHES_ONLY,
       });
     }
 

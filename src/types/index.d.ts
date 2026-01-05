@@ -466,7 +466,34 @@ export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
 
 // Export all types
 export type {
-    AgeRange, ApiConfig, ApiResponse, AppError, AuthTokens, DiscoveryOptions,
-    DiscoveryResult, Education, GoogleAuthData, Height, Location, LogLevel, LoginCredentials, Match, Message, NavigationParams, Occupation, PaymentStatus, Photo, PremiumFeatures, ProfilePrompt, ScreenProps, ServiceMethod, SignupData, SocialMedia, Subscription, SubscriptionTier, User, ValidationResult, Video
+  AgeRange,
+  ApiConfig,
+  ApiResponse,
+  AppError,
+  AuthTokens,
+  DiscoveryOptions,
+  DiscoveryResult,
+  Education,
+  GoogleAuthData,
+  Height,
+  Location,
+  LogLevel,
+  LoginCredentials,
+  Match,
+  Message,
+  NavigationParams,
+  Occupation,
+  PaymentStatus,
+  Photo,
+  PremiumFeatures,
+  ProfilePrompt,
+  ScreenProps,
+  ServiceMethod,
+  SignupData,
+  SocialMedia,
+  Subscription,
+  SubscriptionTier,
+  User,
+  ValidationResult,
+  Video,
 };
-

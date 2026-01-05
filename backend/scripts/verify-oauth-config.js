@@ -44,12 +44,12 @@ let hasErrors = false;
 
 for (const [provider, config] of Object.entries(checks)) {
   console.log(`\n${colors.blue('▶')} ${config.name}:`);
-  
+
   // Check required vars
   const missingRequired = config.required.filter(
     (v) => !process.env[v] || process.env[v] === `your-${v.toLowerCase().replace(/_/g, '-')}`
   );
-  
+
   if (missingRequired.length > 0) {
     hasErrors = true;
     console.log(`  ${colors.red('✗')} Missing required: ${missingRequired.join(', ')}`);
@@ -57,20 +57,22 @@ for (const [provider, config] of Object.entries(checks)) {
   } else {
     console.log(`  ${colors.green('✓')} All required environment variables set`);
   }
-  
+
   // Check optional vars
-  const missingOptional = config.optional.filter(
-    (v) => !process.env[v]
-  );
-  
+  const missingOptional = config.optional.filter((v) => !process.env[v]);
+
   if (missingOptional.length > 0) {
-    console.log(`  ${colors.yellow('!')} Optional (for enhanced features): ${missingOptional.join(', ')}`);
+    console.log(
+      `  ${colors.yellow('!')} Optional (for enhanced features): ${missingOptional.join(', ')}`
+    );
   }
-  
+
   // Provider-specific checks
   if (provider === 'google' && process.env.GOOGLE_CLIENT_ID) {
     if (!process.env.GOOGLE_CLIENT_ID.includes('.apps.googleusercontent.com')) {
-      console.log(`  ${colors.red('✗')} GOOGLE_CLIENT_ID should end with .apps.googleusercontent.com`);
+      console.log(
+        `  ${colors.red('✗')} GOOGLE_CLIENT_ID should end with .apps.googleusercontent.com`
+      );
       hasErrors = true;
     }
   }
@@ -105,11 +107,11 @@ console.log('='.repeat(60) + '\n');
 
 // Show common OAuth issues
 console.log('Common OAuth Handshake Issues:');
-console.log('1. Redirect URI Mismatch: Ensure your app\'s redirect URI matches');
-console.log('   exactly what\'s configured in the OAuth provider console.');
+console.log("1. Redirect URI Mismatch: Ensure your app's redirect URI matches");
+console.log("   exactly what's configured in the OAuth provider console.");
 console.log('2. Expired Client Secret: Google Client Secrets expire.');
 console.log('   Check Google Cloud Console for secret expiration dates.');
-console.log('3. Invalid Client ID: Ensure you\'re using the correct client ID');
+console.log("3. Invalid Client ID: Ensure you're using the correct client ID");
 console.log('   for your platform (Web, iOS, Android).');
 console.log('4. Missing Scopes: Ensure openid, profile, and email scopes are enabled.');
 console.log('');

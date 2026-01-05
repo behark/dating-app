@@ -87,16 +87,17 @@ class AppleIAPService {
               : null,
           }
         : null,
-      pendingRenewal: (pendingRenewalInfo.length > 0 && pendingRenewalInfo[0])
-        ? {
-            productId: pendingRenewalInfo[0].product_id,
-            autoRenewStatus: pendingRenewalInfo[0].auto_renew_status === '1',
-            expirationIntent: pendingRenewalInfo[0].expiration_intent,
-            gracePeriodExpiresDate: pendingRenewalInfo[0].grace_period_expires_date_ms
-              ? new Date(parseInt(pendingRenewalInfo[0].grace_period_expires_date_ms))
-              : null,
-          }
-        : null,
+      pendingRenewal:
+        pendingRenewalInfo.length > 0 && pendingRenewalInfo[0]
+          ? {
+              productId: pendingRenewalInfo[0].product_id,
+              autoRenewStatus: pendingRenewalInfo[0].auto_renew_status === '1',
+              expirationIntent: pendingRenewalInfo[0].expiration_intent,
+              gracePeriodExpiresDate: pendingRenewalInfo[0].grace_period_expires_date_ms
+                ? new Date(parseInt(pendingRenewalInfo[0].grace_period_expires_date_ms))
+                : null,
+            }
+          : null,
       consumables: consumables.map((item) => ({
         productId: item.product_id,
         transactionId: item.transaction_id,
@@ -372,7 +373,8 @@ class AppleIAPService {
 
       return response.data;
     } catch (error) {
-      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : error;
+      const errorData =
+        error && typeof error === 'object' && 'response' in error ? error.response?.data : error;
       console.error('Error getting subscription status:', errorData || error);
       throw error;
     }
@@ -397,7 +399,8 @@ class AppleIAPService {
 
       return response.data;
     } catch (error) {
-      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : error;
+      const errorData =
+        error && typeof error === 'object' && 'response' in error ? error.response?.data : error;
       console.error('Error looking up order:', errorData || error);
       throw error;
     }

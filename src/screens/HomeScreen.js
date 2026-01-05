@@ -1,4 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
+import { UI_MESSAGES } from '../constants/constants';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -56,7 +58,7 @@ const HomeScreen = ({ navigation }) => {
   const [locationUpdating, setLocationUpdating] = useState(false);
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
-  
+
   // RACE CONDITION FIX: Track swipe timestamps to prevent rapid double-swipes
   const swipeTimestampsRef = useRef(new Map());
   const isSwipingRef = useRef(false);
@@ -215,22 +217,22 @@ const HomeScreen = ({ navigation }) => {
       const cardId = card.id || card._id;
       const now = Date.now();
       const lastSwipeTime = swipeTimestampsRef.current.get(cardId) || 0;
-      
+
       if (now - lastSwipeTime < SWIPE_DEBOUNCE_MS) {
         logger.info('Swipe debounced - too rapid');
         return; // Ignore rapid duplicate swipe
       }
-      
+
       // Also check if any swipe is in progress
       if (isSwipingRef.current) {
         logger.info('Swipe ignored - another swipe in progress');
         return;
       }
-      
+
       // Mark this card as being swiped
       swipeTimestampsRef.current.set(cardId, now);
       isSwipingRef.current = true;
-      
+
       // Immediately update UI (non-blocking)
       startTransition(() => {
         setLastSwipedCard({ card, direction: 'right', swipeId: null });
@@ -254,7 +256,7 @@ const HomeScreen = ({ navigation }) => {
             isSwipingRef.current = false;
             setTimeout(() => {
               Alert.alert(
-                'Daily Limit Reached',
+                UI_MESSAGES.DAILY_LIMIT_REACHED,
                 `You've reached your daily swipe limit (50). Upgrade to Premium for unlimited swipes!`,
                 [
                   { text: 'Keep Going', style: 'cancel' },
@@ -267,7 +269,7 @@ const HomeScreen = ({ navigation }) => {
 
           // Use SwipeController to save the swipe and check for matches
           const result = await SwipeController.saveSwipe(userId, card.id, 'like', isPremium);
-          
+
           // Reset swiping flag
           isSwipingRef.current = false;
 
@@ -275,7 +277,7 @@ const HomeScreen = ({ navigation }) => {
             if (result.limitExceeded) {
               setTimeout(() => {
                 Alert.alert(
-                  'Daily Limit Reached',
+                  UI_MESSAGES.DAILY_LIMIT_REACHED,
                   `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
                 );
               }, 0);
@@ -335,20 +337,20 @@ const HomeScreen = ({ navigation }) => {
       const cardId = card.id || card._id;
       const now = Date.now();
       const lastSwipeTime = swipeTimestampsRef.current.get(cardId) || 0;
-      
+
       if (now - lastSwipeTime < SWIPE_DEBOUNCE_MS) {
         logger.info('Swipe debounced - too rapid');
         return;
       }
-      
+
       if (isSwipingRef.current) {
         logger.info('Swipe ignored - another swipe in progress');
         return;
       }
-      
+
       swipeTimestampsRef.current.set(cardId, now);
       isSwipingRef.current = true;
-      
+
       // Immediately update UI (non-blocking)
       startTransition(() => {
         setLastSwipedCard({ card, direction: 'left', swipeId: null });
@@ -369,7 +371,7 @@ const HomeScreen = ({ navigation }) => {
             isSwipingRef.current = false;
             setTimeout(() => {
               Alert.alert(
-                'Daily Limit Reached',
+                UI_MESSAGES.DAILY_LIMIT_REACHED,
                 `You've reached your daily swipe limit (50). Upgrade to Premium for unlimited swipes!`,
                 [
                   { text: 'Keep Going', style: 'cancel' },
@@ -382,7 +384,7 @@ const HomeScreen = ({ navigation }) => {
 
           // Use SwipeController to save the dislike
           const result = await SwipeController.saveSwipe(userId, card.id, 'dislike', isPremium);
-          
+
           // Reset swiping flag
           isSwipingRef.current = false;
 
@@ -390,7 +392,7 @@ const HomeScreen = ({ navigation }) => {
             if (result.limitExceeded) {
               setTimeout(() => {
                 Alert.alert(
-                  'Daily Limit Reached',
+                  UI_MESSAGES.DAILY_LIMIT_REACHED,
                   `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
                 );
               }, 0);
@@ -540,7 +542,7 @@ const HomeScreen = ({ navigation }) => {
 
   if (needsProfile) {
     return (
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
         <ScrollView
           contentContainerStyle={styles.emptyContainer}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -549,7 +551,7 @@ const HomeScreen = ({ navigation }) => {
             colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
             style={styles.emptyCard}
           >
-            <Ionicons name="person-add-outline" size={80} color="#fff" />
+            <Ionicons name="person-add-outline" size={80} color={Colors.background.white} />
             <Text style={styles.emptyTitle}>Complete Your Profile</Text>
             <Text style={styles.emptyText}>
               Add your name, photo, and bio to start matching with others!
@@ -559,8 +561,16 @@ const HomeScreen = ({ navigation }) => {
               onPress={() => navigation.navigate('Profile')}
               activeOpacity={0.8}
             >
-              <LinearGradient colors={['#fff', '#f0f0f0']} style={styles.actionButtonGradient}>
-                <Ionicons name="person" size={20} color="#667eea" style={{ marginRight: 8 }} />
+              <LinearGradient
+                colors={[Colors.background.white, Colors.background.light]}
+                style={styles.actionButtonGradient}
+              >
+                <Ionicons
+                  name="person"
+                  size={20}
+                  color={Colors.primary}
+                  style={{ marginRight: 8 }}
+                />
                 <Text style={styles.actionButtonText}>Go to Profile</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -587,8 +597,8 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.premiumHeader}>
         <View style={styles.headerLeftSection}>
           {isPremium ? (
-            <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.premiumBadge}>
-              <Ionicons name="diamond" size={16} color="#fff" />
+            <LinearGradient colors={Colors.gradient.gold} style={styles.premiumBadge}>
+              <Ionicons name="diamond" size={16} color={Colors.background.white} />
               <Text style={styles.premiumText}>PREMIUM</Text>
             </LinearGradient>
           ) : (
@@ -596,14 +606,14 @@ const HomeScreen = ({ navigation }) => {
               style={styles.upgradePrompt}
               onPress={() => navigation.navigate('Premium')}
             >
-              <Ionicons name="diamond-outline" size={16} color="#FFD700" />
+              <Ionicons name="diamond-outline" size={16} color={Colors.accent.gold} />
               <Text style={styles.upgradeText}>Upgrade</Text>
             </TouchableOpacity>
           )}
 
           {!isPremium && (
             <View style={styles.swipeLimitBadge}>
-              <Ionicons name="flame" size={14} color="#FF6B6B" />
+              <Ionicons name="flame" size={14} color={Colors.accent.red} />
               <Text style={styles.swipeLimitText}>{swipesRemaining}/50</Text>
             </View>
           )}
@@ -612,12 +622,12 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.headerRightSection}>
           {userLocation && (
             <View style={styles.locationBadge}>
-              <Ionicons name="location" size={14} color="#FF6B6B" />
+              <Ionicons name="location" size={14} color={Colors.accent.red} />
               <Text style={styles.locationText}>{userLocation.latitude.toFixed(2)}°</Text>
             </View>
           )}
           <View style={styles.superLikeCounter}>
-            <Ionicons name="star" size={16} color="#4ECDC4" />
+            <Ionicons name="star" size={16} color={Colors.accent.teal} />
             <Text style={styles.counterText}>
               {Math.max(0, (premiumFeatures.superLikesPerDay || 1) - superLikesUsed)} left
             </Text>
@@ -629,7 +639,7 @@ const HomeScreen = ({ navigation }) => {
       {isPremium && (
         <View style={styles.aiQuickAccessContainer}>
           <View style={styles.aiHeaderRow}>
-            <Ionicons name="sparkles" size={18} color="#667eea" style={{ marginRight: 8 }} />
+            <Ionicons name="sparkles" size={18} color={Colors.primary} style={{ marginRight: 8 }} />
             <Text style={styles.aiQuickAccessTitle}>AI Insights</Text>
           </View>
           <View style={styles.aiButtonsGrid}>
@@ -643,7 +653,7 @@ const HomeScreen = ({ navigation }) => {
               }
               activeOpacity={0.7}
             >
-              <Ionicons name="heart" size={20} color="#FF6B6B" />
+              <Ionicons name="heart" size={20} color={Colors.accent.red} />
               <Text style={styles.aiButtonLabel}>Compatibility</Text>
             </TouchableOpacity>
 
@@ -657,7 +667,7 @@ const HomeScreen = ({ navigation }) => {
               }
               activeOpacity={0.7}
             >
-              <Ionicons name="chatbubbles" size={20} color="#4ECDC4" />
+              <Ionicons name="chatbubbles" size={20} color={Colors.accent.teal} />
               <Text style={styles.aiButtonLabel}>Talk Tips</Text>
             </TouchableOpacity>
 
@@ -670,7 +680,7 @@ const HomeScreen = ({ navigation }) => {
               }
               activeOpacity={0.7}
             >
-              <Ionicons name="create" size={20} color="#FFD700" />
+              <Ionicons name="create" size={20} color={Colors.accent.gold} />
               <Text style={styles.aiButtonLabel}>Bio Ideas</Text>
             </TouchableOpacity>
 
@@ -683,7 +693,7 @@ const HomeScreen = ({ navigation }) => {
               }
               activeOpacity={0.7}
             >
-              <Ionicons name="image" size={20} color="#667eea" />
+              <Ionicons name="image" size={20} color={Colors.primary} />
               <Text style={styles.aiButtonLabel}>Photo Tips</Text>
             </TouchableOpacity>
           </View>
@@ -716,16 +726,24 @@ const HomeScreen = ({ navigation }) => {
 
         {currentIndex >= cards.length && cards.length > 0 && (
           <View style={styles.emptyContainer}>
-            <LinearGradient colors={['#667eea', '#764ba2']} style={styles.emptyCard}>
-              <Ionicons name="checkmark-circle" size={80} color="#fff" />
+            <LinearGradient colors={Colors.gradient.primary} style={styles.emptyCard}>
+              <Ionicons name="checkmark-circle" size={80} color={Colors.background.white} />
               <Text style={styles.emptyTitle}>You&apos;re all caught up!</Text>
               <Text style={styles.emptyText}>
                 You&apos;ve seen all available profiles.{'\n'}
                 Pull down to refresh and see new matches.
               </Text>
               <TouchableOpacity style={styles.actionButton} onPress={onRefresh} activeOpacity={0.8}>
-                <LinearGradient colors={['#fff', '#f0f0f0']} style={styles.actionButtonGradient}>
-                  <Ionicons name="refresh" size={20} color="#667eea" style={{ marginRight: 8 }} />
+                <LinearGradient
+                  colors={[Colors.background.white, Colors.background.light]}
+                  style={styles.actionButtonGradient}
+                >
+                  <Ionicons
+                    name="refresh"
+                    size={20}
+                    color={Colors.primary}
+                    style={{ marginRight: 8 }}
+                  />
                   <Text style={styles.actionButtonText}>Refresh</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -735,16 +753,24 @@ const HomeScreen = ({ navigation }) => {
 
         {cards.length === 0 && !loading && (
           <View style={styles.emptyContainer}>
-            <LinearGradient colors={['#667eea', '#764ba2']} style={styles.emptyCard}>
-              <Ionicons name="people-outline" size={80} color="#fff" />
+            <LinearGradient colors={Colors.gradient.primary} style={styles.emptyCard}>
+              <Ionicons name="people-outline" size={80} color={Colors.background.white} />
               <Text style={styles.emptyTitle}>No profiles yet</Text>
               <Text style={styles.emptyText}>
                 Be the first to create a profile!{'\n'}
                 Tell your friends to join too.
               </Text>
               <TouchableOpacity style={styles.actionButton} onPress={onRefresh} activeOpacity={0.8}>
-                <LinearGradient colors={['#fff', '#f0f0f0']} style={styles.actionButtonGradient}>
-                  <Ionicons name="refresh" size={20} color="#667eea" style={{ marginRight: 8 }} />
+                <LinearGradient
+                  colors={[Colors.background.white, Colors.background.light]}
+                  style={styles.actionButtonGradient}
+                >
+                  <Ionicons
+                    name="refresh"
+                    size={20}
+                    color={Colors.primary}
+                    style={{ marginRight: 8 }}
+                  />
                   <Text style={styles.actionButtonText}>Refresh</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -762,7 +788,7 @@ const HomeScreen = ({ navigation }) => {
               onPress={undoLastSwipeWithCounter}
               activeOpacity={0.8}
             >
-              <Ionicons name="arrow-undo" size={24} color="#667eea" />
+              <Ionicons name="arrow-undo" size={24} color={Colors.primary} />
             </TouchableOpacity>
           )}
 
@@ -771,8 +797,8 @@ const HomeScreen = ({ navigation }) => {
             onPress={() => handleButtonSwipe('left')}
             activeOpacity={0.8}
           >
-            <LinearGradient colors={['#FF6B6B', '#EE5A6F']} style={styles.actionButtonCircle}>
-              <Ionicons name="close" size={32} color="#fff" />
+            <LinearGradient colors={Colors.gradient.red} style={styles.actionButtonCircle}>
+              <Ionicons name="close" size={32} color={Colors.background.white} />
             </LinearGradient>
           </TouchableOpacity>
 
@@ -804,16 +830,16 @@ const HomeScreen = ({ navigation }) => {
             <LinearGradient
               colors={
                 superLikesUsed >= (premiumFeatures.superLikesPerDay || 1)
-                  ? ['#ccc', '#bbb']
-                  : ['#4ECDC4', '#44A08D']
+                  ? Colors.gradient.disabled
+                  : Colors.gradient.teal
               }
               style={styles.actionButtonCircle}
             >
-              <Ionicons name="star" size={28} color="#fff" />
+              <Ionicons name="star" size={28} color={Colors.background.white} />
             </LinearGradient>
             {superLikesUsed >= (premiumFeatures.superLikesPerDay || 1) && (
               <View style={styles.limitBadge}>
-                <Ionicons name="lock-closed" size={12} color="#fff" />
+                <Ionicons name="lock-closed" size={12} color={Colors.background.white} />
               </View>
             )}
           </TouchableOpacity>
@@ -823,8 +849,8 @@ const HomeScreen = ({ navigation }) => {
             onPress={() => handleButtonSwipe('right')}
             activeOpacity={0.8}
           >
-            <LinearGradient colors={['#667eea', '#764ba2']} style={styles.actionButtonCircle}>
-              <Ionicons name="heart" size={32} color="#fff" />
+            <LinearGradient colors={Colors.gradient.primary} style={styles.actionButtonCircle}>
+              <Ionicons name="heart" size={32} color={Colors.background.white} />
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -853,7 +879,7 @@ const getStyles = (theme) =>
       paddingHorizontal: 12,
       paddingVertical: 6,
       borderRadius: 15,
-      shadowColor: '#FFD700',
+      shadowColor: Colors.accent.gold,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.3,
       shadowRadius: 4,
@@ -894,10 +920,10 @@ const getStyles = (theme) =>
       paddingVertical: 6,
       borderRadius: 15,
       borderWidth: 1,
-      borderColor: '#FFD700',
+      borderColor: Colors.accent.gold,
     },
     upgradeText: {
-      color: '#FFD700',
+      color: Colors.accent.gold,
       fontSize: 12,
       fontWeight: '600',
       marginLeft: 4,
@@ -912,7 +938,7 @@ const getStyles = (theme) =>
       marginRight: 8,
     },
     locationText: {
-      color: '#FF6B6B',
+      color: Colors.accent.red,
       fontSize: 11,
       fontWeight: '600',
       marginLeft: 4,
@@ -931,7 +957,7 @@ const getStyles = (theme) =>
       borderRadius: 12,
     },
     counterText: {
-      color: '#4ECDC4',
+      color: Colors.accent.teal,
       fontSize: 12,
       fontWeight: '600',
       marginLeft: 4,
@@ -951,7 +977,7 @@ const getStyles = (theme) =>
     loadingText: {
       marginTop: 20,
       fontSize: 18,
-      color: '#fff',
+      color: Colors.background.white,
       fontWeight: '600',
     },
     emptyContainer: {
@@ -966,7 +992,7 @@ const getStyles = (theme) =>
       borderRadius: 30,
       padding: 40,
       alignItems: 'center',
-      shadowColor: '#000',
+      shadowColor: Colors.text.primary,
       shadowOffset: { width: 0, height: 10 },
       shadowOpacity: 0.3,
       shadowRadius: 20,
@@ -975,14 +1001,14 @@ const getStyles = (theme) =>
     emptyTitle: {
       fontSize: 28,
       fontWeight: '800',
-      color: '#fff',
+      color: Colors.background.white,
       marginTop: 20,
       marginBottom: 15,
       textAlign: 'center',
     },
     emptyText: {
       fontSize: 16,
-      color: 'rgba(255, 255, 255, 0.9)',
+      color: Colors.text.white90,
       textAlign: 'center',
       lineHeight: 24,
       marginBottom: 20,
@@ -1000,7 +1026,7 @@ const getStyles = (theme) =>
       justifyContent: 'center',
     },
     actionButtonText: {
-      color: '#667eea',
+      color: Colors.primary,
       fontSize: 16,
       fontWeight: '700',
     },
@@ -1019,10 +1045,10 @@ const getStyles = (theme) =>
       width: 50,
       height: 50,
       borderRadius: 25,
-      backgroundColor: '#fff',
+      backgroundColor: Colors.background.white,
       justifyContent: 'center',
       alignItems: 'center',
-      shadowColor: '#000',
+      shadowColor: Colors.text.primary,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.2,
       shadowRadius: 4,
@@ -1034,7 +1060,7 @@ const getStyles = (theme) =>
       height: 60,
       borderRadius: 30,
       overflow: 'hidden',
-      shadowColor: '#FF6B6B',
+      shadowColor: Colors.accent.red,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,
       shadowRadius: 8,
@@ -1045,7 +1071,7 @@ const getStyles = (theme) =>
       height: 55,
       borderRadius: 27.5,
       overflow: 'hidden',
-      shadowColor: '#4ECDC4',
+      shadowColor: Colors.accent.teal,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,
       shadowRadius: 8,
@@ -1056,7 +1082,7 @@ const getStyles = (theme) =>
       height: 70,
       borderRadius: 35,
       overflow: 'hidden',
-      shadowColor: '#667eea',
+      shadowColor: Colors.primary,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,
       shadowRadius: 8,
@@ -1075,19 +1101,19 @@ const getStyles = (theme) =>
       position: 'absolute',
       top: -5,
       right: -5,
-      backgroundColor: '#FF6B6B',
+      backgroundColor: Colors.accent.red,
       borderRadius: 10,
       width: 20,
       height: 20,
       justifyContent: 'center',
       alignItems: 'center',
       borderWidth: 2,
-      borderColor: '#fff',
+      borderColor: Colors.background.white,
     },
     aiQuickAccessContainer: {
-      backgroundColor: '#fff',
+      backgroundColor: Colors.background.white,
       borderBottomWidth: 1,
-      borderBottomColor: '#f0f0f0',
+      borderBottomColor: Colors.background.light,
       paddingHorizontal: 16,
       paddingVertical: 12,
     },
@@ -1099,7 +1125,7 @@ const getStyles = (theme) =>
     aiQuickAccessTitle: {
       fontSize: 14,
       fontWeight: '600',
-      color: '#333',
+      color: Colors.text.dark,
     },
     aiButtonsGrid: {
       flexDirection: 'row',
@@ -1111,16 +1137,16 @@ const getStyles = (theme) =>
       paddingVertical: 10,
       paddingHorizontal: 8,
       borderRadius: 10,
-      backgroundColor: '#f8f9fa',
+      backgroundColor: Colors.background.lightest,
       alignItems: 'center',
       justifyContent: 'center',
       borderWidth: 1,
-      borderColor: '#e9ecef',
+      borderColor: Colors.border.gray,
     },
     aiButtonLabel: {
       fontSize: 11,
       fontWeight: '500',
-      color: '#333',
+      color: Colors.text.dark,
       marginTop: 6,
       textAlign: 'center',
     },

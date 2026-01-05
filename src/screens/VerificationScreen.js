@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Colors } from '../constants/colors';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -180,7 +181,7 @@ const VerificationScreen = ({ navigation }) => {
           return {
             title: 'Verified Account',
             subtitle: 'Your account has been verified',
-            color: '#4ECDC4',
+            color: Colors.accent.teal,
             icon: 'checkmark-circle',
             showBadge: true,
           };
@@ -198,7 +199,7 @@ const VerificationScreen = ({ navigation }) => {
             subtitle:
               verificationStatus.rejectionReason ||
               'Please try again with better quality documents',
-            color: '#FF6B6B',
+            color: Colors.accent.red,
             icon: 'close-circle',
             showBadge: false,
           };
@@ -206,7 +207,7 @@ const VerificationScreen = ({ navigation }) => {
           return {
             title: 'Get Verified',
             subtitle: 'Verify your account to build trust',
-            color: '#667eea',
+            color: Colors.primary,
             icon: 'shield-checkmark',
             showBadge: false,
           };
@@ -218,14 +219,14 @@ const VerificationScreen = ({ navigation }) => {
     return (
       <View style={[styles.statusCard, { borderColor: statusInfo.color }]}>
         <View style={[styles.statusIcon, { backgroundColor: statusInfo.color }]}>
-          <Ionicons name={statusInfo.icon} size={30} color="#fff" />
+          <Ionicons name={statusInfo.icon} size={30} color={Colors.background.white} />
         </View>
         <View style={styles.statusContent}>
           <Text style={styles.statusTitle}>{statusInfo.title}</Text>
           <Text style={styles.statusSubtitle}>{statusInfo.subtitle}</Text>
           {statusInfo.showBadge && (
             <View style={[styles.verificationBadge, { backgroundColor: statusInfo.color }]}>
-              <Ionicons name="checkmark" size={12} color="#fff" />
+              <Ionicons name="checkmark" size={12} color={Colors.background.white} />
               <Text style={styles.badgeText}>VERIFIED</Text>
             </View>
           )}
@@ -243,13 +244,13 @@ const VerificationScreen = ({ navigation }) => {
 
       <View style={styles.uploadOptions}>
         <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
-          <Ionicons name="camera" size={24} color="#667eea" />
+          <Ionicons name="camera" size={24} color={Colors.primary} />
           <Text style={styles.uploadButtonText}>Take Selfie</Text>
           <Text style={styles.uploadButtonSubtext}>Clear photo of yourself</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.uploadButton} onPress={pickDocument}>
-          <Ionicons name="document" size={24} color="#667eea" />
+          <Ionicons name="document" size={24} color={Colors.primary} />
           <Text style={styles.uploadButtonText}>Upload ID</Text>
           <Text style={styles.uploadButtonSubtext}>Government ID or passport</Text>
         </TouchableOpacity>
@@ -264,12 +265,12 @@ const VerificationScreen = ({ navigation }) => {
                 <Ionicons
                   name={doc.type === 'photo' ? 'image' : 'document'}
                   size={20}
-                  color="#667eea"
+                  color={Colors.primary}
                 />
                 <Text style={styles.documentName}>{doc.name}</Text>
               </View>
               <TouchableOpacity onPress={() => removeDocument(index)} style={styles.removeButton}>
-                <Ionicons name="close" size={20} color="#FF6B6B" />
+                <Ionicons name="close" size={20} color={Colors.accent.red} />
               </TouchableOpacity>
             </View>
           ))}
@@ -286,11 +287,18 @@ const VerificationScreen = ({ navigation }) => {
       >
         <LinearGradient
           colors={
-            selectedDocuments.length === 0 || submitting ? ['#ccc', '#bbb'] : ['#667eea', '#764ba2']
+            selectedDocuments.length === 0 || submitting
+              ? Colors.gradient.disabled
+              : Colors.gradient.primary
           }
           style={styles.submitButtonGradient}
         >
-          <Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
+          <Ionicons
+            name="checkmark-circle"
+            size={20}
+            color={Colors.background.white}
+            style={{ marginRight: 8 }}
+          />
           <Text style={styles.submitButtonText}>
             {submitting ? 'Submitting...' : 'Submit for Verification'}
           </Text>
@@ -319,7 +327,7 @@ const VerificationScreen = ({ navigation }) => {
               </View>
             </View>
             <TouchableOpacity onPress={() => cancelRequest(request.id)} style={styles.cancelButton}>
-              <Ionicons name="close" size={20} color="#FF6B6B" />
+              <Ionicons name="close" size={20} color={Colors.accent.red} />
             </TouchableOpacity>
           </View>
         ))}
@@ -329,9 +337,9 @@ const VerificationScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="shield-checkmark" size={60} color="#fff" />
+          <Ionicons name="shield-checkmark" size={60} color={Colors.background.white} />
           <Text style={styles.loadingText}>Loading verification...</Text>
         </View>
       </LinearGradient>
@@ -339,10 +347,10 @@ const VerificationScreen = ({ navigation }) => {
   }
 
   return (
-    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+    <LinearGradient colors={Colors.gradient.light} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color={Colors.background.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Verification</Text>
         <View style={{ width: 40 }} />
@@ -369,7 +377,7 @@ const styles = StyleSheet.create({
     padding: 15,
     paddingTop: 50,
     paddingBottom: 15,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -383,7 +391,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
     textAlign: 'center',
   },
   loadingContainer: {
@@ -394,7 +402,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 20,
     fontSize: 18,
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '600',
   },
   scrollView: {
@@ -407,12 +415,12 @@ const styles = StyleSheet.create({
   statusCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
     borderWidth: 2,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -432,12 +440,12 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 5,
   },
   statusSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     lineHeight: 20,
   },
   verificationBadge: {
@@ -450,17 +458,17 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   badgeText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 10,
     fontWeight: '700',
     marginLeft: 4,
   },
   section: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -469,12 +477,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 20,
     lineHeight: 20,
   },
@@ -488,22 +496,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     marginHorizontal: 5,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#e9ecef',
+    borderColor: Colors.border.gray,
     borderStyle: 'dashed',
   },
   uploadButtonText: {
     marginTop: 8,
     fontSize: 16,
     fontWeight: '600',
-    color: '#667eea',
+    color: Colors.primary,
   },
   uploadButtonSubtext: {
     marginTop: 4,
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
   },
   selectedDocuments: {
@@ -512,7 +520,7 @@ const styles = StyleSheet.create({
   documentsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 10,
   },
   documentItem: {
@@ -520,7 +528,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 12,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 8,
     marginBottom: 8,
   },
@@ -532,7 +540,7 @@ const styles = StyleSheet.create({
   documentName: {
     marginLeft: 10,
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
     flex: 1,
   },
   removeButton: {
@@ -541,7 +549,7 @@ const styles = StyleSheet.create({
   submitButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#667eea',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -557,7 +565,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   submitButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -566,7 +574,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 15,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 10,
     marginBottom: 10,
   },
@@ -582,11 +590,11 @@ const styles = StyleSheet.create({
   requestType: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   requestDate: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 2,
   },
   cancelButton: {

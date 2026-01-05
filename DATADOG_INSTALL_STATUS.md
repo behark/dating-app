@@ -16,6 +16,7 @@
 ## 📊 Current Status
 
 The error you see is **non-critical** if you're:
+
 - ✅ Using the Datadog Agent for metrics/logs
 - ✅ Using the JavaScript APM library (`datadog-apm-library-js`) directly in your code
 - ✅ Not using automatic APM injection via containers
@@ -23,15 +24,18 @@ The error you see is **non-critical** if you're:
 ## 🔧 Options to Fix (If Needed)
 
 ### Option 1: Install Docker Credential Helper (If you need APM inject)
+
 ```bash
 # Install Docker Desktop or Docker credential helper
 # Then retry the installation
 ```
 
 ### Option 2: Skip APM Inject (Recommended for Node.js apps)
+
 If you're using the JavaScript APM library directly in your code, you don't need `datadog-apm-inject`. The error can be safely ignored.
 
 ### Option 3: Manual APM Setup
+
 Instead of using the inject package, set up APM directly in your Node.js code:
 
 ```javascript
@@ -46,6 +50,7 @@ require('dd-trace').init({
 ## ✅ Verification
 
 Check if Datadog Agent is working:
+
 ```bash
 # Check agent status
 sudo systemctl status datadog-agent
@@ -60,11 +65,13 @@ sudo journalctl -u datadog-agent -f
 ## 🎯 Recommendation
 
 **You can safely ignore this error** if:
+
 1. Your Datadog Agent is running (✅ it is)
 2. You're using the JavaScript APM library directly in your code
 3. You're not using containerized automatic injection
 
 The `datadog-apm-inject` package is mainly for:
+
 - Kubernetes environments
 - Docker containers with automatic injection
 - Serverless functions with automatic tracing
@@ -74,6 +81,7 @@ For a standard Node.js/Express backend, you typically don't need it.
 ---
 
 **Next Steps:**
+
 1. Verify your backend code has Datadog APM initialized (if you want APM)
 2. Check your Datadog dashboard to see if metrics are coming through
 3. If you need APM, set it up manually in your code rather than using the inject package

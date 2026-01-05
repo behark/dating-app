@@ -1,16 +1,17 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { validateEmail, validatePassword } from '../utils/validators';
@@ -88,7 +89,10 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
   };
 
   return (
-    <LinearGradient colors={['#667eea', '#764ba2', '#f093fb']} style={styles.container}>
+    <LinearGradient
+      colors={[Colors.primary, Colors.primaryDark, Colors.gradient.pink[0]]}
+      style={styles.container}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -99,7 +103,7 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
         >
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Ionicons name="heart" size={60} color="#fff" />
+              <Ionicons name="heart" size={60} color={Colors.background.white} />
             </View>
             <Text style={styles.title}>{isLogin ? 'Welcome Back' : 'Join Us'}</Text>
             <Text style={styles.subtitle}>
@@ -114,13 +118,13 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                   <Ionicons
                     name="person-outline"
                     size={20}
-                    color="#667eea"
+                    color={Colors.primary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.input}
                     placeholder="Name"
-                    placeholderTextColor="#999"
+                    placeholderTextColor={Colors.text.tertiary}
                     value={name}
                     onChangeText={setName}
                     autoCapitalize="words"
@@ -131,13 +135,13 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                   <Ionicons
                     name="calendar-outline"
                     size={20}
-                    color="#667eea"
+                    color={Colors.primary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={styles.input}
                     placeholder="Age"
-                    placeholderTextColor="#999"
+                    placeholderTextColor={Colors.text.tertiary}
                     value={age}
                     onChangeText={setAge}
                     keyboardType="number-pad"
@@ -149,7 +153,7 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                   <Ionicons
                     name="male-female-outline"
                     size={20}
-                    color="#667eea"
+                    color={Colors.primary}
                     style={styles.inputIcon}
                   />
                   <View style={styles.genderContainer}>
@@ -192,11 +196,16 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
             )}
 
             <View style={styles.inputContainer}>
-              <Ionicons name="mail-outline" size={20} color="#667eea" style={styles.inputIcon} />
+              <Ionicons
+                name="mail-outline"
+                size={20}
+                color={Colors.primary}
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Email"
-                placeholderTextColor="#999"
+                placeholderTextColor={Colors.text.tertiary}
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize="none"
@@ -209,13 +218,13 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
               <Ionicons
                 name="lock-closed-outline"
                 size={20}
-                color="#667eea"
+                color={Colors.primary}
                 style={styles.inputIcon}
               />
               <TextInput
                 style={styles.input}
                 placeholder="Password"
-                placeholderTextColor="#999"
+                placeholderTextColor={Colors.text.tertiary}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -228,14 +237,14 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                 <Ionicons
                   name={showPassword ? 'eye-outline' : 'eye-off-outline'}
                   size={20}
-                  color="#999"
+                  color={Colors.text.tertiary}
                 />
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity style={styles.primaryButton} onPress={handleAuth} activeOpacity={0.8}>
               <LinearGradient
-                colors={['#667eea', '#764ba2']}
+                colors={Colors.gradient.primary}
                 style={styles.buttonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
@@ -255,7 +264,7 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
               onPress={handleGoogleSignIn}
               activeOpacity={0.8}
             >
-              <Ionicons name="logo-google" size={20} color="#4285F4" />
+              <Ionicons name="logo-google" size={20} color={Colors.brand.google} />
               <Text style={styles.googleButtonText}>Continue with Google</Text>
             </TouchableOpacity>
 
@@ -297,7 +306,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -306,22 +315,22 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 38,
     fontWeight: '800',
-    color: '#fff',
+    color: Colors.background.white,
     marginBottom: 10,
     textAlign: 'center',
     textShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)',
   },
   subtitle: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: Colors.text.white90,
     textAlign: 'center',
     paddingHorizontal: 20,
   },
   formContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 25,
     padding: 25,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.2,
     shadowRadius: 20,
@@ -330,12 +339,12 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 15,
     marginBottom: 15,
     paddingHorizontal: 15,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: Colors.border.gray,
   },
   inputIcon: {
     marginRight: 10,
@@ -344,7 +353,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 15,
     fontSize: 16,
-    color: '#333',
+    color: Colors.text.dark,
   },
   eyeIcon: {
     padding: 5,
@@ -354,7 +363,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20,
     overflow: 'hidden',
-    shadowColor: '#667eea',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -366,7 +375,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primaryButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -379,11 +388,11 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e9ecef',
+    backgroundColor: Colors.border.gray,
   },
   dividerText: {
     marginHorizontal: 15,
-    color: '#999',
+    color: Colors.text.tertiary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -391,20 +400,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderWidth: 2,
-    borderColor: '#e9ecef',
+    borderColor: Colors.border.gray,
     borderRadius: 15,
     paddingVertical: 15,
     marginBottom: 15,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   googleButtonText: {
-    color: '#333',
+    color: Colors.text.dark,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 10,
@@ -415,11 +424,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   switchText: {
-    color: '#666',
+    color: Colors.text.secondary,
     fontSize: 15,
   },
   switchTextBold: {
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: '700',
   },
   genderContainer: {
@@ -432,22 +441,22 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: Colors.border.gray,
     alignItems: 'center',
   },
   genderButtonActive: {
-    backgroundColor: '#667eea',
-    borderColor: '#667eea',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   genderText: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     fontWeight: '600',
   },
   genderTextActive: {
-    color: '#fff',
+    color: Colors.background.white,
   },
 });
 

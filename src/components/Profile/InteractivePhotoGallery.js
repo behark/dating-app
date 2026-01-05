@@ -1,16 +1,17 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    Animated,
-    Dimensions,
-    FlatList,
-    Image,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Animated,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -28,7 +29,7 @@ const InteractivePhotoGallery = ({
   const [fullscreenVisible, setFullscreenVisible] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
   const flatListRef = useRef(null);
-  
+
   // Animation values
   const progressAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -53,13 +54,16 @@ const InteractivePhotoGallery = ({
     }).start();
   }, [activeIndex, photos.length]);
 
-  const handleScroll = useCallback((event) => {
-    const contentOffset = event.nativeEvent.contentOffset.x;
-    const index = Math.round(contentOffset / (SCREEN_WIDTH - 80));
-    if (index !== activeIndex && index >= 0 && index < photos.length) {
-      setActiveIndex(index);
-    }
-  }, [activeIndex, photos.length]);
+  const handleScroll = useCallback(
+    (event) => {
+      const contentOffset = event.nativeEvent.contentOffset.x;
+      const index = Math.round(contentOffset / (SCREEN_WIDTH - 80));
+      if (index !== activeIndex && index >= 0 && index < photos.length) {
+        setActiveIndex(index);
+      }
+    },
+    [activeIndex, photos.length]
+  );
 
   const handlePhotoPress = (index) => {
     Animated.sequence([
@@ -97,35 +101,28 @@ const InteractivePhotoGallery = ({
         { transform: [{ scale: index === activeIndex ? scaleAnim : 1 }] },
       ]}
     >
-      <TouchableOpacity
-        onPress={() => handlePhotoPress(index)}
-        activeOpacity={0.9}
-      >
+      <TouchableOpacity onPress={() => handlePhotoPress(index)} activeOpacity={0.9}>
         <Image source={{ uri: item.uri || item }} style={styles.photo} />
-        
+
         {/* Photo index badge */}
         <View style={styles.photoBadge}>
-          <Text style={styles.photoBadgeText}>{index + 1}/{photos.length}</Text>
+          <Text style={styles.photoBadgeText}>
+            {index + 1}/{photos.length}
+          </Text>
         </View>
 
         {/* Primary photo badge */}
         {index === 0 && (
-          <LinearGradient
-            colors={['#FFD700', '#FFA500']}
-            style={styles.primaryBadge}
-          >
-            <Ionicons name="star" size={12} color="#fff" />
+          <LinearGradient colors={Colors.gradient.gold} style={styles.primaryBadge}>
+            <Ionicons name="star" size={12} color={Colors.background.white} />
             <Text style={styles.primaryBadgeText}>Main</Text>
           </LinearGradient>
         )}
 
         {/* Edit/Remove button */}
         {editable && (
-          <TouchableOpacity
-            style={styles.removeButton}
-            onPress={() => onRemovePhoto?.(index)}
-          >
-            <Ionicons name="close-circle" size={28} color="#FF6B6B" />
+          <TouchableOpacity style={styles.removeButton} onPress={() => onRemovePhoto?.(index)}>
+            <Ionicons name="close-circle" size={28} color={Colors.accent.red} />
           </TouchableOpacity>
         )}
       </TouchableOpacity>
@@ -135,15 +132,17 @@ const InteractivePhotoGallery = ({
   const renderDots = () => (
     <View style={styles.dotsContainer}>
       {photos.map((_, index) => {
-        const scale = dotAnims[index]?.interpolate({
-          inputRange: [0, 1],
-          outputRange: [1, 1.3],
-        }) || 1;
+        const scale =
+          dotAnims[index]?.interpolate({
+            inputRange: [0, 1],
+            outputRange: [1, 1.3],
+          }) || 1;
 
-        const backgroundColor = dotAnims[index]?.interpolate({
-          inputRange: [0, 1],
-          outputRange: ['rgba(255, 255, 255, 0.5)', '#fff'],
-        }) || 'rgba(255, 255, 255, 0.5)';
+        const backgroundColor =
+          dotAnims[index]?.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['rgba(255, 255, 255, 0.5)', Colors.background.white],
+          }) || 'rgba(255, 255, 255, 0.5)';
 
         return (
           <TouchableOpacity key={index} onPress={() => goToPhoto(index)}>
@@ -185,7 +184,7 @@ const InteractivePhotoGallery = ({
           style={[styles.navArrow, styles.navArrowLeft]}
           onPress={() => goToPhoto(activeIndex - 1)}
         >
-          <Ionicons name="chevron-back" size={24} color="#fff" />
+          <Ionicons name="chevron-back" size={24} color={Colors.background.white} />
         </TouchableOpacity>
       )}
       {activeIndex < photos.length - 1 && (
@@ -193,7 +192,7 @@ const InteractivePhotoGallery = ({
           style={[styles.navArrow, styles.navArrowRight]}
           onPress={() => goToPhoto(activeIndex + 1)}
         >
-          <Ionicons name="chevron-forward" size={24} color="#fff" />
+          <Ionicons name="chevron-forward" size={24} color={Colors.background.white} />
         </TouchableOpacity>
       )}
     </>
@@ -211,7 +210,7 @@ const InteractivePhotoGallery = ({
           style={styles.closeFullscreen}
           onPress={() => setFullscreenVisible(false)}
         >
-          <Ionicons name="close" size={28} color="#fff" />
+          <Ionicons name="close" size={28} color={Colors.background.white} />
         </TouchableOpacity>
 
         <FlatList
@@ -249,17 +248,13 @@ const InteractivePhotoGallery = ({
     if (!editable || photos.length >= maxPhotos) return null;
 
     return (
-      <TouchableOpacity
-        style={styles.addPhotoButton}
-        onPress={onAddPhoto}
-        activeOpacity={0.8}
-      >
+      <TouchableOpacity style={styles.addPhotoButton} onPress={onAddPhoto} activeOpacity={0.8}>
         <LinearGradient
           colors={['rgba(102, 126, 234, 0.1)', 'rgba(118, 75, 162, 0.1)']}
           style={styles.addPhotoGradient}
         >
           <View style={styles.addPhotoIcon}>
-            <Ionicons name="add" size={32} color="#667eea" />
+            <Ionicons name="add" size={32} color={Colors.primary} />
           </View>
           <Text style={styles.addPhotoText}>Add Photo</Text>
           <Text style={styles.addPhotoSubtext}>
@@ -278,22 +273,14 @@ const InteractivePhotoGallery = ({
           style={styles.emptyGradient}
         >
           <View style={styles.emptyIconContainer}>
-            <Ionicons name="images-outline" size={48} color="#667eea" />
+            <Ionicons name="images-outline" size={48} color={Colors.primary} />
           </View>
           <Text style={styles.emptyTitle}>No Photos Yet</Text>
-          <Text style={styles.emptySubtitle}>
-            Add photos to make your profile stand out
-          </Text>
+          <Text style={styles.emptySubtitle}>Add photos to make your profile stand out</Text>
           {editable && (
-            <TouchableOpacity
-              style={styles.addFirstPhotoButton}
-              onPress={onAddPhoto}
-            >
-              <LinearGradient
-                colors={['#667eea', '#764ba2']}
-                style={styles.addFirstPhotoGradient}
-              >
-                <Ionicons name="camera" size={20} color="#fff" />
+            <TouchableOpacity style={styles.addFirstPhotoButton} onPress={onAddPhoto}>
+              <LinearGradient colors={Colors.gradient.primary} style={styles.addFirstPhotoGradient}>
+                <Ionicons name="camera" size={20} color={Colors.background.white} />
                 <Text style={styles.addFirstPhotoText}>Add Photos</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -374,7 +361,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   photoBadgeText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -390,7 +377,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   primaryBadgeText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -398,7 +385,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 12,
     right: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: Colors.background.white90,
     borderRadius: 14,
   },
   dotsContainer: {
@@ -428,7 +415,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 1.5,
   },
   navArrow: {
@@ -473,11 +460,11 @@ const styles = StyleSheet.create({
   addPhotoText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#667eea',
+    color: Colors.primary,
   },
   addPhotoSubtext: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 4,
   },
   emptyContainer: {
@@ -499,12 +486,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -520,7 +507,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   addFirstPhotoText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -550,7 +537,7 @@ const styles = StyleSheet.create({
     bottom: 100,
   },
   fullscreenCounter: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     fontWeight: '500',
   },

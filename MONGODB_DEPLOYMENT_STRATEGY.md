@@ -16,6 +16,7 @@ const mongoURI = process.env.MONGODB_URI || process.env.MONGODB_URL;
 ```
 
 This means:
+
 - ✅ **Development:** Use `MONGODB_URI=mongodb://localhost:27017/dating-app`
 - ✅ **Production:** Use `MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/dating-app`
 - ✅ **No code changes needed** - just change the environment variable!
@@ -25,6 +26,7 @@ This means:
 ## 📋 Setup for Development (Local MongoDB)
 
 ### Step 1: Install MongoDB Locally
+
 ```bash
 # Ubuntu/Debian
 sudo apt-get update
@@ -36,6 +38,7 @@ sudo systemctl enable mongod
 ```
 
 ### Step 2: Set Environment Variable
+
 Create or update `.env` file in the `backend/` directory:
 
 ```bash
@@ -46,6 +49,7 @@ PORT=3000
 ```
 
 ### Step 3: Start Backend
+
 ```bash
 cd backend
 npm start
@@ -58,11 +62,13 @@ npm start
 ## 🚀 Setup for Production (MongoDB Atlas)
 
 ### Step 1: Create MongoDB Atlas Account
+
 1. Go to https://www.mongodb.com/cloud/atlas/register
 2. Create free cluster (M0 - Free tier)
 3. Get connection string
 
 ### Step 2: Set Environment Variable in Production
+
 In your deployment platform (Render, Vercel, etc.), set:
 
 ```bash
@@ -76,13 +82,15 @@ MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/dating-ap
 ## 🔄 How Deployment Works
 
 ### Your Current Setup (render.yaml)
+
 ```yaml
 envVars:
   - key: MONGODB_URI
-    sync: false  # Set manually in dashboard for security
+    sync: false # Set manually in dashboard for security
 ```
 
 This means:
+
 - ✅ In **development:** Use local MongoDB URI
 - ✅ In **production:** Set MongoDB Atlas URI in Render dashboard
 - ✅ **Same code, different environment variable**
@@ -91,17 +99,18 @@ This means:
 
 ## 📊 Comparison
 
-| Environment | MongoDB URI | Where to Set | Code Changes? |
-|-------------|-------------|--------------|----------------|
-| **Development** | `mongodb://localhost:27017/dating-app` | `backend/.env` | ❌ No |
-| **Production** | `mongodb+srv://...@cluster.mongodb.net/...` | Render Dashboard | ❌ No |
-| **Staging** | `mongodb+srv://...@staging-cluster...` | Staging env vars | ❌ No |
+| Environment     | MongoDB URI                                 | Where to Set     | Code Changes? |
+| --------------- | ------------------------------------------- | ---------------- | ------------- |
+| **Development** | `mongodb://localhost:27017/dating-app`      | `backend/.env`   | ❌ No         |
+| **Production**  | `mongodb+srv://...@cluster.mongodb.net/...` | Render Dashboard | ❌ No         |
+| **Staging**     | `mongodb+srv://...@staging-cluster...`      | Staging env vars | ❌ No         |
 
 ---
 
 ## ✅ Best Practice Recommendation
 
 ### Option 1: Use MongoDB Atlas for Both (Recommended)
+
 - ✅ Same setup for dev and production
 - ✅ No local MongoDB installation needed
 - ✅ Free tier available
@@ -109,6 +118,7 @@ This means:
 - ✅ Automatic backups
 
 **Setup:**
+
 ```bash
 # backend/.env (development)
 MONGODB_URI=mongodb+srv://dev-user:dev-pass@dev-cluster.mongodb.net/dating-app-dev
@@ -118,11 +128,13 @@ MONGODB_URI=mongodb+srv://prod-user:prod-pass@prod-cluster.mongodb.net/dating-ap
 ```
 
 ### Option 2: Local for Dev, Atlas for Production
+
 - ✅ Fast local development
 - ✅ No internet needed for dev
 - ✅ Production uses managed service
 
 **Setup:**
+
 ```bash
 # backend/.env (development - local)
 MONGODB_URI=mongodb://localhost:27017/dating-app
@@ -137,7 +149,8 @@ MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/dating-app
 
 **Your Question:** "If we use local MongoDB, will it require editing when we deploy?"
 
-**Answer:** 
+**Answer:**
+
 - ❌ **NO CODE EDITING NEEDED**
 - ✅ Just change the `MONGODB_URI` environment variable
 - ✅ Development: `mongodb://localhost:27017/dating-app`
@@ -149,6 +162,7 @@ MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/dating-app
 ## 🚀 Quick Start
 
 ### For Development (Local MongoDB):
+
 ```bash
 # 1. Install MongoDB
 sudo apt-get install -y mongodb-org
@@ -164,6 +178,7 @@ cd backend && npm start
 ```
 
 ### For Production (MongoDB Atlas):
+
 1. Create MongoDB Atlas account
 2. Create cluster
 3. Get connection string
@@ -175,6 +190,7 @@ cd backend && npm start
 ## 💡 Recommendation
 
 I recommend **MongoDB Atlas for both development and production** because:
+
 - ✅ No local installation needed
 - ✅ Works immediately
 - ✅ Free tier available

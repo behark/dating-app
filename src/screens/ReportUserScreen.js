@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
@@ -85,7 +86,7 @@ export default function ReportUserScreen({ route, navigation }) {
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Report Category</Text>
             <TouchableOpacity onPress={() => setShowCategoryPicker(false)}>
-              <Ionicons name="close" size={28} color="#333" />
+              <Ionicons name="close" size={28} color={Colors.text.dark} />
             </TouchableOpacity>
           </View>
           <FlatList
@@ -109,7 +110,7 @@ export default function ReportUserScreen({ route, navigation }) {
                   ]}
                 >
                   {selectedCategory?.id === item.id && (
-                    <Ionicons name="checkmark" size={16} color="#fff" />
+                    <Ionicons name="checkmark" size={16} color={Colors.background.white} />
                   )}
                 </View>
                 <Text style={styles.categoryLabel}>{item.label}</Text>
@@ -123,12 +124,12 @@ export default function ReportUserScreen({ route, navigation }) {
   );
 
   return (
-    <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+    <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={28} color="#fff" />
+            <Ionicons name="arrow-back" size={28} color={Colors.background.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Report User</Text>
           <View style={{ width: 28 }} />
@@ -136,7 +137,7 @@ export default function ReportUserScreen({ route, navigation }) {
 
         {/* Safety Notice */}
         <View style={styles.noticeBox}>
-          <Ionicons name="information-circle" size={24} color="#667eea" />
+          <Ionicons name="information-circle" size={24} color={Colors.primary} />
           <Text style={styles.noticeText}>
             Your report is confidential and will be reviewed by our safety team. False reports may
             result in account suspension.
@@ -148,7 +149,7 @@ export default function ReportUserScreen({ route, navigation }) {
           <Text style={styles.sectionLabel}>Reporting User</Text>
           <View style={styles.userCard}>
             <View style={styles.userAvatar}>
-              <Ionicons name="person-circle" size={48} color="#999" />
+              <Ionicons name="person-circle" size={48} color={Colors.text.tertiary} />
             </View>
             <Text style={styles.userName}>{userName}</Text>
             {reportedUserId && (
@@ -174,7 +175,7 @@ export default function ReportUserScreen({ route, navigation }) {
                 {selectedCategory ? selectedCategory.label : 'Select a category...'}
               </Text>
             </View>
-            <Ionicons name="chevron-down" size={20} color="#666" />
+            <Ionicons name="chevron-down" size={20} color={Colors.text.secondary} />
           </TouchableOpacity>
         </View>
 
@@ -187,7 +188,7 @@ export default function ReportUserScreen({ route, navigation }) {
           <TextInput
             style={styles.descriptionInput}
             placeholder="Describe the inappropriate behavior or content..."
-            placeholderTextColor="#999"
+            placeholderTextColor={Colors.text.tertiary}
             multiline
             numberOfLines={5}
             value={description}
@@ -204,10 +205,10 @@ export default function ReportUserScreen({ route, navigation }) {
           disabled={loading || !selectedCategory}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" size="small" />
+            <ActivityIndicator color={Colors.background.white} size="small" />
           ) : (
             <>
-              <Ionicons name="send" size={20} color="#fff" />
+              <Ionicons name="send" size={20} color={Colors.background.white} />
               <Text style={styles.submitButtonText}>Submit Report</Text>
             </>
           )}
@@ -235,7 +236,7 @@ export default function ReportUserScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
   },
   content: {
     flex: 1,
@@ -251,13 +252,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
   },
   noticeBox: {
     flexDirection: 'row',
     margin: 16,
     padding: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 12,
     alignItems: 'flex-start',
   },
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
     fontSize: 13,
-    color: '#333',
+    color: Colors.text.dark,
     lineHeight: 18,
   },
   reportingSection: {
@@ -275,7 +276,7 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
     marginBottom: 8,
   },
   sectionHint: {
@@ -284,7 +285,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   userCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -295,16 +296,16 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 4,
   },
   userId: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   categoryButton: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 14,
@@ -316,11 +317,11 @@ const styles = StyleSheet.create({
   },
   categoryButtonText: {
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
     fontWeight: '500',
   },
   categoryButtonPlaceholder: {
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   modalOverlay: {
     flex: 1,
@@ -328,7 +329,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   categoryModal: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '80%',
@@ -341,12 +342,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: Colors.text.lighter,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   categoryItem: {
     flexDirection: 'row',
@@ -354,38 +355,38 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#f5f5f5',
+    borderBottomColor: Colors.background.lighter,
   },
   categoryItemSelected: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
   },
   categoryCheckbox: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#ccc',
+    borderColor: Colors.text.light,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   categoryCheckboxSelected: {
-    backgroundColor: '#667eea',
-    borderColor: '#667eea',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   categoryLabel: {
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
     fontWeight: '500',
     flex: 1,
   },
   descriptionInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
     textAlignVertical: 'top',
     maxHeight: 120,
   },
@@ -400,7 +401,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 20,
     paddingVertical: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
   submitButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#667eea',
+    color: Colors.primary,
     marginLeft: 8,
   },
   helpSection: {
@@ -421,17 +422,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     borderRadius: 12,
     borderLeftWidth: 3,
-    borderLeftColor: '#fff',
+    borderLeftColor: Colors.background.white,
   },
   helpTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
     marginBottom: 6,
   },
   helpText: {
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: Colors.text.white90,
     lineHeight: 18,
     marginBottom: 6,
   },

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Colors } from '../constants/colors';
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import logger from '../utils/logger';
@@ -7,7 +8,7 @@ export const lightTheme = {
   // Background colors
   background: {
     primary: '#FFFFFF',
-    secondary: '#F8F9FA',
+    secondary: Colors.background.lightest,
     tertiary: '#F1F3F4',
     card: '#FFFFFF',
     modal: '#FFFFFF',
@@ -24,7 +25,7 @@ export const lightTheme = {
     success: '#34A853',
     warning: '#FBBC04',
     error: '#EA4335',
-    premium: '#FFD700',
+    premium: Colors.accent.gold,
   },
 
   // Border colors
@@ -52,14 +53,14 @@ export const lightTheme = {
 
   // Shadows
   shadow: {
-    color: '#000000',
+    color: Colors.text.primary,
     opacity: 0.1,
   },
 
   // Gradients
   gradient: {
-    primary: ['#667EEA', '#764BA2'],
-    premium: ['#FFD700', '#FFA500'],
+    primary: [Colors.primary, Colors.primaryDark],
+    premium: Colors.gradient.gold,
     success: ['#34A853', '#43A047'],
   },
 };
@@ -85,7 +86,7 @@ export const darkTheme = {
     success: '#81C995',
     warning: '#FDD663',
     error: '#F28B82',
-    premium: '#FFD700',
+    premium: Colors.accent.gold,
   },
 
   // Border colors
@@ -113,14 +114,14 @@ export const darkTheme = {
 
   // Shadows
   shadow: {
-    color: '#000000',
+    color: Colors.text.primary,
     opacity: 0.3,
   },
 
   // Gradients
   gradient: {
-    primary: ['#667EEA', '#764BA2'],
-    premium: ['#FFD700', '#FFA500'],
+    primary: [Colors.primary, Colors.primaryDark],
+    premium: Colors.gradient.gold,
     success: ['#81C995', '#43A047'],
   },
 };
@@ -154,11 +155,11 @@ export const ThemeProvider = ({ children }) => {
           // Use system preference if no saved preference
           const initialScheme = systemColorScheme || 'light';
           setColorScheme(initialScheme);
-        setTheme(initialScheme === 'dark' ? darkTheme : lightTheme);
-      }
-    } catch (error) {
-      logger.error('Error loading theme preference', error);
-      // Fallback to system preference
+          setTheme(initialScheme === 'dark' ? darkTheme : lightTheme);
+        }
+      } catch (error) {
+        logger.error('Error loading theme preference', error);
+        // Fallback to system preference
         const initialScheme = systemColorScheme || 'light';
         setColorScheme(initialScheme);
         setTheme(initialScheme === 'dark' ? darkTheme : lightTheme);

@@ -4,6 +4,7 @@
  */
 
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { Colors } from '../constants/colors';
 import {
   ActivityIndicator,
   Dimensions,
@@ -115,7 +116,7 @@ const OptimizedList = memo(
 
       return (
         <View style={styles.loadingFooter}>
-          <ActivityIndicator size="small" color="#667eea" />
+          <ActivityIndicator size="small" color={Colors.primary} />
           <Text style={styles.loadingText}>Loading more...</Text>
         </View>
       );
@@ -158,7 +159,7 @@ const OptimizedList = memo(
       if (isLoading) {
         return (
           <View style={styles.emptyContainer}>
-            <ActivityIndicator size="large" color="#667eea" />
+            <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={styles.emptyText}>Loading...</Text>
           </View>
         );
@@ -185,8 +186,8 @@ const OptimizedList = memo(
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
-          colors={['#667eea', '#764ba2']}
-          tintColor="#667eea"
+          colors={Colors.gradient.primary}
+          tintColor={Colors.primary}
         />
       );
     }, [onRefresh, isRefreshing, handleRefresh]);
@@ -399,7 +400,7 @@ const OptimizedImage = memo(({ source, style, onPress }) => {
     <View style={[styles.imageContainer, style]}>
       {!loaded && (
         <View style={styles.imagePlaceholder}>
-          <ActivityIndicator size="small" color="#ccc" />
+          <ActivityIndicator size="small" color={Colors.text.light} />
         </View>
       )}
       <Image
@@ -435,7 +436,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: 8,
-    color: '#666',
+    color: Colors.text.secondary,
     fontSize: 14,
   },
   endOfList: {
@@ -443,7 +444,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   endOfListText: {
-    color: '#999',
+    color: Colors.text.tertiary,
     fontSize: 14,
   },
   emptyContainer: {
@@ -454,11 +455,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     marginTop: 16,
-    color: '#666',
+    color: Colors.text.secondary,
     fontSize: 16,
   },
   imageItem: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -470,7 +471,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
   },
   image: {
     width: '100%',

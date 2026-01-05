@@ -1,30 +1,36 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import logger from '../utils/logger';
 
 // Chat Components
-import AnimatedTypingIndicator, { HeaderTypingIndicator } from '../components/Chat/AnimatedTypingIndicator';
+import AnimatedTypingIndicator, {
+  HeaderTypingIndicator,
+} from '../components/Chat/AnimatedTypingIndicator';
 import ChatThemes, { CHAT_THEMES, useChatTheme } from '../components/Chat/ChatThemes';
-import MessageReactions, { QuickReactionButton, REACTIONS } from '../components/Chat/MessageReactions';
+import MessageReactions, {
+  QuickReactionButton,
+  REACTIONS,
+} from '../components/Chat/MessageReactions';
 import MessageScheduler, { ScheduledMessagesList } from '../components/Chat/MessageScheduler';
 
 const EnhancedChatScreen = ({ route, navigation }) => {
@@ -49,7 +55,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [page, setPage] = useState(1);
-  
+
   // UI State
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
@@ -58,10 +64,10 @@ const EnhancedChatScreen = ({ route, navigation }) => {
   const [showScheduledMessages, setShowScheduledMessages] = useState(false);
   const [scheduledMessages, setScheduledMessages] = useState([]);
   const [messageReactions, setMessageReactions] = useState({});
-  
+
   // Chat Theme
   const { currentTheme } = useChatTheme();
-  
+
   // Refs
   const flatListRef = useRef();
   const typingTimeoutRef = useRef();
@@ -133,14 +139,14 @@ const EnhancedChatScreen = ({ route, navigation }) => {
 
   // Handle scheduled message
   const handleScheduleMessage = (scheduledData) => {
-    setScheduledMessages(prev => [
+    setScheduledMessages((prev) => [
       ...prev,
       {
         id: `scheduled_${Date.now()}`,
         ...scheduledData,
         matchId,
         status: 'scheduled',
-      }
+      },
     ]);
     setShowScheduler(false);
     Alert.alert(
@@ -151,17 +157,17 @@ const EnhancedChatScreen = ({ route, navigation }) => {
 
   // Handle message reaction
   const handleReaction = (messageId, reactionId) => {
-    setMessageReactions(prev => ({
+    setMessageReactions((prev) => ({
       ...prev,
       [messageId]: {
         ...prev[messageId],
         [reactionId]: (prev[messageId]?.[reactionId] || 0) + 1,
         myReactions: [...(prev[messageId]?.myReactions || []), reactionId],
-      }
+      },
     }));
     setShowReactionPicker(false);
     setSelectedMessage(null);
-    
+
     // TODO: Send reaction to backend
     // chatService.addReaction(matchId, messageId, reactionId);
   };
@@ -229,7 +235,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
   // Get theme styles
   const getThemeStyles = () => {
     if (currentTheme) {
-      const foundTheme = CHAT_THEMES.find(t => t.id === currentTheme);
+      const foundTheme = CHAT_THEMES.find((t) => t.id === currentTheme);
       if (foundTheme) return foundTheme;
     }
     return CHAT_THEMES[0] || null;
@@ -244,7 +250,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
       hour: '2-digit',
       minute: '2-digit',
     });
-    
+
     const reactions = messageReactions[item._id] || {};
     const reactionEntries = Object.entries(reactions).filter(([key]) => key !== 'myReactions');
 
@@ -264,10 +270,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
     return (
       <Pressable
         onLongPress={() => handleMessageLongPress(item)}
-        style={[
-          styles.messageWrapper,
-          isMe ? styles.myMessageWrapper : styles.theirMessageWrapper,
-        ]}
+        style={[styles.messageWrapper, isMe ? styles.myMessageWrapper : styles.theirMessageWrapper]}
       >
         {item.type === 'image' || item.type === 'gif' ? (
           <View style={styles.imageMessageWrapper}>
@@ -280,23 +283,43 @@ const EnhancedChatScreen = ({ route, navigation }) => {
             <Text style={isMe ? styles.myTimestamp : styles.theirTimestamp}>{time}</Text>
           </View>
         ) : isMe ? (
-          <LinearGradient 
-            colors={themeStyles.messageBubble?.gradient || ['#667eea', '#764ba2']} 
+          <LinearGradient
+            colors={themeStyles.messageBubble?.gradient || Colors.gradient.primary}
             style={styles.myMessage}
           >
             <Text style={styles.myMessageText}>{item.content}</Text>
             <View style={styles.messageFooter}>
               <Text style={styles.myTimestamp}>{time}</Text>
               {item.isRead ? (
-                <Ionicons name="checkmark-done" size={12} color="rgba(255, 255, 255, 0.8)" style={{ marginLeft: 5 }} />
+                <Ionicons
+                  name="checkmark-done"
+                  size={12}
+                  color="rgba(255, 255, 255, 0.8)"
+                  style={{ marginLeft: 5 }}
+                />
               ) : (
-                <Ionicons name="checkmark" size={12} color="rgba(255, 255, 255, 0.6)" style={{ marginLeft: 5 }} />
+                <Ionicons
+                  name="checkmark"
+                  size={12}
+                  color="rgba(255, 255, 255, 0.6)"
+                  style={{ marginLeft: 5 }}
+                />
               )}
             </View>
           </LinearGradient>
         ) : (
-          <View style={[styles.theirMessage, { backgroundColor: themeStyles.receiverBubbleColor || '#f0f0f0' }]}>
-            <Text style={[styles.theirMessageText, { color: themeStyles.receiverTextColor || '#333' }]}>
+          <View
+            style={[
+              styles.theirMessage,
+              { backgroundColor: themeStyles.receiverBubbleColor || Colors.background.light },
+            ]}
+          >
+            <Text
+              style={[
+                styles.theirMessageText,
+                { color: themeStyles.receiverTextColor || Colors.text.dark },
+              ]}
+            >
               {item.content}
             </Text>
             <Text style={styles.theirTimestamp}>{time}</Text>
@@ -305,9 +328,11 @@ const EnhancedChatScreen = ({ route, navigation }) => {
 
         {/* Message Reactions Display */}
         {reactionEntries.length > 0 && (
-          <View style={[styles.reactionsContainer, isMe ? styles.reactionsRight : styles.reactionsLeft]}>
+          <View
+            style={[styles.reactionsContainer, isMe ? styles.reactionsRight : styles.reactionsLeft]}
+          >
             {reactionEntries.map(([reactionId, count]) => {
-              const reaction = REACTIONS.find(r => r.id === reactionId);
+              const reaction = REACTIONS.find((r) => r.id === reactionId);
               if (!reaction || count === 0) return null;
               return (
                 <View key={reactionId} style={styles.reactionBubble}>
@@ -331,17 +356,14 @@ const EnhancedChatScreen = ({ route, navigation }) => {
   // Render header options menu
   const renderHeaderMenu = () => (
     <View style={styles.headerMenu}>
-      <TouchableOpacity 
-        style={styles.headerMenuButton}
-        onPress={() => setShowThemePicker(true)}
-      >
-        <Ionicons name="color-palette" size={20} color="#fff" />
+      <TouchableOpacity style={styles.headerMenuButton} onPress={() => setShowThemePicker(true)}>
+        <Ionicons name="color-palette" size={20} color={Colors.background.white} />
       </TouchableOpacity>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.headerMenuButton}
         onPress={() => setShowScheduledMessages(true)}
       >
-        <Ionicons name="time" size={20} color="#fff" />
+        <Ionicons name="time" size={20} color={Colors.background.white} />
         {scheduledMessages.length > 0 && (
           <View style={styles.scheduledBadge}>
             <Text style={styles.scheduledBadgeText}>{scheduledMessages.length}</Text>
@@ -356,9 +378,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
       {/* Background Pattern */}
       {themeStyles.pattern && (
         <View style={styles.patternOverlay}>
-          <Text style={styles.patternText}>
-            {Array(100).fill(themeStyles.pattern).join(' ')}
-          </Text>
+          <Text style={styles.patternText}>{Array(100).fill(themeStyles.pattern).join(' ')}</Text>
         </View>
       )}
 
@@ -368,19 +388,21 @@ const EnhancedChatScreen = ({ route, navigation }) => {
         keyboardVerticalOffset={0}
       >
         {/* Header */}
-        <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+        <LinearGradient colors={Colors.gradient.primary} style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#fff" />
+            <Ionicons name="arrow-back" size={24} color={Colors.background.white} />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <View style={[styles.headerIndicator, { backgroundColor: isConnected ? '#4ECDC4' : '#FF6B6B' }]} />
+            <View
+              style={[
+                styles.headerIndicator,
+                { backgroundColor: isConnected ? Colors.accent.teal : Colors.accent.red },
+              ]}
+            />
             <View>
               <Text style={styles.headerTitle}>{otherUser?.name || 'Chat'}</Text>
               {otherUserTyping && (
-                <HeaderTypingIndicator 
-                  userName={otherUser?.name} 
-                  animationType="dots"
-                />
+                <HeaderTypingIndicator userName={otherUser?.name} animationType="dots" />
               )}
             </View>
           </View>
@@ -390,7 +412,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
         {/* Messages List */}
         {loading && messages.length === 0 ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#667eea" />
+            <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={styles.loadingText}>Loading messages...</Text>
           </View>
         ) : (
@@ -406,7 +428,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
             ListHeaderComponent={
               loadingMore ? (
                 <View style={styles.loadMoreContainer}>
-                  <ActivityIndicator size="small" color="#667eea" />
+                  <ActivityIndicator size="small" color={Colors.primary} />
                   <Text style={styles.loadMoreText}>Loading more messages...</Text>
                 </View>
               ) : null
@@ -417,7 +439,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
         {/* Typing Indicator */}
         {otherUserTyping && (
           <View style={styles.typingContainer}>
-            <AnimatedTypingIndicator 
+            <AnimatedTypingIndicator
               isVisible={true}
               userName={otherUser?.name}
               animationType="wave"
@@ -428,14 +450,14 @@ const EnhancedChatScreen = ({ route, navigation }) => {
         {/* Input Area */}
         <View style={styles.inputContainer}>
           <TouchableOpacity style={styles.attachButton} onPress={handlePickImage}>
-            <Ionicons name="image" size={24} color="#667eea" />
+            <Ionicons name="image" size={24} color={Colors.primary} />
           </TouchableOpacity>
-          
+
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.textInput}
               placeholder="Type a message..."
-              placeholderTextColor="#999"
+              placeholderTextColor={Colors.text.tertiary}
               value={messageText}
               onChangeText={handleTextChange}
               multiline
@@ -445,13 +467,13 @@ const EnhancedChatScreen = ({ route, navigation }) => {
 
           {messageText.trim() ? (
             <TouchableOpacity style={styles.sendButton} onPress={handleSendMessage}>
-              <LinearGradient colors={['#667eea', '#764ba2']} style={styles.sendButtonGradient}>
-                <Ionicons name="send" size={20} color="#fff" />
+              <LinearGradient colors={Colors.gradient.primary} style={styles.sendButtonGradient}>
+                <Ionicons name="send" size={20} color={Colors.background.white} />
               </LinearGradient>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.scheduleButton} onPress={() => setShowScheduler(true)}>
-              <Ionicons name="time-outline" size={24} color="#667eea" />
+              <Ionicons name="time-outline" size={24} color={Colors.primary} />
             </TouchableOpacity>
           )}
         </View>
@@ -467,7 +489,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
           setSelectedMessage(null);
         }}
       >
-        <Pressable 
+        <Pressable
           style={styles.modalOverlay}
           onPress={() => {
             setShowReactionPicker(false);
@@ -495,7 +517,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Schedule Message</Text>
             <TouchableOpacity onPress={() => setShowScheduler(false)}>
-              <Ionicons name="close" size={24} color="#333" />
+              <Ionicons name="close" size={24} color={Colors.text.dark} />
             </TouchableOpacity>
           </View>
           <MessageScheduler
@@ -516,7 +538,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Chat Theme</Text>
             <TouchableOpacity onPress={() => setShowThemePicker(false)}>
-              <Ionicons name="close" size={24} color="#333" />
+              <Ionicons name="close" size={24} color={Colors.text.dark} />
             </TouchableOpacity>
           </View>
           <ChatThemes onClose={() => setShowThemePicker(false)} />
@@ -534,17 +556,17 @@ const EnhancedChatScreen = ({ route, navigation }) => {
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Scheduled Messages</Text>
             <TouchableOpacity onPress={() => setShowScheduledMessages(false)}>
-              <Ionicons name="close" size={24} color="#333" />
+              <Ionicons name="close" size={24} color={Colors.text.dark} />
             </TouchableOpacity>
           </View>
           <ScheduledMessagesList
             messages={scheduledMessages}
             onCancel={(id) => {
-              setScheduledMessages(prev => prev.filter(m => m.id !== id));
+              setScheduledMessages((prev) => prev.filter((m) => m.id !== id));
               Alert.alert('Cancelled', 'Scheduled message has been cancelled');
             }}
             onEdit={(message) => {
-              setScheduledMessages(prev => prev.filter(m => m.id !== message.id));
+              setScheduledMessages((prev) => prev.filter((m) => m.id !== message.id));
               setShowScheduledMessages(false);
               setMessageText(message.message);
               setTimeout(() => setShowScheduler(true), 300);
@@ -568,7 +590,7 @@ const styles = StyleSheet.create({
   patternText: {
     fontSize: 30,
     lineHeight: 40,
-    color: '#000',
+    color: Colors.text.primary,
   },
   keyboardView: {
     flex: 1,
@@ -598,7 +620,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
   },
   headerMenu: {
     flexDirection: 'row',
@@ -612,7 +634,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 2,
     right: 2,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
     width: 16,
     height: 16,
     borderRadius: 8,
@@ -621,7 +643,7 @@ const styles = StyleSheet.create({
   },
   scheduledBadgeText: {
     fontSize: 10,
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '700',
   },
   loadingContainer: {
@@ -631,7 +653,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 10,
-    color: '#667eea',
+    color: Colors.primary,
     fontSize: 16,
   },
   messagesList: {
@@ -646,7 +668,7 @@ const styles = StyleSheet.create({
   },
   loadMoreText: {
     marginLeft: 10,
-    color: '#667eea',
+    color: Colors.primary,
     fontSize: 14,
   },
   messageWrapper: {
@@ -667,7 +689,7 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   theirMessage: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderRadius: 20,
     borderBottomLeftRadius: 5,
     paddingHorizontal: 15,
@@ -675,12 +697,12 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   myMessageText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     lineHeight: 22,
   },
   theirMessageText: {
-    color: '#333',
+    color: Colors.text.dark,
     fontSize: 16,
     lineHeight: 22,
   },
@@ -713,11 +735,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     position: 'absolute',
     bottom: -10,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
@@ -739,7 +761,7 @@ const styles = StyleSheet.create({
   },
   reactionCount: {
     fontSize: 10,
-    color: '#666',
+    color: Colors.text.secondary,
     marginLeft: 2,
   },
   quickReactionRight: {
@@ -763,16 +785,16 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: Colors.background.light,
   },
   attachButton: {
     padding: 10,
   },
   inputWrapper: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background.lighter,
     borderRadius: 25,
     paddingHorizontal: 15,
     marginHorizontal: 10,
@@ -780,7 +802,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     fontSize: 16,
-    color: '#333',
+    color: Colors.text.dark,
     paddingVertical: 10,
     maxHeight: 80,
   },
@@ -804,13 +826,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   reactionPickerContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 20,
     padding: 10,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -818,12 +840,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Colors.background.light,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
 });
 

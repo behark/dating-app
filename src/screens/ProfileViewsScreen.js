@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Colors } from '../constants/colors';
 import {
   ActivityIndicator,
   Alert,
@@ -135,7 +136,7 @@ export default function ProfileViewsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background.lighter,
   },
   centerContainer: {
     flex: 1,
@@ -144,8 +145,8 @@ const styles = StyleSheet.create({
   },
   headerStats: {
     padding: 16,
-    backgroundColor: '#fff',
-    borderBottomColor: '#eee',
+    backgroundColor: Colors.background.white,
+    borderBottomColor: Colors.text.lighter,
     borderBottomWidth: 1,
   },
   statCard: {
@@ -159,12 +160,12 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 4,
   },
   viewersSection: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     marginTop: 8,
   },
   viewersHeader: {
@@ -173,13 +174,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 16,
-    borderBottomColor: '#eee',
+    borderBottomColor: Colors.text.lighter,
     borderBottomWidth: 1,
   },
   viewersTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.text.primary,
   },
   refreshText: {
     fontSize: 13,
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Colors.background.light,
     borderBottomWidth: 1,
   },
   viewerInfo: {
@@ -201,12 +202,12 @@ const styles = StyleSheet.create({
   viewerName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.text.primary,
     marginBottom: 4,
   },
   viewerTime: {
     fontSize: 13,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   viewButton: {
     paddingVertical: 8,
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   viewButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '600',
     fontSize: 13,
   },
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.tertiary,
     textAlign: 'center',
   },
   premiumNotice: {
@@ -244,13 +245,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   premiumButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: Colors.accent.gold,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 6,
   },
   premiumButtonText: {
-    color: '#000',
+    color: Colors.text.primary,
     fontWeight: '600',
     fontSize: 14,
   },
@@ -267,7 +268,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   retryButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '600',
   },
 });

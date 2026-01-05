@@ -1,4 +1,13 @@
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 const User = require('../models/User');
 
 const TopPicks = require('../models/TopPicks');
@@ -9,7 +18,11 @@ const Swipe = require('../models/Swipe');
 
 const BoostProfile = require('../models/BoostProfile');
 
-const { calculateDistance, stripPreciseLocation, getDistanceCategory } = require('../utils/geoUtils');
+const {
+  calculateDistance,
+  stripPreciseLocation,
+  getDistanceCategory,
+} = require('../utils/geoUtils');
 
 /**
  * Explore/Browse mode - flexible discovery with filters
@@ -197,7 +210,7 @@ const exploreUsers = async (req, res) => {
     console.error('Error exploring users:', error);
     res.status(500).json({
       success: false,
-      message: (error instanceof Error ? error.message : String(error)),
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -254,7 +267,7 @@ const getTopPicks = async (req, res) => {
     console.error('Error getting top picks:', error);
     res.status(500).json({
       success: false,
-      message: (error instanceof Error ? error.message : String(error)),
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -301,7 +314,7 @@ const getRecentlyActiveUsers = async (req, res) => {
     console.error('Error getting recently active users:', error);
     res.status(500).json({
       success: false,
-      message: (error instanceof Error ? error.message : String(error)),
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -402,7 +415,7 @@ const getVerifiedProfiles = async (req, res) => {
     console.error('Error getting verified profiles:', error);
     res.status(500).json({
       success: false,
-      message: (error instanceof Error ? error.message : String(error)),
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -448,7 +461,7 @@ const verifyProfile = async (req, res) => {
     console.error('Error verifying profile:', error);
     res.status(500).json({
       success: false,
-      message: (error instanceof Error ? error.message : String(error)),
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -492,7 +505,7 @@ const approveProfileVerification = async (req, res) => {
     console.error('Error approving verification:', error);
     res.status(500).json({
       success: false,
-      message: (error instanceof Error ? error.message : String(error)),
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };

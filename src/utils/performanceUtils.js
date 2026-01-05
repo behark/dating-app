@@ -4,6 +4,7 @@
  */
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Colors } from '../constants/colors';
 import { ActivityIndicator, InteractionManager, View } from 'react-native';
 
 // ==================== LAZY LOADING ====================
@@ -29,7 +30,7 @@ export const lazyLoad = (importFn, fallback = null) => {
  */
 const DefaultLoadingFallback = () => (
   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-    <ActivityIndicator size="large" color="#667eea" />
+    <ActivityIndicator size="large" color={Colors.primary} />
   </View>
 );
 DefaultLoadingFallback.displayName = 'DefaultLoadingFallback';
@@ -431,12 +432,26 @@ export const useInfiniteScroll = ({
       // Load more when at threshold
       if (percentFromBottom < threshold) {
         setIsLoading(true);
-        fetchData()
+        // Explicitly handle the promise to satisfy promise/catch-or-return
+        const fetchPromise = fetchData()
           .then((moreAvailable) => {
             setHasMore(moreAvailable !== false);
             prefetchTriggered.current = false;
+            return null; // Explicit return to satisfy promise/always-return
+          })
+          .catch((error) => {
+            // Log error but don't break the UI
+            if (typeof __DEV__ !== 'undefined' && __DEV__) {
+              // eslint-disable-next-line no-console
+              console.error('[useInfiniteScroll] Error fetching data:', error);
+            }
+            setHasMore(false); // Stop trying if there's an error
+            return null; // Explicit return to satisfy promise/always-return
           })
           .finally(() => setIsLoading(false));
+
+        // Explicitly mark as handled (void operator satisfies ESLint)
+        void fetchPromise;
       }
     },
     [fetchData, hasMore, isLoading, threshold, prefetchThreshold, onPrefetch]

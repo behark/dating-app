@@ -3,12 +3,12 @@ const Match = require('../models/Match');
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const SwipeService = require('../services/SwipeService');
-const { 
-  sendSuccess, 
-  sendError, 
-  sendValidationError, 
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
   sendRateLimit,
-  asyncHandler 
+  asyncHandler,
 } = require('../utils/responseHelpers');
 
 /**
@@ -235,14 +235,16 @@ const undoSwipe = async (req, res) => {
     if ((error instanceof Error ? error.message : String(error)) === 'Swipe not found') {
       return res.status(404).json({
         success: false,
-        message: (error instanceof Error ? error.message : String(error)),
+        message: error instanceof Error ? error.message : String(error),
       });
     }
 
-    if ((error instanceof Error ? error.message : String(error)) === 'Unauthorized to undo this swipe') {
+    if (
+      (error instanceof Error ? error.message : String(error)) === 'Unauthorized to undo this swipe'
+    ) {
       return res.status(403).json({
         success: false,
-        message: (error instanceof Error ? error.message : String(error)),
+        message: error instanceof Error ? error.message : String(error),
       });
     }
 
@@ -323,15 +325,15 @@ const MAX_MATCH_LIMIT = 50;
  */
 const getMatches = async (req, res) => {
   const startTime = Date.now();
-  
+
   try {
     const userId = req.user.id;
-    const { 
-      status = 'active', 
-      limit = DEFAULT_MATCH_LIMIT, 
-      skip = 0, 
+    const {
+      status = 'active',
+      limit = DEFAULT_MATCH_LIMIT,
+      skip = 0,
       page = 1,
-      sortBy = 'createdAt' 
+      sortBy = 'createdAt',
     } = req.query;
 
     const resultLimit = Math.min(parseInt(limit), MAX_MATCH_LIMIT);
@@ -350,7 +352,7 @@ const getMatches = async (req, res) => {
         .limit(resultLimit + 1) // Fetch one extra to check for more
         .maxTimeMS(MATCH_QUERY_TIMEOUT_MS)
         .lean(),
-      
+
       Match.countDocuments({
         users: userId,
         status: status,
@@ -376,7 +378,7 @@ const getMatches = async (req, res) => {
     });
 
     const queryTime = Date.now() - startTime;
-    
+
     // Log slow queries
     if (queryTime > 3000) {
       console.warn(`[SLOW] getMatches query took ${queryTime}ms for user ${userId}`);
@@ -402,16 +404,25 @@ const getMatches = async (req, res) => {
   } catch (error) {
     const queryTime = Date.now() - startTime;
     console.error(`Error getting matches after ${queryTime}ms:`, error);
-    
+
     // Check for timeout error
-    if ((error instanceof Error ? (error instanceof Error ? error.name : 'Error') : 'Error') === 'MongooseError' && (error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error)).includes('maxTimeMS')) {
+    if (
+      (error instanceof Error ? (error instanceof Error ? error.name : 'Error') : 'Error') ===
+        'MongooseError' &&
+      (error instanceof Error
+        ? error instanceof Error
+          ? error.message
+          : String(error)
+        : String(error)
+      ).includes('maxTimeMS')
+    ) {
       return res.status(503).json({
         success: false,
         message: 'Match query timed out. Please try again.',
         error: 'QUERY_TIMEOUT',
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Internal server error while retrieving matches',
@@ -451,14 +462,16 @@ const unmatch = async (req, res) => {
     if ((error instanceof Error ? error.message : String(error)) === 'Match not found') {
       return res.status(404).json({
         success: false,
-        message: (error instanceof Error ? error.message : String(error)),
+        message: error instanceof Error ? error.message : String(error),
       });
     }
 
-    if ((error instanceof Error ? error.message : String(error)) === 'User is not part of this match') {
+    if (
+      (error instanceof Error ? error.message : String(error)) === 'User is not part of this match'
+    ) {
       return res.status(403).json({
         success: false,
-        message: (error instanceof Error ? error.message : String(error)),
+        message: error instanceof Error ? error.message : String(error),
       });
     }
 

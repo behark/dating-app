@@ -80,7 +80,7 @@ const connectDB = async () => {
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Connection timeout after 15 seconds')), 15000);
       });
-      
+
       // Race between connection and timeout
       const conn = await Promise.race([connectionPromise, timeoutPromise]);
 
@@ -287,7 +287,7 @@ const enableSlowQueryProfiling = async (thresholdMs = 100) => {
     }
   } catch (error) {
     const errorMessage = error && error.message ? error.message : String(error);
-    
+
     // MongoDB Atlas and other managed services often disable profiling
     if (errorMessage.includes('CMD_NOT_ALLOWED') || errorMessage.includes('profile')) {
       console.log('ℹ️  Slow query profiling not available (normal for managed MongoDB services)');
@@ -308,7 +308,7 @@ const createIndexes = async () => {
       console.warn('Database not connected, skipping index creation');
       return;
     }
-    
+
     // Add timeout to prevent hanging during index creation
     const indexCreationPromise = async () => {
       // Helper function to safely create indexes
@@ -371,9 +371,7 @@ const createIndexes = async () => {
         { key: { reporterId: 1, createdAt: -1 } },
       ]);
 
-      await safeCreateIndexes('blocks', [
-        { key: { blockerId: 1, blockedId: 1 }, unique: true }
-      ]);
+      await safeCreateIndexes('blocks', [{ key: { blockerId: 1, blockedId: 1 }, unique: true }]);
 
       // UserActivity indexes for analytics
       // TD-004: Optimized for DAU/retention queries
@@ -383,14 +381,14 @@ const createIndexes = async () => {
         { key: { userId: 1, createdAt: 1 }, name: 'userId_createdAt_retention' },
       ]);
     };
-    
+
     // Race between index creation and timeout (30 seconds)
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Index creation timeout after 30 seconds')), 30000);
     });
-    
+
     await Promise.race([indexCreationPromise(), timeoutPromise]);
-    
+
     console.log('✅ Database indexes created successfully');
 
     // Enable slow query profiling after indexes are created

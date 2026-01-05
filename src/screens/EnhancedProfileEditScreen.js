@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Colors } from '../constants/colors';
 import {
   ActivityIndicator,
   Alert,
@@ -25,6 +26,242 @@ const ETHNICITIES = [
 ];
 
 const HEIGHT_UNITS = ['cm', 'ft'];
+
+// Tab Content Components
+const PromptsTab = ({
+  availablePrompts,
+  selectedPrompts,
+  promptAnswers,
+  loading,
+  onSelectPrompt,
+  onAnswerChange,
+  onSave,
+}) => (
+  <View style={styles.tabContent}>
+    <Text style={styles.sectionTitle}>Select Profile Prompts</Text>
+    <Text style={styles.sectionSubtitle}>Choose up to 3 prompts and answer them</Text>
+
+    <FlatList
+      scrollEnabled={false}
+      data={availablePrompts}
+      keyExtractor={(item, index) => index.toString()}
+      renderItem={({ item }) => (
+        <TouchableOpacity
+          style={[styles.promptCard, selectedPrompts.includes(item) && styles.selectedPrompt]}
+          onPress={() => onSelectPrompt(item)}
+        >
+          <Text style={styles.promptText}>{item}</Text>
+        </TouchableOpacity>
+      )}
+    />
+
+    {selectedPrompts.map((prompt, index) => (
+      <View key={index} style={styles.answerContainer}>
+        <Text style={styles.answerLabel}>Your answer to &quot;{prompt}&quot;</Text>
+        <TextInput
+          style={styles.answerInput}
+          placeholder="Type your answer here..."
+          value={promptAnswers[prompt] || ''}
+          onChangeText={(text) => onAnswerChange(prompt, text)}
+          multiline
+          maxLength={300}
+        />
+        <Text style={styles.characterCount}>{(promptAnswers[prompt] || '').length}/300</Text>
+      </View>
+    ))}
+
+    <TouchableOpacity
+      style={[styles.saveButton, loading && styles.disabledButton]}
+      onPress={onSave}
+      disabled={loading}
+    >
+      <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Prompts'}</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+const EducationTab = ({ education, loading, onEducationChange, onSave }) => (
+  <View style={styles.tabContent}>
+    <Text style={styles.sectionTitle}>Education</Text>
+
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>School/University</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Harvard University"
+        value={education.school}
+        onChangeText={(text) => onEducationChange({ ...education, school: text })}
+      />
+    </View>
+
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>Degree</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Bachelor's"
+        value={education.degree}
+        onChangeText={(text) => onEducationChange({ ...education, degree: text })}
+      />
+    </View>
+
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>Field of Study</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Computer Science"
+        value={education.fieldOfStudy}
+        onChangeText={(text) => onEducationChange({ ...education, fieldOfStudy: text })}
+      />
+    </View>
+
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>Graduation Year</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="2023"
+        value={education.graduationYear.toString()}
+        onChangeText={(text) => {
+          const year = parseInt(text) || new Date().getFullYear();
+          onEducationChange({ ...education, graduationYear: year });
+        }}
+        keyboardType="numeric"
+      />
+    </View>
+
+    <TouchableOpacity
+      style={[styles.saveButton, loading && styles.disabledButton]}
+      onPress={onSave}
+      disabled={loading}
+    >
+      <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Education'}</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+const OccupationTab = ({ occupation, loading, onOccupationChange, onSave }) => (
+  <View style={styles.tabContent}>
+    <Text style={styles.sectionTitle}>Occupation</Text>
+
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>Job Title</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Software Engineer"
+        value={occupation.jobTitle}
+        onChangeText={(text) => onOccupationChange({ ...occupation, jobTitle: text })}
+      />
+    </View>
+
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>Company</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Tech Company Inc."
+        value={occupation.company}
+        onChangeText={(text) => onOccupationChange({ ...occupation, company: text })}
+      />
+    </View>
+
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>Industry</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Technology"
+        value={occupation.industry}
+        onChangeText={(text) => onOccupationChange({ ...occupation, industry: text })}
+      />
+    </View>
+
+    <TouchableOpacity
+      style={[styles.saveButton, loading && styles.disabledButton]}
+      onPress={onSave}
+      disabled={loading}
+    >
+      <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Occupation'}</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+const HeightTab = ({ height, loading, onHeightChange, onSave }) => (
+  <View style={styles.tabContent}>
+    <Text style={styles.sectionTitle}>Height</Text>
+
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>Height Value</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="180"
+        value={height.value}
+        onChangeText={(text) => onHeightChange({ ...height, value: text })}
+        keyboardType="numeric"
+      />
+    </View>
+
+    <View style={styles.inputGroup}>
+      <Text style={styles.label}>Unit</Text>
+      <View style={styles.unitContainer}>
+        {HEIGHT_UNITS.map((unit) => (
+          <TouchableOpacity
+            key={unit}
+            style={[styles.unitButton, height.unit === unit && styles.unitButtonActive]}
+            onPress={() => onHeightChange({ ...height, unit })}
+          >
+            <Text
+              style={[styles.unitButtonText, height.unit === unit && styles.unitButtonTextActive]}
+            >
+              {unit}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+
+    <TouchableOpacity
+      style={[styles.saveButton, loading && styles.disabledButton]}
+      onPress={onSave}
+      disabled={loading}
+    >
+      <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Height'}</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+const EthnicityTab = ({ selectedEthnicities, loading, onEthnicityToggle, onSave }) => (
+  <View style={styles.tabContent}>
+    <Text style={styles.sectionTitle}>Ethnicity</Text>
+    <Text style={styles.sectionSubtitle}>Select up to 3</Text>
+
+    <View style={styles.ethnicityGrid}>
+      {ETHNICITIES.map((ethnicity) => (
+        <TouchableOpacity
+          key={ethnicity}
+          style={[
+            styles.ethnicityChip,
+            selectedEthnicities.includes(ethnicity) && styles.ethnicityChipActive,
+          ]}
+          onPress={() => onEthnicityToggle(ethnicity)}
+        >
+          <Text
+            style={[
+              styles.ethnicityChipText,
+              selectedEthnicities.includes(ethnicity) && styles.ethnicityChipTextActive,
+            ]}
+          >
+            {ethnicity}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+
+    <TouchableOpacity
+      style={[styles.saveButton, loading && styles.disabledButton]}
+      onPress={onSave}
+      disabled={loading}
+    >
+      <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Ethnicities'}</Text>
+    </TouchableOpacity>
+  </View>
+);
 
 export default function EnhancedProfileEditScreen() {
   const [loading, setLoading] = useState(false);
@@ -76,6 +313,15 @@ export default function EnhancedProfileEditScreen() {
       setSelectedPrompts([...selectedPrompts, prompt]);
     } else {
       Alert.alert('Limit', 'You can only select up to 3 prompts');
+    }
+  };
+
+  const handleAnswerChange = (prompt, text) => {
+    if (text.length <= 300) {
+      setPromptAnswers({
+        ...promptAnswers,
+        [prompt]: text,
+      });
     }
   };
 
@@ -230,253 +476,52 @@ export default function EnhancedProfileEditScreen() {
       </View>
 
       <ScrollView style={styles.content}>
-        {/* Prompts Tab */}
         {activeTab === 'prompts' && (
-          <View style={styles.tabContent}>
-            <Text style={styles.sectionTitle}>Select Profile Prompts</Text>
-            <Text style={styles.sectionSubtitle}>Choose up to 3 prompts and answer them</Text>
-
-            <FlatList
-              scrollEnabled={false}
-              data={availablePrompts}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.promptCard,
-                    selectedPrompts.includes(item) && styles.selectedPrompt,
-                  ]}
-                  onPress={() => handleSelectPrompt(item)}
-                >
-                  <Text style={styles.promptText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
-
-            {selectedPrompts.map((prompt, index) => (
-              <View key={index} style={styles.answerContainer}>
-                <Text style={styles.answerLabel}>Your answer to &quot;{prompt}&quot;</Text>
-                <TextInput
-                  style={styles.answerInput}
-                  placeholder="Type your answer here..."
-                  value={promptAnswers[prompt] || ''}
-                  onChangeText={(text) => {
-                    if (text.length <= 300) {
-                      setPromptAnswers({
-                        ...promptAnswers,
-                        [prompt]: text,
-                      });
-                    }
-                  }}
-                  multiline
-                  maxLength={300}
-                />
-                <Text style={styles.characterCount}>
-                  {(promptAnswers[prompt] || '').length}/300
-                </Text>
-              </View>
-            ))}
-
-            <TouchableOpacity
-              style={[styles.saveButton, loading && styles.disabledButton]}
-              onPress={savePrompts}
-              disabled={loading}
-            >
-              <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Prompts'}</Text>
-            </TouchableOpacity>
-          </View>
+          <PromptsTab
+            availablePrompts={availablePrompts}
+            selectedPrompts={selectedPrompts}
+            promptAnswers={promptAnswers}
+            loading={loading}
+            onSelectPrompt={handleSelectPrompt}
+            onAnswerChange={handleAnswerChange}
+            onSave={savePrompts}
+          />
         )}
 
-        {/* Education Tab */}
         {activeTab === 'education' && (
-          <View style={styles.tabContent}>
-            <Text style={styles.sectionTitle}>Education</Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>School/University</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Harvard University"
-                value={education.school}
-                onChangeText={(text) => setEducation({ ...education, school: text })}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Degree</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Bachelor's"
-                value={education.degree}
-                onChangeText={(text) => setEducation({ ...education, degree: text })}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Field of Study</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Computer Science"
-                value={education.fieldOfStudy}
-                onChangeText={(text) => setEducation({ ...education, fieldOfStudy: text })}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Graduation Year</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="2023"
-                value={education.graduationYear.toString()}
-                onChangeText={(text) => {
-                  const year = parseInt(text) || new Date().getFullYear();
-                  setEducation({ ...education, graduationYear: year });
-                }}
-                keyboardType="numeric"
-              />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.saveButton, loading && styles.disabledButton]}
-              onPress={saveEducation}
-              disabled={loading}
-            >
-              <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Education'}</Text>
-            </TouchableOpacity>
-          </View>
+          <EducationTab
+            education={education}
+            loading={loading}
+            onEducationChange={setEducation}
+            onSave={saveEducation}
+          />
         )}
 
-        {/* Occupation Tab */}
         {activeTab === 'occupation' && (
-          <View style={styles.tabContent}>
-            <Text style={styles.sectionTitle}>Occupation</Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Job Title</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Software Engineer"
-                value={occupation.jobTitle}
-                onChangeText={(text) => setOccupation({ ...occupation, jobTitle: text })}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Company</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Tech Company Inc."
-                value={occupation.company}
-                onChangeText={(text) => setOccupation({ ...occupation, company: text })}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Industry</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Technology"
-                value={occupation.industry}
-                onChangeText={(text) => setOccupation({ ...occupation, industry: text })}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.saveButton, loading && styles.disabledButton]}
-              onPress={saveOccupation}
-              disabled={loading}
-            >
-              <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Occupation'}</Text>
-            </TouchableOpacity>
-          </View>
+          <OccupationTab
+            occupation={occupation}
+            loading={loading}
+            onOccupationChange={setOccupation}
+            onSave={saveOccupation}
+          />
         )}
 
-        {/* Height Tab */}
         {activeTab === 'height' && (
-          <View style={styles.tabContent}>
-            <Text style={styles.sectionTitle}>Height</Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Height Value</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="180"
-                value={height.value}
-                onChangeText={(text) => setHeight({ ...height, value: text })}
-                keyboardType="numeric"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Unit</Text>
-              <View style={styles.unitContainer}>
-                {HEIGHT_UNITS.map((unit) => (
-                  <TouchableOpacity
-                    key={unit}
-                    style={[styles.unitButton, height.unit === unit && styles.unitButtonActive]}
-                    onPress={() => setHeight({ ...height, unit })}
-                  >
-                    <Text
-                      style={[
-                        styles.unitButtonText,
-                        height.unit === unit && styles.unitButtonTextActive,
-                      ]}
-                    >
-                      {unit}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.saveButton, loading && styles.disabledButton]}
-              onPress={saveHeight}
-              disabled={loading}
-            >
-              <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Height'}</Text>
-            </TouchableOpacity>
-          </View>
+          <HeightTab
+            height={height}
+            loading={loading}
+            onHeightChange={setHeight}
+            onSave={saveHeight}
+          />
         )}
 
-        {/* Ethnicity Tab */}
         {activeTab === 'ethnicity' && (
-          <View style={styles.tabContent}>
-            <Text style={styles.sectionTitle}>Ethnicity</Text>
-            <Text style={styles.sectionSubtitle}>Select up to 3</Text>
-
-            <View style={styles.ethnicityGrid}>
-              {ETHNICITIES.map((ethnicity) => (
-                <TouchableOpacity
-                  key={ethnicity}
-                  style={[
-                    styles.ethnicityChip,
-                    selectedEthnicities.includes(ethnicity) && styles.ethnicityChipActive,
-                  ]}
-                  onPress={() => handleEthnicityToggle(ethnicity)}
-                >
-                  <Text
-                    style={[
-                      styles.ethnicityChipText,
-                      selectedEthnicities.includes(ethnicity) && styles.ethnicityChipTextActive,
-                    ]}
-                  >
-                    {ethnicity}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity
-              style={[styles.saveButton, loading && styles.disabledButton]}
-              onPress={saveEthnicities}
-              disabled={loading}
-            >
-              <Text style={styles.saveButtonText}>
-                {loading ? 'Saving...' : 'Save Ethnicities'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <EthnicityTab
+            selectedEthnicities={selectedEthnicities}
+            loading={loading}
+            onEthnicityToggle={handleEthnicityToggle}
+            onSave={saveEthnicities}
+          />
         )}
       </ScrollView>
     </View>
@@ -486,7 +531,7 @@ export default function EnhancedProfileEditScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background.lighter,
   },
   centerContainer: {
     flex: 1,
@@ -495,8 +540,8 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderBottomColor: '#ddd',
+    backgroundColor: Colors.background.white,
+    borderBottomColor: Colors.border.light,
     borderBottomWidth: 1,
   },
   tab: {
@@ -512,7 +557,7 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#666',
+    color: Colors.text.secondary,
   },
   activeTabText: {
     color: '#007AFF',
@@ -527,29 +572,29 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#000',
+    color: Colors.text.primary,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 16,
   },
   promptCard: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     padding: 16,
     marginBottom: 12,
     borderRadius: 8,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderWidth: 1,
   },
   selectedPrompt: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: Colors.status.infoLight,
     borderColor: '#007AFF',
     borderWidth: 2,
   },
   promptText: {
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
     fontWeight: '500',
   },
   answerContainer: {
@@ -560,22 +605,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#000',
+    color: Colors.text.primary,
   },
   answerInput: {
-    backgroundColor: '#fff',
-    borderColor: '#ddd',
+    backgroundColor: Colors.background.white,
+    borderColor: Colors.border.light,
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
     minHeight: 100,
     textAlignVertical: 'top',
     fontSize: 14,
-    color: '#000',
+    color: Colors.text.primary,
   },
   characterCount: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 4,
     textAlign: 'right',
   },
@@ -586,16 +631,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#000',
+    color: Colors.text.primary,
   },
   input: {
-    backgroundColor: '#fff',
-    borderColor: '#ddd',
+    backgroundColor: Colors.background.white,
+    borderColor: Colors.border.light,
     borderWidth: 1,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#000',
+    color: Colors.text.primary,
   },
   unitContainer: {
     flexDirection: 'row',
@@ -606,9 +651,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderWidth: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     alignItems: 'center',
   },
   unitButtonActive: {
@@ -618,10 +663,10 @@ const styles = StyleSheet.create({
   unitButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: Colors.text.secondary,
   },
   unitButtonTextActive: {
-    color: '#fff',
+    color: Colors.background.white,
   },
   ethnicityGrid: {
     flexDirection: 'row',
@@ -633,9 +678,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
     borderWidth: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
   },
   ethnicityChipActive: {
     backgroundColor: '#007AFF',
@@ -644,10 +689,10 @@ const styles = StyleSheet.create({
   ethnicityChipText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#333',
+    color: Colors.text.dark,
   },
   ethnicityChipTextActive: {
-    color: '#fff',
+    color: Colors.background.white,
   },
   saveButton: {
     backgroundColor: '#007AFF',
@@ -661,7 +706,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     fontWeight: '600',
   },

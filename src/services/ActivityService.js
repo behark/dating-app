@@ -1,8 +1,10 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from './api';
+import { API_URL } from '../config/api';
+import { ERROR_MESSAGES } from '../constants/constants';
+import { handleApiResponse, isValidationError } from '../utils/apiResponseHandler';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 import { validateUserId } from '../utils/validators';
-import { handleApiResponse, handlePaginatedResponse, isValidationError } from '../utils/apiResponseHandler';
+import api from './api';
 
 /**
  * ActivityService - Manages user activity tracking and online status
@@ -13,7 +15,6 @@ import { handleApiResponse, handlePaginatedResponse, isValidationError } from '.
  * - Fetching activity data (who viewed profile, etc.)
  */
 export class ActivityService {
-
   /**
    * Update the current user's online status
    * @param {boolean} isOnline - Whether the user is online
@@ -28,7 +29,7 @@ export class ActivityService {
 
       const response = await api.put('/activity/update-online-status', { isOnline });
       const handled = handleApiResponse(response, 'Update online status');
-      
+
       return handled.data;
     } catch (error) {
       if (isValidationError(error)) {
@@ -36,27 +37,6 @@ export class ActivityService {
       } else {
         logger.error('Error updating online status:', error);
       }
-      throw error;
-    }
-  }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to update online status'));
-      }
-
-      return data.data || {};
-    } catch (error) {
-      logger.error('Error updating online status:', error);
       throw error;
     }
   }
@@ -70,12 +50,12 @@ export class ActivityService {
   static async getOnlineStatus(userId) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/activity/online-status/${userId}`, {
@@ -114,12 +94,12 @@ export class ActivityService {
   static async viewProfile(userId) {
     try {
       if (!validateUserId(userId)) {
-        throw new Error('Invalid user ID provided');
+        throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/activity/view-profile/${userId}`, {
@@ -160,7 +140,7 @@ export class ActivityService {
     try {
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/activity/profile-views`, {
@@ -207,7 +187,7 @@ export class ActivityService {
 
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/activity/status`, {
@@ -250,7 +230,7 @@ export class ActivityService {
     try {
       const authToken = await this.getAuthToken();
       if (!authToken) {
-        throw new Error('No authentication token found');
+        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
       }
 
       const response = await fetch(`${API_URL}/activity/heartbeat`, {

@@ -256,7 +256,7 @@ subscriptionTierSchema.statics.initializeDefaultTiers = async function () {
       },
       trial: { available: false },
     },
-  // @ts-ignore - Mongoose static method context
+    // @ts-ignore - Mongoose static method context
   ];
 
   for (const tier of defaultTiers) {

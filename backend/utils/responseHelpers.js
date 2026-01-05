@@ -28,7 +28,9 @@ const sendSuccess = (res, statusCode = 200, options = {}) => {
       page: options.pagination.page || 1,
       limit: options.pagination.limit || 10,
       total: options.pagination.total || 0,
-      pages: options.pagination.pages || Math.ceil((options.pagination.total || 0) / (options.pagination.limit || 10)),
+      pages:
+        options.pagination.pages ||
+        Math.ceil((options.pagination.total || 0) / (options.pagination.limit || 10)),
       hasNext: options.pagination.hasNext || false,
       hasPrev: options.pagination.hasPrev || false,
     };
@@ -91,7 +93,7 @@ const sendValidationError = (res, errors, message = 'Validation failed') => {
     formattedErrors = errors;
   } else if (typeof errors === 'object' && errors.errors) {
     // Mongoose validation errors
-    formattedErrors = Object.values(errors.errors).map(err => ({
+    formattedErrors = Object.values(errors.errors).map((err) => ({
       field: err.path,
       message: err.message,
       value: err.value,
@@ -121,7 +123,7 @@ const sendValidationError = (res, errors, message = 'Validation failed') => {
  * @returns {Object} Express response
  */
 const sendNotFound = (res, resource = 'Resource', identifier = '') => {
-  const message = identifier 
+  const message = identifier
     ? `${resource} with ID '${identifier}' not found`
     : `${resource} not found`;
 
@@ -226,12 +228,12 @@ const createPaginatedResponse = (data, options = {}) => {
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch((error) => {
     console.error('Controller error:', error);
-    
+
     // Handle specific error types
     if (error.name === 'ValidationError') {
       return sendValidationError(res, error);
     }
-    
+
     if (error.name === 'CastError') {
       return sendError(res, 400, {
         message: 'Invalid ID format',
@@ -240,7 +242,7 @@ const asyncHandler = (fn) => (req, res, next) => {
         details: null,
       });
     }
-    
+
     if (error.code === 11000) {
       return sendError(res, 400, {
         message: 'Duplicate entry found',
@@ -252,9 +254,7 @@ const asyncHandler = (fn) => (req, res, next) => {
 
     // Default server error
     return sendError(res, 500, {
-      message: process.env.NODE_ENV === 'production' 
-        ? 'Internal server error' 
-        : error.message,
+      message: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message,
       error: 'INTERNAL_SERVER_ERROR',
       errors: [],
       details: process.env.NODE_ENV === 'production' ? null : error.stack,

@@ -1,7 +1,8 @@
 import { API_BASE_URL } from '../config/api';
-import logger from '../utils/logger';
-import { validateUserId, validateNotEmpty, validateNumberRange } from '../utils/validators';
+import { ERROR_MESSAGES } from '../constants/constants';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
+import logger from '../utils/logger';
+import { validateNotEmpty, validateNumberRange, validateUserId } from '../utils/validators';
 
 class MediaMessagesService {
   constructor(authToken) {
@@ -42,7 +43,7 @@ class MediaMessagesService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -85,7 +86,7 @@ class MediaMessagesService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -128,7 +129,7 @@ class MediaMessagesService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -166,7 +167,7 @@ class MediaMessagesService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -208,7 +209,7 @@ class MediaMessagesService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -253,7 +254,7 @@ class MediaMessagesService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -282,7 +283,7 @@ class MediaMessagesService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -323,7 +324,7 @@ class MediaMessagesService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {
@@ -365,7 +366,7 @@ class MediaMessagesService {
 
       const data = await response.json();
       if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
       }
       return data.data || {};
     } catch (error) {

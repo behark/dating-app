@@ -1,23 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { useEffect, useRef, useState } from 'react';
-import {
-    Animated,
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
-} from 'react-native';
+import { Animated, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const REACTIONS = [
-  { id: 'heart', emoji: '❤️', name: 'Love', color: '#FF6B6B' },
+  { id: 'heart', emoji: '❤️', name: 'Love', color: Colors.accent.red },
   { id: 'laugh', emoji: '😂', name: 'Haha', color: '#FFD93D' },
-  { id: 'wow', emoji: '😮', name: 'Wow', color: '#4ECDC4' },
+  { id: 'wow', emoji: '😮', name: 'Wow', color: Colors.accent.teal },
   { id: 'sad', emoji: '😢', name: 'Sad', color: '#74B9FF' },
   { id: 'angry', emoji: '😡', name: 'Angry', color: '#FF7675' },
   { id: 'fire', emoji: '🔥', name: 'Fire', color: '#FF9F43' },
-  { id: 'thumbsup', emoji: '👍', name: 'Like', color: '#667eea' },
+  { id: 'thumbsup', emoji: '👍', name: 'Like', color: Colors.primary },
   { id: 'clap', emoji: '👏', name: 'Clap', color: '#F8B500' },
 ];
 
@@ -31,16 +24,18 @@ const MessageReactions = ({
 }) => {
   const [showPicker, setShowPicker] = useState(false);
   const [selectedReaction, setSelectedReaction] = useState(null);
-  
+
   // Animation values
   const pickerAnim = useRef(new Animated.Value(0)).current;
   const reactionAnims = useRef(REACTIONS.map(() => new Animated.Value(0))).current;
-  const burstAnims = useRef([...Array(6)].map(() => ({
-    scale: new Animated.Value(0),
-    opacity: new Animated.Value(0),
-    x: new Animated.Value(0),
-    y: new Animated.Value(0),
-  }))).current;
+  const burstAnims = useRef(
+    [...Array(6)].map(() => ({
+      scale: new Animated.Value(0),
+      opacity: new Animated.Value(0),
+      x: new Animated.Value(0),
+      y: new Animated.Value(0),
+    }))
+  ).current;
 
   useEffect(() => {
     if (showPicker) {
@@ -72,8 +67,8 @@ const MessageReactions = ({
 
   const triggerBurstAnimation = (_reaction) => {
     burstAnims.forEach((anim, i) => {
-      const angle = (i * 60) * (Math.PI / 180);
-      
+      const angle = i * 60 * (Math.PI / 180);
+
       Animated.parallel([
         Animated.timing(anim.scale, {
           toValue: 1,
@@ -135,7 +130,7 @@ const MessageReactions = ({
   const renderExistingReactions = () => {
     const counts = getReactionCounts();
     const reactionEntries = Object.entries(counts);
-    
+
     if (reactionEntries.length === 0) return null;
 
     return (
@@ -200,12 +195,7 @@ const MessageReactions = ({
                     onPress={() => handleReact(reaction)}
                     style={styles.reactionButton}
                   >
-                    <Animated.View
-                      style={[
-                        styles.reactionButtonInner,
-                        { transform: [{ scale }] },
-                      ]}
-                    >
+                    <Animated.View style={[styles.reactionButtonInner, { transform: [{ scale }] }]}>
                       <Text style={styles.reactionButtonEmoji}>{reaction.emoji}</Text>
                     </Animated.View>
                   </TouchableOpacity>
@@ -227,11 +217,7 @@ const MessageReactions = ({
             styles.burstParticle,
             {
               opacity: anim.opacity,
-              transform: [
-                { translateX: anim.x },
-                { translateY: anim.y },
-                { scale: anim.scale },
-              ],
+              transform: [{ translateX: anim.x }, { translateY: anim.y }, { scale: anim.scale }],
             },
           ]}
         >
@@ -244,14 +230,14 @@ const MessageReactions = ({
   return (
     <View style={styles.container}>
       {renderExistingReactions()}
-      
+
       <TouchableOpacity
         onLongPress={handleLongPress}
         delayLongPress={300}
         disabled={disabled}
         style={styles.addReactionButton}
       >
-        <Ionicons name="happy-outline" size={16} color="#999" />
+        <Ionicons name="happy-outline" size={16} color={Colors.text.tertiary} />
       </TouchableOpacity>
 
       {renderPicker()}
@@ -261,7 +247,10 @@ const MessageReactions = ({
 };
 
 // Quick reaction button for inline use
-export const QuickReactionButton = ({ onPress, reaction = (REACTIONS.length > 0 ? REACTIONS[0] : null) }) => {
+export const QuickReactionButton = ({
+  onPress,
+  reaction = REACTIONS.length > 0 ? REACTIONS[0] : null,
+}) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePress = () => {
@@ -320,7 +309,7 @@ const styles = StyleSheet.create({
   },
   reactionCount: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     fontWeight: '600',
   },
   addReactionButton: {
@@ -333,10 +322,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pickerContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 24,
     padding: 8,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -356,7 +345,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     justifyContent: 'center',
     alignItems: 'center',
   },

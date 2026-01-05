@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
@@ -89,7 +90,7 @@ const PreferencesScreen = ({ navigation }) => {
         maxValue={preferences.maxAge}
         onChangeMin={(value) => updatePreference('minAge', value)}
         onChangeMax={(value) => updatePreference('maxAge', value)}
-        color="#FF6B6B"
+        color={Colors.accent.red}
       />
     </View>
   );
@@ -105,7 +106,7 @@ const PreferencesScreen = ({ navigation }) => {
         onChange={(value) => updatePreference('maxDistance', value)}
         label="Maximum Distance"
         unit=" km"
-        color="#4ECDC4"
+        color={Colors.accent.teal}
       />
     </View>
   );
@@ -130,7 +131,9 @@ const PreferencesScreen = ({ navigation }) => {
             <Ionicons
               name={option.icon}
               size={24}
-              color={preferences.interestedIn === option.key ? '#fff' : '#667eea'}
+              color={
+                preferences.interestedIn === option.key ? Colors.background.white : Colors.primary
+              }
             />
             <Text
               style={[
@@ -167,7 +170,9 @@ const PreferencesScreen = ({ navigation }) => {
             <Ionicons
               name={option.icon}
               size={28}
-              color={preferences.lookingFor === option.key ? '#fff' : '#667eea'}
+              color={
+                preferences.lookingFor === option.key ? Colors.background.white : Colors.primary
+              }
             />
             <Text
               style={[
@@ -189,7 +194,7 @@ const PreferencesScreen = ({ navigation }) => {
       <View style={styles.switchGroup}>
         <View style={styles.switchRow}>
           <View style={styles.switchInfo}>
-            <Ionicons name="notifications" size={24} color="#667eea" />
+            <Ionicons name="notifications" size={24} color={Colors.primary} />
             <View style={styles.switchText}>
               <Text style={styles.switchTitle}>Push Notifications</Text>
               <Text style={styles.switchSubtitle}>Receive notifications on your device</Text>
@@ -198,13 +203,13 @@ const PreferencesScreen = ({ navigation }) => {
           <Switch
             value={preferences.notificationsEnabled}
             onValueChange={(value) => updatePreference('notificationsEnabled', value)}
-            trackColor={{ false: '#ccc', true: '#667eea' }}
-            thumbColor="#fff"
+            trackColor={{ false: Colors.text.light, true: Colors.primary }}
+            thumbColor={Colors.background.white}
           />
         </View>
         <View style={styles.switchRow}>
           <View style={styles.switchInfo}>
-            <Ionicons name="heart" size={24} color="#FF6B6B" />
+            <Ionicons name="heart" size={24} color={Colors.accent.red} />
             <View style={styles.switchText}>
               <Text style={styles.switchTitle}>Match Notifications</Text>
               <Text style={styles.switchSubtitle}>Get notified when you match with someone</Text>
@@ -213,14 +218,14 @@ const PreferencesScreen = ({ navigation }) => {
           <Switch
             value={preferences.matchNotifications}
             onValueChange={(value) => updatePreference('matchNotifications', value)}
-            trackColor={{ false: '#ccc', true: '#FF6B6B' }}
-            thumbColor="#fff"
+            trackColor={{ false: Colors.text.light, true: Colors.accent.red }}
+            thumbColor={Colors.background.white}
             disabled={!preferences.notificationsEnabled}
           />
         </View>
         <View style={styles.switchRow}>
           <View style={styles.switchInfo}>
-            <Ionicons name="chatbubble" size={24} color="#4ECDC4" />
+            <Ionicons name="chatbubble" size={24} color={Colors.accent.teal} />
             <View style={styles.switchText}>
               <Text style={styles.switchTitle}>Message Notifications</Text>
               <Text style={styles.switchSubtitle}>Get notified of new messages</Text>
@@ -229,8 +234,8 @@ const PreferencesScreen = ({ navigation }) => {
           <Switch
             value={preferences.messageNotifications}
             onValueChange={(value) => updatePreference('messageNotifications', value)}
-            trackColor={{ false: '#ccc', true: '#4ECDC4' }}
-            thumbColor="#fff"
+            trackColor={{ false: Colors.text.light, true: Colors.accent.teal }}
+            thumbColor={Colors.background.white}
             disabled={!preferences.notificationsEnabled}
           />
         </View>
@@ -244,7 +249,7 @@ const PreferencesScreen = ({ navigation }) => {
       <View style={styles.switchGroup}>
         <View style={styles.switchRow}>
           <View style={styles.switchInfo}>
-            <Ionicons name="location" size={24} color="#667eea" />
+            <Ionicons name="location" size={24} color={Colors.primary} />
             <View style={styles.switchText}>
               <Text style={styles.switchTitle}>Show Distance</Text>
               <Text style={styles.switchSubtitle}>Let others see how far you are</Text>
@@ -253,13 +258,13 @@ const PreferencesScreen = ({ navigation }) => {
           <Switch
             value={preferences.showDistance}
             onValueChange={(value) => updatePreference('showDistance', value)}
-            trackColor={{ false: '#ccc', true: '#667eea' }}
-            thumbColor="#fff"
+            trackColor={{ false: Colors.text.light, true: Colors.primary }}
+            thumbColor={Colors.background.white}
           />
         </View>
         <View style={styles.switchRow}>
           <View style={styles.switchInfo}>
-            <Ionicons name="calendar" size={24} color="#FF6B6B" />
+            <Ionicons name="calendar" size={24} color={Colors.accent.red} />
             <View style={styles.switchText}>
               <Text style={styles.switchTitle}>Show Age</Text>
               <Text style={styles.switchSubtitle}>Display your age on your profile</Text>
@@ -268,8 +273,8 @@ const PreferencesScreen = ({ navigation }) => {
           <Switch
             value={preferences.showAge}
             onValueChange={(value) => updatePreference('showAge', value)}
-            trackColor={{ false: '#ccc', true: '#FF6B6B' }}
-            thumbColor="#fff"
+            trackColor={{ false: Colors.text.light, true: Colors.accent.red }}
+            thumbColor={Colors.background.white}
           />
         </View>
       </View>
@@ -311,7 +316,11 @@ const PreferencesScreen = ({ navigation }) => {
             <Ionicons
               name={option.icon}
               size={24}
-              color={preferences.locationPrivacy === option.key ? '#fff' : '#667eea'}
+              color={
+                preferences.locationPrivacy === option.key
+                  ? Colors.background.white
+                  : Colors.primary
+              }
             />
             <View style={{ flex: 1, marginLeft: 10 }}>
               <Text
@@ -357,9 +366,9 @@ const PreferencesScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="settings" size={60} color="#fff" />
+          <Ionicons name="settings" size={60} color={Colors.background.white} />
           <Text style={styles.loadingText}>Loading preferences...</Text>
         </View>
       </LinearGradient>
@@ -367,14 +376,14 @@ const PreferencesScreen = ({ navigation }) => {
   }
 
   return (
-    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+    <LinearGradient colors={Colors.gradient.light} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="arrow-back" size={24} color={Colors.background.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Preferences</Text>
         <TouchableOpacity onPress={savePreferences} style={styles.saveButton} disabled={saving}>
-          <Ionicons name="checkmark" size={24} color="#fff" />
+          <Ionicons name="checkmark" size={24} color={Colors.background.white} />
         </TouchableOpacity>
       </LinearGradient>
 
@@ -395,10 +404,15 @@ const PreferencesScreen = ({ navigation }) => {
             disabled={saving}
           >
             <LinearGradient
-              colors={saving ? ['#ccc', '#bbb'] : ['#667eea', '#764ba2']}
+              colors={saving ? Colors.gradient.disabled : Colors.gradient.primary}
               style={styles.saveButtonGradient}
             >
-              <Ionicons name="checkmark-circle" size={24} color="#fff" style={{ marginRight: 8 }} />
+              <Ionicons
+                name="checkmark-circle"
+                size={24}
+                color={Colors.background.white}
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save Preferences'}</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -418,7 +432,7 @@ const styles = StyleSheet.create({
     padding: 15,
     paddingTop: 50,
     paddingBottom: 15,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -432,7 +446,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
     textAlign: 'center',
   },
   saveButton: {
@@ -446,7 +460,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 20,
     fontSize: 18,
-    color: '#fff',
+    color: Colors.background.white,
     fontWeight: '600',
   },
   scrollView: {
@@ -457,11 +471,11 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   section: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 15,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -470,7 +484,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 15,
   },
   row: {
@@ -484,22 +498,22 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 10,
   },
   numberInput: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 10,
     padding: 10,
   },
   adjustButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
+    backgroundColor: Colors.background.white,
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 2,
@@ -508,7 +522,7 @@ const styles = StyleSheet.create({
   numberText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#667eea',
+    color: Colors.primary,
     marginHorizontal: 20,
     minWidth: 30,
     textAlign: 'center',
@@ -524,13 +538,13 @@ const styles = StyleSheet.create({
   sliderTrack: {
     flex: 1,
     height: 6,
-    backgroundColor: '#e9ecef',
+    backgroundColor: Colors.border.gray,
     borderRadius: 3,
     marginHorizontal: 10,
   },
   sliderFill: {
     height: '100%',
-    backgroundColor: '#667eea',
+    backgroundColor: Colors.primary,
     borderRadius: 3,
   },
   optionGroup: {
@@ -544,21 +558,21 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#e9ecef',
-    backgroundColor: '#f8f9fa',
+    borderColor: Colors.border.gray,
+    backgroundColor: Colors.background.lightest,
   },
   optionButtonSelected: {
-    borderColor: '#667eea',
-    backgroundColor: '#667eea',
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary,
   },
   optionText: {
     marginTop: 8,
     fontSize: 14,
     fontWeight: '600',
-    color: '#667eea',
+    color: Colors.primary,
   },
   optionTextSelected: {
-    color: '#fff',
+    color: Colors.background.white,
   },
   optionGrid: {
     flexDirection: 'row',
@@ -572,26 +586,26 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#e9ecef',
-    backgroundColor: '#f8f9fa',
+    borderColor: Colors.border.gray,
+    backgroundColor: Colors.background.lightest,
   },
   optionCardSelected: {
-    borderColor: '#667eea',
-    backgroundColor: '#667eea',
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary,
   },
   optionCardText: {
     marginTop: 8,
     fontSize: 13,
     fontWeight: '600',
-    color: '#667eea',
+    color: Colors.primary,
     textAlign: 'center',
   },
   optionCardTextSelected: {
-    color: '#fff',
+    color: Colors.background.white,
   },
   optionSubtext: {
     fontSize: 11,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 2,
   },
   optionSubtextSelected: {
@@ -617,18 +631,18 @@ const styles = StyleSheet.create({
   switchTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   switchSubtitle: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 2,
   },
   saveButtonLarge: {
     marginTop: 20,
     borderRadius: 15,
     overflow: 'hidden',
-    shadowColor: '#667eea',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -641,7 +655,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   saveButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 18,
     fontWeight: '700',
   },

@@ -59,6 +59,7 @@ const test = async () => {
 ### ✅ Safe to Use `EXPO_PUBLIC_` Prefix
 
 The `EXPO_PUBLIC_` prefix means:
+
 - ✅ **Safe for client-side** (web builds)
 - ✅ **Exposed in browser** (but that's okay for AI Gateway keys)
 - ✅ **Works with Expo** (read at build time)
@@ -101,6 +102,7 @@ The `EXPO_PUBLIC_` prefix means:
 ## 📊 Usage Monitoring
 
 Monitor your AI Gateway usage in Vercel:
+
 - **Dashboard** → **AI Gateway** → **Usage**
 - Track requests, tokens, and costs
 - Set up alerts for high usage

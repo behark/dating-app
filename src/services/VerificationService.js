@@ -9,6 +9,7 @@ import {
   getDocs,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { Colors } from '../constants/colors';
 import { db, storage } from '../config/firebase';
 import logger from '../utils/logger';
 
@@ -35,10 +36,17 @@ export class VerificationService {
         verificationSubmittedAt: new Date(),
       });
 
-      logger.info('Verification request submitted', { userId, requestId: docRef.id, type: verificationData.type });
+      logger.info('Verification request submitted', {
+        userId,
+        requestId: docRef.id,
+        type: verificationData.type,
+      });
       return { success: true, requestId: docRef.id };
     } catch (error) {
-      logger.error('Error submitting verification request', error, { userId, type: verificationData.type });
+      logger.error('Error submitting verification request', error, {
+        userId,
+        type: verificationData.type,
+      });
       return { success: false, error: error.message };
     }
   }
@@ -257,7 +265,7 @@ export class VerificationService {
       case 'verified':
         return {
           showBadge: true,
-          badgeColor: '#4ECDC4',
+          badgeColor: Colors.accent.teal,
           badgeText: 'Verified',
           iconName: 'checkmark-circle',
         };

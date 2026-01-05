@@ -1,5 +1,5 @@
-import api from './api';
 import logger from '../utils/logger';
+import api from './api';
 
 export const SocialFeaturesService = {
   /**
@@ -102,7 +102,12 @@ export const SocialFeaturesService = {
       const response = await api.get(url);
       return response.data;
     } catch (error) {
-      logger.error('Error getting nearby events', error, { longitude, latitude, maxDistance, category });
+      logger.error('Error getting nearby events', error, {
+        longitude,
+        latitude,
+        maxDistance,
+        category,
+      });
       throw error;
     }
   },

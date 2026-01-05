@@ -4,6 +4,7 @@
  */
 
 const { rateLimiter, cache, CACHE_KEYS } = require('../config/redis');
+const { RATE_LIMIT_MESSAGES, ERROR_MESSAGES } = require('../constants/messages');
 
 /**
  * Create rate limiter middleware
@@ -13,7 +14,7 @@ const createRateLimiter = (options = {}) => {
     windowMs = 60000, // 1 minute window
     maxRequests = 100, // 100 requests per window
     keyGenerator = (req) => req.ip || req.headers['x-forwarded-for'] || 'unknown',
-    message = 'Too many requests, please try again later.',
+    message = RATE_LIMIT_MESSAGES.GENERIC,
     skipFailedRequests = false,
     skipSuccessfulRequests = false,
     onLimitReached = null,
@@ -60,7 +61,7 @@ const createRateLimiter = (options = {}) => {
 const apiLimiter = createRateLimiter({
   windowMs: 60000,
   maxRequests: 100,
-  message: 'Too many API requests. Please slow down.',
+  message: RATE_LIMIT_MESSAGES.API,
 });
 
 /**
@@ -70,7 +71,7 @@ const authLimiter = createRateLimiter({
   windowMs: 300000, // 5 minutes
   maxRequests: 10,
   keyGenerator: (req) => `auth:${req.ip}`,
-  message: 'Too many authentication attempts. Please try again later.',
+  message: RATE_LIMIT_MESSAGES.AUTH,
   onLimitReached: (req, res) => {
     console.warn(`Auth rate limit reached for IP: ${req.ip}`);
   },
@@ -86,7 +87,7 @@ const swipeLimiter = async (req, res, next) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: 'Authentication required',
+        message: ERROR_MESSAGES.AUTH_REQUIRED,
       });
     }
 
@@ -121,7 +122,7 @@ const swipeLimiter = async (req, res, next) => {
     if (count > dailyLimit) {
       return res.status(429).json({
         success: false,
-        message: 'Daily swipe limit reached. Upgrade to premium for more swipes!',
+        message: RATE_LIMIT_MESSAGES.SWIPE_LIMIT_REACHED,
         limit: dailyLimit,
         remaining: 0,
         upgradeUrl: '/premium',
@@ -142,7 +143,7 @@ const messageLimiter = createRateLimiter({
   windowMs: 60000,
   maxRequests: 30,
   keyGenerator: (req) => `msg:${req.userId || req.ip}`,
-  message: 'Sending messages too quickly. Please slow down.',
+  message: RATE_LIMIT_MESSAGES.MESSAGE,
 });
 
 /**
@@ -152,7 +153,7 @@ const uploadLimiter = createRateLimiter({
   windowMs: 3600000, // 1 hour
   maxRequests: 20,
   keyGenerator: (req) => `upload:${req.userId || req.ip}`,
-  message: 'Upload limit reached. Please try again later.',
+  message: RATE_LIMIT_MESSAGES.UPLOAD,
 });
 
 /**
@@ -162,7 +163,7 @@ const searchLimiter = createRateLimiter({
   windowMs: 60000,
   maxRequests: 30,
   keyGenerator: (req) => `search:${req.userId || req.ip}`,
-  message: 'Too many search requests. Please slow down.',
+  message: RATE_LIMIT_MESSAGES.SEARCH,
 });
 
 /**
@@ -172,7 +173,7 @@ const reportLimiter = createRateLimiter({
   windowMs: 3600000, // 1 hour
   maxRequests: 10,
   keyGenerator: (req) => `report:${req.userId || req.ip}`,
-  message: 'Too many reports submitted. Please contact support if this is urgent.',
+  message: RATE_LIMIT_MESSAGES.REPORT,
 });
 
 /**
@@ -182,7 +183,7 @@ const profileViewLimiter = createRateLimiter({
   windowMs: 60000, // 1 minute
   maxRequests: 60,
   keyGenerator: (req) => `profile-view:${req.userId || req.ip}`,
-  message: 'Too many profile views. Please slow down.',
+  message: RATE_LIMIT_MESSAGES.PROFILE_VIEW,
 });
 
 /**
@@ -192,7 +193,7 @@ const discoveryLimiter = createRateLimiter({
   windowMs: 60000, // 1 minute
   maxRequests: 30,
   keyGenerator: (req) => `discovery:${req.userId || req.ip}`,
-  message: 'Too many discovery requests. Please slow down.',
+  message: RATE_LIMIT_MESSAGES.DISCOVERY,
 });
 
 /**
@@ -202,7 +203,7 @@ const paymentLimiter = createRateLimiter({
   windowMs: 60000, // 1 minute
   maxRequests: 10,
   keyGenerator: (req) => `payment:${req.userId || req.ip}`,
-  message: 'Too many payment requests. Please try again shortly.',
+  message: RATE_LIMIT_MESSAGES.PAYMENT,
 });
 
 /**
@@ -212,7 +213,7 @@ const notificationLimiter = createRateLimiter({
   windowMs: 60000, // 1 minute
   maxRequests: 50,
   keyGenerator: (req) => `notification:${req.userId || req.ip}`,
-  message: 'Too many notification requests.',
+  message: RATE_LIMIT_MESSAGES.NOTIFICATION,
 });
 
 /**
@@ -222,7 +223,7 @@ const aiLimiter = createRateLimiter({
   windowMs: 60000, // 1 minute
   maxRequests: 10,
   keyGenerator: (req) => `ai:${req.userId || req.ip}`,
-  message: 'AI feature rate limit reached. Please try again later.',
+  message: RATE_LIMIT_MESSAGES.AI,
 });
 
 /**
@@ -232,7 +233,7 @@ const passwordResetLimiter = createRateLimiter({
   windowMs: 3600000, // 1 hour
   maxRequests: 3,
   keyGenerator: (req) => `pwd-reset:${req.ip}`,
-  message: 'Too many password reset requests. Please try again later.',
+  message: RATE_LIMIT_MESSAGES.PASSWORD_RESET,
 });
 
 /**
@@ -242,7 +243,7 @@ const verificationLimiter = createRateLimiter({
   windowMs: 300000, // 5 minutes
   maxRequests: 5,
   keyGenerator: (req) => `verify:${req.body?.email || req.body?.phone || req.ip}`,
-  message: 'Too many verification attempts. Please try again later.',
+  message: RATE_LIMIT_MESSAGES.VERIFICATION,
 });
 
 /**
@@ -252,7 +253,7 @@ const socialLimiter = createRateLimiter({
   windowMs: 60000, // 1 minute
   maxRequests: 30,
   keyGenerator: (req) => `social:${req.userId || req.ip}`,
-  message: 'Too many social requests. Please slow down.',
+  message: RATE_LIMIT_MESSAGES.SOCIAL,
 });
 
 /**

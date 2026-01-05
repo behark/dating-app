@@ -7,13 +7,18 @@
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
-const { verifyGoogleToken, verifyFacebookToken, verifyAppleToken, checkOAuthConfig } = require('../utils/oauthVerifier');
-const { 
-  sendSuccess, 
-  sendError, 
-  sendValidationError, 
-  sendUnauthorized, 
-  asyncHandler 
+const {
+  verifyGoogleToken,
+  verifyFacebookToken,
+  verifyAppleToken,
+  checkOAuthConfig,
+} = require('../utils/oauthVerifier');
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendUnauthorized,
+  asyncHandler,
 } = require('../utils/responseHelpers');
 
 /**
@@ -202,7 +207,7 @@ exports.login = async (req, res) => {
     if (!email || !password) {
       return sendValidationError(res, [
         { field: 'email', message: 'Email is required' },
-        { field: 'password', message: 'Password is required' }
+        { field: 'password', message: 'Password is required' },
       ]);
     }
 
@@ -530,9 +535,9 @@ exports.googleAuth = async (req, res) => {
 
     // Check OAuth configuration status
     const googleConfig = checkOAuthConfig('google');
-    
+
     let verifiedUser = null;
-    
+
     // If ID token is provided, verify it server-side (most secure)
     if (idToken) {
       try {
@@ -542,9 +547,10 @@ exports.googleAuth = async (req, res) => {
           console.warn('Google ID mismatch: client provided different ID than token');
         }
       } catch (verifyError) {
-        const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
+        const errorMessage =
+          verifyError instanceof Error ? verifyError.message : String(verifyError);
         console.error('Google token verification failed:', errorMessage);
-        
+
         // Check for specific OAuth errors
         if (errorMessage.includes('redirect URI')) {
           return res.status(400).json({
@@ -567,7 +573,7 @@ exports.googleAuth = async (req, res) => {
             errorCode: 'CLIENT_CONFIG_ERROR',
           });
         }
-        
+
         // If verification fails but we have client data, log warning and continue
         // This allows graceful degradation during development
         if (!googleConfig.configured) {
@@ -672,7 +678,7 @@ exports.facebookAuth = async (req, res) => {
 
     // Check OAuth configuration
     const facebookConfig = checkOAuthConfig('facebook');
-    
+
     // Verify Facebook token if provided and configured
     if (accessToken && facebookConfig.configured) {
       try {
@@ -681,9 +687,10 @@ exports.facebookAuth = async (req, res) => {
           console.warn('Facebook token verification skipped:', verificationResult.warning);
         }
       } catch (verifyError) {
-        const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
+        const errorMessage =
+          verifyError instanceof Error ? verifyError.message : String(verifyError);
         console.error('Facebook token verification failed:', errorMessage);
-        
+
         if (errorMessage.includes('expired')) {
           return res.status(401).json({
             success: false,
@@ -691,7 +698,7 @@ exports.facebookAuth = async (req, res) => {
             errorCode: 'TOKEN_EXPIRED',
           });
         }
-        
+
         return res.status(401).json({
           success: false,
           message: 'Facebook authentication failed. Please try again.',
@@ -796,9 +803,10 @@ exports.appleAuth = async (req, res) => {
           console.warn('Apple token verification skipped:', verifiedUser.warning);
         }
       } catch (verifyError) {
-        const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
+        const errorMessage =
+          verifyError instanceof Error ? verifyError.message : String(verifyError);
         console.error('Apple token verification failed:', errorMessage);
-        
+
         if (errorMessage.includes('expired')) {
           return res.status(401).json({
             success: false,
@@ -806,7 +814,7 @@ exports.appleAuth = async (req, res) => {
             errorCode: 'TOKEN_EXPIRED',
           });
         }
-        
+
         // Apple Sign-In can work without full verification in some cases
         console.warn('⚠️  Proceeding with Apple auth despite token verification failure');
       }

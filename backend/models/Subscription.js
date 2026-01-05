@@ -168,7 +168,7 @@ subscriptionSchema.methods.hasFeature = function (featureName) {
 
 // Static method to get or create subscription for user
 /**
- * @param {string} userId 
+ * @param {string} userId
  * @returns {Promise<any>}
  */
 subscriptionSchema.statics.getOrCreate = async function (userId) {
@@ -184,7 +184,7 @@ subscriptionSchema.statics.getOrCreate = async function (userId) {
 
 // Static method to activate trial
 /**
- * @param {string} userId 
+ * @param {string} userId
  * @returns {Promise<{success: boolean, message?: string, subscription?: any}>}
  */
 subscriptionSchema.statics.activateTrial = async function (userId) {
@@ -221,9 +221,9 @@ subscriptionSchema.statics.activateTrial = async function (userId) {
 
 // Static method to upgrade to paid subscription
 /**
- * @param {string} userId 
- * @param {string} planType 
- * @param {any} paymentData 
+ * @param {string} userId
+ * @param {string} planType
+ * @param {any} paymentData
  * @returns {Promise<{success: boolean, subscription?: any}>}
  */
 // @ts-ignore - Mongoose static method context
@@ -267,7 +267,7 @@ subscriptionSchema.statics.upgradeToPremium = async function (userId, planType, 
 
 // Static method to cancel subscription
 /**
- * @param {string} userId 
+ * @param {string} userId
  * @returns {Promise<{success: boolean, subscription?: any}>}
  */
 subscriptionSchema.statics.cancelSubscription = async function (userId) {

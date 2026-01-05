@@ -1,17 +1,18 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
-    Alert,
-    Modal,
-    Platform,
-    StyleSheet,
-    Switch,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Modal,
+  Platform,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const MessageScheduler = ({
@@ -140,12 +141,7 @@ const MessageScheduler = ({
   ];
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           {/* Header */}
@@ -155,7 +151,7 @@ const MessageScheduler = ({
               <Text style={styles.subtitle}>Send to {matchName} later</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#333" />
+              <Ionicons name="close" size={24} color={Colors.text.dark} />
             </TouchableOpacity>
           </View>
 
@@ -167,7 +163,7 @@ const MessageScheduler = ({
               value={message}
               onChangeText={setMessage}
               placeholder="Type your message..."
-              placeholderTextColor="#999"
+              placeholderTextColor={Colors.text.tertiary}
               multiline
               maxLength={500}
             />
@@ -216,7 +212,7 @@ const MessageScheduler = ({
                 style={styles.dateTimeButton}
                 onPress={() => setShowDatePicker(true)}
               >
-                <Ionicons name="calendar-outline" size={20} color="#667eea" />
+                <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
                 <Text style={styles.dateTimeText}>{formatDate(scheduledDate)}</Text>
               </TouchableOpacity>
 
@@ -224,7 +220,7 @@ const MessageScheduler = ({
                 style={styles.dateTimeButton}
                 onPress={() => setShowTimePicker(true)}
               >
-                <Ionicons name="time-outline" size={20} color="#667eea" />
+                <Ionicons name="time-outline" size={20} color={Colors.primary} />
                 <Text style={styles.dateTimeText}>{formatTime(scheduledDate)}</Text>
               </TouchableOpacity>
             </View>
@@ -234,45 +230,42 @@ const MessageScheduler = ({
           <View style={styles.optionsSection}>
             <View style={styles.optionRow}>
               <View style={styles.optionInfo}>
-                <Ionicons name="repeat" size={20} color="#667eea" />
+                <Ionicons name="repeat" size={20} color={Colors.primary} />
                 <Text style={styles.optionLabel}>Repeat daily</Text>
               </View>
               <Switch
                 value={repeatDaily}
                 onValueChange={setRepeatDaily}
-                trackColor={{ false: '#e0e0e0', true: '#667eea' }}
-                thumbColor="#fff"
+                trackColor={{ false: Colors.ui.disabled, true: Colors.primary }}
+                thumbColor={Colors.background.white}
               />
             </View>
 
             <View style={styles.optionRow}>
               <View style={styles.optionInfo}>
-                <Ionicons name="notifications-outline" size={20} color="#667eea" />
+                <Ionicons name="notifications-outline" size={20} color={Colors.primary} />
                 <Text style={styles.optionLabel}>Remind me before sending</Text>
               </View>
               <Switch
                 value={reminderBefore}
                 onValueChange={setReminderBefore}
-                trackColor={{ false: '#e0e0e0', true: '#667eea' }}
-                thumbColor="#fff"
+                trackColor={{ false: Colors.ui.disabled, true: Colors.primary }}
+                thumbColor={Colors.background.white}
               />
             </View>
           </View>
 
           {/* Schedule button */}
           <TouchableOpacity style={styles.scheduleButton} onPress={handleSchedule}>
-            <LinearGradient
-              colors={['#667eea', '#764ba2']}
-              style={styles.scheduleButtonGradient}
-            >
-              <Ionicons name="time" size={20} color="#fff" />
+            <LinearGradient colors={Colors.gradient.primary} style={styles.scheduleButtonGradient}>
+              <Ionicons name="time" size={20} color={Colors.background.white} />
               <Text style={styles.scheduleButtonText}>Schedule Message</Text>
             </LinearGradient>
           </TouchableOpacity>
 
           {/* Preview */}
           <View style={styles.previewContainer}>
-            <Ionicons name="information-circle-outline" size={16} color="#999" />
+            <Ionicons name="information-circle-outline" size={16} color={Colors.text.tertiary} />
             <Text style={styles.previewText}>
               Message will be sent {formatDate(scheduledDate)} at {formatTime(scheduledDate)}
             </Text>
@@ -305,16 +298,11 @@ const MessageScheduler = ({
 };
 
 // Scheduled messages list component
-export const ScheduledMessagesList = ({
-  messages = [],
-  onEdit,
-  onDelete,
-  onSendNow,
-}) => {
+export const ScheduledMessagesList = ({ messages = [], onEdit, onDelete, onSendNow }) => {
   if (messages.length === 0) {
     return (
       <View style={styles.emptyList}>
-        <Ionicons name="time-outline" size={48} color="#ddd" />
+        <Ionicons name="time-outline" size={48} color={Colors.border.light} />
         <Text style={styles.emptyText}>No scheduled messages</Text>
       </View>
     );
@@ -326,20 +314,20 @@ export const ScheduledMessagesList = ({
         <View key={msg.id || index} style={styles.scheduledItem}>
           <View style={styles.scheduledItemHeader}>
             <View style={styles.scheduledTime}>
-              <Ionicons name="time" size={14} color="#667eea" />
+              <Ionicons name="time" size={14} color={Colors.primary} />
               <Text style={styles.scheduledTimeText}>
                 {new Date(msg.scheduledAt).toLocaleString()}
               </Text>
             </View>
             <View style={styles.scheduledActions}>
               <TouchableOpacity onPress={() => onSendNow?.(msg)}>
-                <Ionicons name="send" size={18} color="#4ECDC4" />
+                <Ionicons name="send" size={18} color={Colors.accent.teal} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => onEdit?.(msg)}>
-                <Ionicons name="pencil" size={18} color="#667eea" />
+                <Ionicons name="pencil" size={18} color={Colors.primary} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => onDelete?.(msg)}>
-                <Ionicons name="trash" size={18} color="#FF6B6B" />
+                <Ionicons name="trash" size={18} color={Colors.accent.red} />
               </TouchableOpacity>
             </View>
           </View>
@@ -359,7 +347,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 20,
@@ -374,11 +362,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 2,
   },
   closeButton: {
@@ -390,24 +378,24 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 8,
   },
   messageInput: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#333',
+    color: Colors.text.dark,
     minHeight: 80,
     textAlignVertical: 'top',
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: Colors.border.gray,
   },
   charCount: {
     textAlign: 'right',
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 4,
   },
   suggestionsContainer: {
@@ -416,7 +404,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   suggestionPill: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderRadius: 16,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -424,7 +412,7 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   quickOptionsContainer: {
     flexDirection: 'row',
@@ -432,14 +420,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   quickOption: {
-    backgroundColor: '#E8F0FE',
+    backgroundColor: Colors.status.infoLight,
     borderRadius: 12,
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
   quickOptionText: {
     fontSize: 13,
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: '500',
   },
   dateTimeContainer: {
@@ -450,16 +438,16 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 12,
     padding: 14,
     gap: 8,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: Colors.border.gray,
   },
   dateTimeText: {
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
     fontWeight: '500',
   },
   optionsSection: {
@@ -470,7 +458,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 12,
     padding: 12,
   },
@@ -481,7 +469,7 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
   },
   scheduleButton: {
     borderRadius: 12,
@@ -496,7 +484,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   scheduleButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -508,7 +496,7 @@ const styles = StyleSheet.create({
   },
   previewText: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   emptyList: {
     alignItems: 'center',
@@ -516,18 +504,18 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 12,
   },
   listContainer: {
     gap: 12,
   },
   scheduledItem: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 3,
-    borderLeftColor: '#667eea',
+    borderLeftColor: Colors.primary,
   },
   scheduledItemHeader: {
     flexDirection: 'row',
@@ -542,7 +530,7 @@ const styles = StyleSheet.create({
   },
   scheduledTimeText: {
     fontSize: 12,
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: '500',
   },
   scheduledActions: {
@@ -551,7 +539,7 @@ const styles = StyleSheet.create({
   },
   scheduledMessage: {
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
     lineHeight: 20,
   },
 });

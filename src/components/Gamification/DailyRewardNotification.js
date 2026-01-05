@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { Colors } from '../constants/colors';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import GamificationService from '../../services/GamificationService';
 import logger from '../../utils/logger';
@@ -79,24 +80,24 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#FFD700',
+    borderLeftColor: Colors.accent.gold,
   },
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 12,
   },
   rewardCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
     elevation: 1,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOpacity: 0.05,
     shadowRadius: 2,
   },
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
   rewardType: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 4,
   },
   rewardValue: {
@@ -116,29 +117,29 @@ const styles = StyleSheet.create({
   points: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFD700',
+    color: Colors.accent.gold,
   },
   pointsLabel: {
     fontSize: 11,
-    color: '#666',
+    color: Colors.text.secondary,
     marginLeft: 4,
   },
   claimButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: Colors.accent.gold,
     borderRadius: 6,
     paddingHorizontal: 14,
     paddingVertical: 8,
     marginLeft: 12,
   },
   claimText: {
-    color: '#FFF',
+    color: Colors.background.white,
     fontWeight: '600',
     fontSize: 12,
   },
   claimAllText: {
     textAlign: 'center',
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 8,
   },
 });

@@ -3,7 +3,8 @@
 ## Your SSH Connection Details
 
 **Service**: `dating-app-backend-x4yq:10000`  
-**SSH Command**: 
+**SSH Command**:
+
 ```bash
 ssh srv-d5cooc2li9vc73ct9j70@ssh.oregon.render.com
 ```
@@ -13,6 +14,7 @@ ssh srv-d5cooc2li9vc73ct9j70@ssh.oregon.render.com
 ## What You Can Do with SSH Access
 
 ### 1. **Check Environment Variables** ✅
+
 Verify that all your environment variables are set correctly:
 
 ```bash
@@ -27,6 +29,7 @@ echo $MONGODB_URI
 ```
 
 ### 2. **View Application Logs** 📋
+
 Check real-time logs and debug issues:
 
 ```bash
@@ -41,6 +44,7 @@ journalctl -u dating-app-backend -f
 ```
 
 ### 3. **Check Application Status** 🏥
+
 Verify your application is running:
 
 ```bash
@@ -55,6 +59,7 @@ curl http://localhost:10000/health
 ```
 
 ### 4. **Test Sentry Integration** 🐛
+
 Manually trigger Sentry test endpoint:
 
 ```bash
@@ -66,6 +71,7 @@ grep -i "sentry" /var/log/render.log
 ```
 
 ### 5. **Check Database Connection** 🗄️
+
 Verify MongoDB connection:
 
 ```bash
@@ -77,6 +83,7 @@ node -e "require('mongoose').connect(process.env.MONGODB_URI).then(() => console
 ```
 
 ### 6. **Check File System** 📁
+
 Explore your deployed application:
 
 ```bash
@@ -94,6 +101,7 @@ ls -la /opt/render/project/src/backend/
 ```
 
 ### 7. **Check Resource Usage** 📊
+
 Monitor CPU, memory, and disk:
 
 ```bash
@@ -108,6 +116,7 @@ du -sh /opt/render/project/src/*
 ```
 
 ### 8. **Debug Runtime Issues** 🔍
+
 Investigate specific problems:
 
 ```bash
@@ -123,6 +132,7 @@ grep -i "error" /var/log/render.log | tail -20
 ```
 
 ### 9. **Test API Endpoints** 🧪
+
 Test your API directly from the server:
 
 ```bash
@@ -139,6 +149,7 @@ curl -X POST http://localhost:10000/api/auth/login \
 ```
 
 ### 10. **Check Environment-Specific Config** ⚙️
+
 Verify production configuration:
 
 ```bash
@@ -191,6 +202,7 @@ curl -s http://localhost:10000/health | head -5 || echo "❌ Health check failed
 ## Common Use Cases
 
 ### Use Case 1: Verify Sentry is Working
+
 ```bash
 # 1. Check if SENTRY_DSN is set
 echo $SENTRY_DSN
@@ -203,6 +215,7 @@ grep -i "sentry" /var/log/render.log | tail -10
 ```
 
 ### Use Case 2: Debug Database Connection Issues
+
 ```bash
 # 1. Check MongoDB URI is set
 echo $MONGODB_URI
@@ -217,6 +230,7 @@ mongoose.connect(process.env.MONGODB_URI)
 ```
 
 ### Use Case 3: Check Why Service Isn't Starting
+
 ```bash
 # 1. Check recent logs
 tail -50 /var/log/render.log
@@ -232,6 +246,7 @@ ls -la node_modules/ | head -10
 ```
 
 ### Use Case 4: Verify Environment Variables After Deployment
+
 ```bash
 # Check all critical variables
 env | grep -E "SENTRY_DSN|DD_API_KEY|DD_SITE|DD_ENV|MONGODB_URI|JWT_SECRET|NODE_ENV" | sort
@@ -251,16 +266,19 @@ env | grep -E "SENTRY_DSN|DD_API_KEY|DD_SITE|DD_ENV|MONGODB_URI|JWT_SECRET|NODE_
 ## Troubleshooting
 
 ### Can't Connect?
+
 ```bash
 # Check if SSH is enabled in Render dashboard
 # Settings → SSH → Enable SSH Access
 ```
 
 ### Permission Denied?
+
 - SSH access might be disabled on your plan
 - Check Render dashboard for SSH settings
 
 ### Can't Find Logs?
+
 ```bash
 # Try different log locations
 ls -la /var/log/
@@ -273,6 +291,7 @@ journalctl -u dating-app-backend
 ## Next Steps
 
 1. **Connect via SSH**:
+
    ```bash
    ssh srv-d5cooc2li9vc73ct9j70@ssh.oregon.render.com
    ```
@@ -288,6 +307,7 @@ journalctl -u dating-app-backend
 ## Summary
 
 SSH access lets you:
+
 - ✅ Debug production issues in real-time
 - ✅ Verify environment variables
 - ✅ Check application logs

@@ -1,11 +1,13 @@
-/**
- * API Response Format Documentation
- * Standard formats for all API responses
- */
+/\*\*
+
+- API Response Format Documentation
+- Standard formats for all API responses
+  \*/
 
 ## 📋 Standard Response Formats
 
 ### ✅ Success Response
+
 ```json
 {
   "success": true,
@@ -17,12 +19,14 @@
 ```
 
 ### ❌ Error Response
+
 ```json
 {
   "success": false,
   "message": "Error description",
   "error": "ERROR_CODE",
-  "errors": [  // Optional validation errors
+  "errors": [
+    // Optional validation errors
     {
       "field": "email",
       "message": "Email is required",
@@ -33,6 +37,7 @@
 ```
 
 ### 📄 Paginated Response
+
 ```json
 {
   "success": true,
@@ -52,6 +57,7 @@
 ## 🔧 Usage Examples
 
 ### Authentication Response
+
 ```json
 {
   "success": true,
@@ -71,6 +77,7 @@
 ```
 
 ### Match List Response
+
 ```json
 {
   "success": true,
@@ -102,6 +109,7 @@
 ```
 
 ### Swipe Response
+
 ```json
 {
   "success": true,
@@ -120,6 +128,7 @@
 ```
 
 ### Validation Error Response
+
 ```json
 {
   "success": false,
@@ -141,6 +150,7 @@
 ```
 
 ### Rate Limit Error Response
+
 ```json
 {
   "success": false,
@@ -157,6 +167,7 @@
 ## 📱 Frontend Integration
 
 ### Update API Service
+
 ```javascript
 // Before (inconsistent)
 const response1 = await api.get('/matches'); // { data: [...] }
@@ -164,7 +175,7 @@ const response2 = await api.post('/swipe'); // { success: true, data: {...} }
 const response3 = await api.get('/user'); // { _id: '...', name: '...' }
 
 // After (standardized)
-const response = await api.get('/matches'); 
+const response = await api.get('/matches');
 // Always: { success: true, message: '...', data: [...], pagination?: {...} }
 
 if (response.success) {
@@ -177,6 +188,7 @@ if (response.success) {
 ```
 
 ### Error Handling
+
 ```javascript
 try {
   const response = await apiService.post('/api/auth/login', credentials);
@@ -202,7 +214,7 @@ try {
 ## 🎯 Benefits
 
 - **Consistency**: All endpoints return same format
-- **Type Safety**: Shared types prevent errors  
+- **Type Safety**: Shared types prevent errors
 - **Better UX**: Predictable error handling
 - **Easier Debugging**: Standard error codes
 - **Automatic Validation**: Built-in validation helpers

@@ -7,28 +7,34 @@ import logger from '../utils/logger';
  * Provides convenient methods for socket event handling with automatic cleanup
  */
 export const useSocket = () => {
-  const { socket, isConnected, connectionState, error, connect, disconnect, emit, on, off } = useSocketContext();
+  const { socket, isConnected, connectionState, error, connect, disconnect, emit, on, off } =
+    useSocketContext();
   const cleanupFunctionsRef = useRef([]);
 
   /**
-   * Subscribe to a socket event with automatic cleanup
+   * Subscribe to a socket event - returns unsubscribe function
+   * Use this inside a useEffect in your component for automatic cleanup
    * @param {string} event - Event name
    * @param {function} handler - Event handler function
-   * @param {array} dependencies - Dependencies for the effect
+   * @returns {function} Unsubscribe function
    */
-  const subscribe = useCallback((event, handler, dependencies = []) => {
-    useEffect(() => {
-      if (!socket) return;
+  const subscribe = useCallback(
+    (event, handler) => {
+      if (!socket) {
+        logger.debug('[useSocket] Cannot subscribe, socket not available:', event);
+        return () => {}; // Return no-op cleanup
+      }
 
       logger.debug('[useSocket] Subscribing to:', event);
       const unsubscribe = on(event, handler);
-      
+
       return () => {
         logger.debug('[useSocket] Unsubscribing from:', event);
         unsubscribe();
       };
-    }, [socket, event, ...dependencies]);
-  }, [socket, on]);
+    },
+    [socket, on]
+  );
 
   /**
    * Emit an event with promise-based response
@@ -36,54 +42,63 @@ export const useSocket = () => {
    * @param {object} data - Data to send
    * @returns {Promise} Promise that resolves with server response
    */
-  const emitWithAck = useCallback((event, data) => {
-    return new Promise((resolve, reject) => {
-      if (!socket || !isConnected) {
-        reject(new Error('Socket not connected'));
-        return;
-      }
-
-      const timeout = setTimeout(() => {
-        reject(new Error('Socket emission timeout'));
-      }, 10000); // 10 second timeout
-
-      emit(event, data, (response) => {
-        clearTimeout(timeout);
-        if (response?.success !== false) {
-          resolve(response);
-        } else {
-          reject(new Error(response?.error || 'Socket emission failed'));
+  const emitWithAck = useCallback(
+    (event, data) => {
+      return new Promise((resolve, reject) => {
+        if (!socket || !isConnected) {
+          reject(new Error('Socket not connected'));
+          return;
         }
+
+        const timeout = setTimeout(() => {
+          reject(new Error('Socket emission timeout'));
+        }, 10000); // 10 second timeout
+
+        emit(event, data, (response) => {
+          clearTimeout(timeout);
+          if (response?.success !== false) {
+            resolve(response);
+          } else {
+            reject(new Error(response?.error || 'Socket emission failed'));
+          }
+        });
       });
-    });
-  }, [socket, isConnected, emit]);
+    },
+    [socket, isConnected, emit]
+  );
 
   /**
    * Join a room
    * @param {string} roomId - Room ID to join
    * @returns {Promise} Promise that resolves when joined
    */
-  const joinRoom = useCallback((roomId) => {
-    logger.info('[useSocket] Joining room:', roomId);
-    return emitWithAck('join_room', roomId);
-  }, [emitWithAck]);
+  const joinRoom = useCallback(
+    (roomId) => {
+      logger.info('[useSocket] Joining room:', roomId);
+      return emitWithAck('join_room', roomId);
+    },
+    [emitWithAck]
+  );
 
   /**
    * Leave a room
    * @param {string} roomId - Room ID to leave
    */
-  const leaveRoom = useCallback((roomId) => {
-    if (!socket || !isConnected) return;
-    logger.info('[useSocket] Leaving room:', roomId);
-    emit('leave_room', roomId);
-  }, [socket, isConnected, emit]);
+  const leaveRoom = useCallback(
+    (roomId) => {
+      if (!socket || !isConnected) return;
+      logger.info('[useSocket] Leaving room:', roomId);
+      emit('leave_room', roomId);
+    },
+    [socket, isConnected, emit]
+  );
 
   /**
    * Cleanup all subscriptions on unmount
    */
   useEffect(() => {
     return () => {
-      cleanupFunctionsRef.current.forEach(cleanup => cleanup());
+      cleanupFunctionsRef.current.forEach((cleanup) => cleanup());
       cleanupFunctionsRef.current = [];
     };
   }, []);

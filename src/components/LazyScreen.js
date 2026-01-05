@@ -6,11 +6,11 @@ import logger from '../utils/logger';
 
 /**
  * LazyScreen Component
- * 
+ *
  * A wrapper component for lazy loading screens in React Native.
  * Unlike web React where React.lazy() works out of the box, React Native
  * requires a custom approach for code splitting.
- * 
+ *
  * Features:
  * - Deferred component loading with animated transitions
  * - Loading state with customizable placeholder
@@ -97,15 +97,15 @@ export function createLazyScreen(importFn, options = {}) {
         setError(null);
 
         const startTime = Date.now();
-        
+
         // Use existing promise if preloading, otherwise create new
         const promise = loadPromise || importFn();
         const module = await promise;
-        
+
         // Ensure minimum loading time for smooth UX
         const elapsed = Date.now() - startTime;
         if (elapsed < minLoadingTime) {
-          await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsed));
+          await new Promise((resolve) => setTimeout(resolve, minLoadingTime - elapsed));
         }
 
         cachedComponent = module.default || module;
@@ -126,8 +126,8 @@ export function createLazyScreen(importFn, options = {}) {
       return (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Failed to load screen</Text>
-          <Text 
-            style={styles.retryText} 
+          <Text
+            style={styles.retryText}
             onPress={() => {
               cachedComponent = null;
               loadPromise = null;
@@ -149,7 +149,7 @@ export function createLazyScreen(importFn, options = {}) {
   };
 
   LazyComponent.displayName = `Lazy(${options.displayName || 'Component'})`;
-  
+
   // Add preload method for prefetching
   LazyComponent.preload = () => {
     if (!cachedComponent && !loadPromise) {
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background?.light || '#f8f9fa',
+    backgroundColor: Colors.background?.light || Colors.background.lightest,
   },
   loadingContent: {
     alignItems: 'center',
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background?.light || '#f8f9fa',
+    backgroundColor: Colors.background?.light || Colors.background.lightest,
     padding: 20,
   },
   errorText: {
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: 14,
-    color: Colors.primary || '#667eea',
+    color: Colors.primary,
     fontWeight: '600',
     padding: 10,
   },

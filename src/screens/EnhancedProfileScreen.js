@@ -1,16 +1,17 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    Alert,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
@@ -20,7 +21,10 @@ import logger from '../utils/logger';
 import InteractivePhotoGallery from '../components/Profile/InteractivePhotoGallery';
 import ProfileCompletionProgress from '../components/Profile/ProfileCompletionProgress';
 import ProfileVideoIntroduction from '../components/Profile/ProfileVideoIntroduction';
-import { VerificationBadgeGroup, VerificationStatus } from '../components/Profile/VerificationBadge';
+import {
+  VerificationBadgeGroup,
+  VerificationStatus,
+} from '../components/Profile/VerificationBadge';
 
 // Gamification Components
 import { AchievementShowcase } from '../components/Gamification/AchievementBadgeAnimated';
@@ -34,7 +38,7 @@ import GamificationService from '../services/GamificationService';
 const EnhancedProfileScreen = () => {
   const navigation = useNavigation();
   const { currentUser, logout } = useAuth();
-  
+
   // Profile State
   const [profileData, setProfileData] = useState({
     name: '',
@@ -46,7 +50,7 @@ const EnhancedProfileScreen = () => {
     location: null,
     verified: false,
   });
-  
+
   // Gamification State
   const [gamificationData, setGamificationData] = useState({
     currentXP: 0,
@@ -56,7 +60,7 @@ const EnhancedProfileScreen = () => {
     challenges: [],
     challengeProgress: {},
   });
-  
+
   // UI State
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -69,10 +73,7 @@ const EnhancedProfileScreen = () => {
   const loadAllData = async () => {
     try {
       setLoading(true);
-      await Promise.all([
-        loadProfile(),
-        loadGamificationData(),
-      ]);
+      await Promise.all([loadProfile(), loadGamificationData()]);
     } catch (error) {
       logger.error('Error loading profile data:', error);
     } finally {
@@ -138,8 +139,8 @@ const EnhancedProfileScreen = () => {
         { videoIntro: videoUrl, updatedAt: new Date() },
         { merge: true }
       );
-      setProfileData(prev => ({ ...prev, videoIntro: videoUrl }));
-      
+      setProfileData((prev) => ({ ...prev, videoIntro: videoUrl }));
+
       // Award XP for adding video
       await GamificationService.trackAction(currentUser.uid, 'update_profile', { field: 'video' });
       Alert.alert('Success', 'Video introduction updated!');
@@ -156,18 +157,16 @@ const EnhancedProfileScreen = () => {
         { photos: newPhotos, updatedAt: new Date() },
         { merge: true }
       );
-      setProfileData(prev => ({ ...prev, photos: newPhotos }));
+      setProfileData((prev) => ({ ...prev, photos: newPhotos }));
     } catch (error) {
       logger.error('Error updating photos:', error);
     }
   };
 
   const handleLevelUp = (newLevel) => {
-    Alert.alert(
-      '🎉 Level Up!',
-      `Congratulations! You've reached ${newLevel.name}!`,
-      [{ text: 'Awesome!' }]
-    );
+    Alert.alert('🎉 Level Up!', `Congratulations! You've reached ${newLevel.name}!`, [
+      { text: 'Awesome!' },
+    ]);
   };
 
   const handleClaimChallengeReward = async (challengeId, reward) => {
@@ -189,7 +188,7 @@ const EnhancedProfileScreen = () => {
       verification: 'Verification',
       preferences: 'Preferences',
     };
-    
+
     const screen = sectionScreens[sectionId];
     if (screen) {
       navigation.navigate(screen);
@@ -199,10 +198,7 @@ const EnhancedProfileScreen = () => {
   const renderProfileTab = () => (
     <View style={styles.tabContent}>
       {/* Profile Completion Progress */}
-      <ProfileCompletionProgress
-        profileData={profileData}
-        onSectionPress={handleSectionPress}
-      />
+      <ProfileCompletionProgress profileData={profileData} onSectionPress={handleSectionPress} />
 
       {/* Video Introduction */}
       <View style={styles.section}>
@@ -260,10 +256,7 @@ const EnhancedProfileScreen = () => {
       {/* Achievements Showcase */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🏆 Achievements</Text>
-        <AchievementShowcase
-          unlockedAchievements={gamificationData.achievements}
-          maxDisplay={6}
-        />
+        <AchievementShowcase unlockedAchievements={gamificationData.achievements} maxDisplay={6} />
       </View>
 
       {/* Badges */}
@@ -281,9 +274,9 @@ const EnhancedProfileScreen = () => {
           style={styles.settingsButton}
           onPress={() => navigation.navigate('Preferences')}
         >
-          <Ionicons name="settings" size={24} color="#667eea" />
+          <Ionicons name="settings" size={24} color={Colors.primary} />
           <Text style={styles.settingsButtonText}>Preferences</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
+          <Ionicons name="chevron-forward" size={20} color={Colors.text.tertiary} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -292,66 +285,72 @@ const EnhancedProfileScreen = () => {
         >
           <Ionicons name="notifications" size={24} color="#FFA500" />
           <Text style={styles.settingsButtonText}>Notifications</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
+          <Ionicons name="chevron-forward" size={20} color={Colors.text.tertiary} />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.settingsButton}
           onPress={() => navigation.navigate('SafetyTips')}
         >
-          <Ionicons name="shield-checkmark-outline" size={24} color="#FF9800" />
+          <Ionicons name="shield-checkmark-outline" size={24} color={Colors.status.warning} />
           <Text style={styles.settingsButtonText}>Safety Tips</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
+          <Ionicons name="chevron-forward" size={20} color={Colors.text.tertiary} />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.settingsButton}
-          onPress={() => navigation.navigate('SafetyAdvanced', { userId: currentUser.uid, isPremium: true })}
+          onPress={() =>
+            navigation.navigate('SafetyAdvanced', { userId: currentUser.uid, isPremium: true })
+          }
         >
-          <Ionicons name="shield" size={24} color="#FF6B9D" />
+          <Ionicons name="shield" size={24} color={Colors.accent.pink} />
           <Text style={styles.settingsButtonText}>Safety Center</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
+          <Ionicons name="chevron-forward" size={20} color={Colors.text.tertiary} />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.premiumButton}
           onPress={() => navigation.navigate('Premium')}
         >
-          <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.premiumGradient}>
-            <Ionicons name="diamond" size={24} color="#fff" />
+          <LinearGradient colors={Colors.gradient.gold} style={styles.premiumGradient}>
+            <Ionicons name="diamond" size={24} color={Colors.background.white} />
             <Text style={styles.premiumButtonText}>Go Premium</Text>
-            <Ionicons name="chevron-forward" size={20} color="#fff" />
+            <Ionicons name="chevron-forward" size={20} color={Colors.background.white} />
           </LinearGradient>
         </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-        <Ionicons name="log-out-outline" size={24} color="#FF6B6B" />
+        <Ionicons name="log-out-outline" size={24} color={Colors.accent.red} />
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+    <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.background.white}
+          />
         }
       >
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
             <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}>
-              <Ionicons name="create-outline" size={24} color="#fff" />
+              <Ionicons name="create-outline" size={24} color={Colors.background.white} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>My Profile</Text>
             <View style={{ width: 24 }} />
           </View>
-          
+
           {/* Verification Badges */}
           <View style={styles.verificationBadges}>
             <VerificationBadgeGroup
@@ -360,12 +359,10 @@ const EnhancedProfileScreen = () => {
               showLabels={false}
             />
           </View>
-          
+
           {/* Profile Summary */}
           <Text style={styles.profileName}>{profileData.name || 'Your Name'}</Text>
-          {profileData.age && (
-            <Text style={styles.profileAge}>{profileData.age} years old</Text>
-          )}
+          {profileData.age && <Text style={styles.profileAge}>{profileData.age} years old</Text>}
         </View>
 
         {/* Tab Navigation */}
@@ -375,38 +372,38 @@ const EnhancedProfileScreen = () => {
               style={[styles.tab, activeTab === 'profile' && styles.activeTab]}
               onPress={() => setActiveTab('profile')}
             >
-              <Ionicons 
-                name="person" 
-                size={20} 
-                color={activeTab === 'profile' ? '#667eea' : '#999'} 
+              <Ionicons
+                name="person"
+                size={20}
+                color={activeTab === 'profile' ? Colors.primary : Colors.text.tertiary}
               />
               <Text style={[styles.tabText, activeTab === 'profile' && styles.activeTabText]}>
                 Profile
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={[styles.tab, activeTab === 'achievements' && styles.activeTab]}
               onPress={() => setActiveTab('achievements')}
             >
-              <Ionicons 
-                name="trophy" 
-                size={20} 
-                color={activeTab === 'achievements' ? '#667eea' : '#999'} 
+              <Ionicons
+                name="trophy"
+                size={20}
+                color={activeTab === 'achievements' ? Colors.primary : Colors.text.tertiary}
               />
               <Text style={[styles.tabText, activeTab === 'achievements' && styles.activeTabText]}>
                 Achievements
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               style={[styles.tab, activeTab === 'settings' && styles.activeTab]}
               onPress={() => setActiveTab('settings')}
             >
-              <Ionicons 
-                name="settings" 
-                size={20} 
-                color={activeTab === 'settings' ? '#667eea' : '#999'} 
+              <Ionicons
+                name="settings"
+                size={20}
+                color={activeTab === 'settings' ? Colors.primary : Colors.text.tertiary}
               />
               <Text style={[styles.tabText, activeTab === 'settings' && styles.activeTabText]}>
                 Settings
@@ -449,7 +446,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
   },
   verificationBadges: {
     marginBottom: 15,
@@ -457,23 +454,23 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#fff',
+    color: Colors.background.white,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
   profileAge: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: Colors.text.white90,
     marginTop: 5,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     marginTop: 20,
     minHeight: 600,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
@@ -482,7 +479,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: Colors.background.light,
   },
   tab: {
     flex: 1,
@@ -494,15 +491,15 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#667eea',
+    borderBottomColor: Colors.primary,
   },
   tabText: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.tertiary,
     fontWeight: '600',
   },
   activeTabText: {
-    color: '#667eea',
+    color: Colors.primary,
   },
   tabContent: {
     padding: 20,
@@ -513,7 +510,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 15,
   },
   settingsSection: {
@@ -522,7 +519,7 @@ const styles = StyleSheet.create({
   settingsButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     padding: 15,
     borderRadius: 12,
     marginBottom: 10,
@@ -530,7 +527,7 @@ const styles = StyleSheet.create({
   settingsButtonText: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: Colors.text.dark,
     marginLeft: 15,
     fontWeight: '500',
   },
@@ -538,7 +535,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginTop: 10,
-    shadowColor: '#FFD700',
+    shadowColor: Colors.accent.gold,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -552,7 +549,7 @@ const styles = StyleSheet.create({
   premiumButtonText: {
     flex: 1,
     fontSize: 16,
-    color: '#fff',
+    color: Colors.background.white,
     marginLeft: 15,
     fontWeight: '700',
   },
@@ -560,16 +557,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderWidth: 2,
-    borderColor: '#FF6B6B',
+    borderColor: Colors.accent.red,
     borderRadius: 12,
     padding: 15,
     marginTop: 20,
   },
   logoutButtonText: {
     fontSize: 16,
-    color: '#FF6B6B',
+    color: Colors.accent.red,
     marginLeft: 10,
     fontWeight: '600',
   },

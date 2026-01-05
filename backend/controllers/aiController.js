@@ -1,6 +1,15 @@
 const User = require('../models/User');
 
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 
 /**
  * Mock LLM function - generates icebreakers without OpenAI
@@ -212,7 +221,12 @@ const generateIcebreakers = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to generate icebreakers',
-      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
     });
   }
 };
@@ -276,7 +290,12 @@ const getSmartPhotoSelection = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to analyze photos',
-      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
     });
   }
 };
@@ -366,7 +385,12 @@ const generateBioSuggestions = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to generate bio suggestions',
-      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
     });
   }
 };
@@ -464,7 +488,12 @@ const calculateCompatibilityScore = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to calculate compatibility',
-      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
     });
   }
 };
@@ -548,7 +577,12 @@ const getConversationStarters = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to get conversation starters',
-      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
     });
   }
 };
@@ -614,7 +648,12 @@ const analyzePhotoQuality = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to analyze photo',
-      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
     });
   }
 };
@@ -678,7 +717,12 @@ const getPersonalizedMatches = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to get personalized matches',
-      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
     });
   }
 };
@@ -760,7 +804,12 @@ const getProfileImprovementSuggestions = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to get profile suggestions',
-      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
     });
   }
 };
@@ -831,7 +880,12 @@ const getConversationInsights = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to get conversation insights',
-      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
     });
   }
 };
@@ -1155,7 +1209,12 @@ const generateMatchIcebreakers = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to generate icebreakers',
-      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
+      error:
+        process.env.NODE_ENV === 'development'
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : undefined,
     });
   }
 };

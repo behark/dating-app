@@ -1,14 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState, useCallback } from 'react';
-import {
-    Animated,
-    Easing,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-} from 'react-native';
+import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const PROFILE_SECTIONS = [
   { id: 'photos', label: 'Photos', icon: 'images', weight: 25, minCount: 3 },
@@ -28,7 +22,7 @@ const ProfileCompletionProgress = ({
 }) => {
   const [completedSections, setCompletedSections] = useState([]);
   const [totalProgress, setTotalProgress] = useState(0);
-  
+
   // Animation values
   const progressAnim = useRef(new Animated.Value(0)).current;
   const circleAnim = useRef(new Animated.Value(0)).current;
@@ -163,7 +157,7 @@ const ProfileCompletionProgress = ({
               },
             ]}
           />
-          
+
           {/* Progress arc - using a workaround since SVG isn't available */}
           <Animated.View
             style={[
@@ -173,7 +167,7 @@ const ProfileCompletionProgress = ({
                 height: size,
                 borderRadius: size / 2,
                 borderWidth: strokeWidth,
-                borderColor: totalProgress >= 100 ? '#4ECDC4' : '#667eea',
+                borderColor: totalProgress >= 100 ? Colors.accent.teal : Colors.primary,
                 borderTopColor: 'transparent',
                 borderRightColor: 'transparent',
                 transform: [
@@ -191,17 +185,10 @@ const ProfileCompletionProgress = ({
 
         {/* Center content */}
         <View style={styles.circularCenter}>
-          <Animated.Text
-            style={[
-              styles.progressText,
-              { fontSize: compact ? 20 : 28 },
-            ]}
-          >
+          <Animated.Text style={[styles.progressText, { fontSize: compact ? 20 : 28 }]}>
             {totalProgress}%
           </Animated.Text>
-          <Text style={[styles.progressLabel, { fontSize: compact ? 10 : 12 }]}>
-            Complete
-          </Text>
+          <Text style={[styles.progressLabel, { fontSize: compact ? 10 : 12 }]}>Complete</Text>
         </View>
       </Animated.View>
     );
@@ -209,7 +196,7 @@ const ProfileCompletionProgress = ({
 
   const renderSectionItem = (section, index) => {
     const isComplete = completedSections.includes(section.id);
-    
+
     const scale = sectionAnims[index].interpolate({
       inputRange: [0, 1],
       outputRange: [0.9, 1],
@@ -217,7 +204,10 @@ const ProfileCompletionProgress = ({
 
     const backgroundColor = sectionAnims[index].interpolate({
       inputRange: [0, 1],
-      outputRange: ['#f0f0f0', section.id === 'verification' ? '#E8F5E9' : '#E8F0FE'],
+      outputRange: [
+        Colors.background.light,
+        section.id === 'verification' ? Colors.status.successLight : Colors.status.infoLight,
+      ],
     });
 
     return (
@@ -237,33 +227,25 @@ const ProfileCompletionProgress = ({
         >
           <View style={styles.sectionIconContainer}>
             {isComplete ? (
-              <LinearGradient
-                colors={['#4ECDC4', '#44A08D']}
-                style={styles.completedIcon}
-              >
-                <Ionicons name="checkmark" size={16} color="#fff" />
+              <LinearGradient colors={Colors.gradient.teal} style={styles.completedIcon}>
+                <Ionicons name="checkmark" size={16} color={Colors.background.white} />
               </LinearGradient>
             ) : (
               <View style={styles.incompleteIcon}>
-                <Ionicons name={section.icon} size={16} color="#999" />
+                <Ionicons name={section.icon} size={16} color={Colors.text.tertiary} />
               </View>
             )}
           </View>
-          
+
           <View style={styles.sectionContent}>
-            <Text
-              style={[
-                styles.sectionLabel,
-                isComplete && styles.sectionLabelComplete,
-              ]}
-            >
+            <Text style={[styles.sectionLabel, isComplete && styles.sectionLabelComplete]}>
               {section.label}
             </Text>
             <Text style={styles.sectionWeight}>+{section.weight}%</Text>
           </View>
 
           {!isComplete && (
-            <Ionicons name="chevron-forward" size={16} color="#999" />
+            <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
           )}
         </Animated.View>
       </TouchableOpacity>
@@ -281,7 +263,7 @@ const ProfileCompletionProgress = ({
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={['#667eea', '#764ba2']}
+          colors={Colors.gradient.primary}
           style={styles.nextActionGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -294,14 +276,12 @@ const ProfileCompletionProgress = ({
               </Text>
             </View>
             <View style={styles.nextActionIconContainer}>
-              <Ionicons name={nextAction.icon} size={24} color="#fff" />
+              <Ionicons name={nextAction.icon} size={24} color={Colors.background.white} />
             </View>
           </View>
           <View style={styles.nextActionBonus}>
-            <Ionicons name="sparkles" size={14} color="#FFD700" />
-            <Text style={styles.nextActionBonusText}>
-              +{nextAction.weight}% completion bonus
-            </Text>
+            <Ionicons name="sparkles" size={14} color={Colors.accent.gold} />
+            <Text style={styles.nextActionBonusText}>+{nextAction.weight}% completion bonus</Text>
           </View>
         </LinearGradient>
       </TouchableOpacity>
@@ -314,9 +294,7 @@ const ProfileCompletionProgress = ({
       onPress={() => onSectionPress?.('overview')}
       activeOpacity={0.8}
     >
-      <View style={styles.compactLeft}>
-        {renderCircularProgress()}
-      </View>
+      <View style={styles.compactLeft}>{renderCircularProgress()}</View>
       <View style={styles.compactRight}>
         <Text style={styles.compactTitle}>Profile Completion</Text>
         <Text style={styles.compactSubtitle}>
@@ -326,16 +304,11 @@ const ProfileCompletionProgress = ({
         </Text>
         {totalProgress < 100 && (
           <View style={styles.compactProgress}>
-            <View
-              style={[
-                styles.compactProgressFill,
-                { width: `${totalProgress}%` },
-              ]}
-            />
+            <View style={[styles.compactProgressFill, { width: `${totalProgress}%` }]} />
           </View>
         )}
       </View>
-      <Ionicons name="chevron-forward" size={20} color="#999" />
+      <Ionicons name="chevron-forward" size={20} color={Colors.text.tertiary} />
     </TouchableOpacity>
   );
 
@@ -349,7 +322,7 @@ const ProfileCompletionProgress = ({
         <Text style={styles.title}>📊 Profile Completion</Text>
         {totalProgress >= 100 && (
           <View style={styles.completeBadge}>
-            <Ionicons name="checkmark-circle" size={16} color="#4ECDC4" />
+            <Ionicons name="checkmark-circle" size={16} color={Colors.accent.teal} />
             <Text style={styles.completeText}>Complete!</Text>
           </View>
         )}
@@ -359,9 +332,7 @@ const ProfileCompletionProgress = ({
       <View style={styles.progressSection}>
         {renderCircularProgress()}
         {totalProgress < 100 && (
-          <Text style={styles.encourageText}>
-            Complete your profile to get more matches!
-          </Text>
+          <Text style={styles.encourageText}>Complete your profile to get more matches!</Text>
         )}
       </View>
 
@@ -372,9 +343,7 @@ const ProfileCompletionProgress = ({
       {showDetails && (
         <View style={styles.sectionsContainer}>
           <Text style={styles.sectionsTitle}>Sections</Text>
-          {PROFILE_SECTIONS.map((section, index) =>
-            renderSectionItem(section, index)
-          )}
+          {PROFILE_SECTIONS.map((section, index) => renderSectionItem(section, index))}
         </View>
       )}
 
@@ -383,15 +352,15 @@ const ProfileCompletionProgress = ({
         <View style={styles.benefitsContainer}>
           <Text style={styles.benefitsTitle}>Benefits of a complete profile:</Text>
           <View style={styles.benefitItem}>
-            <Ionicons name="trending-up" size={16} color="#4ECDC4" />
+            <Ionicons name="trending-up" size={16} color={Colors.accent.teal} />
             <Text style={styles.benefitText}>Get up to 5x more matches</Text>
           </View>
           <View style={styles.benefitItem}>
-            <Ionicons name="eye" size={16} color="#4ECDC4" />
+            <Ionicons name="eye" size={16} color={Colors.accent.teal} />
             <Text style={styles.benefitText}>Appear higher in search results</Text>
           </View>
           <View style={styles.benefitItem}>
-            <Ionicons name="shield-checkmark" size={16} color="#4ECDC4" />
+            <Ionicons name="shield-checkmark" size={16} color={Colors.accent.teal} />
             <Text style={styles.benefitText}>Build trust with potential matches</Text>
           </View>
         </View>
@@ -402,11 +371,11 @@ const ProfileCompletionProgress = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 16,
     padding: 20,
     marginVertical: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -421,12 +390,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   completeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: Colors.status.successLight,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -435,7 +404,7 @@ const styles = StyleSheet.create({
   completeText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#4ECDC4',
+    color: Colors.accent.teal,
   },
   progressSection: {
     alignItems: 'center',
@@ -450,7 +419,7 @@ const styles = StyleSheet.create({
   },
   circleTrack: {
     position: 'absolute',
-    borderColor: '#f0f0f0',
+    borderColor: Colors.background.light,
   },
   progressArc: {
     position: 'absolute',
@@ -460,16 +429,16 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontWeight: '800',
-    color: '#333',
+    color: Colors.text.dark,
   },
   progressLabel: {
-    color: '#999',
+    color: Colors.text.tertiary,
     fontWeight: '500',
   },
   encourageText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
   },
   nextActionContainer: {
@@ -496,7 +465,7 @@ const styles = StyleSheet.create({
   nextActionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
     marginTop: 2,
   },
   nextActionIconContainer: {
@@ -515,7 +484,7 @@ const styles = StyleSheet.create({
   },
   nextActionBonusText: {
     fontSize: 12,
-    color: '#FFD700',
+    color: Colors.accent.gold,
     fontWeight: '600',
   },
   sectionsContainer: {
@@ -524,7 +493,7 @@ const styles = StyleSheet.create({
   sectionsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 12,
   },
   sectionItem: {
@@ -548,7 +517,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -558,26 +527,26 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   sectionLabelComplete: {
-    color: '#4ECDC4',
+    color: Colors.accent.teal,
   },
   sectionWeight: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 2,
   },
   benefitsContainer: {
     marginTop: 16,
     padding: 16,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 12,
   },
   benefitsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 12,
   },
   benefitItem: {
@@ -588,15 +557,15 @@ const styles = StyleSheet.create({
   },
   benefitText: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   compactContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 12,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -611,23 +580,23 @@ const styles = StyleSheet.create({
   compactTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   compactSubtitle: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 2,
   },
   compactProgress: {
     height: 4,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderRadius: 2,
     marginTop: 8,
     overflow: 'hidden',
   },
   compactProgressFill: {
     height: '100%',
-    backgroundColor: '#667eea',
+    backgroundColor: Colors.primary,
     borderRadius: 2,
   },
 });

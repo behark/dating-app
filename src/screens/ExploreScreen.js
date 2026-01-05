@@ -1,18 +1,19 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    FlatList,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  FlatList,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { API_BASE_URL } from '../config/api';
 import { useAuth } from '../context/AuthContext';
@@ -100,7 +101,12 @@ const ExploreScreen = ({ navigation }) => {
 
   const renderUserCard = ({ item }) => {
     let distance = item.distance;
-    if (!distance && location && item.location?.coordinates && item.location.coordinates.length >= 2) {
+    if (
+      !distance &&
+      location &&
+      item.location?.coordinates &&
+      item.location.coordinates.length >= 2
+    ) {
       distance = calculateDistance(
         location.latitude,
         location.longitude,
@@ -125,14 +131,14 @@ const ExploreScreen = ({ navigation }) => {
             end={{ x: 1, y: 1 }}
             style={styles.boostedBadge}
           >
-            <Ionicons name="flash" size={16} color="#fff" />
+            <Ionicons name="flash" size={16} color={Colors.background.white} />
             <Text style={styles.boostedText}>Boosted</Text>
           </LinearGradient>
         )}
 
         {item.isProfileVerified && (
           <View style={styles.verifiedBadge}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+            <Ionicons name="checkmark-circle" size={20} color={Colors.status.success} />
           </View>
         )}
 
@@ -147,7 +153,7 @@ const ExploreScreen = ({ navigation }) => {
           </Text>
           {distance && (
             <View style={styles.distanceRow}>
-              <Ionicons name="location" size={14} color="#fff" />
+              <Ionicons name="location" size={14} color={Colors.background.white} />
               <Text style={styles.distance}>{distance.toFixed(1)} km away</Text>
             </View>
           )}
@@ -173,7 +179,7 @@ const ExploreScreen = ({ navigation }) => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Explore</Text>
         <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterButton}>
-          <Ionicons name="options" size={24} color="#667eea" />
+          <Ionicons name="options" size={24} color={Colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -207,7 +213,7 @@ const ExploreScreen = ({ navigation }) => {
       {/* Users Grid */}
       {loading && users.length === 0 ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#667eea" />
+          <ActivityIndicator size="large" color={Colors.primary} />
         </View>
       ) : users.length > 0 ? (
         <FlatList
@@ -220,7 +226,7 @@ const ExploreScreen = ({ navigation }) => {
         />
       ) : (
         <View style={styles.emptyContainer}>
-          <Ionicons name="person-outline" size={64} color="#ccc" />
+          <Ionicons name="person-outline" size={64} color={Colors.text.light} />
           <Text style={styles.emptyText}>No users found</Text>
           <Text style={styles.emptySubText}>Try adjusting your filters</Text>
         </View>
@@ -232,7 +238,7 @@ const ExploreScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.background.lighter,
   },
   header: {
     flexDirection: 'row',
@@ -240,14 +246,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: Colors.text.lighter,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.dark,
   },
   filterButton: {
     padding: 8,
@@ -255,37 +261,37 @@ const styles = StyleSheet.create({
   sortContainer: {
     paddingHorizontal: 8,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: Colors.text.lighter,
   },
   sortOption: {
     marginHorizontal: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border.light,
   },
   sortOptionActive: {
-    backgroundColor: '#667eea',
-    borderColor: '#667eea',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   sortOptionText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   sortOptionTextActive: {
-    color: '#fff',
+    color: Colors.background.white,
   },
   filterSection: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: Colors.text.lighter,
   },
   filterRow: {
     flexDirection: 'row',
@@ -295,12 +301,12 @@ const styles = StyleSheet.create({
   },
   filterLabel: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     fontWeight: '600',
   },
   filterValue: {
     fontSize: 14,
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: 'bold',
   },
   columnWrapper: {
@@ -317,9 +323,9 @@ const styles = StyleSheet.create({
     height: CARD_WIDTH * 1.3,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     marginBottom: 8,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -341,7 +347,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   boostedText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -349,7 +355,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: Colors.background.white90,
     borderRadius: 20,
     padding: 4,
   },
@@ -371,7 +377,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#fff',
+    color: Colors.background.white,
   },
   distanceRow: {
     flexDirection: 'row',
@@ -381,7 +387,7 @@ const styles = StyleSheet.create({
   },
   distance: {
     fontSize: 12,
-    color: '#fff',
+    color: Colors.background.white,
   },
   loadingContainer: {
     flex: 1,
@@ -397,12 +403,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 12,
   },
   emptySubText: {
     fontSize: 14,
-    color: '#ccc',
+    color: Colors.text.light,
     marginTop: 6,
   },
 });

@@ -114,15 +114,16 @@ const handleUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       // Determine the type based on the route or field
-      const isVideo = req.path?.includes('video') || err.field === 'video' || err.field === 'videos';
+      const isVideo =
+        req.path?.includes('video') || err.field === 'video' || err.field === 'videos';
       const isChat = req.path?.includes('chat') || err.field === 'media';
       const isDocument = req.path?.includes('verification') || err.field === 'document';
-      
+
       let maxSize = SIZE_LIMITS.image;
       if (isVideo) maxSize = SIZE_LIMITS.video;
       else if (isChat) maxSize = SIZE_LIMITS.chatMedia;
       else if (isDocument) maxSize = SIZE_LIMITS.document;
-      
+
       return res.status(413).json({
         success: false,
         message: `File too large. Maximum size is ${maxSize}`,
@@ -166,7 +167,7 @@ const handleUploadError = (err, req, res, next) => {
       error: 'UNSUPPORTED_MEDIA_TYPE',
     });
   }
-  
+
   // Handle payload too large from body-parser
   if (err.type === 'entity.too.large') {
     return res.status(413).json({

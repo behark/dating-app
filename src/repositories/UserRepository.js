@@ -8,6 +8,8 @@
  * instead of throwing, allowing the UI to display appropriate empty states.
  */
 
+import { ERROR_MESSAGES } from '../constants/constants';
+
 export class UserRepository {
   /**
    * Get the current user's profile data
@@ -15,7 +17,7 @@ export class UserRepository {
    * @returns {Promise<Object|null>} User data or null if not found/error
    */
   async getCurrentUser(userId) {
-    throw new Error('Method not implemented');
+    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
   }
 
   /**
@@ -27,7 +29,7 @@ export class UserRepository {
    * @returns {Promise<Array>} Array of user profiles (empty array on error)
    */
   async getDiscoverableUsers(userId, options = {}) {
-    throw new Error('Method not implemented');
+    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
   }
 
   /**
@@ -37,7 +39,7 @@ export class UserRepository {
    * @returns {Promise<boolean>} Success status
    */
   async updateUser(userId, data) {
-    throw new Error('Method not implemented');
+    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
   }
 
   /**
@@ -46,7 +48,7 @@ export class UserRepository {
    * @returns {Promise<Object|null>} User data or null if not found/error
    */
   async getUserById(userId) {
-    throw new Error('Method not implemented');
+    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
   }
 
   /**
@@ -57,7 +59,7 @@ export class UserRepository {
    * @returns {Promise<Object>} Result with potential match info
    */
   async recordSwipe(swiperId, swipedUserId, direction) {
-    throw new Error('Method not implemented');
+    throw new Error(ERROR_MESSAGES.METHOD_NOT_IMPLEMENTED);
   }
 
   /**

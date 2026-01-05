@@ -1,17 +1,18 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { ResizeMode, Video } from 'expo-av';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import {
-    Alert,
-    Animated,
-    Dimensions,
-    Modal,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  Animated,
+  Dimensions,
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import logger from '../../utils/logger';
 
@@ -34,7 +35,7 @@ const ProfileVideoIntroduction = ({
   const [recordingTime, setRecordingTime] = useState(0);
   const [videoStatus, setVideoStatus] = useState({});
   const [loading, setLoading] = useState(false);
-  
+
   // Animation values
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const recordingAnim = useRef(new Animated.Value(0)).current;
@@ -82,9 +83,9 @@ const ProfileVideoIntroduction = ({
 
   const handlePlayPause = async () => {
     if (!videoRef.current) return;
-    
+
     animatePlayButton();
-    
+
     if (isPlaying) {
       await videoRef.current.pauseAsync();
     } else {
@@ -116,7 +117,7 @@ const ProfileVideoIntroduction = ({
       if (!result.canceled && result.assets?.[0]) {
         const video = result.assets[0];
         const duration = video.duration / 1000; // Convert to seconds
-        
+
         if (duration < MIN_VIDEO_DURATION) {
           Alert.alert(
             'Video too short',
@@ -124,7 +125,7 @@ const ProfileVideoIntroduction = ({
           );
           return;
         }
-        
+
         if (duration > MAX_VIDEO_DURATION) {
           Alert.alert(
             'Video too long',
@@ -149,7 +150,7 @@ const ProfileVideoIntroduction = ({
     try {
       const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
       const { status: micStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+
       if (cameraStatus !== 'granted' || micStatus !== 'granted') {
         Alert.alert('Permission needed', 'We need camera and microphone permissions to record!');
         return;
@@ -166,12 +167,9 @@ const ProfileVideoIntroduction = ({
       if (!result.canceled && result.assets?.[0]) {
         const video = result.assets[0];
         const duration = video.duration / 1000;
-        
+
         if (duration < MIN_VIDEO_DURATION) {
-          Alert.alert(
-            'Video too short',
-            `Please record at least ${MIN_VIDEO_DURATION} seconds.`
-          );
+          Alert.alert('Video too short', `Please record at least ${MIN_VIDEO_DURATION} seconds.`);
           return;
         }
 
@@ -188,18 +186,14 @@ const ProfileVideoIntroduction = ({
   };
 
   const handleRemoveVideo = () => {
-    Alert.alert(
-      'Remove Video',
-      'Are you sure you want to remove your video introduction?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => onVideoRemove?.(),
-        },
-      ]
-    );
+    Alert.alert('Remove Video', 'Are you sure you want to remove your video introduction?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => onVideoRemove?.(),
+      },
+    ]);
   };
 
   const formatTime = (seconds) => {
@@ -226,25 +220,18 @@ const ProfileVideoIntroduction = ({
           onPlaybackStatusUpdate={handleVideoStatusUpdate}
           useNativeControls={false}
         />
-        
+
         {/* Video overlay controls */}
-        <TouchableOpacity
-          style={styles.videoOverlay}
-          onPress={handlePlayPause}
-          activeOpacity={0.9}
-        >
+        <TouchableOpacity style={styles.videoOverlay} onPress={handlePlayPause} activeOpacity={0.9}>
           {!isPlaying && (
             <Animated.View
-              style={[
-                styles.playButtonContainer,
-                { transform: [{ scale: playButtonAnim }] },
-              ]}
+              style={[styles.playButtonContainer, { transform: [{ scale: playButtonAnim }] }]}
             >
               <LinearGradient
                 colors={['rgba(102, 126, 234, 0.9)', 'rgba(118, 75, 162, 0.9)']}
                 style={styles.playButton}
               >
-                <Ionicons name="play" size={32} color="#fff" />
+                <Ionicons name="play" size={32} color={Colors.background.white} />
               </LinearGradient>
             </Animated.View>
           )}
@@ -257,7 +244,7 @@ const ProfileVideoIntroduction = ({
 
         {/* Duration indicator */}
         <View style={styles.durationBadge}>
-          <Ionicons name="videocam" size={12} color="#fff" />
+          <Ionicons name="videocam" size={12} color={Colors.background.white} />
           <Text style={styles.durationText}>
             {formatTime(position / 1000)} / {formatTime(duration / 1000)}
           </Text>
@@ -268,16 +255,13 @@ const ProfileVideoIntroduction = ({
           <Ionicons
             name={videoStatus.isMuted ? 'volume-mute' : 'volume-high'}
             size={16}
-            color="#fff"
+            color={Colors.background.white}
           />
         </TouchableOpacity>
 
         {editable && (
-          <TouchableOpacity
-            style={styles.removeButton}
-            onPress={handleRemoveVideo}
-          >
-            <Ionicons name="close-circle" size={24} color="#FF6B6B" />
+          <TouchableOpacity style={styles.removeButton} onPress={handleRemoveVideo}>
+            <Ionicons name="close-circle" size={24} color={Colors.accent.red} />
           </TouchableOpacity>
         )}
       </View>
@@ -296,11 +280,8 @@ const ProfileVideoIntroduction = ({
         style={styles.placeholderGradient}
       >
         <View style={styles.placeholderIconContainer}>
-          <LinearGradient
-            colors={['#667eea', '#764ba2']}
-            style={styles.placeholderIcon}
-          >
-            <Ionicons name="videocam" size={32} color="#fff" />
+          <LinearGradient colors={Colors.gradient.primary} style={styles.placeholderIcon}>
+            <Ionicons name="videocam" size={32} color={Colors.background.white} />
           </LinearGradient>
         </View>
         <Text style={styles.placeholderTitle}>Add Video Introduction</Text>
@@ -309,15 +290,15 @@ const ProfileVideoIntroduction = ({
         </Text>
         <View style={styles.benefitsList}>
           <View style={styles.benefitItem}>
-            <Ionicons name="checkmark-circle" size={16} color="#4ECDC4" />
+            <Ionicons name="checkmark-circle" size={16} color={Colors.accent.teal} />
             <Text style={styles.benefitText}>Get 3x more matches</Text>
           </View>
           <View style={styles.benefitItem}>
-            <Ionicons name="checkmark-circle" size={16} color="#4ECDC4" />
+            <Ionicons name="checkmark-circle" size={16} color={Colors.accent.teal} />
             <Text style={styles.benefitText}>Stand out from the crowd</Text>
           </View>
           <View style={styles.benefitItem}>
-            <Ionicons name="checkmark-circle" size={16} color="#4ECDC4" />
+            <Ionicons name="checkmark-circle" size={16} color={Colors.accent.teal} />
             <Text style={styles.benefitText}>Show your personality</Text>
           </View>
         </View>
@@ -337,7 +318,7 @@ const ProfileVideoIntroduction = ({
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Video Introduction</Text>
             <TouchableOpacity onPress={() => setShowModal(false)}>
-              <Ionicons name="close" size={24} color="#333" />
+              <Ionicons name="close" size={24} color={Colors.text.dark} />
             </TouchableOpacity>
           </View>
 
@@ -355,30 +336,16 @@ const ProfileVideoIntroduction = ({
           </View>
 
           <View style={styles.modalButtons}>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={recordVideo}
-              disabled={loading}
-            >
-              <LinearGradient
-                colors={['#FF6B6B', '#FF8E53']}
-                style={styles.modalButtonGradient}
-              >
-                <Ionicons name="camera" size={24} color="#fff" />
+            <TouchableOpacity style={styles.modalButton} onPress={recordVideo} disabled={loading}>
+              <LinearGradient colors={Colors.gradient.redOrange} style={styles.modalButtonGradient}>
+                <Ionicons name="camera" size={24} color={Colors.background.white} />
                 <Text style={styles.modalButtonText}>Record Video</Text>
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={pickVideo}
-              disabled={loading}
-            >
-              <LinearGradient
-                colors={['#667eea', '#764ba2']}
-                style={styles.modalButtonGradient}
-              >
-                <Ionicons name="images" size={24} color="#fff" />
+            <TouchableOpacity style={styles.modalButton} onPress={pickVideo} disabled={loading}>
+              <LinearGradient colors={Colors.gradient.primary} style={styles.modalButtonGradient}>
+                <Ionicons name="images" size={24} color={Colors.background.white} />
                 <Text style={styles.modalButtonText}>Choose from Gallery</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -398,7 +365,7 @@ const ProfileVideoIntroduction = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Ionicons name="videocam" size={20} color="#667eea" />
+          <Ionicons name="videocam" size={20} color={Colors.primary} />
           <Text style={styles.headerTitle}>Video Introduction</Text>
         </View>
         {videoUrl && editable && (
@@ -417,10 +384,10 @@ const ProfileVideoIntroduction = ({
 const styles = StyleSheet.create({
   container: {
     marginVertical: 16,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -440,10 +407,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   changeButton: {
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: '600',
     fontSize: 14,
   },
@@ -453,7 +420,7 @@ const styles = StyleSheet.create({
     maxHeight: 400,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#000',
+    backgroundColor: Colors.text.primary,
   },
   video: {
     width: '100%',
@@ -465,7 +432,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   playButtonContainer: {
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -488,7 +455,7 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#667eea',
+    backgroundColor: Colors.primary,
   },
   durationBadge: {
     position: 'absolute',
@@ -503,7 +470,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   durationText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -519,7 +486,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: Colors.background.white90,
     borderRadius: 12,
   },
   placeholder: {
@@ -546,12 +513,12 @@ const styles = StyleSheet.create({
   placeholderTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   placeholderSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -566,7 +533,7 @@ const styles = StyleSheet.create({
   },
   benefitText: {
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
   },
   modalOverlay: {
     flex: 1,
@@ -574,7 +541,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -589,16 +556,16 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   modalDescription: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     lineHeight: 20,
     marginBottom: 20,
   },
   tipsList: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
@@ -606,12 +573,12 @@ const styles = StyleSheet.create({
   tipsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   tipItem: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 4,
   },
   modalButtons: {
@@ -629,20 +596,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   modalButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     fontWeight: '600',
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: Colors.background.white90,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 24,
   },
   loadingText: {
     fontSize: 16,
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: '600',
   },
 });

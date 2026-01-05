@@ -53,7 +53,7 @@ const calculateCompatibility = (user1, user2) => {
 
   // Age compatibility
   const ageDiff = Math.abs(user1.age - user2.age);
-  score += Math.max(0, 30 - ageDiff) * (30 / 30);
+  score += Math.max(0, 30 - ageDiff);
 
   // Distance score
   const distance = calculateDistance(

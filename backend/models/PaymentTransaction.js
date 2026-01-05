@@ -182,7 +182,7 @@ paymentTransactionSchema.statics.findByProviderId = function (provider, provider
 
 // Static method: Calculate user total spend
 /**
- * @param {string} userId 
+ * @param {string} userId
  * @returns {Promise<{totalSpend: number, totalTransactions: number}>}
  */
 // @ts-ignore - Mongoose static method context
@@ -241,7 +241,7 @@ paymentTransactionSchema.statics.getRevenueAnalytics = async function (startDate
       $sort: { '_id.date': 1 },
     },
   ]);
-// @ts-ignore - Mongoose static method context
+  // @ts-ignore - Mongoose static method context
 };
 
 // Static method: Get refund statistics

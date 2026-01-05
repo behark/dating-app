@@ -3,15 +3,16 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Image,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  Image,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { PremiumService } from '../services/PremiumService';
@@ -78,7 +79,13 @@ const MatchesScreen = () => {
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: item.otherUser.photos?.[0]?.url || item.otherUser.photos?.[0] || process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL || 'https://via.placeholder.com/100' }}
+            source={{
+              uri:
+                item.otherUser.photos?.[0]?.url ||
+                item.otherUser.photos?.[0] ||
+                process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
+                'https://via.placeholder.com/100',
+            }}
             style={styles.matchImage}
           />
           <View style={styles.onlineIndicator} />
@@ -109,7 +116,7 @@ const MatchesScreen = () => {
           activeOpacity={0.8}
           style={styles.unmatchButton}
         >
-          <Ionicons name="close-circle" size={24} color="#FF6B6B" />
+          <Ionicons name="close-circle" size={24} color={Colors.accent.red} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() =>
@@ -121,7 +128,7 @@ const MatchesScreen = () => {
           activeOpacity={0.8}
           style={styles.compatibilityButton}
         >
-          <Ionicons name="heart" size={20} color="#FF6B9D" />
+          <Ionicons name="heart" size={20} color={Colors.accent.pink} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() =>
@@ -134,7 +141,7 @@ const MatchesScreen = () => {
           activeOpacity={0.8}
           style={styles.datePlanButton}
         >
-          <Ionicons name="calendar" size={20} color="#FF9800" />
+          <Ionicons name="calendar" size={20} color={Colors.status.warning} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() =>
@@ -145,8 +152,8 @@ const MatchesScreen = () => {
           }
           activeOpacity={0.8}
         >
-          <LinearGradient colors={['#667eea', '#764ba2']} style={styles.chatButton}>
-            <Ionicons name="chatbubble" size={20} color="#fff" />
+          <LinearGradient colors={Colors.gradient.primary} style={styles.chatButton}>
+            <Ionicons name="chatbubble" size={20} color={Colors.text.white} />
           </LinearGradient>
         </TouchableOpacity>
       </View>
@@ -182,9 +189,9 @@ const MatchesScreen = () => {
 
   if (loading) {
     return (
-      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+      <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="heart" size={60} color="#fff" />
+          <Ionicons name="heart" size={60} color={Colors.text.white} />
           <Text style={styles.loadingText}>Loading matches...</Text>
         </View>
       </LinearGradient>
@@ -192,7 +199,7 @@ const MatchesScreen = () => {
   }
 
   return (
-    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
+    <LinearGradient colors={Colors.gradient.light} style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>
           {showLikes ? 'People Who Liked You' : 'Your Conversations'}
@@ -209,7 +216,11 @@ const MatchesScreen = () => {
               style={[styles.toggleButton, !showLikes && styles.toggleButtonActive]}
               onPress={() => setShowLikes(false)}
             >
-              <Ionicons name="heart" size={16} color={!showLikes ? '#fff' : '#667eea'} />
+              <Ionicons
+                name="heart"
+                size={16}
+                color={!showLikes ? Colors.text.white : Colors.primary}
+              />
               <Text style={[styles.toggleText, !showLikes && styles.toggleTextActive]}>
                 Matches
               </Text>
@@ -219,7 +230,11 @@ const MatchesScreen = () => {
               style={[styles.toggleButton, showLikes && styles.toggleButtonActive]}
               onPress={() => setShowLikes(true)}
             >
-              <Ionicons name="star" size={16} color={showLikes ? '#fff' : '#FFD700'} />
+              <Ionicons
+                name="star"
+                size={16}
+                color={showLikes ? Colors.text.white : Colors.accent.gold}
+              />
               <Text style={[styles.toggleText, showLikes && styles.toggleTextActive]}>Likes</Text>
             </TouchableOpacity>
           </View>
@@ -228,8 +243,8 @@ const MatchesScreen = () => {
       {showLikes ? (
         receivedLikes.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <LinearGradient colors={['#667eea', '#764ba2']} style={styles.emptyCard}>
-              <Ionicons name="star-outline" size={80} color="#fff" />
+            <LinearGradient colors={Colors.gradient.primary} style={styles.emptyCard}>
+              <Ionicons name="star-outline" size={80} color={Colors.text.white} />
               <Text style={styles.emptyTitle}>No likes yet</Text>
               <Text style={styles.emptyText}>
                 When someone super likes you, they&apos;ll appear here!{'\n'}
@@ -253,10 +268,17 @@ const MatchesScreen = () => {
                 >
                   <View style={styles.imageContainer}>
                     <Image
-                      source={{ uri: item.user.photoURL || process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL || 'https://via.placeholder.com/100' }}
+                      source={{
+                        uri:
+                          item.user.photoURL ||
+                          process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
+                          'https://via.placeholder.com/100',
+                      }}
                       style={styles.matchImage}
                     />
-                    <View style={[styles.onlineIndicator, { backgroundColor: '#FFD700' }]} />
+                    <View
+                      style={[styles.onlineIndicator, { backgroundColor: Colors.accent.gold }]}
+                    />
                   </View>
                 </TouchableOpacity>
                 <View style={styles.matchInfo}>
@@ -264,7 +286,7 @@ const MatchesScreen = () => {
                     <Text style={styles.matchName}>{item.user?.name || 'Unknown'}</Text>
                     {item.user?.age && <Text style={styles.matchAge}>, {item.user.age}</Text>}
                     <View style={[styles.superLikeBadge]}>
-                      <Ionicons name="star" size={12} color="#FFD700" />
+                      <Ionicons name="star" size={12} color={Colors.accent.gold} />
                     </View>
                   </View>
                   <View style={styles.matchDetails}>
@@ -275,12 +297,15 @@ const MatchesScreen = () => {
                 </View>
                 <TouchableOpacity
                   onPress={() =>
-                    navigation.navigate('Chat', { userId: item.user?.id, userName: item.user?.name })
+                    navigation.navigate('Chat', {
+                      userId: item.user?.id,
+                      userName: item.user?.name,
+                    })
                   }
                   activeOpacity={0.8}
                 >
-                  <LinearGradient colors={['#667eea', '#764ba2']} style={styles.chatButton}>
-                    <Ionicons name="chatbubble" size={20} color="#fff" />
+                  <LinearGradient colors={Colors.gradient.primary} style={styles.chatButton}>
+                    <Ionicons name="chatbubble" size={20} color={Colors.background.white} />
                   </LinearGradient>
                 </TouchableOpacity>
               </TouchableOpacity>
@@ -293,8 +318,8 @@ const MatchesScreen = () => {
         )
       ) : conversations.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <LinearGradient colors={['#667eea', '#764ba2']} style={styles.emptyCard}>
-            <Ionicons name="heart-outline" size={80} color="#fff" />
+          <LinearGradient colors={Colors.gradient.primary} style={styles.emptyCard}>
+            <Ionicons name="heart-outline" size={80} color={Colors.text.white} />
             <Text style={styles.emptyTitle}>No conversations yet</Text>
             <Text style={styles.emptyText}>
               Start chatting with your matches!{'\n'}
@@ -328,17 +353,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: '800',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 5,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
     fontWeight: '600',
   },
   toggleContainer: {
     flexDirection: 'row',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 20,
     padding: 4,
     marginTop: 15,
@@ -353,8 +378,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   toggleButtonActive: {
-    backgroundColor: '#667eea',
-    shadowColor: '#667eea',
+    backgroundColor: Colors.primary,
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -363,11 +388,11 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#667eea',
+    color: Colors.primary,
     marginLeft: 4,
   },
   toggleTextActive: {
-    color: '#fff',
+    color: Colors.text.white,
   },
   loadingContainer: {
     flex: 1,
@@ -377,7 +402,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 20,
     fontSize: 18,
-    color: '#fff',
+    color: Colors.text.white,
     fontWeight: '600',
   },
   list: {
@@ -387,11 +412,11 @@ const styles = StyleSheet.create({
   matchCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 20,
     padding: 15,
     marginBottom: 15,
-    shadowColor: '#000',
+    shadowColor: Colors.background.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -409,7 +434,7 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: 35,
     borderWidth: 3,
-    borderColor: '#667eea',
+    borderColor: Colors.primary,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -431,7 +456,7 @@ const styles = StyleSheet.create({
     borderRadius: 22.5,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#667eea',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -444,9 +469,9 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#4ECDC4',
+    backgroundColor: Colors.accent.teal,
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: Colors.background.white,
   },
   matchInfo: {
     flex: 1,
@@ -459,7 +484,7 @@ const styles = StyleSheet.create({
   matchName: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   matchDetails: {
     flexDirection: 'row',
@@ -468,7 +493,7 @@ const styles = StyleSheet.create({
   },
   matchAge: {
     fontSize: 15,
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: '600',
     marginRight: 10,
   },
@@ -479,30 +504,30 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#FFD700',
+    borderColor: Colors.accent.gold,
   },
   likeTime: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     fontStyle: 'italic',
   },
   matchBio: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.tertiary,
     flex: 1,
   },
   lastMessage: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     flex: 1,
   },
   noMessages: {
     fontSize: 14,
-    color: '#999',
+    color: Colors.text.tertiary,
     fontStyle: 'italic',
   },
   unreadBadge: {
-    backgroundColor: '#FF6B6B',
+    backgroundColor: Colors.accent.red,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -512,7 +537,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   unreadText: {
-    color: '#fff',
+    color: Colors.text.white,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -528,7 +553,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     padding: 40,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.background.black,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -537,14 +562,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#fff',
+    color: Colors.text.white,
     marginTop: 20,
     marginBottom: 15,
     textAlign: 'center',
   },
   emptyText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: Colors.text.white90,
     textAlign: 'center',
     lineHeight: 24,
   },

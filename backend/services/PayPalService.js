@@ -101,7 +101,8 @@ class PayPalService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      const errorData =
+        error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
       console.error('Error creating PayPal subscription:', errorData || errorMessage);
       throw error;
     }
@@ -134,7 +135,8 @@ class PayPalService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      const errorData =
+        error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
       console.error('Error getting PayPal subscription:', errorData || errorMessage);
       throw error;
     }
@@ -203,7 +205,8 @@ class PayPalService {
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      const errorData =
+        error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
       console.error('Error cancelling PayPal subscription:', errorData || errorMessage);
       throw error;
     }
@@ -232,7 +235,8 @@ class PayPalService {
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      const errorData =
+        error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
       console.error('Error suspending PayPal subscription:', errorData || errorMessage);
       throw error;
     }
@@ -261,7 +265,8 @@ class PayPalService {
       return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      const errorData =
+        error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
       console.error('Error reactivating PayPal subscription:', errorData || errorMessage);
       throw error;
     }
@@ -327,7 +332,8 @@ class PayPalService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      const errorData =
+        error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
       console.error('Error creating PayPal order:', errorData || errorMessage);
       throw error;
     }
@@ -400,7 +406,8 @@ class PayPalService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      const errorData =
+        error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
       console.error('Error capturing PayPal order:', errorData || errorMessage);
       throw error;
     }
@@ -443,7 +450,8 @@ class PayPalService {
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      const errorData =
+        error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
       console.error('Error creating PayPal refund:', errorData || errorMessage);
       throw error;
     }
@@ -478,7 +486,8 @@ class PayPalService {
       return response.data.verification_status === 'SUCCESS';
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
+      const errorData =
+        error && typeof error === 'object' && 'response' in error ? error.response?.data : null;
       console.error('Error verifying PayPal webhook:', errorData || errorMessage);
       return false;
     }

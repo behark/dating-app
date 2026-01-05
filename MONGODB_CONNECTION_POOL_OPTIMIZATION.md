@@ -58,9 +58,9 @@ You're using **Mongoose**, which automatically handles this correctly! Mongoose 
 
 ```javascript
 // These all use the SAME connection
-mongoose.connect(uri);  // First call creates connection
-mongoose.connect(uri);  // Reuses existing connection
-mongoose.connect(uri);  // Reuses existing connection
+mongoose.connect(uri); // First call creates connection
+mongoose.connect(uri); // Reuses existing connection
+mongoose.connect(uri); // Reuses existing connection
 ```
 
 Mongoose checks if a connection already exists and reuses it. So you're already following the best practice! 🎉
@@ -74,6 +74,7 @@ Mongoose checks if a connection already exists and reuses it. So you're already 
 Use the `connectDB()` function from `config/database.js` everywhere:
 
 **In `server.js`:**
+
 ```javascript
 // Instead of defining your own connectDB()
 const { connectDB } = require('./config/database');
@@ -83,6 +84,7 @@ await connectDB();
 ```
 
 **In `worker.js`:**
+
 ```javascript
 // Instead of mongoose.connect()
 const { connectDB } = require('./config/database');
@@ -94,6 +96,7 @@ await connectDB();
 ### Option 2: Keep Current Setup (Also Fine)
 
 Your current setup is **already correct** because:
+
 - Mongoose uses singleton pattern
 - All `mongoose.connect()` calls reuse the same connection
 - Connection pooling is properly configured
@@ -112,6 +115,7 @@ waitQueueTimeoutMS: 10000, // Max wait for connection
 ```
 
 **This is excellent!** ✅
+
 - Sized for high traffic (swiping operations)
 - Proper timeouts to prevent hanging
 - Connection monitoring enabled
@@ -136,6 +140,7 @@ waitQueueTimeoutMS: 10000, // Max wait for connection
 ### Test Connection Reuse
 
 Add this to see connection reuse:
+
 ```javascript
 console.log('Connection ID:', mongoose.connection.id);
 // Should be the same across all mongoose.connect() calls
@@ -146,19 +151,24 @@ console.log('Connection ID:', mongoose.connection.id);
 ## ✅ Summary
 
 ### Is It Dangerous?
+
 **No!** Your app is already following best practices because:
+
 - ✅ Using Mongoose (singleton pattern)
 - ✅ Proper connection pooling configured
 - ✅ Connection monitoring enabled
 - ✅ Pool health checks in place
 
 ### Should You Change Anything?
+
 **Optional optimization:**
+
 - Use centralized `connectDB()` from `config/database.js`
 - Makes code cleaner and more maintainable
 - But current setup works fine!
 
 ### MongoDB Atlas Recommendation
+
 This is just a **general best practice tip**. Your app is already doing it correctly thanks to Mongoose! 🎉
 
 ---
@@ -168,12 +178,14 @@ This is just a **general best practice tip**. Your app is already doing it corre
 If you want to optimize further:
 
 1. **Refactor `server.js`** to use `config/database.js`:
+
    ```javascript
    const { connectDB } = require('./config/database');
    // Remove local connectDB() function
    ```
 
 2. **Refactor `worker.js`** to use `config/database.js`:
+
    ```javascript
    const { connectDB } = require('./config/database');
    // Replace mongoose.connect() with connectDB()

@@ -52,3 +52,11 @@ RENDER_ENV_VARS_FINAL.env
 VERCEL_ENV_VARS_FINAL.env
 *.firebase-adminsdk*.json
 client_secret_*.json
+
+# Backup and temporary files
+*.backup.*
+*.tmp
+*.log
+
+# Test connection scripts (temporary)
+test-*-connection.js

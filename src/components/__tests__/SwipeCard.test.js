@@ -1,4 +1,5 @@
 import React from 'react';
+import { Colors } from '../constants/colors';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import SwipeCard from '../Card/SwipeCard';
 
@@ -83,7 +84,7 @@ describe('SwipeCard', () => {
     const card = screen.getByTestId('swipe-card');
     expect(card).toHaveStyle({
       borderRadius: 30,
-      backgroundColor: '#fff',
+      backgroundColor: Colors.background.white,
     });
   });
 

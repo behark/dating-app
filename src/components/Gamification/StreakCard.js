@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { Colors } from '../constants/colors';
 
 const StreakCard = ({ currentStreak, longestStreak, lastSwipeDate }) => {
   const isStreakActive = () => {
@@ -47,11 +48,11 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#FF6B9D',
+    borderLeftColor: Colors.accent.pink,
   },
   inactiveCard: {
-    backgroundColor: '#F5F5F5',
-    borderLeftColor: '#CCC',
+    backgroundColor: Colors.background.lighter,
+    borderLeftColor: Colors.text.light,
   },
   header: {
     flexDirection: 'row',
@@ -62,10 +63,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   activeText: {
-    color: '#FF6B9D',
+    color: Colors.accent.pink,
     fontWeight: '600',
     fontSize: 12,
   },
@@ -82,22 +83,22 @@ const styles = StyleSheet.create({
   streakNumber: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FF6B9D',
+    color: Colors.accent.pink,
   },
   streakLabel: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 4,
   },
   divider: {
     width: 1,
     height: 40,
-    backgroundColor: '#DDD',
+    backgroundColor: Colors.border.light,
   },
   warningText: {
     marginTop: 12,
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     fontStyle: 'italic',
   },
 });

@@ -1,7 +1,17 @@
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const Swipe = require('../models/Swipe');
-const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
+const { ERROR_MESSAGES, PREMIUM_MESSAGES } = require('../constants/messages');
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 
 /**
  * Get premium subscription status for the authenticated user
@@ -162,7 +172,7 @@ const getReceivedLikes = async (req, res) => {
     if (!subscription?.hasFeature('seeWhoLikedYou')) {
       return res.status(403).json({
         success: false,
-        message: 'Premium feature required. Please upgrade to see who liked you.',
+        message: PREMIUM_MESSAGES.SEE_WHO_LIKED,
       });
     }
 
@@ -171,7 +181,7 @@ const getReceivedLikes = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: ERROR_MESSAGES.USER_NOT_FOUND,
       });
     }
     const receivedLikes = user?.receivedLikes || [];
@@ -242,7 +252,7 @@ const setPassportLocation = async (req, res) => {
     if (!subscription?.hasFeature('passport')) {
       return res.status(403).json({
         success: false,
-        message: 'Premium feature required. Please upgrade to use Passport.',
+        message: PREMIUM_MESSAGES.PASSPORT,
       });
     }
 
@@ -266,7 +276,7 @@ const setPassportLocation = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: ERROR_MESSAGES.USER_NOT_FOUND,
       });
     }
 
@@ -335,11 +345,13 @@ const getPassportStatus = async (req, res) => {
     }
 
     // PRIVACY: Sanitize passport location response
-    const currentLocation = user?.passportMode?.currentLocation ? {
-      city: user.passportMode.currentLocation.city || null,
-      country: user.passportMode.currentLocation.country || null,
-      // NEVER include coordinates
-    } : null;
+    const currentLocation = user?.passportMode?.currentLocation
+      ? {
+          city: user.passportMode.currentLocation.city || null,
+          country: user.passportMode.currentLocation.country || null,
+          // NEVER include coordinates
+        }
+      : null;
 
     res.json({
       success: true,
@@ -405,7 +417,7 @@ const getAdvancedFilterOptions = async (req, res) => {
     if (!subscription?.hasFeature('advancedFilters')) {
       return res.status(403).json({
         success: false,
-        message: 'Premium feature required. Please upgrade to use Advanced Filters.',
+        message: PREMIUM_MESSAGES.ADVANCED_FILTERS,
       });
     }
 
@@ -486,7 +498,7 @@ const updateAdvancedFilters = async (req, res) => {
     if (!subscription?.hasFeature('advancedFilters')) {
       return res.status(403).json({
         success: false,
-        message: 'Premium feature required. Please upgrade to use Advanced Filters.',
+        message: PREMIUM_MESSAGES.ADVANCED_FILTERS,
       });
     }
 
@@ -498,7 +510,7 @@ const updateAdvancedFilters = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: ERROR_MESSAGES.USER_NOT_FOUND,
       });
     }
 
@@ -536,7 +548,7 @@ const sendPriorityLike = async (req, res) => {
     if (!subscription?.hasFeature('priorityLikes')) {
       return res.status(403).json({
         success: false,
-        message: 'Premium feature required. Please upgrade to use Priority Likes.',
+        message: PREMIUM_MESSAGES.PRIORITY_LIKES,
       });
     }
 
@@ -583,7 +595,7 @@ const updateAdsPreferences = async (req, res) => {
       if (!subscription?.hasFeature('hideAds')) {
         return res.status(403).json({
           success: false,
-          message: 'Premium feature required. Please upgrade to hide ads.',
+          message: PREMIUM_MESSAGES.HIDE_ADS,
         });
       }
     }
@@ -600,7 +612,7 @@ const updateAdsPreferences = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: ERROR_MESSAGES.USER_NOT_FOUND,
       });
     }
 
@@ -630,7 +642,7 @@ const getBoostAnalytics = async (req, res) => {
     if (!subscription?.hasFeature('profileBoostAnalytics')) {
       return res.status(403).json({
         success: false,
-        message: 'Premium feature required. Please upgrade to view profile boost analytics.',
+        message: PREMIUM_MESSAGES.BOOST_ANALYTICS,
       });
     }
 
@@ -638,7 +650,7 @@ const getBoostAnalytics = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: ERROR_MESSAGES.USER_NOT_FOUND,
       });
     }
 
@@ -705,7 +717,7 @@ const recordBoostSession = async (req, res) => {
       likesGained: likesGained || 0,
       matches: matches || 0,
     };
-if (user.boostAnalytics) {
+    if (user.boostAnalytics) {
       user.boostAnalytics.boostHistory.push(newBoost);
       user.boostAnalytics.totalBoosts = (user.boostAnalytics.totalBoosts || 0) + 1;
       user.boostAnalytics.totalProfileViews =

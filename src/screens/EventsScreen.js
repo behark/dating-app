@@ -1,18 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import SocialFeaturesService from '../services/SocialFeaturesService';
-import logger from '../utils/logger';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
+import logger from '../utils/logger';
 import { getUserId, userIdsMatch } from '../utils/userIdUtils';
 
 const EventsScreen = ({ navigation }) => {
@@ -21,6 +22,7 @@ const EventsScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [error, setError] = useState(null);
 
   const categories = ['networking', 'singles_mixer', 'social_party', 'speed_dating', 'activity'];
 
@@ -139,7 +141,7 @@ const EventsScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#FF6B9D" />
+        <ActivityIndicator size="large" color={Colors.accent.pink} />
       </View>
     );
   }
@@ -207,7 +209,7 @@ const EventsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
   },
   centerContainer: {
     flex: 1,
@@ -221,21 +223,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
+    borderBottomColor: Colors.text.lighter,
   },
   screenTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   createButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.accent.pink,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   createButtonText: {
-    color: '#FFF',
+    color: Colors.background.white,
     fontWeight: '600',
     fontSize: 12,
   },
@@ -244,36 +246,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
+    borderBottomColor: Colors.text.lighter,
   },
   categoryButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginRight: 8,
     borderRadius: 16,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: Colors.background.light,
   },
   categoryButtonActive: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.accent.pink,
   },
   categoryText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#666',
+    color: Colors.text.secondary,
   },
   categoryTextActive: {
-    color: '#FFF',
+    color: Colors.background.white,
   },
   list: {
     padding: 12,
   },
   card: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
@@ -286,11 +288,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     flex: 1,
   },
   category: {
-    backgroundColor: '#FFF3E0',
+    backgroundColor: Colors.status.warningLight,
     color: '#E65100',
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -300,7 +302,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 10,
     lineHeight: 18,
   },
@@ -312,29 +314,29 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 12,
-    color: '#555',
+    color: Colors.text.medium,
   },
   registerButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.accent.pink,
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
   },
   registerButtonText: {
-    color: '#FFF',
+    color: Colors.background.white,
     fontWeight: '600',
     fontSize: 14,
   },
   registeredBadge: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: Colors.status.successLight,
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: Colors.status.success,
   },
   registeredText: {
-    color: '#2E7D32',
+    color: Colors.status.successDark,
     fontWeight: '600',
     fontSize: 14,
   },
@@ -346,7 +348,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#999',
+    color: Colors.text.tertiary,
     marginBottom: 8,
   },
   emptySubtext: {

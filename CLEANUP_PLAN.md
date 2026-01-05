@@ -3,6 +3,7 @@
 ## Files to Remove
 
 ### Category 1: Temporary Status/Progress Files (Development Tracking)
+
 These files were created during development to track progress and are no longer needed:
 
 - ADDITIONAL_FIXES_SESSION.md
@@ -59,9 +60,11 @@ These files were created during development to track progress and are no longer 
 - VISUAL_ENHANCEMENTS_COMPLETE.md
 
 ### Category 2: Duplicate/Redundant Documentation
+
 Multiple files covering the same topics - keep the most comprehensive one:
 
 **Environment Variables (keep RENDER_ENV_VARS_GUIDE.md, remove others):**
+
 - RENDER_ENV_VARS_COMPLETE_REPORT.md
 - RENDER_ENV_VARS_FIX_SUMMARY.md
 - RENDER_ENV_VARS_SETUP_GUIDE.md
@@ -73,6 +76,7 @@ Multiple files covering the same topics - keep the most comprehensive one:
 - HOW_TO_CHECK_ENV_VARS.md
 
 **Deployment (keep DEPLOYMENT.md, remove others):**
+
 - DEPLOYMENT_FIX_SUMMARY.md
 - DEPLOYMENT_GUIDE.md
 - FINAL_RENDER_FIX_INSTRUCTIONS.md
@@ -83,6 +87,7 @@ Multiple files covering the same topics - keep the most comprehensive one:
 - COMPLETE_DEPLOYMENT_REPORT.md
 
 **Setup Guides (keep main ones, remove duplicates):**
+
 - DATADOG_SETUP_STATUS.md (keep DATADOG_RENDER_SETUP.md)
 - SENTRY_TEST_ENDPOINT.md (keep SENTRY_SETUP_GUIDE.md)
 - SNYK_SETUP_COMPLETE.md (info in SNYK_SECURITY_REPORT.md)
@@ -93,6 +98,7 @@ Multiple files covering the same topics - keep the most comprehensive one:
 - FIREBASE_RENDER_SETUP.md (keep FIREBASE_SETUP.md)
 
 **Other Duplicates:**
+
 - AUTH_FIX.md (info in AUTHENTICATION_FIXES.md)
 - HEADER_ERROR_FIX.md (temporary fix doc)
 - INP_FIX_SUMMARY.md (temporary fix doc)
@@ -102,6 +108,7 @@ Multiple files covering the same topics - keep the most comprehensive one:
 - COMPLETE_FINAL_REPORT.md (duplicate summary)
 
 ### Category 3: Redundant Scripts
+
 Multiple scripts doing similar things - consolidate:
 
 - check-render-env-vars.sh (duplicate functionality)
@@ -113,12 +120,14 @@ Multiple scripts doing similar things - consolidate:
 - test-ssh-env-vars.sh (temporary test script)
 
 **Keep:**
+
 - update_render_env_vars.sh (most comprehensive)
 - add-firebase-to-render.sh (specific functionality)
 - add-missing-firebase-vars.sh (specific functionality)
 - setup-deployment.sh (if still needed)
 
 ### Category 4: Redundant Text Files
+
 Environment variable lists - info is in markdown files:
 
 - FIREBASE_RENDER_VALUES.txt
@@ -128,6 +137,7 @@ Environment variable lists - info is in markdown files:
 - RENDER_ENV_VARS_TO_ADD.txt
 
 ### Category 5: Outdated/Obsolete Files
+
 - API_ERROR_HANDLING_AUDIT.md (if fixes are complete)
 - API_ERROR_HANDLING_FIXES_SUMMARY.md (if fixes are complete)
 - CODE_IMPROVEMENTS_SUGGESTIONS.md (if implemented)
@@ -141,6 +151,7 @@ Environment variable lists - info is in markdown files:
 ## Files to Keep
 
 ### Essential Documentation:
+
 - README.md
 - ARCHITECTURE.md
 - DEPLOYMENT.md
@@ -162,6 +173,7 @@ Environment variable lists - info is in markdown files:
 - UPGRADE_ROADMAP.md
 
 ### Setup Guides (one per service):
+
 - FIREBASE_SETUP.md
 - SENTRY_SETUP_GUIDE.md
 - DATADOG_RENDER_SETUP.md
@@ -174,18 +186,21 @@ Environment variable lists - info is in markdown files:
 - VERCEL_DEPLOYMENT_ANALYSIS.md
 
 ### Security:
+
 - SECURITY_FIXES_SUMMARY.md
 - SNYK_SECURITY_REPORT.md
 - SNYK_VULNERABILITY_DETAILS.md
 - SNYK_LICENSE_ISSUES.md
 
 ### Code Quality:
+
 - CODE_QUALITY_FIXES_SUMMARY.md
 - CODE_QUALITY_TOOLS_ANALYSIS.md
 - BACKEND_TYPESCRIPT_ERRORS_ANALYSIS.md
 - TYPESCRIPT_INTERFACE_COMPARISON.md
 
 ### Feature Docs:
+
 - AUTHENTICATION_FIXES.md
 - FRONTEND_ISSUES_FIX_GUIDE.md
 - PLATFORM_SELECT_IMPLEMENTATION.md

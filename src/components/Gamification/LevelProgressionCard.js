@@ -1,27 +1,34 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import {
-    Animated,
-    Dimensions,
-    Easing,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Dimensions,
+  Easing,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const LEVELS = [
   { level: 1, name: 'Newcomer', xpRequired: 0, icon: '🌱', color: '#90BE6D' },
-  { level: 2, name: 'Explorer', xpRequired: 100, icon: '🔍', color: '#4ECDC4' },
-  { level: 3, name: 'Socializer', xpRequired: 300, icon: '💬', color: '#667eea' },
+  { level: 2, name: 'Explorer', xpRequired: 100, icon: '🔍', color: Colors.accent.teal },
+  { level: 3, name: 'Socializer', xpRequired: 300, icon: '💬', color: Colors.primary },
   { level: 4, name: 'Connector', xpRequired: 600, icon: '🤝', color: '#F48FB1' },
-  { level: 5, name: 'Matchmaker', xpRequired: 1000, icon: '💘', color: '#FF6B6B' },
-  { level: 6, name: 'Dating Pro', xpRequired: 1500, icon: '⭐', color: '#FFD700' },
-  { level: 7, name: 'Love Expert', xpRequired: 2500, icon: '💎', color: '#8B5CF6' },
-  { level: 8, name: 'Heart Master', xpRequired: 4000, icon: '👑', color: '#F59E0B' },
+  { level: 5, name: 'Matchmaker', xpRequired: 1000, icon: '💘', color: Colors.accent.red },
+  { level: 6, name: 'Dating Pro', xpRequired: 1500, icon: '⭐', color: Colors.accent.gold },
+  { level: 7, name: 'Love Expert', xpRequired: 2500, icon: '💎', color: Colors.accent.purple },
+  {
+    level: 8,
+    name: 'Heart Master',
+    xpRequired: 4000,
+    icon: '👑',
+    color: Colors.status.warningOrange,
+  },
   { level: 9, name: 'Romance Legend', xpRequired: 6000, icon: '🏆', color: '#EF4444' },
   { level: 10, name: 'Cupid Elite', xpRequired: 10000, icon: '💫', color: '#EC4899' },
 ];
@@ -50,7 +57,7 @@ const LevelProgressionCard = ({
   const [progressPercent, setProgressPercent] = useState(0);
   const [xpToNext, setXpToNext] = useState(100);
   const [showLevelUp, setShowLevelUp] = useState(false);
-  
+
   // Animation values
   const progressAnim = useRef(new Animated.Value(0)).current;
   const levelUpAnim = useRef(new Animated.Value(0)).current;
@@ -69,7 +76,7 @@ const LevelProgressionCard = ({
 
     const currentLevelData = LEVELS[level - 1];
     const nextLevelData = LEVELS[level] || LEVELS[LEVELS.length - 1];
-    
+
     const xpInCurrentLevel = currentXP - currentLevelData.xpRequired;
     const xpNeededForNext = nextLevelData.xpRequired - currentLevelData.xpRequired;
     const progress = Math.min((xpInCurrentLevel / xpNeededForNext) * 100, 100);
@@ -206,20 +213,19 @@ const LevelProgressionCard = ({
         styles.levelBadge,
         isNext && styles.nextLevelBadge,
         !isNext && {
-          transform: [
-            { scale: showLevelUp ? levelUpAnim : 1 },
-            { translateX: shakeAnim },
-          ],
+          transform: [{ scale: showLevelUp ? levelUpAnim : 1 }, { translateX: shakeAnim }],
         },
       ]}
     >
       <LinearGradient
-        colors={isNext ? ['#f0f0f0', '#e0e0e0'] : [levelData.color, adjustColor(levelData.color, -20)]}
+        colors={
+          isNext
+            ? [Colors.background.light, Colors.ui.disabled]
+            : [levelData.color, adjustColor(levelData.color, -20)]
+        }
         style={styles.levelBadgeGradient}
       >
-        <Text style={[styles.levelIcon, isNext && styles.nextLevelIcon]}>
-          {levelData.icon}
-        </Text>
+        <Text style={[styles.levelIcon, isNext && styles.nextLevelIcon]}>{levelData.icon}</Text>
         <Text style={[styles.levelNumber, isNext && styles.nextLevelNumber]}>
           Lv.{levelData.level}
         </Text>
@@ -231,7 +237,7 @@ const LevelProgressionCard = ({
     if (!showLevelUp) return null;
 
     return starAnims.map((anim, index) => {
-      const angle = (index * 72) * (Math.PI / 180);
+      const angle = index * 72 * (Math.PI / 180);
       const translateX = anim.interpolate({
         inputRange: [0, 1],
         outputRange: [0, Math.cos(angle) * 60],
@@ -266,17 +272,10 @@ const LevelProgressionCard = ({
     if (!showLevelUp) return null;
 
     return (
-      <Animated.View
-        style={[
-          styles.levelUpOverlay,
-          { opacity: levelUpAnim },
-        ]}
-      >
+      <Animated.View style={[styles.levelUpOverlay, { opacity: levelUpAnim }]}>
         <View style={styles.levelUpContent}>
           <Text style={styles.levelUpTitle}>🎉 Level Up!</Text>
-          <Text style={styles.levelUpLevel}>
-            You reached Level {currentLevel}
-          </Text>
+          <Text style={styles.levelUpLevel}>You reached Level {currentLevel}</Text>
           <Text style={styles.levelUpName}>{currentLevelData.name}</Text>
         </View>
       </Animated.View>
@@ -287,23 +286,21 @@ const LevelProgressionCard = ({
     <View style={styles.xpActionsContainer}>
       <Text style={styles.xpActionsTitle}>Earn XP</Text>
       <View style={styles.xpActionsGrid}>
-        {Object.entries(XP_ACTIONS).slice(0, 4).map(([key, action]) => (
-          <View key={key} style={styles.xpActionItem}>
-            <Text style={styles.xpActionPoints}>+{action.xp}</Text>
-            <Text style={styles.xpActionLabel}>{action.label}</Text>
-          </View>
-        ))}
+        {Object.entries(XP_ACTIONS)
+          .slice(0, 4)
+          .map(([key, action]) => (
+            <View key={key} style={styles.xpActionItem}>
+              <Text style={styles.xpActionPoints}>+{action.xp}</Text>
+              <Text style={styles.xpActionLabel}>{action.label}</Text>
+            </View>
+          ))}
       </View>
     </View>
   );
 
   if (compact) {
     return (
-      <TouchableOpacity
-        style={styles.compactContainer}
-        onPress={onViewRewards}
-        activeOpacity={0.8}
-      >
+      <TouchableOpacity style={styles.compactContainer} onPress={onViewRewards} activeOpacity={0.8}>
         <View style={styles.compactBadge}>
           <Text style={styles.compactIcon}>{currentLevelData.icon}</Text>
         </View>
@@ -341,7 +338,7 @@ const LevelProgressionCard = ({
       <View style={styles.levelDisplay}>
         {renderLevelBadge(currentLevelData)}
         {renderStarBurst()}
-        
+
         <View style={styles.levelInfo}>
           <Text style={styles.levelName}>{currentLevelData.name}</Text>
           {renderProgressBar()}
@@ -363,7 +360,7 @@ const LevelProgressionCard = ({
             colors={['rgba(255, 215, 0, 0.1)', 'rgba(255, 165, 0, 0.1)']}
             style={styles.nextRewardGradient}
           >
-            <Ionicons name="gift" size={24} color="#FFD700" />
+            <Ionicons name="gift" size={24} color={Colors.accent.gold} />
             <View style={styles.nextRewardInfo}>
               <Text style={styles.nextRewardTitle}>Next Level Reward</Text>
               <Text style={styles.nextRewardDesc}>
@@ -380,13 +377,13 @@ const LevelProgressionCard = ({
 // Helper function to adjust color brightness
 const adjustColor = (color, amount) => {
   const clamp = (num) => Math.min(255, Math.max(0, num));
-  
+
   if (color.startsWith('#')) {
     const hex = color.slice(1);
     const num = parseInt(hex, 16);
     const r = clamp((num >> 16) + amount);
-    const g = clamp(((num >> 8) & 0x00FF) + amount);
-    const b = clamp((num & 0x0000FF) + amount);
+    const g = clamp(((num >> 8) & 0x00ff) + amount);
+    const b = clamp((num & 0x0000ff) + amount);
     return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
   }
   return color;
@@ -394,11 +391,11 @@ const adjustColor = (color, amount) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 16,
     padding: 20,
     marginVertical: 16,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -413,11 +410,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   viewRewards: {
     fontSize: 14,
-    color: '#667eea',
+    color: Colors.primary,
     fontWeight: '600',
   },
   levelDisplay: {
@@ -430,7 +427,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -454,11 +451,11 @@ const styles = StyleSheet.create({
   levelNumber: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.background.white,
     marginTop: 2,
   },
   nextLevelNumber: {
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   levelInfo: {
     flex: 1,
@@ -467,7 +464,7 @@ const styles = StyleSheet.create({
   levelName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   progressContainer: {
@@ -475,7 +472,7 @@ const styles = StyleSheet.create({
   },
   progressTrack: {
     height: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -496,11 +493,11 @@ const styles = StyleSheet.create({
   progressXP: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.dark,
   },
   progressToNext: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   burstStar: {
     position: 'absolute',
@@ -526,29 +523,29 @@ const styles = StyleSheet.create({
   levelUpTitle: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#FFD700',
+    color: Colors.accent.gold,
     marginBottom: 8,
   },
   levelUpLevel: {
     fontSize: 18,
-    color: '#fff',
+    color: Colors.background.white,
     marginBottom: 4,
   },
   levelUpName: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#4ECDC4',
+    color: Colors.accent.teal,
   },
   xpActionsContainer: {
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: Colors.background.light,
   },
   xpActionsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 12,
   },
   xpActionsGrid: {
@@ -557,7 +554,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   xpActionItem: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: Colors.background.lightest,
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -567,11 +564,11 @@ const styles = StyleSheet.create({
   xpActionPoints: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#4ECDC4',
+    color: Colors.accent.teal,
   },
   xpActionLabel: {
     fontSize: 10,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 2,
   },
   nextRewardContainer: {
@@ -591,21 +588,21 @@ const styles = StyleSheet.create({
   nextRewardTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#F59E0B',
+    color: Colors.status.warningOrange,
   },
   nextRewardDesc: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 2,
   },
   compactContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     borderRadius: 20,
     paddingVertical: 6,
     paddingHorizontal: 12,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -623,12 +620,12 @@ const styles = StyleSheet.create({
   compactLevel: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   compactProgress: {
     width: 40,
     height: 3,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.background.light,
     borderRadius: 1.5,
     marginTop: 2,
     overflow: 'hidden',

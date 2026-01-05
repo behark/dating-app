@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Colors } from '../constants/colors';
 import {
   Alert,
   ScrollView,
@@ -256,25 +257,25 @@ const SafetyAdvancedScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.lighter,
   },
   header: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
+    borderBottomColor: Colors.text.lighter,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#000',
+    color: Colors.text.primary,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
   },
   listContent: {
     paddingHorizontal: 16,
@@ -287,17 +288,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   featureCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.08,
     shadowRadius: 2,
@@ -321,12 +322,12 @@ const styles = StyleSheet.create({
   featureName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.text.primary,
     marginBottom: 4,
   },
   featureDescription: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
   },
   premiumBadge: {
     backgroundColor: '#FFD93D',
@@ -337,16 +338,16 @@ const styles = StyleSheet.create({
   premiumText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
   },
   arrowIcon: {
     fontSize: 24,
-    color: '#DDD',
+    color: Colors.border.light,
     marginLeft: 12,
   },
   featureContainer: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: Colors.background.white,
   },
   featureHeader: {
     flexDirection: 'row',
@@ -355,7 +356,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
+    borderBottomColor: Colors.text.lighter,
   },
   backButton: {
     padding: 8,
@@ -363,12 +364,12 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FF6B9D',
+    color: Colors.accent.pink,
   },
   featureTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.text.primary,
     flex: 1,
     textAlign: 'center',
   },
@@ -382,7 +383,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     marginBottom: 16,
-    color: '#000',
+    color: Colors.text.primary,
   },
   emptyState: {
     alignItems: 'center',
@@ -390,7 +391,7 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 16,
   },
   contactCard: {
@@ -402,7 +403,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderLeftWidth: 4,
-    borderLeftColor: '#FF6B9D',
+    borderLeftColor: Colors.accent.pink,
   },
   contactInfo: {
     flex: 1,
@@ -410,17 +411,17 @@ const styles = StyleSheet.create({
   contactName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#000',
+    color: Colors.text.primary,
     marginBottom: 4,
   },
   contactRelation: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginBottom: 4,
   },
   contactPhone: {
     fontSize: 13,
-    color: '#666',
+    color: Colors.text.secondary,
     fontWeight: '500',
   },
   deleteButton: {
@@ -431,11 +432,11 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontSize: 12,
-    color: '#FF6B9D',
+    color: Colors.accent.pink,
     fontWeight: '600',
   },
   primaryButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: Colors.accent.pink,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -443,7 +444,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   buttonText: {
-    color: '#FFF',
+    color: Colors.background.white,
     fontWeight: '600',
     fontSize: 14,
   },
@@ -456,27 +457,27 @@ const styles = StyleSheet.create({
   tipsTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
+    color: Colors.text.primary,
   },
   tipCard: {
-    backgroundColor: '#FFF3E0',
+    backgroundColor: Colors.status.warningLight,
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderLeftWidth: 4,
-    borderLeftColor: '#FF9800',
+    borderLeftColor: Colors.status.warning,
   },
   tipText: {
     flex: 1,
     fontSize: 13,
-    color: '#333',
+    color: Colors.text.dark,
     lineHeight: 18,
   },
   tipArrow: {
     fontSize: 20,
-    color: '#FF9800',
+    color: Colors.status.warning,
     marginLeft: 12,
   },
   emergencyBanner: {
@@ -486,18 +487,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#FF6B9D',
+    borderLeftColor: Colors.accent.pink,
   },
   bannerContent: {},
   bannerTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FF6B9D',
+    color: Colors.accent.pink,
     marginBottom: 4,
   },
   bannerText: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     lineHeight: 16,
   },
 });

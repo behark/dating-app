@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { useCallback, useEffect, useRef } from 'react';
 import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useOffline } from '../hooks/useOffline';
@@ -112,18 +113,18 @@ const NetworkStatusBanner = ({ style, showWhenOnline = true, autoHideDelay = 300
       pointerEvents={isOnline && !wasOfflineRef.current ? 'none' : 'auto'}
     >
       <View style={styles.content}>
-        <Ionicons name={iconName} size={20} color="#fff" />
+        <Ionicons name={iconName} size={20} color={Colors.background.white} />
         <Text style={styles.message}>{message}</Text>
       </View>
 
       <View style={styles.actions}>
         {!isOnline && onRetry && (
           <TouchableOpacity onPress={handleRetry} style={styles.retryButton}>
-            <Ionicons name="refresh" size={18} color="#fff" />
+            <Ionicons name="refresh" size={18} color={Colors.background.white} />
           </TouchableOpacity>
         )}
         <TouchableOpacity onPress={handleDismiss} style={styles.dismissButton}>
-          <Ionicons name="close" size={18} color="#fff" />
+          <Ionicons name="close" size={18} color={Colors.background.white} />
         </TouchableOpacity>
       </View>
     </Animated.View>
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     zIndex: 1000,
     elevation: 10,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   message: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 14,
     fontWeight: '500',
     marginLeft: 10,

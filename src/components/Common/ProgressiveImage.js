@@ -57,7 +57,9 @@ const ProgressiveImage = ({ source, style, placeholderSource, thumbnailSource, .
           <Image
             source={
               placeholderSource || {
-                uri: process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL || 'https://via.placeholder.com/400x400/cccccc/666666?text=No+Image',
+                uri:
+                  process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
+                  'https://via.placeholder.com/400x400/cccccc/666666?text=No+Image',
               }
             }
             style={styles.placeholderImage}

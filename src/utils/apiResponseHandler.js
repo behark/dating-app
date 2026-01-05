@@ -20,7 +20,7 @@ export const handleApiResponse = (response, operation = 'API call') => {
       const error = new Error(response.message || 'API request failed');
       error.code = response.error;
       error.validationErrors = response.errors;
-      
+
       logger.apiError(operation, 'RESPONSE', null, response.message);
       throw error;
     }
@@ -47,7 +47,7 @@ export const handleApiResponse = (response, operation = 'API call') => {
  */
 export const handlePaginatedResponse = (response) => {
   const handled = handleApiResponse(response, 'Paginated API call');
-  
+
   return {
     data: handled.data || [],
     pagination: handled.pagination || {},
@@ -88,7 +88,10 @@ export const isErrorType = (error, errorCode) => {
  * @returns {boolean}
  */
 export const isValidationError = (error) => {
-  return error.code === 'VALIDATION_ERROR' || (error.validationErrors && error.validationErrors.length > 0);
+  return (
+    error.code === 'VALIDATION_ERROR' ||
+    (error.validationErrors && error.validationErrors.length > 0)
+  );
 };
 
 /**

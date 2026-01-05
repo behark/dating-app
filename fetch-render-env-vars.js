@@ -7,7 +7,12 @@
 const https = require('https');
 
 const SERVICE_ID = 'srv-d5cooc2li9vc73ct9j70';
-const API_KEY = process.env.RENDER_API_KEY || 'rnd_uxGa5DLMWLzFvyvRlvhxslstAyaO';
+const API_KEY = process.env.RENDER_API_KEY;
+
+if (!API_KEY) {
+  console.error('Error: RENDER_API_KEY environment variable is required');
+  process.exit(1);
+}
 
 function makeRequest(path) {
   return new Promise((resolve, reject) => {

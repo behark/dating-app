@@ -1,9 +1,9 @@
 /**
  * AI Gateway Service
- * 
+ *
  * Uses Vercel AI SDK to interact with AI models via AI Gateway
  * Supports 100+ models including OpenAI, Google Gemini, Anthropic, etc.
- * 
+ *
  * Requires:
  * - Vercel AI Gateway API key (get from Vercel dashboard)
  * - 'ai' package installed
@@ -11,6 +11,7 @@
 
 import { streamText } from 'ai';
 import { Platform } from 'react-native';
+import { AI_MODELS } from '../constants/constants';
 import logger from '../utils/logger';
 
 // Note: AI SDK works on web platform
@@ -43,15 +44,13 @@ class AIGatewayService {
     }
 
     try {
-      const result = await streamText({
+      return await streamText({
         model,
         prompt,
         apiKey: this.apiKey,
         baseURL: this.baseUrl,
         ...config,
       });
-
-      return result;
     } catch (error) {
       logger.error('Error streaming text from AI Gateway:', error);
       throw error;
@@ -80,13 +79,12 @@ class AIGatewayService {
    * @param {string} model - Model to use (default: google/gemini-3-flash)
    * @returns {Promise<string>} AI response
    */
-  async askQuestion(question, model = 'google/gemini-3-flash') {
+  async askQuestion(question, model = AI_MODELS.DEFAULT) {
     try {
-      const response = await this.getText({
+      return await this.getText({
         model,
         prompt: question,
       });
-      return response;
     } catch (error) {
       logger.error('Error asking question:', error);
       throw error;
@@ -107,7 +105,7 @@ class AIGatewayService {
 
     try {
       const response = await this.getText({
-        model: 'google/gemini-3-flash',
+        model: AI_MODELS.DEFAULT,
         prompt,
         config: {
           temperature: 0.8, // More creative
@@ -141,7 +139,7 @@ class AIGatewayService {
 
     try {
       const response = await this.getText({
-        model: 'google/gemini-3-flash',
+        model: AI_MODELS.DEFAULT,
         prompt,
         config: {
           temperature: 0.7,

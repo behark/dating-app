@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { Colors } from '../constants/colors';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ActivityService } from '../services/ActivityService';
 import logger from '../utils/logger';
@@ -44,11 +45,11 @@ const ActivityIndicatorComponent = ({ userId, showLabel = true }) => {
   }
 
   const getStatusColor = () => {
-    if (!status) return '#999';
+    if (!status) return Colors.text.tertiary;
     if (status.status === 'online') return '#34C759';
     if (status.status === 'active_now') return '#34C759';
     if (status.status.includes('active')) return '#FFA500';
-    return '#999';
+    return Colors.text.tertiary;
   };
 
   const getStatusText = () => {
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    color: '#666',
+    color: Colors.text.secondary,
     fontWeight: '500',
   },
   spinner: {

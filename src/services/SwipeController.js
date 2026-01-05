@@ -1,13 +1,13 @@
 import {
-    addDoc,
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    query,
-    serverTimestamp,
-    setDoc,
-    where,
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  serverTimestamp,
+  setDoc,
+  where,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Swipe } from '../models/Swipe';
@@ -355,7 +355,7 @@ export class SwipeController {
       const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
       const { API_URL } = await import('../config/api');
       const authToken = await AsyncStorage.getItem('authToken');
-      
+
       if (!authToken) {
         logger.warn('No auth token for getSwipesCountToday, returning 0');
         return 0;

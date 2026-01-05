@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import {
@@ -166,10 +167,10 @@ const PreviewHomeScreen = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
+    <LinearGradient colors={Colors.gradient.light} style={styles.container}>
       {/* Preview Badge */}
       <View style={styles.previewBadge}>
-        <Ionicons name="eye" size={14} color="#667eea" />
+        <Ionicons name="eye" size={14} color={Colors.primary} />
         <Text style={styles.previewBadgeText}>Preview Mode</Text>
       </View>
 
@@ -186,7 +187,7 @@ const PreviewHomeScreen = ({ navigation }) => {
           onPress={() => setShowLoginModal(true)}
           activeOpacity={0.8}
         >
-          <LinearGradient colors={['#667eea', '#764ba2']} style={styles.signUpButtonGradient}>
+          <LinearGradient colors={Colors.gradient.primary} style={styles.signUpButtonGradient}>
             <Text style={styles.signUpButtonText}>Sign Up Free</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -207,7 +208,7 @@ const PreviewHomeScreen = ({ navigation }) => {
               {/* Demo Overlay */}
               <View style={styles.demoOverlay}>
                 <View style={styles.demoBadge}>
-                  <Ionicons name="information-circle" size={16} color="#fff" />
+                  <Ionicons name="information-circle" size={16} color={Colors.background.white} />
                   <Text style={styles.demoBadgeText}>Demo Profile</Text>
                 </View>
               </View>
@@ -221,7 +222,7 @@ const PreviewHomeScreen = ({ navigation }) => {
               colors={['rgba(102, 126, 234, 0.1)', 'rgba(118, 75, 162, 0.1)']}
               style={styles.emptyCard}
             >
-              <Ionicons name="heart" size={80} color="#667eea" />
+              <Ionicons name="heart" size={80} color={Colors.primary} />
               <Text style={styles.emptyTitle}>You&apos;ve seen all preview profiles!</Text>
               <Text style={styles.emptyText}>
                 Sign up to see real matches in your area and start connecting
@@ -231,7 +232,7 @@ const PreviewHomeScreen = ({ navigation }) => {
                 onPress={() => setShowLoginModal(true)}
                 activeOpacity={0.8}
               >
-                <LinearGradient colors={['#667eea', '#764ba2']} style={styles.ctaButtonGradient}>
+                <LinearGradient colors={Colors.gradient.primary} style={styles.ctaButtonGradient}>
                   <Text style={styles.ctaButtonText}>Get Started Free</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -247,7 +248,7 @@ const PreviewHomeScreen = ({ navigation }) => {
           onPress={handleSwipeLeft}
           activeOpacity={0.7}
         >
-          <Ionicons name="close" size={32} color="#FF6B6B" />
+          <Ionicons name="close" size={32} color={Colors.accent.red} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -255,7 +256,7 @@ const PreviewHomeScreen = ({ navigation }) => {
           onPress={handleSuperLike}
           activeOpacity={0.7}
         >
-          <Ionicons name="star" size={28} color="#4ECDC4" />
+          <Ionicons name="star" size={28} color={Colors.accent.teal} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -263,7 +264,7 @@ const PreviewHomeScreen = ({ navigation }) => {
           onPress={handleSwipeRight}
           activeOpacity={0.7}
         >
-          <Ionicons name="heart" size={32} color="#4ECDC4" />
+          <Ionicons name="heart" size={32} color={Colors.accent.teal} />
         </TouchableOpacity>
       </View>
 
@@ -278,7 +279,7 @@ const PreviewHomeScreen = ({ navigation }) => {
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <TouchableOpacity onPress={() => setShowLoginModal(false)} style={styles.closeButton}>
-              <Ionicons name="close" size={28} color="#333" />
+              <Ionicons name="close" size={28} color={Colors.text.dark} />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>{getInteractionMessage()}</Text>
             <Text style={styles.modalSubtitle}>
@@ -306,11 +307,11 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: Colors.background.white90,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -320,15 +321,15 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 12,
     fontWeight: '600',
-    color: '#667eea',
+    color: Colors.primary,
   },
   header: {
     paddingTop: 80,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderBottomColor: Colors.border.gray,
   },
   headerContent: {
     marginBottom: 15,
@@ -336,18 +337,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     lineHeight: 20,
   },
   signUpButton: {
     borderRadius: 15,
     overflow: 'hidden',
-    shadowColor: '#667eea',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -359,7 +360,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   signUpButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -390,7 +391,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 11,
     fontWeight: '600',
-    color: '#fff',
+    color: Colors.background.white,
   },
   emptyContainer: {
     flex: 1,
@@ -407,14 +408,14 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginTop: 20,
     marginBottom: 10,
     textAlign: 'center',
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     marginBottom: 30,
     lineHeight: 24,
@@ -423,7 +424,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     overflow: 'hidden',
     width: '100%',
-    shadowColor: '#667eea',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -435,7 +436,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ctaButtonText: {
-    color: '#fff',
+    color: Colors.background.white,
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -455,10 +456,10 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -466,19 +467,19 @@ const styles = StyleSheet.create({
   },
   passButton: {
     borderWidth: 2,
-    borderColor: '#FF6B6B',
+    borderColor: Colors.accent.red,
   },
   superLikeButton: {
     borderWidth: 2,
-    borderColor: '#4ECDC4',
+    borderColor: Colors.accent.teal,
   },
   likeButton: {
     borderWidth: 2,
-    borderColor: '#4ECDC4',
+    borderColor: Colors.accent.teal,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background.white,
   },
   loginContainer: {
     flex: 1,
@@ -488,7 +489,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderBottomColor: Colors.border.gray,
   },
   closeButton: {
     alignSelf: 'flex-end',
@@ -497,14 +498,14 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.dark,
     marginTop: 10,
     marginBottom: 8,
     textAlign: 'center',
   },
   modalSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
   },
 });

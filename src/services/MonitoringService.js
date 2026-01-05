@@ -65,15 +65,20 @@ export class MonitoringService {
     };
 
     // Send to your error reporting endpoint
-    fetch('/api/errors', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(errorReport),
-    }).catch((err) => {
-      logger.warn('Failed to send error report', err);
-    });
+    // Using void to explicitly ignore the promise result
+    void (async () => {
+      try {
+        await fetch('/api/errors', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(errorReport),
+        });
+      } catch (err) {
+        logger.warn('Failed to send error report', err);
+      }
+    })();
   }
 
   // User interaction tracking
@@ -101,7 +106,11 @@ export class MonitoringService {
 
     // Log slow requests
     if (duration > 3000) {
-      logger.warn(`Slow network request: ${method} ${url} took ${duration}ms`, { method, url, duration });
+      logger.warn(`Slow network request: ${method} ${url} took ${duration}ms`, {
+        method,
+        url,
+        duration,
+      });
     }
 
     // Track in analytics

@@ -225,6 +225,8 @@ self.addEventListener('notificationclick', (event) => {
       if (clients.openWindow) {
         return clients.openWindow(urlToOpen);
       }
+      // Explicit return if no window can be opened (return undefined to satisfy promise/always-return)
+      return undefined;
     })
   );
 });

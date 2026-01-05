@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../constants/colors';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import {
@@ -99,12 +100,12 @@ const SuperLikeScreen = ({ route, navigation }) => {
   };
 
   return (
-    <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+    <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="close" size={28} color="#fff" />
+            <Ionicons name="close" size={28} color={Colors.background.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Send Super Like</Text>
           <View style={{ width: 28 }} />
@@ -112,7 +113,7 @@ const SuperLikeScreen = ({ route, navigation }) => {
 
         {/* Info Card */}
         <View style={styles.infoCard}>
-          <Ionicons name="star" size={40} color="#FFD700" style={styles.starIcon} />
+          <Ionicons name="star" size={40} color={Colors.accent.gold} style={styles.starIcon} />
           <Text style={styles.infoTitle}>Stand Out!</Text>
           <Text style={styles.infoText}>
             Super likes let them know you&apos;re extra interested. You get{' '}
@@ -130,7 +131,7 @@ const SuperLikeScreen = ({ route, navigation }) => {
           </View>
           {user?.isPremium && (
             <View style={styles.premiumBadge}>
-              <Ionicons name="crown" size={16} color="#FFD700" />
+              <Ionicons name="crown" size={16} color={Colors.accent.gold} />
               <Text style={styles.premiumText}>Premium</Text>
             </View>
           )}
@@ -145,7 +146,7 @@ const SuperLikeScreen = ({ route, navigation }) => {
             <Ionicons
               name={showMessageInput ? 'chevron-up' : 'chevron-down'}
               size={24}
-              color="#667eea"
+              color={Colors.primary}
             />
             <Text style={styles.toggleText}>Add a Message (Optional)</Text>
           </TouchableOpacity>
@@ -155,7 +156,7 @@ const SuperLikeScreen = ({ route, navigation }) => {
               <TextInput
                 style={styles.input}
                 placeholder="Share why you're interested..."
-                placeholderTextColor="#999"
+                placeholderTextColor={Colors.text.tertiary}
                 multiline
                 numberOfLines={3}
                 maxLength={300}
@@ -171,15 +172,15 @@ const SuperLikeScreen = ({ route, navigation }) => {
         <View style={styles.benefitsSection}>
           <Text style={styles.benefitsTitle}>Why Super Like?</Text>
           <View style={styles.benefitItem}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+            <Ionicons name="checkmark-circle" size={20} color={Colors.status.success} />
             <Text style={styles.benefitText}>They&apos;ll know you really like them</Text>
           </View>
           <View style={styles.benefitItem}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+            <Ionicons name="checkmark-circle" size={20} color={Colors.status.success} />
             <Text style={styles.benefitText}>2x more likely to match</Text>
           </View>
           <View style={styles.benefitItem}>
-            <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+            <Ionicons name="checkmark-circle" size={20} color={Colors.status.success} />
             <Text style={styles.benefitText}>Appears at the top of their likes</Text>
           </View>
         </View>
@@ -193,10 +194,10 @@ const SuperLikeScreen = ({ route, navigation }) => {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={Colors.background.white} />
           ) : (
             <>
-              <Ionicons name="star" size={24} color="#fff" />
+              <Ionicons name="star" size={24} color={Colors.background.white} />
               <Text style={styles.sendButtonText}>Send Super Like</Text>
             </>
           )}
@@ -224,10 +225,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: Colors.background.white,
   },
   infoCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     marginHorizontal: 16,
     marginVertical: 20,
     paddingHorizontal: 20,
@@ -241,12 +242,12 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.dark,
     marginBottom: 8,
   },
   infoText: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -270,7 +271,7 @@ const styles = StyleSheet.create({
   quotaValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFD700',
+    color: Colors.accent.gold,
   },
   premiumBadge: {
     flexDirection: 'row',
@@ -283,7 +284,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   premiumText: {
-    color: '#FFD700',
+    color: Colors.accent.gold,
     marginLeft: 4,
     fontSize: 12,
     fontWeight: 'bold',
@@ -301,26 +302,26 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   toggleText: {
-    color: '#fff',
+    color: Colors.background.white,
     marginLeft: 8,
     fontSize: 14,
     fontWeight: '600',
   },
   messageInput: {
     marginTop: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.background.white95,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
   input: {
     fontSize: 14,
-    color: '#333',
+    color: Colors.text.dark,
     maxHeight: 100,
   },
   charCount: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.text.tertiary,
     marginTop: 8,
     textAlign: 'right',
   },
@@ -334,7 +335,7 @@ const styles = StyleSheet.create({
   benefitsTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#fff',
+    color: Colors.background.white,
     marginBottom: 12,
   },
   benefitItem: {
@@ -343,7 +344,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   benefitText: {
-    color: '#fff',
+    color: Colors.background.white,
     marginLeft: 10,
     fontSize: 13,
   },
@@ -359,7 +360,7 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
   sendButton: {
-    backgroundColor: '#FFD700',
+    backgroundColor: Colors.accent.gold,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   sendButtonText: {
-    color: '#667eea',
+    color: Colors.primary,
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,
