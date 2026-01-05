@@ -9,6 +9,7 @@ const {
   asyncHandler,
 } = require('../utils/responseHelpers');
 const Message = require('../models/Message');
+const { logger } = require('../services/LoggingService');
 
 const User = require('../models/User');
 
@@ -57,7 +58,7 @@ const sendGifMessage = async (req, res) => {
       data: message,
     });
   } catch (error) {
-    console.error('Error sending GIF:', error);
+    logger.error('Error sending GIF:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -108,7 +109,7 @@ const sendStickerMessage = async (req, res) => {
       data: message,
     });
   } catch (error) {
-    console.error('Error sending sticker:', error);
+    logger.error('Error sending sticker:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -168,7 +169,7 @@ const sendVoiceMessage = async (req, res) => {
       data: message,
     });
   } catch (error) {
-    console.error('Error sending voice message:', error);
+    logger.error('Error sending voice message:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -222,7 +223,7 @@ const transcribeVoiceMessage = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error transcribing voice message:', error);
+    logger.error('Error transcribing voice message:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -278,7 +279,7 @@ const initiateVideoCall = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error initiating video call:', error);
+    logger.error('Error initiating video call:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -345,7 +346,7 @@ const updateVideoCallStatus = async (req, res) => {
       data: message.videoCall,
     });
   } catch (error) {
-    console.error('Error updating video call status:', error);
+    logger.error('Error updating video call status:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -385,7 +386,7 @@ const getPopularGifs = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting GIFs:', error);
+    logger.error('Error getting GIFs:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -427,7 +428,7 @@ const searchGifs = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error searching GIFs:', error);
+    logger.error('Error searching GIFs:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -467,7 +468,7 @@ const getStickerPacks = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting sticker packs:', error);
+    logger.error('Error getting sticker packs:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),

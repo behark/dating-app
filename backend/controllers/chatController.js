@@ -1,4 +1,5 @@
 const Message = require('../models/Message');
+const { logger } = require('../services/LoggingService');
 const Swipe = require('../models/Swipe');
 const { ERROR_MESSAGES } = require('../constants/messages');
 const {
@@ -96,7 +97,7 @@ const getMessages = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get messages error:', error);
+    logger.error('Get messages error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
       error: 'INTERNAL_ERROR',
@@ -220,7 +221,7 @@ const getConversations = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get conversations error:', error);
+    logger.error('Get conversations error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
       error: 'INTERNAL_ERROR',
@@ -267,7 +268,7 @@ const markAsRead = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Mark as read error:', error);
+    logger.error('Mark as read error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
       error: 'INTERNAL_ERROR',
@@ -293,7 +294,7 @@ const getUnreadCount = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get unread count error:', error);
+    logger.error('Get unread count error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
       error: 'INTERNAL_ERROR',
@@ -333,7 +334,7 @@ const deleteMessage = async (req, res) => {
       message: 'Message deleted successfully',
     });
   } catch (error) {
-    console.error('Delete message error:', error);
+    logger.error('Delete message error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -383,7 +384,7 @@ const markMessageAsRead = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Mark message as read error:', error);
+    logger.error('Mark message as read error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -421,7 +422,7 @@ const getReadReceipts = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get read receipts error:', error);
+    logger.error('Get read receipts error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -499,7 +500,7 @@ const sendEncryptedMessage = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Send encrypted message error:', error);
+    logger.error('Send encrypted message error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Internal server error',

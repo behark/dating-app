@@ -9,6 +9,7 @@ const {
   asyncHandler,
 } = require('../utils/responseHelpers');
 const User = require('../models/User');
+const { logger } = require('../services/LoggingService');
 const Notification = require('../models/Notification');
 const Swipe = require('../models/Swipe');
 
@@ -65,7 +66,7 @@ exports.updateNotificationPreferences = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Update notification preferences error:', error);
+    logger.error('Update notification preferences error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating notification preferences',
@@ -104,7 +105,7 @@ exports.getNotificationPreferences = async (req, res) => {
       data: { preferences },
     });
   } catch (error) {
-    console.error('Get notification preferences error:', error);
+    logger.error('Get notification preferences error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching notification preferences',
@@ -226,7 +227,7 @@ exports.sendNotification = async (req, res) => {
       data: { sent: true },
     });
   } catch (error) {
-    console.error('Send notification error:', error);
+    logger.error('Send notification error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error sending notification',
@@ -316,7 +317,7 @@ exports.sendBulkNotification = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Send bulk notification error:', error);
+    logger.error('Send bulk notification error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error sending bulk notification',
@@ -361,7 +362,7 @@ exports.enableNotifications = async (req, res) => {
       data: { preferences: user.notificationPreferences },
     });
   } catch (error) {
-    console.error('Enable notifications error:', error);
+    logger.error('Enable notifications error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error enabling notifications',
@@ -406,7 +407,7 @@ exports.disableNotifications = async (req, res) => {
       data: { preferences: user.notificationPreferences },
     });
   } catch (error) {
-    console.error('Disable notifications error:', error);
+    logger.error('Disable notifications error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error disabling notifications',
@@ -465,7 +466,7 @@ exports.getNotifications = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get notifications error:', error);
+    logger.error('Get notifications error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching notifications',
@@ -506,7 +507,7 @@ exports.markNotificationAsRead = async (req, res) => {
       data: { notification },
     });
   } catch (error) {
-    console.error('Mark notification as read error:', error);
+    logger.error('Mark notification as read error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error marking notification as read',
@@ -533,7 +534,7 @@ exports.markAllAsRead = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Mark all notifications as read error:', error);
+    logger.error('Mark all notifications as read error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error marking all notifications as read',

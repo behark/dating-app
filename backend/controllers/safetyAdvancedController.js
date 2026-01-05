@@ -1,4 +1,5 @@
 const { db } = require('../config/firebase');
+const { logger } = require('../services/LoggingService');
 const User = require('../models/User');
 
 const {
@@ -75,7 +76,7 @@ const shareDatePlan = async (req, res) => {
       data: { datePlanId, datePlan },
     });
   } catch (error) {
-    console.error('Error sharing date plan:', error);
+    logger.error('Error sharing date plan:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to share date plan',
@@ -125,7 +126,7 @@ const startCheckIn = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error starting check-in:', error);
+    logger.error('Error starting check-in:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to start check-in',
@@ -161,7 +162,7 @@ const completeCheckIn = async (req, res) => {
       data: completedCheckIn,
     });
   } catch (error) {
-    console.error('Error completing check-in:', error);
+    logger.error('Error completing check-in:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to complete check-in',
@@ -212,7 +213,7 @@ const sendEmergencySOS = async (req, res) => {
     const sosAlertId = `sos_${Date.now()}`;
 
     // In production, send notifications to emergency contacts and trusted friends
-    console.log('SOS Alert created:', sosAlert);
+    logger.info('SOS Alert created', { sosAlert });
 
     return res.status(200).json({
       success: true,
@@ -223,7 +224,7 @@ const sendEmergencySOS = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error sending SOS:', error);
+    logger.error('Error sending SOS:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to send SOS',
@@ -253,7 +254,7 @@ const getActiveSOS = async (req, res) => {
       data: activeAlerts,
     });
   } catch (error) {
-    console.error('Error getting active SOS:', error);
+    logger.error('Error getting active SOS:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to get SOS alerts',
@@ -285,7 +286,7 @@ const respondToSOS = async (req, res) => {
     };
 
     // Update SOS with response
-    console.log('SOS Response:', response);
+    logger.info('SOS Response recorded', { response });
 
     return res.status(200).json({
       success: true,
@@ -293,7 +294,7 @@ const respondToSOS = async (req, res) => {
       data: response,
     });
   } catch (error) {
-    console.error('Error responding to SOS:', error);
+    logger.error('Error responding to SOS:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to respond to SOS',
@@ -327,7 +328,7 @@ const resolveSOS = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error resolving SOS:', error);
+    logger.error('Error resolving SOS:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to resolve SOS',
@@ -392,7 +393,7 @@ const initiateBackgroundCheck = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error initiating background check:', error);
+    logger.error('Error initiating background check:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to initiate background check',
@@ -434,7 +435,7 @@ const getBackgroundCheckStatus = async (req, res) => {
       data: status,
     });
   } catch (error) {
-    console.error('Error getting background check status:', error);
+    logger.error('Error getting background check status:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to get background check status',
@@ -483,7 +484,7 @@ const addEmergencyContact = async (req, res) => {
       data: contact,
     });
   } catch (error) {
-    console.error('Error adding emergency contact:', error);
+    logger.error('Error adding emergency contact:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to add emergency contact',
@@ -513,7 +514,7 @@ const getEmergencyContacts = async (req, res) => {
       data: contacts,
     });
   } catch (error) {
-    console.error('Error getting emergency contacts:', error);
+    logger.error('Error getting emergency contacts:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to get emergency contacts',
@@ -542,7 +543,7 @@ const deleteEmergencyContact = async (req, res) => {
       data: { contactId },
     });
   } catch (error) {
-    console.error('Error deleting emergency contact:', error);
+    logger.error('Error deleting emergency contact:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to delete emergency contact',
@@ -606,7 +607,7 @@ const submitAdvancedPhotoVerification = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error submitting photo verification:', error);
+    logger.error('Error submitting photo verification:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to submit photo verification',
@@ -636,7 +637,7 @@ const getActiveDatePlans = async (req, res) => {
       data: datePlans,
     });
   } catch (error) {
-    console.error('Error getting date plans:', error);
+    logger.error('Error getting date plans:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to get date plans',
@@ -666,7 +667,7 @@ const getSharedDatePlans = async (req, res) => {
       data: sharedPlans,
     });
   } catch (error) {
-    console.error('Error getting shared date plans:', error);
+    logger.error('Error getting shared date plans:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to get shared date plans',
@@ -713,7 +714,7 @@ const updateDatePlan = async (req, res) => {
       data: updatedPlan,
     });
   } catch (error) {
-    console.error('Error updating date plan:', error);
+    logger.error('Error updating date plan:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to update date plan',
@@ -743,7 +744,7 @@ const getActiveCheckIns = async (req, res) => {
       data: activeCheckIns,
     });
   } catch (error) {
-    console.error('Error getting active check-ins:', error);
+    logger.error('Error getting active check-ins:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to get active check-ins',
@@ -781,7 +782,7 @@ const getPhotoVerificationStatus = async (req, res) => {
       data: verificationStatus,
     });
   } catch (error) {
-    console.error('Error getting photo verification status:', error);
+    logger.error('Error getting photo verification status:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to get verification status',
@@ -830,7 +831,7 @@ const updateBackgroundCheck = async (req, res) => {
       data: updatedCheck,
     });
   } catch (error) {
-    console.error('Error updating background check:', error);
+    logger.error('Error updating background check:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to update background check',

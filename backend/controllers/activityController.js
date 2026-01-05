@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { logger } = require('../services/LoggingService');
 const {
   sendSuccess,
   sendError,

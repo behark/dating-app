@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
+const { logger } = require('../services/LoggingService');
 
 const {
   sendSuccess,
@@ -79,7 +80,7 @@ exports.updateProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Profile update error:', error);
+    logger.error('Profile update error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating profile',
@@ -151,7 +152,7 @@ exports.getProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get profile error:', error);
+    logger.error('Get profile error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching profile',
@@ -188,7 +189,7 @@ exports.getMyProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get my profile error:', error);
+    logger.error('Get my profile error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching profile',
@@ -270,7 +271,7 @@ exports.uploadPhotos = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Photo upload error:', error);
+    logger.error('Photo upload error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error uploading photos',
@@ -335,7 +336,7 @@ exports.reorderPhotos = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Photo reorder error:', error);
+    logger.error('Photo reorder error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error reordering photos',
@@ -372,7 +373,7 @@ exports.deletePhoto = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Photo delete error:', error);
+    logger.error('Photo delete error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error deleting photo',
@@ -421,7 +422,7 @@ exports.approvePhoto = async (req, res) => {
       message: 'Photo approved',
     });
   } catch (error) {
-    console.error('Approve photo error:', error);
+    logger.error('Approve photo error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error approving photo',
@@ -472,7 +473,7 @@ exports.rejectPhoto = async (req, res) => {
       message: 'Photo rejected',
     });
   } catch (error) {
-    console.error('Reject photo error:', error);
+    logger.error('Reject photo error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error rejecting photo',
@@ -519,7 +520,7 @@ exports.getPendingPhotos = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get pending photos error:', error);
+    logger.error('Get pending photos error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching pending photos',

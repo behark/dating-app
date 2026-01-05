@@ -3,21 +3,20 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useRef, useState } from 'react';
 import {
-  Alert,
-  FlatList,
-  Image,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    FlatList,
+    Image,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { PremiumService } from '../services/PremiumService';
 import { SwipeController } from '../services/SwipeController';
-import { showStandardError } from '../utils/errorHandler';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 

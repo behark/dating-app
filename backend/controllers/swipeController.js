@@ -1,4 +1,5 @@
 const Swipe = require('../models/Swipe');
+const { logger } = require('../services/LoggingService');
 const Match = require('../models/Match');
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
@@ -36,7 +37,7 @@ const sendNotificationInternal = async (toUserId, type, title, message, data) =>
       // In production, integrate with Expo push notification service
     }
   } catch (error) {
-    console.error('Error sending notification:', error);
+    logger.error('Error sending notification:', { error: error.message, stack: error.stack });
   }
 };
 
@@ -156,7 +157,7 @@ const createSwipe = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error creating swipe:', error);
+    logger.error('Error creating swipe:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Internal server error while creating swipe',
@@ -199,7 +200,7 @@ const getSwipeCountToday = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting swipe count:', error);
+    logger.error('Error getting swipe count:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Internal server error while retrieving swipe count',
@@ -230,7 +231,7 @@ const undoSwipe = async (req, res) => {
       data: result.undoneSwipe,
     });
   } catch (error) {
-    console.error('Error undoing swipe:', error);
+    logger.error('Error undoing swipe:', { error: error.message, stack: error.stack });
 
     if ((error instanceof Error ? error.message : String(error)) === 'Swipe not found') {
       return res.status(404).json({
@@ -275,7 +276,7 @@ const getUserSwipes = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting user swipes:', error);
+    logger.error('Error getting user swipes:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Internal server error while retrieving swipes',
@@ -306,7 +307,7 @@ const getReceivedSwipes = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting received swipes:', error);
+    logger.error('Error getting received swipes:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Internal server error while retrieving received swipes',
@@ -464,7 +465,7 @@ const unmatch = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Error unmatching:', error);
+    logger.error('Error unmatching:', { error: error.message, stack: error.stack });
 
     if ((error instanceof Error ? error.message : String(error)) === 'Match not found') {
       return res.status(404).json({
@@ -502,7 +503,7 @@ const getSwipeStats = async (req, res) => {
       data: stats,
     });
   } catch (error) {
-    console.error('Error getting swipe stats:', error);
+    logger.error('Error getting swipe stats:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Internal server error while retrieving swipe statistics',
@@ -550,7 +551,7 @@ const getPendingLikes = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting pending likes:', error);
+    logger.error('Error getting pending likes:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Internal server error while retrieving pending likes',

@@ -1,4 +1,5 @@
 const BetaEnrollment = require('../models/BetaEnrollment');
+const { logger } = require('../services/LoggingService');
 const BetaFeedback = require('../models/BetaFeedback');
 const BetaBug = require('../models/BetaBug');
 const BetaSession = require('../models/BetaSession');
@@ -55,7 +56,7 @@ exports.enroll = async (req, res) => {
       data: { enrollment },
     });
   } catch (error) {
-    console.error('Beta enrollment error:', error);
+    logger.error('Beta enrollment error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error enrolling in beta program',
@@ -93,7 +94,7 @@ exports.getStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get beta status error:', error);
+    logger.error('Get beta status error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching beta status',
@@ -187,7 +188,7 @@ exports.submitFeedback = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Submit feedback error:', error);
+    logger.error('Submit feedback error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error submitting feedback',
@@ -242,7 +243,7 @@ exports.getFeedback = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get feedback error:', error);
+    logger.error('Get feedback error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching feedback',
@@ -299,7 +300,7 @@ exports.recordSession = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Record session error:', error);
+    logger.error('Record session error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error recording session',
@@ -363,7 +364,7 @@ exports.getAnalytics = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get beta analytics error:', error);
+    logger.error('Get beta analytics error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching beta analytics',
@@ -410,7 +411,7 @@ exports.updateFeedbackStatus = async (req, res) => {
       data: { feedback },
     });
   } catch (error) {
-    console.error('Update feedback status error:', error);
+    logger.error('Update feedback status error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating feedback status',

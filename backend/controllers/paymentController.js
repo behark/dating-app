@@ -20,6 +20,7 @@ const {
  */
 
 const User = require('../models/User');
+const { logger } = require('../services/LoggingService');
 
 const Subscription = require('../models/Subscription');
 
@@ -54,7 +55,7 @@ const getSubscriptionTiers = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting subscription tiers:', error);
+    logger.error('Error getting subscription tiers:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error retrieving subscription tiers',
@@ -113,7 +114,7 @@ const getPaymentStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting payment status:', error);
+    logger.error('Error getting payment status:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error retrieving payment status',
@@ -168,7 +169,7 @@ const createStripeCheckout = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error creating Stripe checkout:', error);
+    logger.error('Error creating Stripe checkout:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error creating checkout session',
@@ -206,7 +207,7 @@ const createStripePaymentIntent = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error creating payment intent:', error);
+    logger.error('Error creating payment intent:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error creating payment intent',
@@ -241,7 +242,7 @@ const createStripeSetupIntent = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error creating setup intent:', error);
+    logger.error('Error creating setup intent:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error creating setup intent',
@@ -278,7 +279,7 @@ const getStripePortal = async (req, res) => {
       data: { url: portalUrl },
     });
   } catch (error) {
-    console.error('Error creating portal session:', error);
+    logger.error('Error creating portal session:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error accessing billing portal',
@@ -319,7 +320,7 @@ const getBillingHistory = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting billing history:', error);
+    logger.error('Error getting billing history:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error retrieving billing history',
@@ -365,7 +366,7 @@ const createPayPalSubscription = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error creating PayPal subscription:', error);
+    logger.error('Error creating PayPal subscription:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error creating PayPal subscription',
@@ -387,7 +388,7 @@ const activatePayPalSubscription = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error activating PayPal subscription:', error);
+    logger.error('Error activating PayPal subscription:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error activating subscription',
@@ -418,7 +419,7 @@ const createPayPalOrder = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error creating PayPal order:', error);
+    logger.error('Error creating PayPal order:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error creating PayPal order',
@@ -440,7 +441,7 @@ const capturePayPalOrder = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error capturing PayPal order:', error);
+    logger.error('Error capturing PayPal order:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error capturing payment',
@@ -472,7 +473,7 @@ const validateAppleReceipt = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error validating Apple receipt:', error);
+    logger.error('Error validating Apple receipt:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error validating purchase',
@@ -502,7 +503,7 @@ const restoreApplePurchases = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error restoring Apple purchases:', error);
+    logger.error('Error restoring Apple purchases:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error restoring purchases',
@@ -543,7 +544,7 @@ const validateGooglePurchase = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error validating Google purchase:', error);
+    logger.error('Error validating Google purchase:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error validating purchase',
@@ -573,7 +574,7 @@ const restoreGooglePurchases = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error restoring Google purchases:', error);
+    logger.error('Error restoring Google purchases:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error restoring purchases',
@@ -598,7 +599,7 @@ const cancelSubscription = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error cancelling subscription:', error);
+    logger.error('Error cancelling subscription:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error cancelling subscription',
@@ -620,7 +621,7 @@ const resumeSubscription = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error resuming subscription:', error);
+    logger.error('Error resuming subscription:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error resuming subscription',
@@ -652,7 +653,7 @@ const requestRefund = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error requesting refund:', error);
+    logger.error('Error requesting refund:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error processing refund request',
@@ -674,7 +675,7 @@ const stripeWebhook = async (req, res) => {
 
     res.json({ received: true });
   } catch (error) {
-    console.error('Stripe webhook error:', error);
+    logger.error('Stripe webhook error:', { error: error.message, stack: error.stack });
     res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
   }
 };
@@ -694,7 +695,7 @@ const paypalWebhook = async (req, res) => {
 
     res.json({ received: true });
   } catch (error) {
-    console.error('PayPal webhook error:', error);
+    logger.error('PayPal webhook error:', { error: error.message, stack: error.stack });
     res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
   }
 };
@@ -714,7 +715,7 @@ const appleWebhook = async (req, res) => {
 
     res.json({ received: true });
   } catch (error) {
-    console.error('Apple webhook error:', error);
+    logger.error('Apple webhook error:', { error: error.message, stack: error.stack });
     res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
   }
 };
@@ -735,7 +736,7 @@ const googleWebhook = async (req, res) => {
     // Acknowledge the message
     res.status(200).send();
   } catch (error) {
-    console.error('Google webhook error:', error);
+    logger.error('Google webhook error:', { error: error.message, stack: error.stack });
     res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
   }
 };

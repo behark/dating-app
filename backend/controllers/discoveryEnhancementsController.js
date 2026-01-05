@@ -9,6 +9,7 @@ const {
   asyncHandler,
 } = require('../utils/responseHelpers');
 const User = require('../models/User');
+const { logger } = require('../services/LoggingService');
 
 const TopPicks = require('../models/TopPicks');
 
@@ -206,7 +207,7 @@ const exploreUsers = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error exploring users:', error);
+    logger.error('Error exploring users:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -263,7 +264,7 @@ const getTopPicks = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting top picks:', error);
+    logger.error('Error getting top picks:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -310,7 +311,7 @@ const getRecentlyActiveUsers = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting recently active users:', error);
+    logger.error('Error getting recently active users:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -411,7 +412,7 @@ const getVerifiedProfiles = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting verified profiles:', error);
+    logger.error('Error getting verified profiles:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -457,7 +458,7 @@ const verifyProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error verifying profile:', error);
+    logger.error('Error verifying profile:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),
@@ -501,7 +502,7 @@ const approveProfileVerification = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error approving verification:', error);
+    logger.error('Error approving verification:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),

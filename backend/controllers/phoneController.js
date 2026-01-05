@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { logger } = require('../services/LoggingService');
 const User = require('../models/User');
 
 const {
@@ -81,7 +82,7 @@ exports.sendPhoneVerification = async (req, res) => {
       message: 'Verification code sent to phone number',
     });
   } catch (error) {
-    console.error('Send phone verification error:', error);
+    logger.error('Send phone verification error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error sending verification code',
@@ -140,7 +141,7 @@ exports.verifyPhone = async (req, res) => {
       message: 'Phone number verified successfully',
     });
   } catch (error) {
-    console.error('Verify phone error:', error);
+    logger.error('Verify phone error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error verifying phone',
@@ -196,7 +197,7 @@ exports.resendPhoneVerification = async (req, res) => {
       message: 'Verification code resent',
     });
   } catch (error) {
-    console.error('Resend phone verification error:', error);
+    logger.error('Resend phone verification error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error resending verification code',
