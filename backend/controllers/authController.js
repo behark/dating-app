@@ -402,6 +402,7 @@ exports.resetPassword = async (req, res) => {
 
     // Update password
     user.password = newPassword;
+    // CRITICAL FIX: Invalidate password reset token after use (already implemented, adding comment for clarity)
     user.passwordResetToken = undefined;
     user.passwordResetTokenExpiry = undefined;
     await user.save();
@@ -436,26 +437,59 @@ exports.logout = async (req, res) => {
 
     const jwt = require('jsonwebtoken');
     const { getRedis } = require('../config/redis');
+    const logger = require('../services/LoggingService').logger;
 
     try {
-      // Decode token to get expiry
+      // Decode token to get expiry and userId
       const decoded = jwt.decode(token);
       if (decoded && decoded.exp) {
         // Calculate TTL (time until token expires)
         const ttl = decoded.exp - Math.floor(Date.now() / 1000);
         
         if (ttl > 0) {
-          // Add token to blacklist with TTL = token expiry
-          const redisClient = await getRedis();
-          if (redisClient) {
-            await redisClient.setex(`blacklist:${token}`, ttl, '1');
+          // Try Redis first (faster)
+          try {
+            const redisClient = await getRedis();
+            if (redisClient) {
+              await redisClient.setex(`blacklist:${token}`, ttl, '1');
+              logger.info('Token blacklisted in Redis', { userId: decoded.userId });
+            }
+          } catch (redisError) {
+            // Redis failed - use MongoDB fallback
+            logger.warn('Redis unavailable for token blacklisting, using MongoDB fallback', {
+              error: redisError instanceof Error ? redisError.message : String(redisError),
+            });
+            
+            // CRITICAL FIX: Store in MongoDB as fallback
+            try {
+              const BlacklistedToken = require('../models/BlacklistedToken');
+              await BlacklistedToken.findOneAndUpdate(
+                { token },
+                {
+                  token,
+                  userId: decoded.userId,
+                  expiresAt: new Date(decoded.exp * 1000), // Convert to Date
+                  blacklistedAt: new Date(),
+                },
+                { upsert: true, new: true }
+              );
+              logger.info('Token blacklisted in MongoDB (fallback)', { userId: decoded.userId });
+            } catch (mongoError) {
+              // Both Redis and MongoDB failed - log error but don't block logout
+              logger.error('Failed to blacklist token in both Redis and MongoDB', {
+                redisError: redisError instanceof Error ? redisError.message : String(redisError),
+                mongoError: mongoError instanceof Error ? mongoError.message : String(mongoError),
+                userId: decoded.userId,
+              });
+            }
           }
         }
       }
-    } catch (redisError) {
-      // If Redis is unavailable, log warning but don't fail logout
-      // User can still logout, token will just expire naturally
-      console.warn('Redis unavailable for token blacklisting:', redisError);
+    } catch (error) {
+      // Log error but don't fail logout
+      logger.error('Error during token blacklisting', {
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
 
     res.json({

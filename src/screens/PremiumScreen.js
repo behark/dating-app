@@ -5,6 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../constants/colors';
 import { PremiumService } from '../services/PremiumService';
 import { useAuth } from '../context/AuthContext';
+import { showStandardError } from '../utils/errorHandler';
 import logger from '../utils/logger';
 
 const PremiumScreen = ({ navigation }) => {
@@ -23,7 +24,7 @@ const PremiumScreen = ({ navigation }) => {
       setPremiumStatus(status);
     } catch (error) {
       logger.error('Error loading premium status:', error);
-      Alert.alert('Error', 'Failed to load premium status');
+      showStandardError(error, 'load', 'Unable to Load');
     } finally {
       setLoading(false);
     }
@@ -42,11 +43,11 @@ const PremiumScreen = ({ navigation }) => {
           [{ text: 'Awesome!', onPress: loadPremiumStatus }]
         );
       } else {
-        Alert.alert('Error', result.error);
+        showStandardError(result.error || 'Unable to start trial', 'update', 'Trial Failed');
       }
     } catch (error) {
       logger.error('Error starting trial:', error);
-      Alert.alert('Error', 'Failed to start trial');
+      showStandardError(error, 'update', 'Trial Failed');
     } finally {
       setProcessing(false);
     }
@@ -65,11 +66,11 @@ const PremiumScreen = ({ navigation }) => {
           [{ text: 'Amazing!', onPress: loadPremiumStatus }]
         );
       } else {
-        Alert.alert('Error', result.error);
+        showStandardError(result.error || 'Unable to upgrade', 'update', 'Upgrade Failed');
       }
     } catch (error) {
       logger.error('Error upgrading:', error);
-      Alert.alert('Error', 'Failed to upgrade');
+      showStandardError(error, 'update', 'Upgrade Failed');
     } finally {
       setProcessing(false);
     }

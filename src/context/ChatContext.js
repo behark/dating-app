@@ -1,11 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../config/api';
 import api from '../services/api';
 import logger from '../utils/logger';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import { useAuth } from './AuthContext';
+import OfflineService from '../services/OfflineService';
 
 const ChatContext = createContext();
 
@@ -159,7 +161,7 @@ export const ChatProvider = ({ children }) => {
       });
 
       // Message events
-      newSocket.on('new_message', (data) => {
+      newSocket.on('new_message', async (data) => {
         const { message } = data;
 
         // Add message to current conversation if it's for the active match
@@ -168,7 +170,12 @@ export const ChatProvider = ({ children }) => {
             // Check if message already exists (to prevent duplicates)
             const exists = prevMessages.some((m) => m._id === message._id);
             if (!exists) {
-              return [...prevMessages, message];
+              const newMessages = [...prevMessages, message];
+              // Persist updated messages to storage
+              persistMessagesToStorage(message.matchId, newMessages).catch((err) => {
+                logger.error('Error persisting new message', err);
+              });
+              return newMessages;
             }
             return prevMessages;
           });
@@ -250,10 +257,29 @@ export const ChatProvider = ({ children }) => {
     if (!user?.uid) return;
 
     try {
+      // Try to load from cache first if offline
+      const isOnline = OfflineService.getNetworkStatus();
+      if (!isOnline) {
+        const cachedConversations = await OfflineService.getCachedConversations();
+        if (cachedConversations) {
+          logger.info('Loading conversations from cache (offline)');
+          setConversations(cachedConversations);
+          const totalUnread = cachedConversations.reduce(
+            (sum, conv) => sum + (conv.unreadCount || 0),
+            0
+          );
+          setUnreadCount(totalUnread);
+          return;
+        }
+      }
+
       const response = await api.get('/chat/conversations');
 
       if (response.data?.conversations) {
         setConversations(response.data.conversations);
+        
+        // Cache conversations for offline use
+        await OfflineService.cacheConversations(response.data.conversations);
 
         // Calculate total unread count
         const totalUnread = response.data.conversations.reduce(
@@ -264,6 +290,20 @@ export const ChatProvider = ({ children }) => {
       }
     } catch (error) {
       logger.error('Error loading conversations:', error);
+      
+      // Try to load from cache on error
+      const cachedConversations = await OfflineService.getCachedConversations();
+      if (cachedConversations) {
+        logger.info('Loading conversations from cache (error fallback)');
+        setConversations(cachedConversations);
+        const totalUnread = cachedConversations.reduce(
+          (sum, conv) => sum + (conv.unreadCount || 0),
+          0
+        );
+        setUnreadCount(totalUnread);
+        return;
+      }
+
       // Show user-friendly error message
       Alert.alert(
         'Error',
@@ -279,19 +319,61 @@ export const ChatProvider = ({ children }) => {
       if (!user?.uid || !matchId) return;
 
       try {
+        // Try to load from cache first if offline or on first page
+        const isOnline = OfflineService.getNetworkStatus();
+        if (!isOnline || page === 1) {
+          const cachedMessages = await OfflineService.getCachedMessages(matchId);
+          if (cachedMessages && cachedMessages.length > 0) {
+            logger.info(`Loading ${cachedMessages.length} messages from cache for match ${matchId}`);
+            if (page === 1) {
+              setMessages(cachedMessages);
+              // Also persist to AsyncStorage for persistence
+              await persistMessagesToStorage(matchId, cachedMessages);
+            }
+            // Still try to fetch from API if online to get latest
+            if (isOnline) {
+              // Continue to API call below
+            } else {
+              return cachedMessages;
+            }
+          }
+        }
+
         const response = await api.get(`/chat/messages/${matchId}?page=${page}&limit=50`);
 
         if (response.data?.messages) {
           if (page === 1) {
             setMessages(response.data.messages);
+            // Persist messages to AsyncStorage
+            await persistMessagesToStorage(matchId, response.data.messages);
+            // Also cache via OfflineService
+            await OfflineService.cacheMessages(matchId, response.data.messages);
           } else {
             setMessages((prevMessages) => [...response.data.messages, ...prevMessages]);
+            // Update persisted messages
+            const allMessages = [...response.data.messages, ...messagesRef.current];
+            await persistMessagesToStorage(matchId, allMessages);
           }
 
           return response.data.messages;
         }
       } catch (error) {
         logger.error('Error loading messages:', error);
+        
+        // Try to load from cache on error
+        if (page === 1) {
+          const cachedMessages = await OfflineService.getCachedMessages(matchId);
+          const persistedMessages = await loadMessagesFromStorage(matchId);
+          
+          // Use persisted messages if available (more complete than cache)
+          const fallbackMessages = persistedMessages || cachedMessages;
+          if (fallbackMessages && fallbackMessages.length > 0) {
+            logger.info(`Loading ${fallbackMessages.length} messages from storage (error fallback)`);
+            setMessages(fallbackMessages);
+            return fallbackMessages;
+          }
+        }
+
         // Only show error for first page load, not for pagination
         if (page === 1) {
           Alert.alert(
@@ -305,23 +387,63 @@ export const ChatProvider = ({ children }) => {
     [user?.uid]
   );
 
+  // Persist messages to AsyncStorage
+  const persistMessagesToStorage = useCallback(async (matchId, messages) => {
+    try {
+      const key = `@messages_${matchId}`;
+      await AsyncStorage.setItem(key, JSON.stringify({
+        matchId,
+        messages,
+        lastUpdated: Date.now(),
+      }));
+    } catch (error) {
+      logger.error('Error persisting messages to storage', error);
+    }
+  }, []);
+
+  // Load messages from AsyncStorage
+  const loadMessagesFromStorage = useCallback(async (matchId) => {
+    try {
+      const key = `@messages_${matchId}`;
+      const stored = await AsyncStorage.getItem(key);
+      if (stored) {
+        const { messages } = JSON.parse(stored);
+        return messages || [];
+      }
+      return null;
+    } catch (error) {
+      logger.error('Error loading messages from storage', error);
+      return null;
+    }
+  }, []);
+
   // Join a chat room
   const joinRoom = useCallback(
-    (matchId) => {
+    async (matchId) => {
+      setCurrentMatchId(matchId);
+
+      // Load messages from storage first for instant display
+      const persistedMessages = await loadMessagesFromStorage(matchId);
+      if (persistedMessages && persistedMessages.length > 0) {
+        logger.info(`Loading ${persistedMessages.length} persisted messages for match ${matchId}`);
+        setMessages(persistedMessages);
+      }
+
       if (socket && isConnected && matchId) {
         socket.emit('join_room', matchId);
-        setCurrentMatchId(matchId);
-
         // Mark messages as read
         markAsRead(matchId);
       }
+
+      // Also load from API to get latest
+      await loadMessages(matchId, 1);
     },
-    [socket, isConnected]
+    [socket, isConnected, loadMessages, loadMessagesFromStorage]
   );
 
   // Send a message
   const sendMessage = useCallback(
-    (matchId, content, type = 'text') => {
+    async (matchId, content, type = 'text') => {
       if (!content.trim()) return;
 
       const messageData = {
@@ -330,6 +452,29 @@ export const ChatProvider = ({ children }) => {
         type,
       };
 
+      // Create optimistic message
+      const optimisticMessage = {
+        _id: `pending_${Date.now()}`,
+        matchId,
+        senderId: user?.uid,
+        receiverId: null, // Will be set by server
+        content: content.trim(),
+        type,
+        createdAt: new Date().toISOString(),
+        pending: true,
+        isRead: false,
+      };
+
+      // Add to UI immediately
+      setMessages((prev) => {
+        const newMessages = [...prev, optimisticMessage];
+        // Persist immediately for offline support
+        persistMessagesToStorage(matchId, newMessages).catch((err) => {
+          logger.error('Error persisting optimistic message', err);
+        });
+        return newMessages;
+      });
+
       if (socket && isConnected) {
         socket.emit('send_message', messageData);
       } else {
@@ -337,18 +482,17 @@ export const ChatProvider = ({ children }) => {
         logger.info('Socket disconnected, queuing message');
         messageQueueRef.current.push(messageData);
 
-        // Optimistically add to UI with pending status
-        const optimisticMessage = {
-          _id: `pending_${Date.now()}`,
-          ...messageData,
-          senderId: user?.uid,
-          createdAt: new Date().toISOString(),
-          pending: true,
-        };
-        setMessages((prev) => [...prev, optimisticMessage]);
+        // Also queue via OfflineService for sync API
+        const isOnline = OfflineService.getNetworkStatus();
+        if (!isOnline) {
+          await OfflineService.queueAction({
+            type: 'SEND_MESSAGE',
+            data: messageData,
+          });
+        }
       }
     },
-    [socket, isConnected, user?.uid]
+    [socket, isConnected, user?.uid, persistMessagesToStorage]
   );
 
   // Mark messages as read

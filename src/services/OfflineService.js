@@ -199,25 +199,39 @@ class OfflineServiceClass {
   }
 
   /**
-   * Execute a queued action
+   * Execute a queued action using the sync API
    */
   async executeAction(action) {
-    switch (action.type) {
-      case 'SEND_MESSAGE':
-        // Re-send message through chat service
-        // This would integrate with your ChatContext
-        logger.debug('Syncing message', { actionId: action.id, data: action.data });
-        break;
-      case 'SWIPE':
-        // Re-submit swipe action
-        logger.debug('Syncing swipe', { actionId: action.id, data: action.data });
-        break;
-      case 'UPDATE_PROFILE':
-        // Re-submit profile update
-        logger.debug('Syncing profile update', { actionId: action.id, data: action.data });
-        break;
-      default:
-        logger.warn('Unknown action type', null, { actionType: action.type, actionId: action.id });
+    try {
+      const api = require('./api').default;
+      const response = await api.post('/sync/execute', {
+        actions: [{
+          id: action.id,
+          type: action.type,
+          timestamp: action.timestamp,
+          data: action.data,
+        }],
+      });
+
+      if (response.success) {
+        const result = response.data.results[0];
+        if (result.status === 'success' || result.status === 'skipped') {
+          return { success: true };
+        } else if (result.status === 'conflict') {
+          logger.warn('Action has conflict', { actionId: action.id, conflict: result.conflict });
+          return { success: false, conflict: true };
+        } else {
+          logger.error('Action failed', { actionId: action.id, error: result.error });
+          return { success: false, error: result.error };
+        }
+      }
+      return { success: false, error: 'Sync API returned error' };
+    } catch (error) {
+      logger.error('Error executing action via sync API', error, {
+        actionType: action.type,
+        actionId: action.id,
+      });
+      throw error;
     }
   }
 
@@ -369,6 +383,74 @@ class OfflineServiceClass {
       };
     } catch (error) {
       logger.error('Error getting storage info', error);
+      return null;
+    }
+  }
+
+  /**
+   * Cache user profile
+   */
+  async cacheUserProfile(profile) {
+    try {
+      const cacheData = {
+        data: profile,
+        timestamp: Date.now(),
+      };
+      await AsyncStorage.setItem('@cached_user_profile', JSON.stringify(cacheData));
+    } catch (error) {
+      logger.error('Error caching user profile', error);
+    }
+  }
+
+  /**
+   * Get cached user profile
+   */
+  async getCachedUserProfile() {
+    try {
+      const stored = await AsyncStorage.getItem('@cached_user_profile');
+      if (stored) {
+        const { data, timestamp } = JSON.parse(stored);
+        if (Date.now() - timestamp < CACHE_EXPIRY.PROFILES) {
+          return data;
+        }
+      }
+      return null;
+    } catch (error) {
+      logger.error('Error getting cached user profile', error);
+      return null;
+    }
+  }
+
+  /**
+   * Cache conversations
+   */
+  async cacheConversations(conversations) {
+    try {
+      const cacheData = {
+        data: conversations,
+        timestamp: Date.now(),
+      };
+      await AsyncStorage.setItem('@cached_conversations', JSON.stringify(cacheData));
+    } catch (error) {
+      logger.error('Error caching conversations', error, { count: conversations.length });
+    }
+  }
+
+  /**
+   * Get cached conversations
+   */
+  async getCachedConversations() {
+    try {
+      const stored = await AsyncStorage.getItem('@cached_conversations');
+      if (stored) {
+        const { data, timestamp } = JSON.parse(stored);
+        if (Date.now() - timestamp < CACHE_EXPIRY.MATCHES) {
+          return data;
+        }
+      }
+      return null;
+    } catch (error) {
+      logger.error('Error getting cached conversations', error);
       return null;
     }
   }

@@ -15,6 +15,8 @@ import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { LocationService } from '../services/LocationService';
 import { validateEmail } from '../utils/validators';
+import { showStandardError, STANDARD_ERROR_MESSAGES } from '../utils/errorHandler';
+import { useThrottle } from '../hooks/useDebounce';
 import logger from '../utils/logger';
 
 export const RegisterScreen = ({ navigation }) => {
@@ -55,51 +57,70 @@ export const RegisterScreen = ({ navigation }) => {
     getLocation();
   }, []);
 
-  const handleRegister = async () => {
+  // Throttle registration to prevent rapid submissions
+  const { execute: executeRegister, isPending: isRegisterPending } = useThrottle(async () => {
+    if (loading || isRegisterPending) return;
+
     try {
       // Validation
       if (!email.trim()) {
-        Alert.alert('Error', 'Email is required');
+        showStandardError('Email is required', 'validation');
         return;
       }
 
       if (!validateEmail(email)) {
-        Alert.alert('Error', 'Invalid email format');
+        showStandardError('Please enter a valid email address', 'validation');
         return;
       }
 
       if (!password) {
-        Alert.alert('Error', 'Password is required');
+        showStandardError('Password is required', 'validation');
         return;
       }
 
       if (password.length < 8) {
-        Alert.alert('Error', 'Password must be at least 8 characters');
+        showStandardError('Password must be at least 8 characters long', 'validation');
         return;
       }
 
       if (password !== confirmPassword) {
-        Alert.alert('Error', 'Passwords do not match');
+        showStandardError('Passwords do not match. Please try again.', 'validation');
         return;
       }
 
       if (!name.trim()) {
-        Alert.alert('Error', 'Name is required');
+        showStandardError('Name is required', 'validation');
         return;
       }
 
-      // Validate location is available
+      // CRITICAL FIX: Location is now optional - allow signup without location
+      // Backend will use default location if not provided
       if (!location) {
         Alert.alert(
-          'Location Required',
-          'We need your location to help you find matches nearby. Please enable location services and try again.',
+          'Location Not Available',
+          'We couldn\'t access your location. You can still sign up, but we recommend enabling location services later to find matches nearby. Would you like to continue?',
           [
             {
               text: 'Cancel',
               style: 'cancel',
             },
             {
-              text: 'Retry',
+              text: 'Continue Without Location',
+              onPress: async () => {
+                // Continue with signup - location will be null, backend will use default
+                try {
+                  setLoading(true);
+                  await signup(email, password, name, parseInt(age), gender, null);
+                } catch (error) {
+                  logger.error('Signup error:', error);
+                  showStandardError(error, 'signup', 'Sign Up Failed');
+                } finally {
+                  setLoading(false);
+                }
+              },
+            },
+            {
+              text: 'Retry Location',
               onPress: async () => {
                 try {
                   setLocationLoading(true);
@@ -107,15 +128,10 @@ export const RegisterScreen = ({ navigation }) => {
                   const currentLocation = await LocationService.getCurrentLocation();
                   if (currentLocation) {
                     setLocation(currentLocation);
-                  } else {
-                    Alert.alert(
-                      'Location Required',
-                      'Location is required to create an account. Please enable location permissions in your device settings.'
-                    );
                   }
                 } catch (error) {
                   logger.error('Error retrying location:', error);
-                  Alert.alert('Error', 'Failed to get location. Please check your device settings.');
+                  setLocationError('Failed to get location. Please enable location services.');
                 } finally {
                   setLocationLoading(false);
                 }
@@ -152,7 +168,7 @@ export const RegisterScreen = ({ navigation }) => {
         ]);
       }
     } catch (error) {
-      Alert.alert('Registration Failed', error.message || 'An error occurred during registration');
+      showStandardError(error, 'signup', 'Registration Failed');
     } finally {
       setLoading(false);
     }

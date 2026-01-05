@@ -29,6 +29,7 @@ exports.authenticate = async (req, res, next) => {
     }
 
     // Check if token is blacklisted (for logout functionality)
+    // CRITICAL FIX: Use MongoDB as fallback if Redis is unavailable
     try {
       const redisClient = await getRedis();
       if (redisClient) {
@@ -41,9 +42,29 @@ exports.authenticate = async (req, res, next) => {
         }
       }
     } catch (redisError) {
-      // If Redis is unavailable, continue without blacklist check
-      // This allows the app to work even if Redis is down
-      console.warn('Redis unavailable for blacklist check, continuing without it');
+      // Redis unavailable - check MongoDB fallback
+      const logger = require('../services/LoggingService').logger;
+      logger.warn('Redis unavailable for blacklist check, using MongoDB fallback', {
+        error: redisError instanceof Error ? redisError.message : String(redisError),
+      });
+      
+      try {
+        const BlacklistedToken = require('../models/BlacklistedToken');
+        const blacklistedToken = await BlacklistedToken.findOne({ token });
+        
+        if (blacklistedToken) {
+          return res.status(401).json({
+            success: false,
+            message: 'Token has been revoked. Please login again.',
+          });
+        }
+      } catch (mongoError) {
+        // If MongoDB check also fails, log error but continue
+        // This prevents a single point of failure from blocking all requests
+        logger.error('MongoDB blacklist check failed', {
+          error: mongoError instanceof Error ? mongoError.message : String(mongoError),
+        });
+      }
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

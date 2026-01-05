@@ -17,6 +17,7 @@ import {
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import PrivacyService from '../services/PrivacyService';
+import { showStandardError, STANDARD_ERROR_MESSAGES } from '../utils/errorHandler';
 import logger from '../utils/logger';
 
 const PrivacySettingsScreen = ({ navigation }) => {
@@ -44,7 +45,7 @@ const PrivacySettingsScreen = ({ navigation }) => {
       setConsentStatus(consent.data || consent);
     } catch (error) {
       logger.error('Error loading privacy data:', error);
-      Alert.alert('Error', 'Failed to load privacy settings');
+      showStandardError(error, 'load');
     } finally {
       setLoading(false);
     }
@@ -87,7 +88,7 @@ const PrivacySettingsScreen = ({ navigation }) => {
               }
             } catch (error) {
               logger.error('Error exporting data:', error);
-              Alert.alert('Error', 'Failed to export data. Please try again.');
+              showStandardError(error, 'load', 'Export Failed');
             } finally {
               setExporting(false);
             }
@@ -112,7 +113,7 @@ const PrivacySettingsScreen = ({ navigation }) => {
               loadPrivacyData();
             } catch (error) {
               logger.error('Error opting out:', error);
-              Alert.alert('Error', 'Failed to opt out. Please try again.');
+              showStandardError(error, 'update', 'Opt-Out Failed');
             }
           },
         },
@@ -127,7 +128,7 @@ const PrivacySettingsScreen = ({ navigation }) => {
     }
 
     if (!password) {
-      Alert.alert('Error', 'Please enter your password to confirm account deletion.');
+      showStandardError('Please enter your password to confirm account deletion', 'validation');
       return;
     }
 
@@ -161,9 +162,7 @@ const PrivacySettingsScreen = ({ navigation }) => {
               );
             } catch (error) {
               logger.error('Error deleting account:', error);
-              const errorMessage =
-                error.response?.data?.message || 'Failed to delete account. Please try again.';
-              Alert.alert('Error', errorMessage);
+              showStandardError(error, 'delete', 'Deletion Failed');
               setPassword('');
               setShowPasswordInput(false);
             } finally {
@@ -182,7 +181,7 @@ const PrivacySettingsScreen = ({ navigation }) => {
       setPrivacySettings(updated);
     } catch (error) {
       logger.error('Error updating privacy setting:', error);
-      Alert.alert('Error', 'Failed to update privacy setting');
+      showStandardError(error, 'update', 'Update Failed');
     }
   };
 

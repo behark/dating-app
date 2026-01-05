@@ -18,6 +18,8 @@ import {
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
+import { showStandardError, STANDARD_ERROR_MESSAGES } from '../utils/errorHandler';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 
 const ChatScreen = ({ route, navigation }) => {
@@ -76,14 +78,13 @@ const ChatScreen = ({ route, navigation }) => {
         }
       } catch (error) {
         logger.error('Error loading messages:', error);
-        const errorMessage =
-          error.message || 'Failed to load messages. Please check your connection.';
         
         if (!loadMore) {
           // Initial load failure - show alert with retry option
+          const message = getUserFriendlyMessage(error, 'load');
           Alert.alert(
-            'Error Loading Messages',
-            errorMessage,
+            'Unable to Load Messages',
+            message,
             [
               {
                 text: 'Retry',
@@ -98,7 +99,7 @@ const ChatScreen = ({ route, navigation }) => {
           );
         } else {
           // Load more failure - show less intrusive message
-          Alert.alert('Error', 'Failed to load more messages. Pull to refresh.');
+          showStandardError(error, 'load', 'Unable to Load');
         }
       } finally {
         setLoading(false);
