@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
@@ -60,7 +60,7 @@ export const EmailVerificationScreen = ({ navigation, route }) => {
             </Text>
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Home')}>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Main')}>
             <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
         </View>
@@ -106,7 +106,7 @@ export const EmailVerificationScreen = ({ navigation, route }) => {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('Home')} disabled={loading}>
+          <TouchableOpacity onPress={() => navigation.navigate('Main')} disabled={loading}>
             <Text style={styles.skipLink}>Verify later</Text>
           </TouchableOpacity>
         </View>

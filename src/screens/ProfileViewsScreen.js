@@ -1,19 +1,20 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { ActivityService } from '../services/ActivityService';
-import logger from '../utils/logger';
 import { formatRelativeTime } from '../utils/formatters';
+import logger from '../utils/logger';
 
-export default function ProfileViewsScreen() {
+export default function ProfileViewsScreen({ navigation }) {
   const [viewData, setViewData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -70,6 +71,15 @@ export default function ProfileViewsScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={Colors.text.dark} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Profile Views</Text>
+        <View style={styles.placeholder} />
+      </View>
+
       {/* Header Stats */}
       <View style={styles.headerStats}>
         <View style={styles.statCard}>
@@ -139,6 +149,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background.lighter,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: Colors.background.white,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.text.lighter,
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text.dark,
+  },
+  placeholder: {
+    width: 32,
   },
   centerContainer: {
     flex: 1,
