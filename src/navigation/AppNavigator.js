@@ -66,6 +66,14 @@ const ProfileSharingScreen = createLazyScreen(() => import('../screens/ProfileSh
   displayName: 'ProfileSharingScreen',
 });
 
+const SocialMediaConnectionScreen = createLazyScreen(
+  () => import('../screens/SocialMediaConnectionScreen'),
+  {
+    loadingMessage: 'Loading social connections...',
+    displayName: 'SocialMediaConnectionScreen',
+  }
+);
+
 const ReportUserScreen = createLazyScreen(() => import('../screens/ReportUserScreen'), {
   loadingMessage: 'Loading...',
   displayName: 'ReportUserScreen',
@@ -418,6 +426,14 @@ const AppNavigator = () => {
             <Stack.Screen
               name="ProfileSharing"
               component={ProfileSharingScreen}
+              options={{
+                headerShown: false,
+                presentation: 'card',
+              }}
+            />
+            <Stack.Screen
+              name="SocialMediaConnection"
+              component={SocialMediaConnectionScreen}
               options={{
                 headerShown: false,
                 presentation: 'card',
