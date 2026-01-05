@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import SocialFeaturesService from '../services/SocialFeaturesService';
+import logger from '../utils/logger';
 
 const GroupDatesScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
@@ -17,11 +18,7 @@ const GroupDatesScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchGroupDates();
-  }, []);
-
-  const fetchGroupDates = async () => {
+  const fetchGroupDates = useCallback(async () => {
     if (!currentUser?.location) return;
 
     try {
@@ -32,11 +29,15 @@ const GroupDatesScreen = ({ navigation }) => {
       );
       setGroupDates(data.groupDates || []);
     } catch (error) {
-      console.error('Error fetching group dates:', error);
+      logger.error('Error fetching group dates:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser?.location]);
+
+  useEffect(() => {
+    fetchGroupDates();
+  }, [fetchGroupDates]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -49,14 +50,14 @@ const GroupDatesScreen = ({ navigation }) => {
       await SocialFeaturesService.joinGroupDate(groupDateId, currentUser._id);
       fetchGroupDates();
     } catch (error) {
-      console.error('Error joining group date:', error);
+      logger.error('Error joining group date:', error);
       alert(error.response?.data?.message || 'Failed to join group date');
     }
   };
 
   const GroupDateCard = ({ item }) => {
     const startDate = new Date(item.startTime);
-    const isJoined = item.currentParticipants.some(p => p.userId === currentUser._id);
+    const isJoined = item.currentParticipants.some((p) => p.userId === currentUser._id);
 
     return (
       <TouchableOpacity
@@ -76,7 +77,8 @@ const GroupDatesScreen = ({ navigation }) => {
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>
-              📅 {startDate.toLocaleDateString()} at {startDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+              📅 {startDate.toLocaleDateString()} at{' '}
+              {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </View>
           <View style={styles.detailItem}>
@@ -87,17 +89,14 @@ const GroupDatesScreen = ({ navigation }) => {
         </View>
 
         {!isJoined && (
-          <TouchableOpacity
-            style={styles.joinButton}
-            onPress={() => handleJoinGroupDate(item._id)}
-          >
+          <TouchableOpacity style={styles.joinButton} onPress={() => handleJoinGroupDate(item._id)}>
             <Text style={styles.joinButtonText}>Join Group Date</Text>
           </TouchableOpacity>
         )}
 
         {isJoined && (
           <View style={styles.joinedBadge}>
-            <Text style={styles.joinedText}>✓ You're going</Text>
+            <Text style={styles.joinedText}>✓ You&apos;re going</Text>
           </View>
         )}
       </TouchableOpacity>
@@ -132,11 +131,9 @@ const GroupDatesScreen = ({ navigation }) => {
       ) : (
         <FlatList
           data={groupDates}
-          keyExtractor={item => item._id}
+          keyExtractor={(item) => item._id}
           renderItem={({ item }) => <GroupDateCard item={item} />}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           contentContainerStyle={styles.list}
         />
       )}
@@ -147,12 +144,12 @@ const GroupDatesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF'
+    backgroundColor: '#FFF',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   headerSection: {
     flexDirection: 'row',
@@ -161,26 +158,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE'
+    borderBottomColor: '#EEE',
   },
   screenTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#333'
+    color: '#333',
   },
   createButton: {
     backgroundColor: '#FF6B9D',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20
+    borderRadius: 20,
   },
   createButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 12
+    fontSize: 12,
   },
   list: {
-    padding: 12
+    padding: 12,
   },
   card: {
     backgroundColor: '#FFF',
@@ -190,19 +187,19 @@ const styles = StyleSheet.create({
     elevation: 2,
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowRadius: 3
+    shadowRadius: 3,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8
+    marginBottom: 8,
   },
   title: {
     fontSize: 16,
     fontWeight: '700',
     color: '#333',
-    flex: 1
+    flex: 1,
   },
   eventType: {
     backgroundColor: '#F0E6FF',
@@ -211,34 +208,34 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 4,
     fontSize: 11,
-    fontWeight: '600'
+    fontWeight: '600',
   },
   description: {
     fontSize: 13,
     color: '#666',
     marginBottom: 10,
-    lineHeight: 18
+    lineHeight: 18,
   },
   details: {
-    marginBottom: 12
+    marginBottom: 12,
   },
   detailItem: {
-    marginBottom: 6
+    marginBottom: 6,
   },
   detailLabel: {
     fontSize: 12,
-    color: '#555'
+    color: '#555',
   },
   joinButton: {
     backgroundColor: '#FF6B9D',
     borderRadius: 8,
     paddingVertical: 10,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   joinButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 14
+    fontSize: 14,
   },
   joinedBadge: {
     backgroundColor: '#E8F5E9',
@@ -246,28 +243,28 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#4CAF50'
+    borderColor: '#4CAF50',
   },
   joinedText: {
     color: '#2E7D32',
     fontWeight: '600',
-    fontSize: 14
+    fontSize: 14,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#999',
-    marginBottom: 8
+    marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#BBB'
-  }
+    color: '#BBB',
+  },
 });
 
 export default GroupDatesScreen;

@@ -47,59 +47,59 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#FF6B9D'
+    borderLeftColor: '#FF6B9D',
   },
   inactiveCard: {
     backgroundColor: '#F5F5F5',
-    borderLeftColor: '#CCC'
+    borderLeftColor: '#CCC',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12
+    marginBottom: 12,
   },
   title: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333'
+    color: '#333',
   },
   activeText: {
     color: '#FF6B9D',
     fontWeight: '600',
-    fontSize: 12
+    fontSize: 12,
   },
   streakContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingVertical: 12
+    paddingVertical: 12,
   },
   streakInfo: {
     alignItems: 'center',
-    flex: 1
+    flex: 1,
   },
   streakNumber: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FF6B9D'
+    color: '#FF6B9D',
   },
   streakLabel: {
     fontSize: 12,
     color: '#666',
-    marginTop: 4
+    marginTop: 4,
   },
   divider: {
     width: 1,
     height: 40,
-    backgroundColor: '#DDD'
+    backgroundColor: '#DDD',
   },
   warningText: {
     marginTop: 12,
     fontSize: 12,
     color: '#999',
-    fontStyle: 'italic'
-  }
+    fontStyle: 'italic',
+  },
 });
 
 export default StreakCard;

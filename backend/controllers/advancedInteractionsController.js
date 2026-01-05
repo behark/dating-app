@@ -19,7 +19,7 @@ const sendSuperLike = async (req, res) => {
     if (!recipientId) {
       return res.status(400).json({
         success: false,
-        message: 'Recipient ID is required'
+        message: 'Recipient ID is required',
       });
     }
 
@@ -28,7 +28,7 @@ const sendSuperLike = async (req, res) => {
     if (!recipient) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -36,7 +36,7 @@ const sendSuperLike = async (req, res) => {
     if (senderId === recipientId) {
       return res.status(400).json({
         success: false,
-        message: 'You cannot super like yourself'
+        message: 'You cannot super like yourself',
       });
     }
 
@@ -46,13 +46,13 @@ const sendSuperLike = async (req, res) => {
     // Check if already swiped on this user
     const existingSwipe = await Swipe.findOne({
       swiperId: senderId,
-      swipedId: recipientId
+      swipedId: recipientId,
     });
 
     if (existingSwipe) {
       return res.status(400).json({
         success: false,
-        message: 'You have already interacted with this profile'
+        message: 'You have already interacted with this profile',
       });
     }
 
@@ -74,7 +74,7 @@ const sendSuperLike = async (req, res) => {
           success: false,
           message: 'Daily super like limit reached',
           remaining: 0,
-          limit: 5
+          limit: 5,
         });
       }
 
@@ -85,7 +85,7 @@ const sendSuperLike = async (req, res) => {
     const superLike = new SuperLike({
       senderId,
       recipientId,
-      message: message || null
+      message: message || null,
     });
 
     await superLike.save();
@@ -94,7 +94,7 @@ const sendSuperLike = async (req, res) => {
     const swipe = new Swipe({
       swiperId: senderId,
       swipedId: recipientId,
-      action: 'superlike'
+      action: 'superlike',
     });
 
     await swipe.save();
@@ -102,14 +102,14 @@ const sendSuperLike = async (req, res) => {
     // Log activity
     await UserActivity.logActivity(senderId, 'super_like', {
       recipientId,
-      hasMessage: !!message
+      hasMessage: !!message,
     });
 
     // Check for match
     const reverseSwipe = await Swipe.findOne({
       swiperId: recipientId,
       swipedId: senderId,
-      action: { $in: ['like', 'superlike'] }
+      action: { $in: ['like', 'superlike'] },
     });
 
     let isMatch = false;
@@ -128,14 +128,14 @@ const sendSuperLike = async (req, res) => {
         superLikeId: superLike._id,
         isMatch,
         recipientName: recipient.name,
-        remaining: sender.isPremium ? -1 : remaining - 1
-      }
+        remaining: sender.isPremium ? -1 : remaining - 1,
+      },
     });
   } catch (error) {
     console.error('Error sending super like:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -151,7 +151,7 @@ const getSuperLikeQuota = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -161,8 +161,8 @@ const getSuperLikeQuota = async (req, res) => {
         data: {
           remaining: -1, // Unlimited
           limit: -1,
-          isPremium: true
-        }
+          isPremium: true,
+        },
       });
     }
 
@@ -175,14 +175,14 @@ const getSuperLikeQuota = async (req, res) => {
         remaining,
         limit: 5,
         isPremium: false,
-        usedToday
-      }
+        usedToday,
+      },
     });
   } catch (error) {
     console.error('Error getting super like quota:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -200,7 +200,7 @@ const rewindLastSwipe = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -223,19 +223,19 @@ const rewindLastSwipe = async (req, res) => {
     if (!hasRewindAvailable && !user.isPremium) {
       return res.status(429).json({
         success: false,
-        message: 'Daily rewind limit reached'
+        message: 'Daily rewind limit reached',
       });
     }
 
     // Get the last swipe
     const lastSwipe = await Swipe.findOne({
-      swiperId: userId
+      swiperId: userId,
     }).sort({ createdAt: -1 });
 
     if (!lastSwipe) {
       return res.status(404).json({
         success: false,
-        message: 'No swipe to rewind'
+        message: 'No swipe to rewind',
       });
     }
 
@@ -245,7 +245,7 @@ const rewindLastSwipe = async (req, res) => {
       originalSwipeId: lastSwipe._id,
       swipedUserId: lastSwipe.swipedId,
       originalAction: lastSwipe.action,
-      success: true
+      success: true,
     });
 
     await rewind.save();
@@ -255,7 +255,7 @@ const rewindLastSwipe = async (req, res) => {
 
     // Log activity
     await UserActivity.logActivity(userId, 'profile_view', {
-      action: 'rewind'
+      action: 'rewind',
     });
 
     return res.status(200).json({
@@ -264,14 +264,14 @@ const rewindLastSwipe = async (req, res) => {
       data: {
         rewindId: rewind._id,
         rewindAction: lastSwipe.action,
-        targetUser: lastSwipe.swipedId
-      }
+        targetUser: lastSwipe.swipedId,
+      },
     });
   } catch (error) {
     console.error('Error rewinding swipe:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -287,7 +287,7 @@ const getRewindQuota = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -297,8 +297,8 @@ const getRewindQuota = async (req, res) => {
         data: {
           remaining: -1, // Unlimited
           limit: -1,
-          isPremium: true
-        }
+          isPremium: true,
+        },
       });
     }
 
@@ -311,14 +311,14 @@ const getRewindQuota = async (req, res) => {
         remaining,
         limit: 1,
         isPremium: false,
-        usedToday
-      }
+        usedToday,
+      },
     });
   } catch (error) {
     console.error('Error getting rewind quota:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -338,7 +338,7 @@ const boostProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -361,7 +361,7 @@ const boostProfile = async (req, res) => {
     if (!canBoost && !user.isPremium) {
       return res.status(429).json({
         success: false,
-        message: 'Daily boost limit reached'
+        message: 'Daily boost limit reached',
       });
     }
 
@@ -371,7 +371,7 @@ const boostProfile = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'You already have an active boost',
-        activeBoostEndsAt: activeBoost.endsAt
+        activeBoostEndsAt: activeBoost.endsAt,
       });
     }
 
@@ -380,7 +380,7 @@ const boostProfile = async (req, res) => {
       userId,
       durationMinutes,
       tier: user.isPremium ? 'premium' : 'free',
-      visibilityMultiplier: user.isPremium ? 5 : 3
+      visibilityMultiplier: user.isPremium ? 5 : 3,
     });
 
     await boost.save();
@@ -392,7 +392,7 @@ const boostProfile = async (req, res) => {
     // Log activity
     await UserActivity.logActivity(userId, 'profile_update', {
       action: 'boost_profile',
-      duration: durationMinutes
+      duration: durationMinutes,
     });
 
     return res.status(201).json({
@@ -402,14 +402,14 @@ const boostProfile = async (req, res) => {
         boostId: boost._id,
         endsAt: boost.endsAt,
         visibilityMultiplier: boost.visibilityMultiplier,
-        durationMinutes
-      }
+        durationMinutes,
+      },
     });
   } catch (error) {
     console.error('Error boosting profile:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -425,7 +425,7 @@ const getBoostQuota = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -439,9 +439,9 @@ const getBoostQuota = async (req, res) => {
           activeBoost: {
             endsAt: activeBoost.endsAt,
             visibilityMultiplier: activeBoost.visibilityMultiplier,
-            remainingMinutes: Math.ceil((activeBoost.endsAt - new Date()) / 60000)
-          }
-        }
+            remainingMinutes: Math.ceil((activeBoost.endsAt - new Date()) / 60000),
+          },
+        },
       });
     }
 
@@ -452,8 +452,8 @@ const getBoostQuota = async (req, res) => {
           hasActiveBoost: false,
           remaining: -1, // Unlimited
           limit: -1,
-          isPremium: true
-        }
+          isPremium: true,
+        },
       });
     }
 
@@ -467,14 +467,14 @@ const getBoostQuota = async (req, res) => {
         remaining,
         limit: 1,
         isPremium: false,
-        usedToday
-      }
+        usedToday,
+      },
     });
   } catch (error) {
     console.error('Error getting boost quota:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -485,5 +485,5 @@ module.exports = {
   rewindLastSwipe,
   getRewindQuota,
   boostProfile,
-  getBoostQuota
+  getBoostQuota,
 };

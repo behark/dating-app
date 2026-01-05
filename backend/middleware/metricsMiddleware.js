@@ -15,8 +15,8 @@ const responseTimeMiddleware = (req, res, next) => {
 
   // Capture original end function
   const originalEnd = res.end;
-  
-  res.end = function(...args) {
+
+  res.end = function (...args) {
     // Only process if response hasn't been sent yet
     if (res.headersSent) {
       return originalEnd.apply(this, args);
@@ -73,11 +73,7 @@ const responseTimeMiddleware = (req, res, next) => {
 const requestCountingMiddleware = (req, res, next) => {
   res.on('finish', () => {
     const route = normalizeRoute(req.route?.path || req.path, req.baseUrl);
-    const tags = [
-      `route:${route}`,
-      `method:${req.method}`,
-      `status:${res.statusCode}`
-    ];
+    const tags = [`route:${route}`, `method:${req.method}`, `status:${res.statusCode}`];
 
     datadogService.increment('http.requests.total', 1, tags);
 
@@ -108,7 +104,7 @@ const photoUploadMetricsMiddleware = (req, res, next) => {
   res.on('finish', () => {
     const durationMs = Date.now() - startTime;
     const success = res.statusCode >= 200 && res.statusCode < 300;
-    
+
     // Calculate total size of uploaded files
     let totalSize = 0;
     if (req.files) {
@@ -149,7 +145,7 @@ const userActivityMiddleware = (req, res, next) => {
     if (activityType) {
       datadogService.increment('user.activity', 1, [
         `activity:${activityType}`,
-        `user_id:${req.user.id || req.user._id}`
+        `user_id:${req.user.id || req.user._id}`,
       ]);
     }
   });
@@ -163,16 +159,16 @@ const userActivityMiddleware = (req, res, next) => {
 const errorRateMiddleware = (err, req, res, next) => {
   const route = normalizeRoute(req.route?.path || req.path, req.baseUrl);
   const statusCode = err.statusCode || err.status || 500;
-  
+
   const tags = [
     `route:${route}`,
     `method:${req.method}`,
     `error_type:${err.name || 'UnknownError'}`,
-    `status:${statusCode}`
+    `status:${statusCode}`,
   ];
 
   datadogService.increment('http.errors', 1, tags);
-  
+
   // Track crash if it's a 500 error
   if (statusCode >= 500) {
     datadogService.increment('app.server_errors', 1, [`route:${route}`]);
@@ -190,7 +186,7 @@ const errorRateMiddleware = (err, req, res, next) => {
  */
 function normalizeRoute(path, baseUrl = '') {
   const fullPath = `${baseUrl}${path}`.replace(/\/+/g, '/');
-  
+
   // Replace dynamic segments with placeholders
   return fullPath
     .replace(/\/[a-f0-9]{24}/g, '/:id') // MongoDB ObjectIds
@@ -207,22 +203,23 @@ function getActivityType(req) {
 
   // Swipe activity
   if (path.includes('/swipe')) return 'swipe';
-  
+
   // Message activity
   if (path.includes('/message') || path.includes('/chat')) return 'message';
-  
+
   // Profile view
   if (path.includes('/profile') && method === 'GET') return 'profile_view';
-  
+
   // Profile update
-  if (path.includes('/profile') && ['PUT', 'PATCH', 'POST'].includes(method)) return 'profile_update';
-  
+  if (path.includes('/profile') && ['PUT', 'PATCH', 'POST'].includes(method))
+    return 'profile_update';
+
   // Match related
   if (path.includes('/match')) return 'match';
-  
+
   // Login/auth
   if (path.includes('/auth') || path.includes('/login')) return 'login';
-  
+
   // Discovery/browse
   if (path.includes('/discover') || path.includes('/nearby')) return 'browse';
 
@@ -234,5 +231,5 @@ module.exports = {
   requestCountingMiddleware,
   photoUploadMetricsMiddleware,
   userActivityMiddleware,
-  errorRateMiddleware
+  errorRateMiddleware,
 };

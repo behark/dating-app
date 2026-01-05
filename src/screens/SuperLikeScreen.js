@@ -2,15 +2,17 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { API_BASE_URL } from '../config/api';
+import logger from '../utils/logger';
 import { useAuth } from '../context/AuthContext';
 
 const SuperLikeScreen = ({ route, navigation }) => {
@@ -28,20 +30,27 @@ const SuperLikeScreen = ({ route, navigation }) => {
   const fetchQuota = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/interactions/super-like-quota`, {
-        headers: { Authorization: `Bearer ${authToken}` }
+        headers: { Authorization: `Bearer ${authToken}` },
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
       const data = await response.json();
       if (data.success) {
         setQuota(data.data);
       }
     } catch (error) {
-      console.error('Error fetching quota:', error);
+      logger.error('Error fetching quota:', error);
     }
   };
 
   const handleSuperLike = async () => {
     if (!user?.isPremium && quota?.remaining === 0) {
-      Alert.alert('Limit Reached', 'You have used your daily super likes. Upgrade to premium for unlimited!');
+      Alert.alert(
+        'Limit Reached',
+        'You have used your daily super likes. Upgrade to premium for unlimited!'
+      );
       return;
     }
 
@@ -51,13 +60,17 @@ const SuperLikeScreen = ({ route, navigation }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({
           recipientId: userId,
-          message: message || null
-        })
+          message: message || null,
+        }),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
 
       const data = await response.json();
 
@@ -65,8 +78,8 @@ const SuperLikeScreen = ({ route, navigation }) => {
         Alert.alert('Success', data.message, [
           {
             text: 'OK',
-            onPress: () => navigation.goBack()
-          }
+            onPress: () => navigation.goBack(),
+          },
         ]);
 
         if (data.data.isMatch) {
@@ -79,7 +92,7 @@ const SuperLikeScreen = ({ route, navigation }) => {
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to send super like');
-      console.error('Error:', error);
+      logger.error('Error sending super like:', error);
     } finally {
       setLoading(false);
     }
@@ -102,7 +115,8 @@ const SuperLikeScreen = ({ route, navigation }) => {
           <Ionicons name="star" size={40} color="#FFD700" style={styles.starIcon} />
           <Text style={styles.infoTitle}>Stand Out!</Text>
           <Text style={styles.infoText}>
-            Super likes let them know you're extra interested. You get {user?.isPremium ? 'unlimited' : '5'} per day.
+            Super likes let them know you&apos;re extra interested. You get{' '}
+            {user?.isPremium ? 'unlimited' : '5'} per day.
           </Text>
         </View>
 
@@ -158,7 +172,7 @@ const SuperLikeScreen = ({ route, navigation }) => {
           <Text style={styles.benefitsTitle}>Why Super Like?</Text>
           <View style={styles.benefitItem}>
             <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
-            <Text style={styles.benefitText}>They'll know you really like them</Text>
+            <Text style={styles.benefitText}>They&apos;ll know you really like them</Text>
           </View>
           <View style={styles.benefitItem}>
             <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
@@ -174,10 +188,7 @@ const SuperLikeScreen = ({ route, navigation }) => {
       {/* Send Button */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[
-            styles.sendButton,
-            loading && { opacity: 0.7 }
-          ]}
+          style={[styles.sendButton, loading && { opacity: 0.7 }]}
           onPress={handleSuperLike}
           disabled={loading}
         >

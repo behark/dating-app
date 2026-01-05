@@ -1,12 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
+import logger from '../utils/logger';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 
 export class SocialMediaService {
   static async getAuthToken() {
     try {
       return await AsyncStorage.getItem('authToken');
     } catch (error) {
-      console.error('Error retrieving auth token:', error);
+      logger.error('Error retrieving auth token:', error);
       return null;
     }
   }
@@ -23,20 +25,28 @@ export class SocialMediaService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(spotifyData)
+        body: JSON.stringify(spotifyData),
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to connect Spotify');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to connect Spotify'));
+      }
+
       return data.data;
     } catch (error) {
-      console.error('Error connecting Spotify:', error);
+      logger.error('Error connecting Spotify:', error);
       throw error;
     }
   }
@@ -53,20 +63,28 @@ export class SocialMediaService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(instagramData)
+        body: JSON.stringify(instagramData),
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to connect Instagram');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to connect Instagram'));
+      }
+
       return data.data;
     } catch (error) {
-      console.error('Error connecting Instagram:', error);
+      logger.error('Error connecting Instagram:', error);
       throw error;
     }
   }
@@ -83,19 +101,27 @@ export class SocialMediaService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        }
+          Authorization: `Bearer ${authToken}`,
+        },
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to disconnect Spotify');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to disconnect Spotify'));
+      }
+
       return data.data;
     } catch (error) {
-      console.error('Error disconnecting Spotify:', error);
+      logger.error('Error disconnecting Spotify:', error);
       throw error;
     }
   }
@@ -112,19 +138,27 @@ export class SocialMediaService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        }
+          Authorization: `Bearer ${authToken}`,
+        },
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to disconnect Instagram');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to disconnect Instagram'));
+      }
+
       return data.data;
     } catch (error) {
-      console.error('Error disconnecting Instagram:', error);
+      logger.error('Error disconnecting Instagram:', error);
       throw error;
     }
   }
@@ -139,19 +173,27 @@ export class SocialMediaService {
 
       const response = await fetch(`${API_URL}/social-media/${userId}/social-media`, {
         headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+          Authorization: `Bearer ${authToken}`,
+        },
       });
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch social media');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
       }
-      
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch social media'));
+      }
+
       return data.data;
     } catch (error) {
-      console.error('Error fetching social media:', error);
+      logger.error('Error fetching social media:', error);
       throw error;
     }
   }

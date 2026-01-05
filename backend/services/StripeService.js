@@ -1,6 +1,6 @@
 /**
  * Stripe Payment Service
- * 
+ *
  * Handles all Stripe payment operations including:
  * - Customer management
  * - Subscription creation and management
@@ -118,13 +118,13 @@ class StripeService {
   static async createPaymentIntent(user, productType, productId, quantity = 1) {
     try {
       const customer = await this.getOrCreateCustomer(user);
-      
+
       // Get product pricing
       const products = paymentConfig.consumableProducts[productType];
       if (!products || !products[productId]) {
         throw new Error(`Invalid product: ${productType}/${productId}`);
       }
-      
+
       const product = products[productId];
       const amount = Math.round(product.price * quantity * 100); // Convert to cents
 
@@ -314,10 +314,14 @@ class StripeService {
   /**
    * Change subscription plan
    */
-  static async changeSubscriptionPlan(subscriptionId, newPriceId, prorationBehavior = 'create_prorations') {
+  static async changeSubscriptionPlan(
+    subscriptionId,
+    newPriceId,
+    prorationBehavior = 'create_prorations'
+  ) {
     try {
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-      
+
       const updatedSubscription = await stripe.subscriptions.update(subscriptionId, {
         items: [
           {
@@ -469,22 +473,22 @@ class StripeService {
       // Checkout events
       'checkout.session.completed': this.handleCheckoutComplete,
       'checkout.session.expired': this.handleCheckoutExpired,
-      
+
       // Subscription events
       'customer.subscription.created': this.handleSubscriptionCreated,
       'customer.subscription.updated': this.handleSubscriptionUpdated,
       'customer.subscription.deleted': this.handleSubscriptionDeleted,
       'customer.subscription.trial_will_end': this.handleTrialWillEnd,
-      
+
       // Invoice events
       'invoice.paid': this.handleInvoicePaid,
       'invoice.payment_failed': this.handleInvoicePaymentFailed,
       'invoice.upcoming': this.handleInvoiceUpcoming,
-      
+
       // Payment events
       'payment_intent.succeeded': this.handlePaymentIntentSucceeded,
       'payment_intent.payment_failed': this.handlePaymentIntentFailed,
-      
+
       // Refund events
       'charge.refunded': this.handleChargeRefunded,
       'charge.refund.updated': this.handleRefundUpdated,
@@ -534,7 +538,7 @@ class StripeService {
    */
   static async handleCheckoutExpired(session, event) {
     const userId = session.metadata.userId;
-    
+
     await PaymentTransaction.create({
       userId,
       provider: 'stripe',
@@ -558,7 +562,7 @@ class StripeService {
    */
   static async handleSubscriptionUpdated(subscription, event) {
     const userId = subscription.metadata.userId;
-    
+
     if (subscription.status === 'active') {
       const localSub = await Subscription.findOne({ userId });
       if (localSub) {
@@ -583,7 +587,7 @@ class StripeService {
    */
   static async handleSubscriptionDeleted(subscription, event) {
     const userId = subscription.metadata.userId;
-    
+
     const localSub = await Subscription.findOne({ userId });
     if (localSub) {
       localSub.status = 'cancelled';
@@ -615,11 +619,11 @@ class StripeService {
    */
   static async handleInvoicePaid(invoice, event) {
     const customerId = invoice.customer;
-    
+
     // Find user by Stripe customer ID and update subscription
     const User = require('../models/User');
     const user = await User.findOne({ stripeCustomerId: customerId });
-    
+
     if (user) {
       await PaymentTransaction.create({
         userId: user._id,
@@ -638,10 +642,10 @@ class StripeService {
    */
   static async handleInvoicePaymentFailed(invoice, event) {
     const customerId = invoice.customer;
-    
+
     const User = require('../models/User');
     const user = await User.findOne({ stripeCustomerId: customerId });
-    
+
     if (user) {
       // Update subscription status
       const subscription = await Subscription.findOne({ userId: user._id });
@@ -649,7 +653,7 @@ class StripeService {
         subscription.status = 'past_due';
         await subscription.save();
       }
-      
+
       // Log failed transaction
       await PaymentTransaction.create({
         userId: user._id,
@@ -661,7 +665,7 @@ class StripeService {
         providerTransactionId: invoice.id,
         failureReason: invoice.last_payment_error?.message,
       });
-      
+
       // TODO: Send payment failure notification
     }
   }
@@ -680,18 +684,18 @@ class StripeService {
    */
   static async handlePaymentIntentSucceeded(paymentIntent, event) {
     const { userId, productType, productId, quantity } = paymentIntent.metadata;
-    
+
     if (!userId || !productType) {
       return; // Not our payment
     }
-    
+
     // Credit the user's account with purchased items
     const User = require('../models/User');
     const user = await User.findById(userId);
-    
+
     if (user && productType && productId) {
       const qty = parseInt(quantity) || 1;
-      
+
       switch (productType) {
         case 'superLikes':
           user.superLikesBalance = (user.superLikesBalance || 0) + qty;
@@ -703,7 +707,7 @@ class StripeService {
           user.rewindsBalance = (user.rewindsBalance || 0) + qty;
           break;
       }
-      
+
       await user.save();
     }
 
@@ -725,7 +729,7 @@ class StripeService {
    */
   static async handlePaymentIntentFailed(paymentIntent, event) {
     const { userId, productType, productId } = paymentIntent.metadata;
-    
+
     if (userId) {
       await PaymentTransaction.create({
         userId,

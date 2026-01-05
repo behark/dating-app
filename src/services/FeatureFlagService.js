@@ -116,9 +116,7 @@ class FeatureFlagService {
 
     // Check user groups
     if (!flag.allowedGroups.includes('all')) {
-      const hasAllowedGroup = userGroups.some(group => 
-        flag.allowedGroups.includes(group)
-      );
+      const hasAllowedGroup = userGroups.some((group) => flag.allowedGroups.includes(group));
       if (!hasAllowedGroup) return false;
     }
 
@@ -137,7 +135,7 @@ class FeatureFlagService {
     let hash = 0;
     for (let i = 0; i < userId.length; i++) {
       const char = userId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return Math.abs(hash);

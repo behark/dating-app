@@ -1,5 +1,6 @@
 {
-  "extends": ["eslint:recommended"],
+  "root": true,
+  "extends": ["eslint:recommended", "plugin:promise/recommended", "plugin:import/recommended"],
   "parserOptions": {
     "ecmaVersion": 2022,
     "sourceType": "module"
@@ -9,6 +10,7 @@
     "es2022": true,
     "jest": true
   },
+  "plugins": ["security", "sonarjs", "unicorn", "promise", "import", "no-secrets"],
   "rules": {
     "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     "no-console": ["warn", { "allow": ["warn", "error"] }],
@@ -17,20 +19,60 @@
     "prefer-arrow-callback": "error",
     "prefer-template": "warn",
     "no-return-await": "error",
-    "require-await": "warn"
+    "require-await": "warn",
+    "security/detect-object-injection": "warn",
+    "security/detect-non-literal-fs-filename": "warn",
+    "security/detect-eval-with-expression": "error",
+    "security/detect-no-csrf-before-method-override": "warn",
+    "security/detect-unsafe-regex": "error",
+    "security/detect-buffer-noassert": "error",
+    "security/detect-child-process": "warn",
+    "security/detect-disable-mustache-escape": "error",
+    "security/detect-new-buffer": "warn",
+    "sonarjs/cognitive-complexity": ["warn", 15],
+    "sonarjs/no-duplicate-string": ["warn", { "threshold": 3 }],
+    "sonarjs/no-small-switch": "warn",
+    "sonarjs/no-redundant-boolean": "warn",
+    "sonarjs/no-identical-expressions": "error",
+    "sonarjs/no-all-duplicated-branches": "error",
+    "sonarjs/no-collapsible-if": "warn",
+    "sonarjs/no-collection-size-mischeck": "error",
+    "sonarjs/no-empty-collection": "warn",
+    "sonarjs/no-identical-conditions": "error",
+    "sonarjs/no-identical-functions": "warn",
+    "sonarjs/no-inverted-boolean-check": "warn",
+    "sonarjs/no-redundant-jump": "warn",
+    "sonarjs/no-same-line-conditional": "warn",
+    "sonarjs/no-use-of-empty-return-value": "warn",
+    "sonarjs/prefer-immediate-return": "warn",
+    "sonarjs/prefer-object-literal": "warn",
+    "sonarjs/prefer-single-boolean-return": "warn",
+    "sonarjs/prefer-while": "warn",
+    "promise/always-return": "warn",
+    "promise/catch-or-return": "warn",
+    "import/order": [
+      "warn",
+      { "groups": ["builtin", "external", "internal", "parent", "sibling", "index"] }
+    ],
+    "import/no-unresolved": "off",
+    "no-secrets/no-secrets": ["error", { "tolerance": 4.2 }],
+    "unicorn/prevent-abbreviations": "off",
+    "unicorn/no-array-for-each": "off",
+    "unicorn/no-array-reduce": "off",
+    "unicorn/prefer-module": "off",
+    "unicorn/prefer-node-protocol": "off"
   },
   "overrides": [
     {
       "files": ["**/*.ts"],
       "parser": "@typescript-eslint/parser",
-      "plugins": ["@typescript-eslint"],
-      "extends": [
-        "plugin:@typescript-eslint/recommended"
-      ],
+      "plugins": ["@typescript-eslint", "security"],
+      "extends": ["plugin:@typescript-eslint/recommended"],
       "rules": {
         "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
         "@typescript-eslint/explicit-function-return-type": "off",
-        "@typescript-eslint/no-explicit-any": "warn"
+        "@typescript-eslint/no-explicit-any": "warn",
+        "@typescript-eslint/no-non-null-assertion": "warn"
       }
     }
   ]

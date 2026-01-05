@@ -3,16 +3,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    Image,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { API_BASE_URL } from '../config/api';
+import logger from '../utils/logger';
 import { useAuth } from '../context/AuthContext';
 import { calculateDistance } from '../utils/distanceCalculator';
 
@@ -38,7 +39,7 @@ const TopPicksScreen = ({ navigation }) => {
         setLocation(loc.coords);
       }
     } catch (error) {
-      console.error('Error getting location:', error);
+      logger.error('Error getting location:', error);
     }
   };
 
@@ -46,15 +47,20 @@ const TopPicksScreen = ({ navigation }) => {
     setLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/discovery/top-picks?limit=10`, {
-        headers: { Authorization: `Bearer ${authToken}` }
+        headers: { Authorization: `Bearer ${authToken}` },
       });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      }
 
       const data = await response.json();
       if (data.success) {
         setTopPicks(data.data.topPicks || []);
       }
     } catch (error) {
-      console.error('Error fetching top picks:', error);
+      logger.error('Error fetching top picks:', error);
       Alert.alert('Error', 'Failed to load top picks');
     } finally {
       setLoading(false);
@@ -132,10 +138,7 @@ const TopPicksScreen = ({ navigation }) => {
       {/* Main Card */}
       <View style={styles.cardContainer}>
         {user?.photos?.[0] && (
-          <Image
-            source={{ uri: user.photos[0].url }}
-            style={styles.profileImage}
-          />
+          <Image source={{ uri: user.photos[0].url }} style={styles.profileImage} />
         )}
 
         {user?.isProfileVerified && (
@@ -176,12 +179,7 @@ const TopPicksScreen = ({ navigation }) => {
             <View style={styles.scoreContainer}>
               <Text style={styles.scoreValue}>{compatibility}%</Text>
               <View style={styles.scoreBar}>
-                <View
-                  style={[
-                    styles.scoreBarFill,
-                    { width: `${compatibility}%` }
-                  ]}
-                />
+                <View style={[styles.scoreBarFill, { width: `${compatibility}%` }]} />
               </View>
             </View>
           </View>
@@ -190,48 +188,38 @@ const TopPicksScreen = ({ navigation }) => {
 
       {/* Score Breakdown */}
       <View style={styles.breakdownSection}>
-        <Text style={styles.breakdownTitle}>Why They're A Top Pick</Text>
+        <Text style={styles.breakdownTitle}>Why They&apos;re A Top Pick</Text>
 
         {currentPick?.scoreBreakdown && (
           <View style={styles.breakdown}>
             {currentPick.scoreBreakdown.interestCompatibility > 0 && (
               <View style={styles.breakdownItem}>
                 <Ionicons name="star" size={16} color="#FFD700" />
-                <Text style={styles.breakdownText}>
-                  Similar interests and passions
-                </Text>
+                <Text style={styles.breakdownText}>Similar interests and passions</Text>
               </View>
             )}
             {currentPick.scoreBreakdown.locationCompatibility > 0 && (
               <View style={styles.breakdownItem}>
                 <Ionicons name="location" size={16} color="#FFD700" />
-                <Text style={styles.breakdownText}>
-                  In your preferred location
-                </Text>
+                <Text style={styles.breakdownText}>In your preferred location</Text>
               </View>
             )}
             {currentPick.scoreBreakdown.ageCompatibility > 0 && (
               <View style={styles.breakdownItem}>
                 <Ionicons name="checkmark-circle" size={16} color="#FFD700" />
-                <Text style={styles.breakdownText}>
-                  Matches your age preference
-                </Text>
+                <Text style={styles.breakdownText}>Matches your age preference</Text>
               </View>
             )}
             {currentPick.scoreBreakdown.engagementScore > 0 && (
               <View style={styles.breakdownItem}>
                 <Ionicons name="flame" size={16} color="#FFD700" />
-                <Text style={styles.breakdownText}>
-                  Active and engaged user
-                </Text>
+                <Text style={styles.breakdownText}>Active and engaged user</Text>
               </View>
             )}
             {currentPick.scoreBreakdown.profileQuality > 0 && (
               <View style={styles.breakdownItem}>
                 <Ionicons name="image" size={16} color="#FFD700" />
-                <Text style={styles.breakdownText}>
-                  Complete, high-quality profile
-                </Text>
+                <Text style={styles.breakdownText}>Complete, high-quality profile</Text>
               </View>
             )}
           </View>
@@ -250,22 +238,23 @@ const TopPicksScreen = ({ navigation }) => {
 
         <View style={styles.dots}>
           {topPicks.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                index === selectedIndex && styles.dotActive
-              ]}
-            />
+            <View key={index} style={[styles.dot, index === selectedIndex && styles.dotActive]} />
           ))}
         </View>
 
         <TouchableOpacity
           onPress={handleNext}
           disabled={selectedIndex === topPicks.length - 1}
-          style={[styles.navButton, selectedIndex === topPicks.length - 1 && styles.navButtonDisabled]}
+          style={[
+            styles.navButton,
+            selectedIndex === topPicks.length - 1 && styles.navButtonDisabled,
+          ]}
         >
-          <Ionicons name="chevron-forward" size={24} color={selectedIndex === topPicks.length - 1 ? '#ccc' : '#fff'} />
+          <Ionicons
+            name="chevron-forward"
+            size={24}
+            color={selectedIndex === topPicks.length - 1 ? '#ccc' : '#fff'}
+          />
         </TouchableOpacity>
       </View>
 
@@ -275,10 +264,7 @@ const TopPicksScreen = ({ navigation }) => {
           <Ionicons name="close" size={24} color="#fff" />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.viewButton}
-          onPress={handleViewProfile}
-        >
+        <TouchableOpacity style={styles.viewButton} onPress={handleViewProfile}>
           <Text style={styles.viewButtonText}>View Profile</Text>
         </TouchableOpacity>
 

@@ -3,20 +3,21 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
+import logger from '../utils/logger';
 
 const ChatScreen = ({ route, navigation }) => {
   const { matchId, otherUser } = route.params;
@@ -32,47 +33,51 @@ const ChatScreen = ({ route, navigation }) => {
     stopTyping,
     sendReadReceipt,
     otherUserTyping,
-    isConnected
+    isConnected,
   } = useChat();
 
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const readReceiptTimers = useRef(new Map());
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [page, setPage] = useState(1);
   const flatListRef = useRef();
   const typingTimeoutRef = useRef();
 
   // Load messages for this match
-  const loadMessages = useCallback(async (loadMore = false) => {
-    if (!matchId) return;
+  const loadMessages = useCallback(
+    async (loadMore = false) => {
+      if (!matchId) return;
 
-    try {
-      if (loadMore) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
+      try {
+        if (loadMore) {
+          setLoadingMore(true);
+        } else {
+          setLoading(true);
+        }
+
+        const currentPage = loadMore ? page + 1 : 1;
+        const newMessages = await chatLoadMessages(matchId, currentPage);
+
+        if (loadMore) {
+          setPage(currentPage);
+          setHasMoreMessages(newMessages && newMessages.length === 50); // Assuming 50 is the limit
+        } else {
+          setPage(1);
+          setHasMoreMessages(newMessages && newMessages.length === 50);
+          // Scroll to bottom after initial load
+          setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+        }
+      } catch (error) {
+        logger.error('Error loading messages:', error);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-
-      const currentPage = loadMore ? page + 1 : 1;
-      const newMessages = await chatLoadMessages(matchId, currentPage);
-
-      if (loadMore) {
-        setPage(currentPage);
-        setHasMoreMessages(newMessages && newMessages.length === 50); // Assuming 50 is the limit
-      } else {
-        setPage(1);
-        setHasMoreMessages(newMessages && newMessages.length === 50);
-        // Scroll to bottom after initial load
-        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-      }
-    } catch (error) {
-      console.error('Error loading messages:', error);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [matchId, page, chatLoadMessages]);
+    },
+    [matchId, page, chatLoadMessages]
+  );
 
   // Initialize chat room and load messages
   useEffect(() => {
@@ -80,7 +85,7 @@ const ChatScreen = ({ route, navigation }) => {
       joinRoom(matchId);
       loadMessages();
     }
-  }, [matchId, joinRoom]);
+  }, [matchId, joinRoom, loadMessages]);
 
   // Auto-scroll when new messages arrive
   useEffect(() => {
@@ -125,11 +130,11 @@ const ChatScreen = ({ route, navigation }) => {
         sendImageMessage(matchId, imageUri, {
           caption: 'Shared an image',
           width: result.assets[0].width,
-          height: result.assets[0].height
+          height: result.assets[0].height,
         });
       }
     } catch (error) {
-      console.error('Error picking image:', error);
+      logger.error('Error picking image:', error);
       Alert.alert('Error', 'Failed to pick image');
     }
   };
@@ -153,11 +158,11 @@ const ChatScreen = ({ route, navigation }) => {
         sendImageMessage(matchId, imageUri, {
           caption: 'Shared a photo',
           width: result.assets[0].width,
-          height: result.assets[0].height
+          height: result.assets[0].height,
         });
       }
     } catch (error) {
-      console.error('Error taking picture:', error);
+      logger.error('Error taking picture:', error);
       Alert.alert('Error', 'Failed to take picture');
     }
   };
@@ -217,33 +222,33 @@ const ChatScreen = ({ route, navigation }) => {
     const isMe = item.senderId === currentUser.uid;
     const time = new Date(item.createdAt).toLocaleTimeString([], {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
 
     // Send read receipt when message is rendered for non-sender
-    useEffect(() => {
-      if (!isMe && !item.isRead && matchId) {
-        const timer = setTimeout(() => {
-          sendReadReceipt(item._id);
-        }, 500);
-        return () => clearTimeout(timer);
+    // Use ref-based approach instead of useEffect in render function
+    if (!isMe && !item.isRead && matchId) {
+      // Clear existing timer for this message
+      const existingTimer = readReceiptTimers.current.get(item._id);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
       }
-    }, [item._id, item.isRead, isMe, matchId, sendReadReceipt]);
+
+      // Set new timer
+      const timer = setTimeout(() => {
+        sendReadReceipt(item._id);
+        readReceiptTimers.current.delete(item._id);
+      }, 500);
+      readReceiptTimers.current.set(item._id, timer);
+    }
 
     return (
       <View
-        style={[
-          styles.messageWrapper,
-          isMe ? styles.myMessageWrapper : styles.theirMessageWrapper,
-        ]}
+        style={[styles.messageWrapper, isMe ? styles.myMessageWrapper : styles.theirMessageWrapper]}
       >
         {item.type === 'image' || item.type === 'gif' ? (
           <View style={styles.imageMessageWrapper}>
-            <Image
-              source={{ uri: item.imageUrl }}
-              style={styles.messageImage}
-              resizeMode="cover"
-            />
+            <Image source={{ uri: item.imageUrl }} style={styles.messageImage} resizeMode="cover" />
             {item.content && (
               <Text style={isMe ? styles.myMessageText : styles.theirMessageText}>
                 {item.content}
@@ -260,28 +265,33 @@ const ChatScreen = ({ route, navigation }) => {
               </View>
             )}
           </View>
-        ) : (
-          isMe ? (
-            <LinearGradient
-              colors={['#667eea', '#764ba2']}
-              style={styles.myMessage}
-            >
-              <Text style={styles.myMessageText}>{item.content}</Text>
-              <View style={styles.messageFooter}>
-                <Text style={styles.myTimestamp}>{time}</Text>
-                {item.isRead ? (
-                  <Ionicons name="checkmark-done" size={12} color="rgba(255, 255, 255, 0.8)" style={{ marginLeft: 5 }} />
-                ) : (
-                  <Ionicons name="checkmark" size={12} color="rgba(255, 255, 255, 0.6)" style={{ marginLeft: 5 }} />
-                )}
-              </View>
-            </LinearGradient>
-          ) : (
-            <View style={styles.theirMessage}>
-              <Text style={styles.theirMessageText}>{item.content}</Text>
-              <Text style={styles.theirTimestamp}>{time}</Text>
+        ) : isMe ? (
+          <LinearGradient colors={['#667eea', '#764ba2']} style={styles.myMessage}>
+            <Text style={styles.myMessageText}>{item.content}</Text>
+            <View style={styles.messageFooter}>
+              <Text style={styles.myTimestamp}>{time}</Text>
+              {item.isRead ? (
+                <Ionicons
+                  name="checkmark-done"
+                  size={12}
+                  color="rgba(255, 255, 255, 0.8)"
+                  style={{ marginLeft: 5 }}
+                />
+              ) : (
+                <Ionicons
+                  name="checkmark"
+                  size={12}
+                  color="rgba(255, 255, 255, 0.6)"
+                  style={{ marginLeft: 5 }}
+                />
+              )}
             </View>
-          )
+          </LinearGradient>
+        ) : (
+          <View style={styles.theirMessage}>
+            <Text style={styles.theirMessageText}>{item.content}</Text>
+            <Text style={styles.theirTimestamp}>{time}</Text>
+          </View>
         )}
       </View>
     );
@@ -294,23 +304,20 @@ const ChatScreen = ({ route, navigation }) => {
         style={styles.keyboardView}
         keyboardVerticalOffset={90}
       >
-        <LinearGradient
-          colors={['#667eea', '#764ba2']}
-          style={styles.header}
-        >
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
+        <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <View style={[styles.headerIndicator, { backgroundColor: isConnected ? '#4ECDC4' : '#FF6B6B' }]} />
+            <View
+              style={[
+                styles.headerIndicator,
+                { backgroundColor: isConnected ? '#4ECDC4' : '#FF6B6B' },
+              ]}
+            />
             <View>
               <Text style={styles.headerTitle}>{otherUser?.name || 'Chat'}</Text>
-              {otherUserTyping && (
-                <Text style={styles.typingIndicator}>typing...</Text>
-              )}
+              {otherUserTyping && <Text style={styles.typingIndicator}>typing...</Text>}
             </View>
           </View>
           <Ionicons name="heart" size={24} color="#fff" style={{ opacity: 0 }} />

@@ -1,10 +1,10 @@
 /**
  * ApiUserRepository
- * 
+ *
  * Implementation of UserRepository using the REST API backend.
  * This is an alternative to FirebaseUserRepository that uses your
  * MongoDB backend deployed on Render.
- * 
+ *
  * Returns empty arrays/null on errors instead of throwing.
  */
 
@@ -21,7 +21,7 @@ export class ApiUserRepository extends UserRepository {
     this.authToken = authToken;
     this.cache = userCache;
     this.cacheDuration = CACHE_DURATION;
-    
+
     // Start periodic cache cleanup
     this.cleanupInterval = setInterval(() => this.cleanupCache(), CACHE_DURATION);
   }
@@ -42,13 +42,13 @@ export class ApiUserRepository extends UserRepository {
     const headers = {
       'Content-Type': 'application/json',
       ...(this.authToken && { Authorization: `Bearer ${this.authToken}` }),
-      ...options.headers
+      ...options.headers,
     };
 
     try {
       const response = await fetch(`${API_URL}${endpoint}`, {
         ...options,
-        headers
+        headers,
       });
 
       const data = await response.json();
@@ -78,7 +78,7 @@ export class ApiUserRepository extends UserRepository {
       }
 
       const response = await this.apiRequest(`/users/${userId}`);
-      
+
       if (!response?.success || !response?.data) {
         return null;
       }
@@ -104,14 +104,14 @@ export class ApiUserRepository extends UserRepository {
         return [];
       }
 
-      const { 
-        limit = 50, 
-        lat, 
-        lng, 
+      const {
+        limit = 50,
+        lat,
+        lng,
         radius = 50000,
         minAge = 18,
         maxAge = 100,
-        gender = 'any'
+        gender = 'any',
       } = options;
 
       // Build query params
@@ -122,11 +122,11 @@ export class ApiUserRepository extends UserRepository {
         ...(radius && { radius: radius.toString() }),
         minAge: minAge.toString(),
         maxAge: maxAge.toString(),
-        gender
+        gender,
       });
 
       const response = await this.apiRequest(`/discovery/discover?${params}`, {
-        headers: { 'X-User-ID': userId }
+        headers: { 'X-User-ID': userId },
       });
 
       if (!response?.success || !response?.data) {
@@ -135,22 +135,22 @@ export class ApiUserRepository extends UserRepository {
       }
 
       const users = response.data.users || response.data || [];
-      
+
       // Normalize user objects and cache them
-      return users.map(user => {
+      return users.map((user) => {
         const normalizedUser = {
           ...user,
           id: user._id || user.id,
           uid: user._id || user.id,
-          photoURL: user.photoURL || user.photos?.[0] || null
+          photoURL: user.photoURL || user.photos?.[0] || null,
         };
-        
+
         // Cache the user
         this.cache.set(normalizedUser.id, {
           data: normalizedUser,
-          cachedAt: Date.now()
+          cachedAt: Date.now(),
         });
-        
+
         return normalizedUser;
       });
     } catch (error) {
@@ -174,7 +174,7 @@ export class ApiUserRepository extends UserRepository {
 
       const response = await this.apiRequest(`/users/${userId}`, {
         method: 'PUT',
-        body: JSON.stringify(data)
+        body: JSON.stringify(data),
       });
 
       if (response?.success) {
@@ -203,12 +203,12 @@ export class ApiUserRepository extends UserRepository {
 
       // Check cache first
       const cached = this.cache.get(userId);
-      if (cached && (Date.now() - cached.cachedAt) < this.cacheDuration) {
+      if (cached && Date.now() - cached.cachedAt < this.cacheDuration) {
         return cached.data;
       }
 
       const response = await this.apiRequest(`/users/${userId}`);
-      
+
       if (!response?.success || !response?.data) {
         return null;
       }
@@ -217,13 +217,13 @@ export class ApiUserRepository extends UserRepository {
       const normalizedUser = {
         ...user,
         id: user._id || user.id,
-        uid: user._id || user.id
+        uid: user._id || user.id,
       };
 
       // Update cache
       this.cache.set(userId, {
         data: normalizedUser,
-        cachedAt: Date.now()
+        cachedAt: Date.now(),
       });
 
       return normalizedUser;
@@ -252,15 +252,15 @@ export class ApiUserRepository extends UserRepository {
         body: JSON.stringify({
           targetUserId: swipedUserId,
           direction: direction === 'super' ? 'right' : direction,
-          isSuperLike: direction === 'super'
-        })
+          isSuperLike: direction === 'super',
+        }),
       });
 
       if (response?.success) {
         return {
           success: true,
           isMatch: response.data?.isMatch || false,
-          matchId: response.data?.matchId || null
+          matchId: response.data?.matchId || null,
         };
       }
 

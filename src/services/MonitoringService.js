@@ -69,7 +69,7 @@ export class MonitoringService {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(errorReport),
-    }).catch(err => {
+    }).catch((err) => {
       console.warn('Failed to send error report:', err);
     });
   }
@@ -128,7 +128,7 @@ export class MonitoringService {
 
       // Warn if memory usage is high
       if (memoryUsage.percentage > 80) {
-        console.warn('High memory usage detected:', memoryUsage.percentage + '%');
+        console.warn('High memory usage detected:', `${memoryUsage.percentage}%`);
       }
 
       return memoryUsage;
@@ -219,9 +219,12 @@ export class MonitoringService {
 
     // Periodic health checks (every 5 minutes)
     if (!__DEV__) {
-      setInterval(() => {
-        this.performHealthCheck();
-      }, 5 * 60 * 1000);
+      setInterval(
+        () => {
+          this.performHealthCheck();
+        },
+        5 * 60 * 1000
+      );
     }
 
     console.log('Monitoring service initialized');

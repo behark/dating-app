@@ -1,9 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  Text,
-} from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 
 const SingleSlider = ({
   min = 0,
@@ -88,8 +84,14 @@ const SingleSlider = ({
       </View>
 
       <View style={styles.labelsContainer}>
-        <Text style={styles.minLabel}>{min}{unit}</Text>
-        <Text style={styles.maxLabel}>{max}{unit}</Text>
+        <Text style={styles.minLabel}>
+          {min}
+          {unit}
+        </Text>
+        <Text style={styles.maxLabel}>
+          {max}
+          {unit}
+        </Text>
       </View>
     </View>
   );

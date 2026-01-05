@@ -13,7 +13,7 @@ const sendGifMessage = async (req, res) => {
     if (!matchId || !gifUrl) {
       return res.status(400).json({
         success: false,
-        message: 'matchId and gifUrl are required'
+        message: 'matchId and gifUrl are required',
       });
     }
 
@@ -27,8 +27,8 @@ const sendGifMessage = async (req, res) => {
       mediaUrl: gifUrl,
       mediaMetadata: {
         gifId,
-        ...gifMetadata
-      }
+        ...gifMetadata,
+      },
     });
 
     await message.save();
@@ -36,19 +36,19 @@ const sendGifMessage = async (req, res) => {
     // Log activity
     await UserActivity.logActivity(senderId, 'message', {
       matchId,
-      messageType: 'gif'
+      messageType: 'gif',
     });
 
     return res.status(201).json({
       success: true,
       message: 'GIF sent successfully',
-      data: message
+      data: message,
     });
   } catch (error) {
     console.error('Error sending GIF:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -64,7 +64,7 @@ const sendStickerMessage = async (req, res) => {
     if (!matchId || !stickerUrl) {
       return res.status(400).json({
         success: false,
-        message: 'matchId and stickerUrl are required'
+        message: 'matchId and stickerUrl are required',
       });
     }
 
@@ -78,8 +78,8 @@ const sendStickerMessage = async (req, res) => {
       mediaUrl: stickerUrl,
       mediaMetadata: {
         stickerPackId,
-        stickerId
-      }
+        stickerId,
+      },
     });
 
     await message.save();
@@ -87,19 +87,19 @@ const sendStickerMessage = async (req, res) => {
     // Log activity
     await UserActivity.logActivity(senderId, 'message', {
       matchId,
-      messageType: 'sticker'
+      messageType: 'sticker',
     });
 
     return res.status(201).json({
       success: true,
       message: 'Sticker sent successfully',
-      data: message
+      data: message,
     });
   } catch (error) {
     console.error('Error sending sticker:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -115,14 +115,14 @@ const sendVoiceMessage = async (req, res) => {
     if (!matchId || !voiceUrl || !duration) {
       return res.status(400).json({
         success: false,
-        message: 'matchId, voiceUrl, and duration are required'
+        message: 'matchId, voiceUrl, and duration are required',
       });
     }
 
     if (duration < 1 || duration > 300) {
       return res.status(400).json({
         success: false,
-        message: 'Voice message duration must be between 1 and 300 seconds'
+        message: 'Voice message duration must be between 1 and 300 seconds',
       });
     }
 
@@ -137,8 +137,8 @@ const sendVoiceMessage = async (req, res) => {
       voiceMessage: {
         duration,
         language,
-        isTranscribed: false
-      }
+        isTranscribed: false,
+      },
     });
 
     await message.save();
@@ -147,19 +147,19 @@ const sendVoiceMessage = async (req, res) => {
     await UserActivity.logActivity(senderId, 'message', {
       matchId,
       messageType: 'voice',
-      duration
+      duration,
     });
 
     return res.status(201).json({
       success: true,
       message: 'Voice message sent successfully',
-      data: message
+      data: message,
     });
   } catch (error) {
     console.error('Error sending voice message:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -176,7 +176,7 @@ const transcribeVoiceMessage = async (req, res) => {
     if (!message || message.type !== 'voice') {
       return res.status(404).json({
         success: false,
-        message: 'Voice message not found'
+        message: 'Voice message not found',
       });
     }
 
@@ -197,14 +197,14 @@ const transcribeVoiceMessage = async (req, res) => {
       message: 'Voice message transcribed',
       data: {
         transcript,
-        language: message.voiceMessage.language
-      }
+        language: message.voiceMessage.language,
+      },
     });
   } catch (error) {
     console.error('Error transcribing voice message:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -220,7 +220,7 @@ const initiateVideoCall = async (req, res) => {
     if (!matchId || !callId) {
       return res.status(400).json({
         success: false,
-        message: 'matchId and callId are required'
+        message: 'matchId and callId are required',
       });
     }
 
@@ -234,8 +234,8 @@ const initiateVideoCall = async (req, res) => {
       videoCall: {
         callId,
         initiatedBy: initiatorId,
-        status: 'pending'
-      }
+        status: 'pending',
+      },
     });
 
     await message.save();
@@ -244,7 +244,7 @@ const initiateVideoCall = async (req, res) => {
     await UserActivity.logActivity(initiatorId, 'video_call', {
       matchId,
       callId,
-      status: 'initiated'
+      status: 'initiated',
     });
 
     return res.status(201).json({
@@ -253,14 +253,14 @@ const initiateVideoCall = async (req, res) => {
       data: {
         messageId: message._id,
         callId,
-        status: 'pending'
-      }
+        status: 'pending',
+      },
     });
   } catch (error) {
     console.error('Error initiating video call:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -275,14 +275,14 @@ const updateVideoCallStatus = async (req, res) => {
     if (!messageId || !status) {
       return res.status(400).json({
         success: false,
-        message: 'messageId and status are required'
+        message: 'messageId and status are required',
       });
     }
 
     if (!['accepted', 'declined', 'missed', 'ended'].includes(status)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid status'
+        message: 'Invalid status',
       });
     }
 
@@ -291,7 +291,7 @@ const updateVideoCallStatus = async (req, res) => {
     if (!message || message.type !== 'video_call') {
       return res.status(404).json({
         success: false,
-        message: 'Video call message not found'
+        message: 'Video call message not found',
       });
     }
 
@@ -307,19 +307,19 @@ const updateVideoCallStatus = async (req, res) => {
     await UserActivity.logActivity(req.user.id, 'video_call', {
       messageId,
       status,
-      duration: duration || 0
+      duration: duration || 0,
     });
 
     return res.status(200).json({
       success: true,
       message: 'Video call status updated',
-      data: message.videoCall
+      data: message.videoCall,
     });
   } catch (error) {
     console.error('Error updating video call status:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -337,13 +337,13 @@ const getPopularGifs = async (req, res) => {
       {
         id: 'gif1',
         url: 'https://media.giphy.com/media/example1.gif',
-        title: 'Happy'
+        title: 'Happy',
       },
       {
         id: 'gif2',
         url: 'https://media.giphy.com/media/example2.gif',
-        title: 'Love'
-      }
+        title: 'Love',
+      },
       // ... more GIFs
     ];
 
@@ -352,14 +352,14 @@ const getPopularGifs = async (req, res) => {
       data: {
         gifs: mockGifs,
         limit: parseInt(limit),
-        offset: parseInt(offset)
-      }
+        offset: parseInt(offset),
+      },
     });
   } catch (error) {
     console.error('Error getting GIFs:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -374,7 +374,7 @@ const searchGifs = async (req, res) => {
     if (!query) {
       return res.status(400).json({
         success: false,
-        message: 'Search query is required'
+        message: 'Search query is required',
       });
     }
 
@@ -384,8 +384,8 @@ const searchGifs = async (req, res) => {
       {
         id: 'gif_search_1',
         url: 'https://media.giphy.com/media/example_search_1.gif',
-        title: `Search result for: ${query}`
-      }
+        title: `Search result for: ${query}`,
+      },
     ];
 
     return res.status(200).json({
@@ -394,14 +394,14 @@ const searchGifs = async (req, res) => {
         gifs: mockResults,
         query,
         limit: parseInt(limit),
-        offset: parseInt(offset)
-      }
+        offset: parseInt(offset),
+      },
     });
   } catch (error) {
     console.error('Error searching GIFs:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -418,30 +418,30 @@ const getStickerPacks = async (req, res) => {
         name: 'Hearts',
         stickers: [
           { id: 's1', url: 'https://stickers.example.com/heart1.png' },
-          { id: 's2', url: 'https://stickers.example.com/heart2.png' }
-        ]
+          { id: 's2', url: 'https://stickers.example.com/heart2.png' },
+        ],
       },
       {
         id: 'pack2',
         name: 'Emojis',
         stickers: [
           { id: 's3', url: 'https://stickers.example.com/emoji1.png' },
-          { id: 's4', url: 'https://stickers.example.com/emoji2.png' }
-        ]
-      }
+          { id: 's4', url: 'https://stickers.example.com/emoji2.png' },
+        ],
+      },
     ];
 
     return res.status(200).json({
       success: true,
       data: {
-        packs: mockPacks
-      }
+        packs: mockPacks,
+      },
     });
   } catch (error) {
     console.error('Error getting sticker packs:', error);
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -455,5 +455,5 @@ module.exports = {
   updateVideoCallStatus,
   getPopularGifs,
   searchGifs,
-  getStickerPacks
+  getStickerPacks,
 };

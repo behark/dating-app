@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import SocialFeaturesService from '../services/SocialFeaturesService';
+import logger from '../utils/logger';
 
 const EventsScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
@@ -18,19 +19,9 @@ const EventsScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const categories = [
-    'networking',
-    'singles_mixer',
-    'social_party',
-    'speed_dating',
-    'activity'
-  ];
+  const categories = ['networking', 'singles_mixer', 'social_party', 'speed_dating', 'activity'];
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     if (!currentUser?.location) return;
 
     try {
@@ -43,11 +34,15 @@ const EventsScreen = ({ navigation }) => {
       );
       setEvents(data.events || []);
     } catch (error) {
-      console.error('Error fetching events:', error);
+      logger.error('Error fetching events:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser?.location, selectedCategory]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -61,14 +56,14 @@ const EventsScreen = ({ navigation }) => {
       fetchEvents();
       alert('Successfully registered for event!');
     } catch (error) {
-      console.error('Error registering for event:', error);
+      logger.error('Error registering for event:', error);
       alert(error.response?.data?.message || 'Failed to register for event');
     }
   };
 
   const EventCard = ({ item }) => {
     const startDate = new Date(item.startTime);
-    const isRegistered = item.attendees.some(a => a.userId === currentUser._id);
+    const isRegistered = item.attendees.some((a) => a.userId === currentUser._id);
     const spotsAvailable = item.maxAttendees ? item.maxAttendees - item.currentAttendeeCount : null;
 
     return (
@@ -81,29 +76,25 @@ const EventsScreen = ({ navigation }) => {
           <Text style={styles.category}>{item.category}</Text>
         </View>
 
-        <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
+        <Text style={styles.description} numberOfLines={2}>
+          {item.description}
+        </Text>
 
         <View style={styles.details}>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>📍 {item.locationName}</Text>
           </View>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>
-              📅 {startDate.toLocaleDateString()}
-            </Text>
+            <Text style={styles.detailLabel}>📅 {startDate.toLocaleDateString()}</Text>
           </View>
           {spotsAvailable !== null && (
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>
-                👥 {spotsAvailable} spots left
-              </Text>
+              <Text style={styles.detailLabel}>👥 {spotsAvailable} spots left</Text>
             </View>
           )}
           {item.ticketPrice > 0 && (
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>
-                💰 ${item.ticketPrice}
-              </Text>
+              <Text style={styles.detailLabel}>💰 ${item.ticketPrice}</Text>
             </View>
           )}
         </View>
@@ -157,9 +148,11 @@ const EventsScreen = ({ navigation }) => {
             fetchEvents();
           }}
         >
-          <Text style={[styles.categoryText, !selectedCategory && styles.categoryTextActive]}>All</Text>
+          <Text style={[styles.categoryText, !selectedCategory && styles.categoryTextActive]}>
+            All
+          </Text>
         </TouchableOpacity>
-        {categories.map(cat => (
+        {categories.map((cat) => (
           <TouchableOpacity
             key={cat}
             style={[styles.categoryButton, selectedCategory === cat && styles.categoryButtonActive]}
@@ -168,7 +161,9 @@ const EventsScreen = ({ navigation }) => {
               fetchEvents();
             }}
           >
-            <Text style={[styles.categoryText, selectedCategory === cat && styles.categoryTextActive]}>
+            <Text
+              style={[styles.categoryText, selectedCategory === cat && styles.categoryTextActive]}
+            >
               {cat.replace('_', ' ')}
             </Text>
           </TouchableOpacity>
@@ -183,11 +178,9 @@ const EventsScreen = ({ navigation }) => {
       ) : (
         <FlatList
           data={events}
-          keyExtractor={item => item._id}
+          keyExtractor={(item) => item._id}
           renderItem={({ item }) => <EventCard item={item} />}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           contentContainerStyle={styles.list}
         />
       )}
@@ -198,12 +191,12 @@ const EventsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF'
+    backgroundColor: '#FFF',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   headerSection: {
     flexDirection: 'row',
@@ -212,51 +205,51 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE'
+    borderBottomColor: '#EEE',
   },
   screenTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#333'
+    color: '#333',
   },
   createButton: {
     backgroundColor: '#FF6B9D',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20
+    borderRadius: 20,
   },
   createButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 12
+    fontSize: 12,
   },
   categoryFilter: {
     flexDirection: 'row',
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE'
+    borderBottomColor: '#EEE',
   },
   categoryButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginRight: 8,
     borderRadius: 16,
-    backgroundColor: '#F0F0F0'
+    backgroundColor: '#F0F0F0',
   },
   categoryButtonActive: {
-    backgroundColor: '#FF6B9D'
+    backgroundColor: '#FF6B9D',
   },
   categoryText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#666'
+    color: '#666',
   },
   categoryTextActive: {
-    color: '#FFF'
+    color: '#FFF',
   },
   list: {
-    padding: 12
+    padding: 12,
   },
   card: {
     backgroundColor: '#FFF',
@@ -266,19 +259,19 @@ const styles = StyleSheet.create({
     elevation: 2,
     shadowColor: '#000',
     shadowOpacity: 0.1,
-    shadowRadius: 3
+    shadowRadius: 3,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8
+    marginBottom: 8,
   },
   title: {
     fontSize: 16,
     fontWeight: '700',
     color: '#333',
-    flex: 1
+    flex: 1,
   },
   category: {
     backgroundColor: '#FFF3E0',
@@ -287,34 +280,34 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 4,
     fontSize: 11,
-    fontWeight: '600'
+    fontWeight: '600',
   },
   description: {
     fontSize: 13,
     color: '#666',
     marginBottom: 10,
-    lineHeight: 18
+    lineHeight: 18,
   },
   details: {
-    marginBottom: 12
+    marginBottom: 12,
   },
   detailItem: {
-    marginBottom: 6
+    marginBottom: 6,
   },
   detailLabel: {
     fontSize: 12,
-    color: '#555'
+    color: '#555',
   },
   registerButton: {
     backgroundColor: '#FF6B9D',
     borderRadius: 8,
     paddingVertical: 10,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   registerButtonText: {
     color: '#FFF',
     fontWeight: '600',
-    fontSize: 14
+    fontSize: 14,
   },
   registeredBadge: {
     backgroundColor: '#E8F5E9',
@@ -322,28 +315,28 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#4CAF50'
+    borderColor: '#4CAF50',
   },
   registeredText: {
     color: '#2E7D32',
     fontWeight: '600',
-    fontSize: 14
+    fontSize: 14,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#999',
-    marginBottom: 8
+    marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#BBB'
-  }
+    color: '#BBB',
+  },
 });
 
 export default EventsScreen;

@@ -4,18 +4,19 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
 import { ImageService } from '../services/ImageService';
+import logger from '../utils/logger';
 
 const PhotoGalleryScreen = ({ navigation, route }) => {
   const { currentUser } = useAuth();
@@ -33,7 +34,7 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
       const userData = userDoc.data();
       setPhotos(userData?.photos || []);
     } catch (error) {
-      console.error('Error loading photos:', error);
+      logger.error('Error loading photos:', error);
       Alert.alert('Error', 'Failed to load photos');
     } finally {
       setLoading(false);
@@ -62,7 +63,10 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
         // Moderate image
         const moderation = await ImageService.moderateImage(uri);
         if (!moderation.approved) {
-          Alert.alert('Image Rejected', moderation.reason || 'This image does not meet our guidelines');
+          Alert.alert(
+            'Image Rejected',
+            moderation.reason || 'This image does not meet our guidelines'
+          );
           return;
         }
 
@@ -81,7 +85,7 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
         }
       }
     } catch (error) {
-      console.error('Error picking/uploading image:', error);
+      logger.error('Error picking/uploading image:', error);
       Alert.alert('Error', 'Failed to upload photo');
     } finally {
       setUploading(false);
@@ -89,36 +93,28 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
   };
 
   const deletePhoto = (photo) => {
-    Alert.alert(
-      'Delete Photo',
-      'Are you sure you want to delete this photo?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const result = await ImageService.deleteProfileImage(
-                currentUser.uid,
-                photo.id,
-                photo
-              );
+    Alert.alert('Delete Photo', 'Are you sure you want to delete this photo?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            const result = await ImageService.deleteProfileImage(currentUser.uid, photo.id, photo);
 
-              if (result.success) {
-                Alert.alert('Success', 'Photo deleted successfully');
-                loadPhotos();
-              } else {
-                Alert.alert('Error', result.error || 'Failed to delete photo');
-              }
-            } catch (error) {
-              console.error('Error deleting photo:', error);
-              Alert.alert('Error', 'Failed to delete photo');
+            if (result.success) {
+              Alert.alert('Success', 'Photo deleted successfully');
+              loadPhotos();
+            } else {
+              Alert.alert('Error', result.error || 'Failed to delete photo');
             }
-          },
+          } catch (error) {
+            logger.error('Error deleting photo:', error);
+            Alert.alert('Error', 'Failed to delete photo');
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const setAsPrimary = async (photo) => {
@@ -132,7 +128,7 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
         Alert.alert('Error', result.error || 'Failed to update primary photo');
       }
     } catch (error) {
-      console.error('Error setting primary photo:', error);
+      logger.error('Error setting primary photo:', error);
       Alert.alert('Error', 'Failed to update primary photo');
     }
   };
@@ -151,10 +147,7 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
       <View style={styles.photoOverlay}>
         <View style={styles.photoActions}>
           {!photo.isPrimary && (
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => setAsPrimary(photo)}
-            >
+            <TouchableOpacity style={styles.actionButton} onPress={() => setAsPrimary(photo)}>
               <Ionicons name="star-outline" size={20} color="#fff" />
             </TouchableOpacity>
           )}
@@ -176,10 +169,7 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.emptyCard}
-      >
+      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.emptyCard}>
         <Ionicons name="images-outline" size={80} color="#fff" />
         <Text style={styles.emptyTitle}>No photos yet</Text>
         <Text style={styles.emptyText}>
@@ -203,24 +193,20 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
 
   return (
     <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.header}
-      >
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Photo Gallery</Text>
         <View style={styles.headerRightSection}>
           <TouchableOpacity
             style={styles.analyzeButton}
-            onPress={() => navigation.navigate('Premium', { 
-              feature: 'smartPhotos',
-              photos: photos 
-            })}
+            onPress={() =>
+              navigation.navigate('Premium', {
+                feature: 'smartPhotos',
+                photos: photos,
+              })
+            }
           >
             <Ionicons name="sparkles" size={18} color="#FFD700" style={{ marginRight: 4 }} />
             <Text style={styles.analyzeButtonText}>Analyze</Text>
@@ -241,11 +227,7 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
               disabled={uploading || photos.length >= 6}
             >
               <LinearGradient
-                colors={
-                  uploading || photos.length >= 6
-                    ? ['#ccc', '#bbb']
-                    : ['#667eea', '#764ba2']
-                }
+                colors={uploading || photos.length >= 6 ? ['#ccc', '#bbb'] : ['#667eea', '#764ba2']}
                 style={styles.uploadButtonGradient}
               >
                 {uploading ? (

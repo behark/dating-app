@@ -1,22 +1,22 @@
 import { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { validateEmail } from '../utils/validators';
 
 export const RegisterScreen = ({ navigation }) => {
   const { signup } = useAuth();
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -62,18 +62,14 @@ export const RegisterScreen = ({ navigation }) => {
       setLoading(true);
 
       const result = await signup(email, password, name, age ? parseInt(age) : null, gender);
-      
+
       if (result) {
-        Alert.alert(
-          'Success',
-          'Account created! Please verify your email address.',
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.navigate('VerifyEmail')
-            }
-          ]
-        );
+        Alert.alert('Success', 'Account created! Please verify your email address.', [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('VerifyEmail'),
+          },
+        ]);
       }
     } catch (error) {
       Alert.alert('Registration Failed', error.message || 'An error occurred during registration');
@@ -144,15 +140,17 @@ export const RegisterScreen = ({ navigation }) => {
                     key={g}
                     style={[
                       styles.genderOption,
-                      gender === g.toLowerCase() && styles.genderOptionActive
+                      gender === g.toLowerCase() && styles.genderOptionActive,
                     ]}
                     onPress={() => setGender(g.toLowerCase())}
                     disabled={loading}
                   >
-                    <Text style={[
-                      styles.genderOptionText,
-                      gender === g.toLowerCase() && styles.genderOptionTextActive
-                    ]}>
+                    <Text
+                      style={[
+                        styles.genderOptionText,
+                        gender === g.toLowerCase() && styles.genderOptionTextActive,
+                      ]}
+                    >
                       {g[0]}
                     </Text>
                   </TouchableOpacity>
@@ -174,9 +172,7 @@ export const RegisterScreen = ({ navigation }) => {
                 editable={!loading}
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Text style={styles.passwordToggle}>
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
-                </Text>
+                <Text style={styles.passwordToggle}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
               </TouchableOpacity>
             </View>
             <Text style={styles.helperText}>Minimum 8 characters</Text>
@@ -195,9 +191,7 @@ export const RegisterScreen = ({ navigation }) => {
                 editable={!loading}
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Text style={styles.passwordToggle}>
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
-                </Text>
+                <Text style={styles.passwordToggle}>{showPassword ? '👁️' : '👁️‍🗨️'}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -218,10 +212,7 @@ export const RegisterScreen = ({ navigation }) => {
           {/* Login Link */}
           <View style={styles.loginLink}>
             <Text style={styles.loginLinkText}>Already have an account? </Text>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Login')}
-              disabled={loading}
-            >
+            <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={loading}>
               <Text style={styles.loginLinkButton}>Sign In</Text>
             </TouchableOpacity>
           </View>
@@ -234,37 +225,37 @@ export const RegisterScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
-    paddingTop: 20
+    paddingTop: 20,
   },
   header: {
-    marginBottom: 30
+    marginBottom: 30,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 8
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#999'
+    color: '#999',
   },
   form: {
-    flex: 1
+    flex: 1,
   },
   inputGroup: {
-    marginBottom: 16
+    marginBottom: 16,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333'
+    color: '#333',
   },
   input: {
     borderWidth: 1,
@@ -272,18 +263,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#333'
+    color: '#333',
   },
   rowInputs: {
     flexDirection: 'row',
-    gap: 12
+    gap: 12,
   },
   flexInput: {
-    flex: 1
+    flex: 1,
   },
   genderPicker: {
     flexDirection: 'row',
-    gap: 8
+    gap: 8,
   },
   genderOption: {
     flex: 1,
@@ -292,18 +283,18 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 8,
     alignItems: 'center',
-    backgroundColor: '#f9f9f9'
+    backgroundColor: '#f9f9f9',
   },
   genderOptionActive: {
     backgroundColor: '#FF6B6B',
-    borderColor: '#FF6B6B'
+    borderColor: '#FF6B6B',
   },
   genderOptionText: {
     fontWeight: '600',
-    color: '#333'
+    color: '#333',
   },
   genderOptionTextActive: {
-    color: 'white'
+    color: 'white',
   },
   passwordInput: {
     flexDirection: 'row',
@@ -311,22 +302,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    paddingRight: 12
+    paddingRight: 12,
   },
   passwordField: {
     flex: 1,
     padding: 12,
     fontSize: 14,
-    color: '#333'
+    color: '#333',
   },
   passwordToggle: {
     fontSize: 18,
-    padding: 8
+    padding: 8,
   },
   helperText: {
     fontSize: 12,
     color: '#999',
-    marginTop: 4
+    marginTop: 4,
   },
   registerBtn: {
     paddingVertical: 14,
@@ -334,29 +325,29 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 20,
-    marginBottom: 16
+    marginBottom: 16,
   },
   registerBtnDisabled: {
-    opacity: 0.6
+    opacity: 0.6,
   },
   registerBtnText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   loginLink: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20
+    marginBottom: 20,
   },
   loginLinkText: {
     color: '#666',
-    fontSize: 14
+    fontSize: 14,
   },
   loginLinkButton: {
     color: '#FF6B6B',
     fontSize: 14,
-    fontWeight: 'bold'
-  }
+    fontWeight: 'bold',
+  },
 });

@@ -108,9 +108,7 @@ app.post('/api/discovery/swipe', (req, res) => {
 app.get('/api/chat/conversations', (req, res) => {
   res.json({
     success: true,
-    conversations: [
-      { id: 'conv_1', participant: { name: 'Alice' }, lastMessage: 'Hi!' },
-    ],
+    conversations: [{ id: 'conv_1', participant: { name: 'Alice' }, lastMessage: 'Hi!' }],
   });
 });
 
@@ -167,14 +165,12 @@ describe('API Integration Tests', () => {
   describe('Authentication', () => {
     describe('POST /api/auth/register', () => {
       it('should register a new user', async () => {
-        const response = await request(app)
-          .post('/api/auth/register')
-          .send({
-            email: 'newuser@example.com',
-            password: 'SecurePass123!',
-            name: 'New User',
-            age: 25,
-          });
+        const response = await request(app).post('/api/auth/register').send({
+          email: 'newuser@example.com',
+          password: 'SecurePass123!',
+          name: 'New User',
+          age: 25,
+        });
 
         expect(response.status).toBe(201);
         expect(response.body.success).toBe(true);
@@ -183,24 +179,20 @@ describe('API Integration Tests', () => {
       });
 
       it('should reject registration without email', async () => {
-        const response = await request(app)
-          .post('/api/auth/register')
-          .send({
-            password: 'SecurePass123!',
-            name: 'New User',
-          });
+        const response = await request(app).post('/api/auth/register').send({
+          password: 'SecurePass123!',
+          name: 'New User',
+        });
 
         expect(response.status).toBe(400);
         expect(response.body.error).toBeDefined();
       });
 
       it('should reject registration without password', async () => {
-        const response = await request(app)
-          .post('/api/auth/register')
-          .send({
-            email: 'newuser@example.com',
-            name: 'New User',
-          });
+        const response = await request(app).post('/api/auth/register').send({
+          email: 'newuser@example.com',
+          name: 'New User',
+        });
 
         expect(response.status).toBe(400);
       });
@@ -208,12 +200,10 @@ describe('API Integration Tests', () => {
 
     describe('POST /api/auth/login', () => {
       it('should login with valid credentials', async () => {
-        const response = await request(app)
-          .post('/api/auth/login')
-          .send({
-            email: 'test@example.com',
-            password: 'password123',
-          });
+        const response = await request(app).post('/api/auth/login').send({
+          email: 'test@example.com',
+          password: 'password123',
+        });
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
@@ -221,12 +211,10 @@ describe('API Integration Tests', () => {
       });
 
       it('should reject invalid credentials', async () => {
-        const response = await request(app)
-          .post('/api/auth/login')
-          .send({
-            email: 'test@example.com',
-            password: 'wrongpassword',
-          });
+        const response = await request(app).post('/api/auth/login').send({
+          email: 'test@example.com',
+          password: 'wrongpassword',
+        });
 
         expect(response.status).toBe(401);
       });
@@ -272,12 +260,10 @@ describe('API Integration Tests', () => {
 
     describe('POST /api/discovery/swipe', () => {
       it('should record a swipe action', async () => {
-        const response = await request(app)
-          .post('/api/discovery/swipe')
-          .send({
-            targetUserId: 'profile_123',
-            direction: 'right',
-          });
+        const response = await request(app).post('/api/discovery/swipe').send({
+          targetUserId: 'profile_123',
+          direction: 'right',
+        });
 
         expect(response.status).toBe(200);
         expect(response.body.swipeRecorded).toBe(true);
@@ -297,12 +283,10 @@ describe('API Integration Tests', () => {
 
     describe('POST /api/chat/send', () => {
       it('should send a message', async () => {
-        const response = await request(app)
-          .post('/api/chat/send')
-          .send({
-            conversationId: 'conv_123',
-            message: 'Hello!',
-          });
+        const response = await request(app).post('/api/chat/send').send({
+          conversationId: 'conv_123',
+          message: 'Hello!',
+        });
 
         expect(response.status).toBe(200);
         expect(response.body.message.content).toBe('Hello!');
@@ -323,23 +307,19 @@ describe('API Integration Tests', () => {
 
     describe('POST /api/payments/subscribe', () => {
       it('should create subscription', async () => {
-        const response = await request(app)
-          .post('/api/payments/subscribe')
-          .send({
-            planId: 'premium',
-            paymentMethodId: 'pm_123',
-          });
+        const response = await request(app).post('/api/payments/subscribe').send({
+          planId: 'premium',
+          paymentMethodId: 'pm_123',
+        });
 
         expect(response.status).toBe(200);
         expect(response.body.subscriptionId).toBeDefined();
       });
 
       it('should reject subscription without plan', async () => {
-        const response = await request(app)
-          .post('/api/payments/subscribe')
-          .send({
-            paymentMethodId: 'pm_123',
-          });
+        const response = await request(app).post('/api/payments/subscribe').send({
+          paymentMethodId: 'pm_123',
+        });
 
         expect(response.status).toBe(400);
       });
@@ -356,12 +336,10 @@ describe('Error Handling', () => {
 
 describe('Rate Limiting', () => {
   it('should handle multiple rapid requests', async () => {
-    const promises = Array.from({ length: 10 }, () =>
-      request(app).get('/api/health')
-    );
+    const promises = Array.from({ length: 10 }, () => request(app).get('/api/health'));
 
     const responses = await Promise.all(promises);
-    const successCount = responses.filter(r => r.status === 200).length;
+    const successCount = responses.filter((r) => r.status === 200).length;
     expect(successCount).toBeGreaterThan(0);
   });
 });

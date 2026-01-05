@@ -3,10 +3,12 @@
 ## ✅ What You Already Have
 
 ### 1. **Render CLI Installed** ✓
+
 - Render CLI version 2.6.1 is installed at `/home/behar/.local/bin/render`
 - You can deploy via CLI
 
 ### 2. **Render Blueprint Configuration** ✓
+
 - `render.yaml` exists in the root directory
 - Configured for Node.js runtime
 - Health check endpoint configured (`/health`)
@@ -14,18 +16,21 @@
 - Build and start commands configured
 
 ### 3. **Backend Structure** ✓
+
 - `backend/server.js` exists and is properly configured
 - `backend/package.json` has `start` script: `node server.js`
 - Health endpoint exists at `/health`
 - Server listens on `process.env.PORT` (defaults to 3000, but Render will set it)
 
 ### 4. **Node.js Configuration** ✓
+
 - `package.json` specifies Node.js >= 18.0.0
 - All dependencies are listed in `package.json`
 
 ## ⚠️ What You Need to Check/Configure
 
 ### 1. **Render Account & Authentication**
+
 ```bash
 # Check if you're logged in to Render
 render whoami
@@ -39,14 +44,17 @@ render login
 Your `render.yaml` has some environment variables, but you'll need to set these **manually in Render Dashboard** (marked with `sync: false` or missing):
 
 #### **Critical - Must Set Manually:**
+
 - ✅ `MONGODB_URI` - Your MongoDB connection string (marked as `sync: false` in render.yaml)
 - ✅ `JWT_SECRET` - Will be auto-generated (marked as `generateValue: true`)
 - ✅ `ENCRYPTION_KEY` - Will be auto-generated (marked as `generateValue: true`)
 
 #### **Additional Required Variables** (from `.env.example`):
+
 You should add these to your Render service environment variables:
 
 **Database & Cache:**
+
 - `REDIS_HOST` - Redis host (or use `REDIS_URL` if using Redis Cloud/Upstash)
 - `REDIS_PORT` - Redis port (default: 6379)
 - `REDIS_PASSWORD` - Redis password (if required)
@@ -54,12 +62,14 @@ You should add these to your Render service environment variables:
 - `REDIS_QUEUE_DB` - Redis queue database (default: 1)
 
 **OAuth Providers:**
+
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `FACEBOOK_APP_ID` (if using)
 - `FACEBOOK_APP_SECRET` (if using)
 
 **File Storage:**
+
 - `STORAGE_PROVIDER` - Either 's3' or 'cloudinary'
 - `CLOUDINARY_CLOUD_NAME` (if using Cloudinary)
 - `CLOUDINARY_API_KEY` (if using Cloudinary)
@@ -71,6 +81,7 @@ You should add these to your Render service environment variables:
 - `CDN_URL` - Your CDN URL
 
 **Firebase:**
+
 - `FIREBASE_PROJECT_ID` - Already in render.yaml ✓
 - `FIREBASE_PRIVATE_KEY_ID`
 - `FIREBASE_PRIVATE_KEY` - Full private key with newlines
@@ -78,6 +89,7 @@ You should add these to your Render service environment variables:
 - `FIREBASE_CLIENT_ID`
 
 **Other Services:**
+
 - `OPENAI_API_KEY` (if using AI features)
 - `TWILIO_ACCOUNT_SID` (if using phone verification)
 - `TWILIO_AUTH_TOKEN` (if using phone verification)
@@ -87,6 +99,7 @@ You should add these to your Render service environment variables:
 - `EXPO_ACCESS_TOKEN` (if using Expo push notifications)
 
 **Security:**
+
 - `CORS_ORIGIN` - Already in render.yaml ✓ (update if your frontend URL changes)
 
 ### 3. **Update render.yaml (Optional Improvements)**
@@ -96,6 +109,7 @@ Your current `render.yaml` is good, but you might want to:
 1. **Update PORT**: Render automatically sets PORT, so you don't need to hardcode it to 10000. However, if you want to keep it, that's fine.
 
 2. **Add Redis Service** (if you need Redis):
+
 ```yaml
 services:
   - type: redis
@@ -105,6 +119,7 @@ services:
 ```
 
 3. **Add PostgreSQL** (if you want to use it instead of MongoDB):
+
 ```yaml
 services:
   - type: pspg
@@ -166,16 +181,19 @@ render services create --name dating-app-backend \
 After deployment:
 
 1. **Check Health Endpoint:**
+
 ```bash
 curl https://your-service.onrender.com/health
 ```
 
 2. **Check Logs:**
+
 ```bash
 render logs --service dating-app-backend
 ```
 
 3. **Check Service Status:**
+
 ```bash
 render services list
 ```
@@ -206,16 +224,19 @@ render services list
 ## 🐛 Troubleshooting
 
 ### Service won't start:
+
 - Check logs: `render logs --service dating-app-backend`
 - Verify all required environment variables are set
 - Check that MongoDB URI is correct and accessible
 
 ### Health check fails:
+
 - Verify `/health` endpoint works locally
 - Check that server is listening on the correct port
 - Ensure database connections are working
 
 ### Build fails:
+
 - Check Node.js version compatibility
 - Verify all dependencies in package.json
 - Check build logs in Render dashboard
@@ -232,6 +253,7 @@ render services list
 ---
 
 **Status**: You have most of what you need! Just need to:
+
 1. Log in to Render CLI
 2. Set up environment variables
 3. Deploy!

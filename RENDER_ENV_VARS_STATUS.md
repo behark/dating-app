@@ -20,6 +20,7 @@ Based on your `render.yaml` file, these variables are configured:
 ### ❌ Critical Missing Variables
 
 **MONGODB_URI** - **MUST BE SET MANUALLY**
+
 - Status: ❌ MISSING
 - Impact: **CRITICAL** - Backend cannot connect to database
 - Action: Set in Render Dashboard → Environment tab
@@ -100,6 +101,7 @@ render logs -r srv-d5cooc2li9vc73ct9j70 --limit 50 -o text | grep -i "not config
 ## 📝 Complete Environment Variables Checklist
 
 ### Critical (Must Have)
+
 - [x] NODE_ENV
 - [x] PORT
 - [x] JWT_SECRET (auto-generated)
@@ -108,17 +110,20 @@ render logs -r srv-d5cooc2li9vc73ct9j70 --limit 50 -o text | grep -i "not config
 - [ ] **MONGODB_URI** ← SET THIS FIRST
 
 ### Database & Cache
+
 - [ ] REDIS_HOST or REDIS_URL
 - [ ] REDIS_PORT (if not using REDIS_URL)
 - [ ] REDIS_PASSWORD (if required)
 
 ### Firebase
+
 - [x] FIREBASE_PROJECT_ID
 - [ ] FIREBASE_PRIVATE_KEY
 - [ ] FIREBASE_CLIENT_EMAIL
 - [ ] FIREBASE_CLIENT_ID (optional)
 
 ### Storage
+
 - [ ] STORAGE_PROVIDER (s3 or cloudinary)
 - [ ] CLOUDINARY_CLOUD_NAME (if cloudinary)
 - [ ] CLOUDINARY_API_KEY (if cloudinary)
@@ -129,17 +134,20 @@ render logs -r srv-d5cooc2li9vc73ct9j70 --limit 50 -o text | grep -i "not config
 - [ ] AWS_S3_BUCKET (if s3)
 
 ### Payments
+
 - [ ] STRIPE_SECRET_KEY
 - [ ] STRIPE_PUBLISHABLE_KEY (optional)
 - [ ] STRIPE_WEBHOOK_SECRET (if using webhooks)
 
 ### OAuth
+
 - [ ] GOOGLE_CLIENT_ID
 - [ ] GOOGLE_CLIENT_SECRET
 - [ ] FACEBOOK_APP_ID (optional)
 - [ ] FACEBOOK_APP_SECRET (optional)
 
 ### Optional Services
+
 - [ ] OPENAI_API_KEY (for AI features)
 - [ ] TWILIO_ACCOUNT_SID (for phone verification)
 - [ ] TWILIO_AUTH_TOKEN
@@ -160,6 +168,7 @@ node check-render-env-vars.js
 ## 📊 Current Deployment Status
 
 From logs analysis:
+
 - ✅ Build successful
 - ✅ Dependencies installed
 - ⚠️ Firebase not configured (using MongoDB fallback)

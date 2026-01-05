@@ -20,13 +20,12 @@ class GamificationController {
 
       res.json({
         success: true,
-        streak,
-        stats
+        data: { streak, stats },
       });
     } catch (error) {
       res.status(500).json({
         error: 'Failed to track swipe',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -42,17 +41,19 @@ class GamificationController {
 
       if (!streak) {
         return res.json({
-          currentStreak: 0,
-          longestStreak: 0,
-          lastSwipeDate: null
+          data: {
+            currentStreak: 0,
+            longestStreak: 0,
+            lastSwipeDate: null,
+          },
         });
       }
 
-      res.json(streak);
+      res.json({ data: streak });
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get swipe streak',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -74,12 +75,12 @@ class GamificationController {
 
       res.json({
         success: true,
-        badge
+        badge,
       });
     } catch (error) {
       res.status(500).json({
         error: 'Failed to award badge',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -96,12 +97,12 @@ class GamificationController {
       res.json({
         badges,
         totalBadges: badges.length,
-        unlockedBadges: badges.filter(b => b.isUnlocked).length
+        unlockedBadges: badges.filter((b) => b.isUnlocked).length,
       });
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get badges',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -118,12 +119,12 @@ class GamificationController {
       res.json({
         unclaimedRewards: unclaimed,
         totalUnclaimed: unclaimed.length,
-        totalValue: unclaimed.reduce((sum, r) => sum + r.rewardValue, 0)
+        totalValue: unclaimed.reduce((sum, r) => sum + r.rewardValue, 0),
       });
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get daily reward',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -139,12 +140,12 @@ class GamificationController {
 
       res.json({
         success: true,
-        reward
+        reward,
       });
     } catch (error) {
       res.status(400).json({
         error: 'Failed to claim reward',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -162,7 +163,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get gamification stats',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -178,12 +179,12 @@ class GamificationController {
 
       res.json({
         leaderboard,
-        count: leaderboard.length
+        count: leaderboard.length,
       });
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get leaderboard',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -199,12 +200,12 @@ class GamificationController {
 
       res.json({
         leaderboard,
-        count: leaderboard.length
+        count: leaderboard.length,
       });
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get longest streak leaderboard',
-        message: error.message
+        message: error.message,
       });
     }
   }
@@ -222,13 +223,313 @@ class GamificationController {
 
       res.json({
         success: true,
-        badges: updatedBadges,
-        updated: updatedBadges.length
+        data: {
+          badges: updatedBadges,
+          updated: updatedBadges.length,
+        },
       });
     } catch (error) {
       res.status(500).json({
         error: 'Failed to update badges',
-        message: error.message
+        message: error.message,
+      });
+    }
+  }
+
+  // =============================================
+  // LEVEL PROGRESSION METHODS
+  // =============================================
+
+  /**
+   * Get user level and XP
+   */
+  static async getUserLevel(req, res) {
+    try {
+      const { userId } = req.params;
+      const levelData = await GamificationService.getUserLevel(userId);
+
+      res.json({
+        success: true,
+        data: levelData,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to get user level',
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Add XP to user
+   */
+  static async addXP(req, res) {
+    try {
+      const { userId, amount, action } = req.body;
+
+      if (!userId || !amount) {
+        return res.status(400).json({ error: 'User ID and amount are required' });
+      }
+
+      const result = await GamificationService.addXP(userId, amount, action);
+
+      res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to add XP',
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get level rewards
+   */
+  static async getLevelRewards(req, res) {
+    try {
+      const { level } = req.params;
+      const rewards = await GamificationService.getLevelRewards(parseInt(level));
+
+      res.json({
+        success: true,
+        data: rewards,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to get level rewards',
+        message: error.message,
+      });
+    }
+  }
+
+  // =============================================
+  // DAILY CHALLENGES METHODS
+  // =============================================
+
+  /**
+   * Get daily challenges for user
+   */
+  static async getDailyChallenges(req, res) {
+    try {
+      const { userId } = req.params;
+      const challenges = await GamificationService.getDailyChallenges(userId);
+
+      res.json({
+        success: true,
+        data: challenges,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to get daily challenges',
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Update challenge progress
+   */
+  static async updateChallengeProgress(req, res) {
+    try {
+      const { userId, challengeId, progress } = req.body;
+      const result = await GamificationService.updateChallengeProgress(userId, challengeId, progress);
+
+      res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to update challenge progress',
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Track action for challenges
+   */
+  static async trackChallengeAction(req, res) {
+    try {
+      const { userId, actionType, count } = req.body;
+      const result = await GamificationService.trackChallengeAction(userId, actionType, count || 1);
+
+      res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to track challenge action',
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Claim challenge reward
+   */
+  static async claimChallengeReward(req, res) {
+    try {
+      const { userId, challengeId } = req.body;
+      const result = await GamificationService.claimChallengeReward(userId, challengeId);
+
+      res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      res.status(400).json({
+        error: 'Failed to claim challenge reward',
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get completion bonus status
+   */
+  static async getCompletionBonus(req, res) {
+    try {
+      const { userId } = req.params;
+      const bonus = await GamificationService.getCompletionBonus(userId);
+
+      res.json({
+        success: true,
+        data: bonus,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to get completion bonus',
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Claim completion bonus
+   */
+  static async claimCompletionBonus(req, res) {
+    try {
+      const { userId } = req.params;
+      const result = await GamificationService.claimCompletionBonus(userId);
+
+      res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      res.status(400).json({
+        error: 'Failed to claim completion bonus',
+        message: error.message,
+      });
+    }
+  }
+
+  // =============================================
+  // ACHIEVEMENT METHODS
+  // =============================================
+
+  /**
+   * Get user achievements
+   */
+  static async getUserAchievements(req, res) {
+    try {
+      const { userId } = req.params;
+      const achievements = await GamificationService.getUserAchievements(userId);
+
+      res.json({
+        success: true,
+        data: achievements,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to get user achievements',
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Check and unlock achievements
+   */
+  static async checkAchievements(req, res) {
+    try {
+      const { userId, stats } = req.body;
+      const result = await GamificationService.checkAchievements(userId, stats);
+
+      res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to check achievements',
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Unlock an achievement
+   */
+  static async unlockAchievement(req, res) {
+    try {
+      const { userId, achievementId } = req.body;
+      const result = await GamificationService.unlockAchievement(userId, achievementId);
+
+      res.json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to unlock achievement',
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get achievement progress
+   */
+  static async getAchievementProgress(req, res) {
+    try {
+      const { userId, achievementId } = req.params;
+      const progress = await GamificationService.getAchievementProgress(userId, achievementId);
+
+      res.json({
+        success: true,
+        data: progress,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to get achievement progress',
+        message: error.message,
+      });
+    }
+  }
+
+  /**
+   * Get recent achievements
+   */
+  static async getRecentAchievements(req, res) {
+    try {
+      const { userId } = req.params;
+      const { limit = 5 } = req.query;
+      const achievements = await GamificationService.getRecentAchievements(userId, parseInt(limit));
+
+      res.json({
+        success: true,
+        data: achievements,
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: 'Failed to get recent achievements',
+        message: error.message,
       });
     }
   }

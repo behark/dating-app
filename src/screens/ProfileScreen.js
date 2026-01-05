@@ -5,19 +5,23 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 import {
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { db, storage } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
+import logger from '../utils/logger';
+import { useNavigation } from '@react-navigation/native';
+import BadgeShowcase from '../components/Gamification/BadgeShowcase';
 
 const ProfileScreen = () => {
+  const navigation = useNavigation();
   const { currentUser, logout } = useAuth();
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
@@ -42,7 +46,7 @@ const ProfileScreen = () => {
         setPhotoURL(data.photoURL || '');
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      logger.error('Error loading profile:', error);
     }
   };
 
@@ -52,7 +56,7 @@ const ProfileScreen = () => {
       const badges = await GamificationService.getUserBadges(currentUser.uid);
       setUserBadges(badges || []);
     } catch (error) {
-      console.error('Error loading user badges:', error);
+      logger.error('Error loading user badges:', error);
     }
   };
 
@@ -110,7 +114,7 @@ const ProfileScreen = () => {
             customMetadata: {
               uploadedBy: currentUser.uid,
               uploadedAt: new Date().toISOString(),
-            }
+            },
           });
 
           const downloadURL = await getDownloadURL(imageRef);
@@ -118,7 +122,7 @@ const ProfileScreen = () => {
           setLoading(false);
           return;
         } catch (storageError) {
-          console.warn('Firebase Storage not available:', storageError);
+          logger.warn('Firebase Storage not available:', storageError);
           setPhotoURL(compressedUri);
           Alert.alert(
             'Storage Not Available',
@@ -137,7 +141,7 @@ const ProfileScreen = () => {
       );
       setLoading(false);
     } catch (error) {
-      console.error('Error uploading image:', error);
+      logger.error('Error uploading image:', error);
       Alert.alert('Error', 'Failed to upload image. Please try again or use an image URL.');
       setLoading(false);
     }
@@ -170,31 +174,32 @@ const ProfileScreen = () => {
 
     try {
       setLoading(true);
-      await setDoc(doc(db, 'users', currentUser.uid), {
-        name: name.trim(),
-        age: parseInt(age),
-        bio: bio ? bio.trim() : '',
-        photoURL,
-        email: currentUser.email,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, { merge: true });
+      await setDoc(
+        doc(db, 'users', currentUser.uid),
+        {
+          name: name.trim(),
+          age: parseInt(age),
+          bio: bio ? bio.trim() : '',
+          photoURL,
+          email: currentUser.email,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        { merge: true }
+      );
 
       Alert.alert('Success', 'Profile updated successfully!');
       setLoading(false);
     } catch (error) {
-      console.error('Error saving profile:', error);
+      logger.error('Error saving profile:', error);
       Alert.alert('Error', 'Failed to save profile');
       setLoading(false);
     }
   };
 
   return (
-    <LinearGradient
-      colors={['#667eea', '#764ba2']}
-      style={styles.container}
-    >
-      <ScrollView 
+    <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -205,14 +210,14 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.card}>
-          <TouchableOpacity onPress={() => navigation.navigate('PhotoGallery')} style={styles.imageContainer}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('PhotoGallery')}
+            style={styles.imageContainer}
+          >
             {photoURL ? (
               <Image source={{ uri: photoURL }} style={styles.image} />
             ) : (
-              <LinearGradient
-                colors={['#f093fb', '#f5576c']}
-                style={styles.placeholderImage}
-              >
+              <LinearGradient colors={['#f093fb', '#f5576c']} style={styles.placeholderImage}>
                 <Ionicons name="camera" size={40} color="#fff" />
                 <Text style={styles.placeholderText}>Tap to add photo</Text>
               </LinearGradient>
@@ -246,7 +251,12 @@ const ProfileScreen = () => {
           </View>
 
           <View style={styles.inputGroup}>
-            <Ionicons name="document-text-outline" size={20} color="#667eea" style={styles.inputIcon} />
+            <Ionicons
+              name="document-text-outline"
+              size={20}
+              color="#667eea"
+              style={styles.inputIcon}
+            />
             <TextInput
               style={[styles.input, styles.bioInput]}
               placeholder="Tell us about yourself..."
@@ -269,9 +279,7 @@ const ProfileScreen = () => {
               autoCapitalize="none"
             />
           </View>
-          <Text style={styles.helpText}>
-            💡 Tip: Upload to Imgur or ImgBB and paste the URL
-          </Text>
+          <Text style={styles.helpText}>💡 Tip: Upload to Imgur or ImgBB and paste the URL</Text>
 
           <TouchableOpacity
             style={styles.saveButton}
@@ -279,22 +287,14 @@ const ProfileScreen = () => {
             disabled={loading}
             activeOpacity={0.8}
           >
-            <LinearGradient
-              colors={['#667eea', '#764ba2']}
-              style={styles.saveButtonGradient}
-            >
+            <LinearGradient colors={['#667eea', '#764ba2']} style={styles.saveButtonGradient}>
               <Ionicons name="checkmark-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={styles.saveButtonText}>
-                {loading ? 'Saving...' : 'Save Profile'}
-              </Text>
+              <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Profile'}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
           {/* Gamification Section - Badge Showcase */}
-          <BadgeShowcase 
-            badges={userBadges}
-            userId={currentUser.uid}
-          />
+          <BadgeShowcase badges={userBadges} userId={currentUser.uid} />
 
           <View style={styles.buttonGroup}>
             <TouchableOpacity
@@ -320,7 +320,12 @@ const ProfileScreen = () => {
               onPress={() => navigation.navigate('Verification')}
               activeOpacity={0.8}
             >
-              <Ionicons name="shield-checkmark" size={20} color="#4ECDC4" style={{ marginRight: 8 }} />
+              <Ionicons
+                name="shield-checkmark"
+                size={20}
+                color="#4ECDC4"
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.secondaryButtonText}>Verification</Text>
             </TouchableOpacity>
 
@@ -338,13 +343,20 @@ const ProfileScreen = () => {
               onPress={() => navigation.navigate('SafetyTips')}
               activeOpacity={0.8}
             >
-              <Ionicons name="shield-checkmark-outline" size={20} color="#FF9800" style={{ marginRight: 8 }} />
+              <Ionicons
+                name="shield-checkmark-outline"
+                size={20}
+                color="#FF9800"
+                style={{ marginRight: 8 }}
+              />
               <Text style={styles.secondaryButtonText}>Safety Tips</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => navigation.navigate('SafetyAdvanced', { userId: currentUser.uid, isPremium: true })}
+              onPress={() =>
+                navigation.navigate('SafetyAdvanced', { userId: currentUser.uid, isPremium: true })
+              }
               activeOpacity={0.8}
             >
               <Ionicons name="shield" size={20} color="#FF6B9D" style={{ marginRight: 8 }} />
@@ -356,21 +368,14 @@ const ProfileScreen = () => {
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.8}
             >
-              <LinearGradient
-                colors={['#FFD700', '#FFA500']}
-                style={styles.premiumButtonGradient}
-              >
+              <LinearGradient colors={['#FFD700', '#FFA500']} style={styles.premiumButtonGradient}>
                 <Ionicons name="diamond" size={20} color="#fff" style={{ marginRight: 8 }} />
                 <Text style={styles.premiumButtonText}>Go Premium</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={logout}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity style={styles.logoutButton} onPress={logout} activeOpacity={0.8}>
             <Ionicons name="log-out-outline" size={20} color="#FF6B6B" style={{ marginRight: 8 }} />
             <Text style={styles.logoutButtonText}>Logout</Text>
           </TouchableOpacity>

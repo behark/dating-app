@@ -34,10 +34,10 @@ class OfflineServiceClass {
   async initialize() {
     // Load pending actions from storage
     await this.loadPendingActions();
-    
+
     // Setup network status listener
     this.setupNetworkListener();
-    
+
     return this;
   }
 
@@ -52,12 +52,12 @@ class OfflineServiceClass {
       this.isOnline = navigator.onLine;
     } else {
       // React Native - use NetInfo
-      this.unsubscribeNetInfo = NetInfo.addEventListener(state => {
+      this.unsubscribeNetInfo = NetInfo.addEventListener((state) => {
         this.handleNetworkChange(state.isConnected && state.isInternetReachable !== false);
       });
-      
+
       // Get initial state
-      NetInfo.fetch().then(state => {
+      NetInfo.fetch().then((state) => {
         this.isOnline = state.isConnected && state.isInternetReachable !== false;
       });
     }
@@ -84,7 +84,7 @@ class OfflineServiceClass {
     this.isOnline = isOnline;
 
     // Notify listeners
-    this.listeners.forEach(listener => listener(isOnline));
+    this.listeners.forEach((listener) => listener(isOnline));
 
     // If coming back online, sync pending actions
     if (isOnline && wasOffline) {
@@ -131,10 +131,7 @@ class OfflineServiceClass {
    */
   async savePendingActions() {
     try {
-      await AsyncStorage.setItem(
-        STORAGE_KEYS.OFFLINE_QUEUE,
-        JSON.stringify(this.pendingActions)
-      );
+      await AsyncStorage.setItem(STORAGE_KEYS.OFFLINE_QUEUE, JSON.stringify(this.pendingActions));
     } catch (error) {
       console.error('Error saving pending actions:', error);
     }
@@ -171,7 +168,7 @@ class OfflineServiceClass {
       } catch (error) {
         console.error('Error syncing action:', action, error);
         action.retryCount += 1;
-        
+
         // Remove action if max retries exceeded
         if (action.retryCount >= 3) {
           completedActions.push(action.id);
@@ -181,10 +178,10 @@ class OfflineServiceClass {
 
     // Remove completed actions
     this.pendingActions = this.pendingActions.filter(
-      action => !completedActions.includes(action.id)
+      (action) => !completedActions.includes(action.id)
     );
     await this.savePendingActions();
-    
+
     this.syncInProgress = false;
   }
 
@@ -289,12 +286,12 @@ class OfflineServiceClass {
     try {
       const stored = await AsyncStorage.getItem(STORAGE_KEYS.CACHED_MESSAGES);
       const allMessages = stored ? JSON.parse(stored) : {};
-      
+
       allMessages[matchId] = {
         data: messages,
         timestamp: Date.now(),
       };
-      
+
       await AsyncStorage.setItem(STORAGE_KEYS.CACHED_MESSAGES, JSON.stringify(allMessages));
     } catch (error) {
       console.error('Error caching messages:', error);
@@ -310,7 +307,7 @@ class OfflineServiceClass {
       if (stored) {
         const allMessages = JSON.parse(stored);
         const matchMessages = allMessages[matchId];
-        
+
         if (matchMessages && Date.now() - matchMessages.timestamp < CACHE_EXPIRY.MESSAGES) {
           return matchMessages.data;
         }
@@ -344,14 +341,14 @@ class OfflineServiceClass {
     try {
       const keys = await AsyncStorage.getAllKeys();
       let totalSize = 0;
-      
+
       for (const key of keys) {
         const value = await AsyncStorage.getItem(key);
         if (value) {
           totalSize += value.length;
         }
       }
-      
+
       return {
         keysCount: keys.length,
         totalSizeBytes: totalSize,

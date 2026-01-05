@@ -11,7 +11,7 @@ exports.connectSpotify = async (req, res) => {
     if (!spotifyId || !username) {
       return res.status(400).json({
         success: false,
-        message: 'Spotify ID and username are required'
+        message: 'Spotify ID and username are required',
       });
     }
 
@@ -22,8 +22,8 @@ exports.connectSpotify = async (req, res) => {
           id: spotifyId,
           username,
           profileUrl: profileUrl || `https://open.spotify.com/user/${spotifyId}`,
-          isVerified: true
-        }
+          isVerified: true,
+        },
       },
       { new: true }
     ).select('socialMedia');
@@ -31,7 +31,7 @@ exports.connectSpotify = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -39,15 +39,15 @@ exports.connectSpotify = async (req, res) => {
       success: true,
       message: 'Spotify connected successfully',
       data: {
-        spotify: user.socialMedia.spotify
-      }
+        spotify: user.socialMedia.spotify,
+      },
     });
   } catch (error) {
     console.error('Connect Spotify error:', error);
     res.status(500).json({
       success: false,
       message: 'Error connecting Spotify',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -63,7 +63,7 @@ exports.connectInstagram = async (req, res) => {
     if (!instagramId || !username) {
       return res.status(400).json({
         success: false,
-        message: 'Instagram ID and username are required'
+        message: 'Instagram ID and username are required',
       });
     }
 
@@ -74,8 +74,8 @@ exports.connectInstagram = async (req, res) => {
           id: instagramId,
           username,
           profileUrl: profileUrl || `https://instagram.com/${username}`,
-          isVerified: true
-        }
+          isVerified: true,
+        },
       },
       { new: true }
     ).select('socialMedia');
@@ -83,7 +83,7 @@ exports.connectInstagram = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -91,15 +91,15 @@ exports.connectInstagram = async (req, res) => {
       success: true,
       message: 'Instagram connected successfully',
       data: {
-        instagram: user.socialMedia.instagram
-      }
+        instagram: user.socialMedia.instagram,
+      },
     });
   } catch (error) {
     console.error('Connect Instagram error:', error);
     res.status(500).json({
       success: false,
       message: 'Error connecting Instagram',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -118,8 +118,8 @@ exports.disconnectSpotify = async (req, res) => {
           id: undefined,
           username: undefined,
           profileUrl: undefined,
-          isVerified: false
-        }
+          isVerified: false,
+        },
       },
       { new: true }
     ).select('socialMedia');
@@ -127,20 +127,20 @@ exports.disconnectSpotify = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
     res.json({
       success: true,
-      message: 'Spotify disconnected successfully'
+      message: 'Spotify disconnected successfully',
     });
   } catch (error) {
     console.error('Disconnect Spotify error:', error);
     res.status(500).json({
       success: false,
       message: 'Error disconnecting Spotify',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -159,8 +159,8 @@ exports.disconnectInstagram = async (req, res) => {
           id: undefined,
           username: undefined,
           profileUrl: undefined,
-          isVerified: false
-        }
+          isVerified: false,
+        },
       },
       { new: true }
     ).select('socialMedia');
@@ -168,20 +168,20 @@ exports.disconnectInstagram = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
     res.json({
       success: true,
-      message: 'Instagram disconnected successfully'
+      message: 'Instagram disconnected successfully',
     });
   } catch (error) {
     console.error('Disconnect Instagram error:', error);
     res.status(500).json({
       success: false,
       message: 'Error disconnecting Instagram',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -198,34 +198,38 @@ exports.getSocialMedia = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
     // Only return verified connections
     const socialMedia = {
-      spotify: user.socialMedia.spotify.isVerified ? {
-        username: user.socialMedia.spotify.username,
-        profileUrl: user.socialMedia.spotify.profileUrl
-      } : null,
-      instagram: user.socialMedia.instagram.isVerified ? {
-        username: user.socialMedia.instagram.username,
-        profileUrl: user.socialMedia.instagram.profileUrl
-      } : null
+      spotify: user.socialMedia.spotify.isVerified
+        ? {
+            username: user.socialMedia.spotify.username,
+            profileUrl: user.socialMedia.spotify.profileUrl,
+          }
+        : null,
+      instagram: user.socialMedia.instagram.isVerified
+        ? {
+            username: user.socialMedia.instagram.username,
+            profileUrl: user.socialMedia.instagram.profileUrl,
+          }
+        : null,
     };
 
     res.json({
       success: true,
       data: {
-        socialMedia
-      }
+        socialMedia,
+      },
     });
   } catch (error) {
     console.error('Get social media error:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching social media',
-      error: error.message
+      error: error.message,
     });
   }
 };

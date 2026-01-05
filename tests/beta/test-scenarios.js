@@ -46,7 +46,7 @@ module.exports = {
           steps: [
             'Navigate to profile setup',
             'Try to skip photo upload',
-            'Upload photo that doesn\'t meet requirements',
+            "Upload photo that doesn't meet requirements",
             'Upload valid photo',
           ],
           expectedResult: 'Only valid photos are accepted, minimum 1 required',
@@ -120,11 +120,7 @@ module.exports = {
           id: 'DIS-005',
           name: 'Undo last swipe',
           priority: 'P2',
-          steps: [
-            'Swipe left on a profile',
-            'Tap undo button',
-            'Verify profile returns',
-          ],
+          steps: ['Swipe left on a profile', 'Tap undo button', 'Verify profile returns'],
           expectedResult: 'Previous profile restored (premium feature)',
           device: ['iOS', 'Android'],
           tags: ['discovery', 'premium'],
@@ -182,12 +178,7 @@ module.exports = {
           id: 'MSG-004',
           name: 'Send GIF',
           priority: 'P2',
-          steps: [
-            'Open chat',
-            'Tap GIF button',
-            'Search for GIF',
-            'Select and send GIF',
-          ],
+          steps: ['Open chat', 'Tap GIF button', 'Search for GIF', 'Select and send GIF'],
           expectedResult: 'GIF sent and animates in chat',
           device: ['iOS', 'Android'],
           tags: ['chat', 'media'],
@@ -465,11 +456,7 @@ module.exports = {
           id: 'PER-001',
           name: 'App launch time',
           priority: 'P1',
-          steps: [
-            'Force close app',
-            'Launch app',
-            'Measure time to interactive state',
-          ],
+          steps: ['Force close app', 'Launch app', 'Measure time to interactive state'],
           expectedResult: 'App launches in < 3 seconds',
           device: ['iOS', 'Android'],
           tags: ['performance'],
@@ -508,11 +495,7 @@ module.exports = {
           id: 'PER-004',
           name: 'Battery consumption',
           priority: 'P2',
-          steps: [
-            'Note battery level',
-            'Use app for 1 hour',
-            'Check battery usage',
-          ],
+          steps: ['Note battery level', 'Use app for 1 hour', 'Check battery usage'],
           expectedResult: 'Battery usage is reasonable',
           device: ['iOS', 'Android'],
           tags: ['performance'],
@@ -574,9 +557,9 @@ module.exports = {
   // Generate test execution checklist
   generateChecklist(platform = null) {
     const checklist = [];
-    
-    this.testSuites.forEach(suite => {
-      suite.scenarios.forEach(scenario => {
+
+    this.testSuites.forEach((suite) => {
+      suite.scenarios.forEach((scenario) => {
         if (!platform || scenario.device.includes(platform)) {
           checklist.push({
             id: scenario.id,
@@ -599,8 +582,8 @@ module.exports = {
   // Get high priority scenarios
   getCriticalPath() {
     const critical = [];
-    this.testSuites.forEach(suite => {
-      suite.scenarios.forEach(scenario => {
+    this.testSuites.forEach((suite) => {
+      suite.scenarios.forEach((scenario) => {
         if (scenario.priority === 'P0') {
           critical.push(scenario);
         }
@@ -612,8 +595,8 @@ module.exports = {
   // Get scenarios by tag
   getByTag(tag) {
     const tagged = [];
-    this.testSuites.forEach(suite => {
-      suite.scenarios.forEach(scenario => {
+    this.testSuites.forEach((suite) => {
+      suite.scenarios.forEach((scenario) => {
         if (scenario.tags.includes(tag)) {
           tagged.push({ suite: suite.name, ...scenario });
         }

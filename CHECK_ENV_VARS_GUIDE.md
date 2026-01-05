@@ -108,6 +108,7 @@ curl -H "Authorization: Bearer $RENDER_API_KEY" \
 3. View all environment variables
 
 **Advantages:**
+
 - ✅ No setup required
 - ✅ Shows all variables clearly
 - ✅ Can edit directly
@@ -117,23 +118,26 @@ curl -H "Authorization: Bearer $RENDER_API_KEY" \
 
 ## Quick Comparison
 
-| Method | Difficulty | Reliability | Security | Setup Required |
-|--------|-----------|-------------|----------|----------------|
-| **Dashboard** | ⭐ Easy | ✅ 100% | ✅ Secure | None |
-| **SSH** | ⭐⭐ Medium | ✅ 95% | ✅ Secure | SSH key |
-| **API** | ⭐⭐⭐ Hard | ⚠️ 50% | ✅ Secure | API key |
+| Method        | Difficulty  | Reliability | Security  | Setup Required |
+| ------------- | ----------- | ----------- | --------- | -------------- |
+| **Dashboard** | ⭐ Easy     | ✅ 100%     | ✅ Secure | None           |
+| **SSH**       | ⭐⭐ Medium | ✅ 95%      | ✅ Secure | SSH key        |
+| **API**       | ⭐⭐⭐ Hard | ⚠️ 50%      | ✅ Secure | API key        |
 
 ---
 
 ## Recommended Approach
 
 ### For Quick Check:
+
 👉 **Use Render Dashboard** - Fastest and most reliable
 
 ### For Automation/Scripts:
+
 👉 **Use SSH** - Most reliable programmatic method
 
 ### For CI/CD:
+
 👉 **Use Render API** (if supported) or **SSH**
 
 ---
@@ -182,6 +186,7 @@ curl -H "Authorization: Bearer $RENDER_API_KEY" \
 ## Example Output
 
 ### SSH Method Output:
+
 ```
 MONGODB_URI=mongodb+srv://...
 NODE_ENV=production
@@ -193,6 +198,7 @@ ENCRYPTION_KEY=*** (hidden)
 ```
 
 ### API Method Output:
+
 ```json
 {
   "envVars": [

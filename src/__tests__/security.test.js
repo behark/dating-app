@@ -25,7 +25,7 @@ describe('Security Tests', () => {
           'invalid@test..com',
         ];
 
-        invalidEmails.forEach(email => {
+        invalidEmails.forEach((email) => {
           expect(ValidationService.validateEmail(email)).toBe(false);
         });
       });
@@ -38,7 +38,7 @@ describe('Security Tests', () => {
           'user@sub.example.com',
         ];
 
-        validEmails.forEach(email => {
+        validEmails.forEach((email) => {
           expect(ValidationService.validateEmail(email)).toBe(true);
         });
       });
@@ -47,7 +47,7 @@ describe('Security Tests', () => {
     describe('Password Security', () => {
       it('should enforce minimum password length', () => {
         expect(ValidationService.validatePassword('12345')).toBe(false);
-        expect(ValidationService.validatePassword('123456')).toBe(true);
+        expect(ValidationService.validatePassword('12345678')).toBe(true);
       });
 
       it('should reject empty password', () => {
@@ -83,10 +83,10 @@ describe('Security Tests', () => {
           "'; DROP TABLE users; --",
           "1' OR '1'='1",
           "admin'--",
-          "1; DELETE FROM users",
+          '1; DELETE FROM users',
         ];
 
-        maliciousInputs.forEach(input => {
+        maliciousInputs.forEach((input) => {
           const sanitized = ValidationService.sanitizeInput(input);
           // Should be sanitized or the app should use parameterized queries
           expect(typeof sanitized).toBe('string');
@@ -103,7 +103,7 @@ describe('Security Tests', () => {
           '....//....//etc/passwd',
         ];
 
-        maliciousPaths.forEach(path => {
+        maliciousPaths.forEach((path) => {
           const sanitized = ValidationService.sanitizeInput(path);
           expect(sanitized).not.toContain('..');
         });
@@ -117,21 +117,21 @@ describe('Security Tests', () => {
         const expiredToken = 'expired.jwt.token';
         // Mock token verification
         const verifyToken = jest.fn().mockRejectedValue(new Error('Token expired'));
-        
+
         await expect(verifyToken(expiredToken)).rejects.toThrow('Token expired');
       });
 
       it('should reject invalid tokens', async () => {
         const invalidToken = 'invalid.token';
         const verifyToken = jest.fn().mockRejectedValue(new Error('Invalid token'));
-        
+
         await expect(verifyToken(invalidToken)).rejects.toThrow('Invalid token');
       });
 
       it('should reject tampered tokens', async () => {
         const tamperedToken = 'tampered.jwt.token';
         const verifyToken = jest.fn().mockRejectedValue(new Error('Invalid signature'));
-        
+
         await expect(verifyToken(tamperedToken)).rejects.toThrow('Invalid signature');
       });
     });
@@ -189,7 +189,13 @@ describe('Security Tests', () => {
     describe('Role-Based Access', () => {
       const roles = {
         user: ['view_profiles', 'send_messages', 'edit_own_profile'],
-        premium: ['view_profiles', 'send_messages', 'edit_own_profile', 'see_who_likes', 'unlimited_likes'],
+        premium: [
+          'view_profiles',
+          'send_messages',
+          'edit_own_profile',
+          'see_who_likes',
+          'unlimited_likes',
+        ],
         admin: ['all'],
       };
 
@@ -219,7 +225,7 @@ describe('Security Tests', () => {
     describe('Sensitive Data Handling', () => {
       const maskEmail = (email) => {
         const [local, domain] = email.split('@');
-        const maskedLocal = local.charAt(0) + '***' + local.charAt(local.length - 1);
+        const maskedLocal = `${local.charAt(0)}***${local.charAt(local.length - 1)}`;
         return `${maskedLocal}@${domain}`;
       };
 
@@ -246,7 +252,7 @@ describe('Security Tests', () => {
       it('should use secure encryption algorithms', () => {
         const crypto = require('crypto');
         const algorithm = 'aes-256-gcm';
-        
+
         // Verify algorithm is available
         const ciphers = crypto.getCiphers();
         expect(ciphers).toContain(algorithm);
@@ -256,7 +262,7 @@ describe('Security Tests', () => {
         const crypto = require('crypto');
         const bytes1 = crypto.randomBytes(32);
         const bytes2 = crypto.randomBytes(32);
-        
+
         expect(bytes1.length).toBe(32);
         expect(bytes1.equals(bytes2)).toBe(false);
       });
@@ -266,21 +272,19 @@ describe('Security Tests', () => {
   describe('Rate Limiting', () => {
     const createRateLimiter = (maxRequests, windowMs) => {
       const requests = new Map();
-      
+
       return {
         check: (userId) => {
           const now = Date.now();
           const userRequests = requests.get(userId) || [];
-          
+
           // Remove old requests
-          const validRequests = userRequests.filter(
-            time => now - time < windowMs
-          );
-          
+          const validRequests = userRequests.filter((time) => now - time < windowMs);
+
           if (validRequests.length >= maxRequests) {
             return { allowed: false, retryAfter: windowMs - (now - validRequests[0]) };
           }
-          
+
           validRequests.push(now);
           requests.set(userId, validRequests);
           return { allowed: true };
@@ -290,7 +294,7 @@ describe('Security Tests', () => {
 
     it('should allow requests within limit', () => {
       const limiter = createRateLimiter(5, 60000);
-      
+
       for (let i = 0; i < 5; i++) {
         const result = limiter.check('user_1');
         expect(result.allowed).toBe(true);
@@ -299,12 +303,12 @@ describe('Security Tests', () => {
 
     it('should block requests over limit', () => {
       const limiter = createRateLimiter(3, 60000);
-      
+
       // Make 3 requests
       for (let i = 0; i < 3; i++) {
         limiter.check('user_1');
       }
-      
+
       // 4th request should be blocked
       const result = limiter.check('user_1');
       expect(result.allowed).toBe(false);
@@ -313,10 +317,10 @@ describe('Security Tests', () => {
 
     it('should track users independently', () => {
       const limiter = createRateLimiter(2, 60000);
-      
+
       limiter.check('user_1');
       limiter.check('user_1');
-      
+
       // User 2 should still be allowed
       const result = limiter.check('user_2');
       expect(result.allowed).toBe(true);
@@ -376,10 +380,10 @@ describe('Security Tests', () => {
   describe('CSRF Protection', () => {
     it('should generate unique CSRF tokens', () => {
       const generateToken = () => require('crypto').randomBytes(32).toString('hex');
-      
+
       const token1 = generateToken();
       const token2 = generateToken();
-      
+
       expect(token1).not.toBe(token2);
       expect(token1.length).toBe(64);
     });
@@ -387,14 +391,11 @@ describe('Security Tests', () => {
     it('should validate CSRF token', () => {
       const validateCsrf = (sentToken, storedToken) => {
         if (!sentToken || !storedToken) return false;
-        return require('crypto').timingSafeEqual(
-          Buffer.from(sentToken),
-          Buffer.from(storedToken)
-        );
+        return require('crypto').timingSafeEqual(Buffer.from(sentToken), Buffer.from(storedToken));
       };
 
       const token = require('crypto').randomBytes(32).toString('hex');
-      
+
       expect(validateCsrf(token, token)).toBe(true);
       expect(validateCsrf('wrong', token)).toBe(false);
       expect(validateCsrf(null, token)).toBe(false);

@@ -3,12 +3,12 @@ const crypto = require('crypto');
 
 // Initialize SMS service (using Twilio as an example)
 const smsService = {
-  sendSMS: async function(phoneNumber, code) {
+  sendSMS: async function (phoneNumber, code) {
     // TODO: Implement SMS sending with Twilio or another provider
     // For now, this is a placeholder
     console.log(`Sending SMS to ${phoneNumber}: Your verification code is ${code}`);
     return true;
-  }
+  },
 };
 
 // @route   POST /api/auth/send-phone-verification
@@ -22,7 +22,7 @@ exports.sendPhoneVerification = async (req, res) => {
     if (!phoneNumber) {
       return res.status(400).json({
         success: false,
-        message: 'Phone number is required'
+        message: 'Phone number is required',
       });
     }
 
@@ -30,7 +30,7 @@ exports.sendPhoneVerification = async (req, res) => {
     if (!/^\+?[1-9]\d{1,14}$/.test(phoneNumber.replace(/\D/g, ''))) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid phone number format'
+        message: 'Invalid phone number format',
       });
     }
 
@@ -38,7 +38,7 @@ exports.sendPhoneVerification = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -48,7 +48,7 @@ exports.sendPhoneVerification = async (req, res) => {
       if (existingUser) {
         return res.status(400).json({
           success: false,
-          message: 'Phone number already in use'
+          message: 'Phone number already in use',
         });
       }
     }
@@ -67,14 +67,14 @@ exports.sendPhoneVerification = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Verification code sent to phone number'
+      message: 'Verification code sent to phone number',
     });
   } catch (error) {
     console.error('Send phone verification error:', error);
     res.status(500).json({
       success: false,
       message: 'Error sending verification code',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -90,7 +90,7 @@ exports.verifyPhone = async (req, res) => {
     if (!code) {
       return res.status(400).json({
         success: false,
-        message: 'Verification code is required'
+        message: 'Verification code is required',
       });
     }
 
@@ -98,7 +98,7 @@ exports.verifyPhone = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -106,7 +106,7 @@ exports.verifyPhone = async (req, res) => {
     if (user.phoneVerificationCode !== code) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid verification code'
+        message: 'Invalid verification code',
       });
     }
 
@@ -114,7 +114,7 @@ exports.verifyPhone = async (req, res) => {
     if (new Date() > user.phoneVerificationCodeExpiry) {
       return res.status(400).json({
         success: false,
-        message: 'Verification code has expired'
+        message: 'Verification code has expired',
       });
     }
 
@@ -126,14 +126,14 @@ exports.verifyPhone = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Phone number verified successfully'
+      message: 'Phone number verified successfully',
     });
   } catch (error) {
     console.error('Verify phone error:', error);
     res.status(500).json({
       success: false,
       message: 'Error verifying phone',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -149,23 +149,25 @@ exports.resendPhoneVerification = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
     if (!user.phoneNumber) {
       return res.status(400).json({
         success: false,
-        message: 'Phone number not set'
+        message: 'Phone number not set',
       });
     }
 
     // Check if user requested code too recently (cooldown)
-    if (user.phoneVerificationCodeExpiry && 
-        new Date(user.phoneVerificationCodeExpiry.getTime() - 15 * 60 * 1000) > Date.now()) {
+    if (
+      user.phoneVerificationCodeExpiry &&
+      new Date(user.phoneVerificationCodeExpiry.getTime() - 15 * 60 * 1000) > Date.now()
+    ) {
       return res.status(429).json({
         success: false,
-        message: 'Please wait before requesting a new code'
+        message: 'Please wait before requesting a new code',
       });
     }
 
@@ -180,14 +182,14 @@ exports.resendPhoneVerification = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Verification code resent'
+      message: 'Verification code resent',
     });
   } catch (error) {
     console.error('Resend phone verification error:', error);
     res.status(500).json({
       success: false,
       message: 'Error resending verification code',
-      error: error.message
+      error: error.message,
     });
   }
 };

@@ -28,12 +28,12 @@ This guide will walk you through getting all the Firebase configuration values y
 
 ```javascript
 const firebaseConfig = {
-  apiKey: "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef1234567890"
+  apiKey: 'AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+  authDomain: 'your-project.firebaseapp.com',
+  projectId: 'your-project-id',
+  storageBucket: 'your-project.appspot.com',
+  messagingSenderId: '123456789012',
+  appId: '1:123456789012:web:abcdef1234567890',
 };
 ```
 
@@ -133,28 +133,31 @@ vercel --prod  # Redeploy to Vercel
 
 ## Quick Reference: Where to Find Each Value
 
-| Value | Location |
-|-------|----------|
-| `firebaseApiKey` | Firebase Console > Project Settings > Your apps > Web app config |
-| `firebaseAuthDomain` | Firebase Console > Project Settings > Your apps > Web app config |
-| `firebaseProjectId` | Firebase Console > Project Settings > General tab > Project ID |
-| `firebaseStorageBucket` | Firebase Console > Project Settings > Your apps > Web app config |
-| `firebaseMessagingSenderId` | Firebase Console > Project Settings > Your apps > Web app config |
-| `firebaseAppId` | Firebase Console > Project Settings > Your apps > Web app config |
-| `googleWebClientId` | Google Cloud Console > APIs & Services > Credentials > OAuth 2.0 Client IDs |
+| Value                       | Location                                                                    |
+| --------------------------- | --------------------------------------------------------------------------- |
+| `firebaseApiKey`            | Firebase Console > Project Settings > Your apps > Web app config            |
+| `firebaseAuthDomain`        | Firebase Console > Project Settings > Your apps > Web app config            |
+| `firebaseProjectId`         | Firebase Console > Project Settings > General tab > Project ID              |
+| `firebaseStorageBucket`     | Firebase Console > Project Settings > Your apps > Web app config            |
+| `firebaseMessagingSenderId` | Firebase Console > Project Settings > Your apps > Web app config            |
+| `firebaseAppId`             | Firebase Console > Project Settings > Your apps > Web app config            |
+| `googleWebClientId`         | Google Cloud Console > APIs & Services > Credentials > OAuth 2.0 Client IDs |
 
 ## Troubleshooting
 
 ### "Permission denied" errors
+
 - Make sure Firestore and Storage are in test mode (for development)
 - Check that Authentication is enabled
 
 ### Google Sign-In not working
+
 - Verify the OAuth consent screen is configured
 - Check that the redirect URI matches your Firebase Auth domain
 - Ensure the Client ID is correct
 
 ### Can't find the config
+
 - Make sure you've created a **Web app** in Firebase (not iOS/Android)
 - The config is only shown once when you create the app
 - You can always create a new web app to see the config again
@@ -162,6 +165,7 @@ vercel --prod  # Redeploy to Vercel
 ## Security Note
 
 ⚠️ **Important for Production:**
+
 - Update Firestore security rules before going live
 - Update Storage security rules
 - Never commit sensitive keys to public repositories

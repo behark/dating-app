@@ -23,7 +23,7 @@ class MockWebSocketServer {
   }
 
   broadcast(message) {
-    this.clients.forEach(client => {
+    this.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify(message));
       }
@@ -266,7 +266,7 @@ describe('Real-time Notification Tests', () => {
         data: {
           type: 'super_like',
           title: 'You got a Super Like! ⭐',
-          body: 'Someone thinks you\'re special',
+          body: "Someone thinks you're special",
           userId: 'super_liker_123',
         },
       };

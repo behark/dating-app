@@ -29,9 +29,9 @@ class SocialFeaturesService {
         currentParticipants: [
           {
             userId: data.hostId,
-            status: 'going'
-          }
-        ]
+            status: 'going',
+          },
+        ],
       });
 
       await groupDate.save();
@@ -53,7 +53,7 @@ class SocialFeaturesService {
 
       // Check if already joined
       const isAlreadyParticipant = groupDate.currentParticipants.some(
-        p => p.userId.toString() === userId.toString()
+        (p) => p.userId.toString() === userId.toString()
       );
 
       if (isAlreadyParticipant) {
@@ -68,7 +68,7 @@ class SocialFeaturesService {
       // Add participant
       groupDate.currentParticipants.push({
         userId,
-        status: 'interested'
+        status: 'interested',
       });
 
       // Update status if group is now full
@@ -94,11 +94,14 @@ class SocialFeaturesService {
       if (!groupDate) throw new Error('Group date not found');
 
       groupDate.currentParticipants = groupDate.currentParticipants.filter(
-        p => p.userId.toString() !== userId.toString()
+        (p) => p.userId.toString() !== userId.toString()
       );
 
       // Reset status if no longer full
-      if (groupDate.status === 'full' && groupDate.currentParticipants.length < groupDate.maxParticipants) {
+      if (
+        groupDate.status === 'full' &&
+        groupDate.currentParticipants.length < groupDate.maxParticipants
+      ) {
         groupDate.status = 'open';
       }
 
@@ -122,11 +125,11 @@ class SocialFeaturesService {
           $near: {
             $geometry: {
               type: 'Point',
-              coordinates: [longitude, latitude]
+              coordinates: [longitude, latitude],
             },
-            $maxDistance: maxDistance
-          }
-        }
+            $maxDistance: maxDistance,
+          },
+        },
       })
         .populate('hostId', 'name photos')
         .sort({ startTime: 1 });
@@ -147,7 +150,7 @@ class SocialFeaturesService {
       const existingReview = await FriendReview.findOne({
         reviewerId: data.reviewerId,
         revieweeId: data.revieweeId,
-        matchId: data.matchId || null
+        matchId: data.matchId || null,
       });
 
       if (existingReview) {
@@ -166,7 +169,7 @@ class SocialFeaturesService {
         pros: data.pros,
         cons: data.cons,
         wouldRecommend: data.wouldRecommend,
-        isAnonymous: data.isAnonymous || false
+        isAnonymous: data.isAnonymous || false,
       });
 
       await review.save();
@@ -205,14 +208,14 @@ class SocialFeaturesService {
     try {
       const reviews = await FriendReview.find({
         revieweeId: userId,
-        isPublic: true
+        isPublic: true,
       });
 
       if (reviews.length === 0) {
         return {
           averageRating: 0,
           totalReviews: 0,
-          categories: {}
+          categories: {},
         };
       }
 
@@ -223,13 +226,13 @@ class SocialFeaturesService {
         friendliness: 0,
         authenticity: 0,
         reliability: 0,
-        conversationSkills: 0
+        conversationSkills: 0,
       };
 
       let categoryCount = 0;
-      reviews.forEach(review => {
+      reviews.forEach((review) => {
         if (review.categories) {
-          Object.keys(categoryStats).forEach(key => {
+          Object.keys(categoryStats).forEach((key) => {
             if (review.categories[key]) {
               categoryStats[key] += review.categories[key];
               categoryCount++;
@@ -238,7 +241,7 @@ class SocialFeaturesService {
         }
       });
 
-      Object.keys(categoryStats).forEach(key => {
+      Object.keys(categoryStats).forEach((key) => {
         if (categoryCount > 0) {
           categoryStats[key] = (categoryStats[key] / reviews.length).toFixed(1);
         }
@@ -248,9 +251,10 @@ class SocialFeaturesService {
         averageRating,
         totalReviews: reviews.length,
         wouldRecommendPercentage: (
-          (reviews.filter(r => r.wouldRecommend).length / reviews.length) * 100
+          (reviews.filter((r) => r.wouldRecommend).length / reviews.length) *
+          100
         ).toFixed(0),
-        categories: categoryStats
+        categories: categoryStats,
       };
     } catch (error) {
       console.error('Error getting user review stats:', error);
@@ -284,9 +288,9 @@ class SocialFeaturesService {
         attendees: [
           {
             userId: data.organizerId,
-            status: 'registered'
-          }
-        ]
+            status: 'registered',
+          },
+        ],
       });
 
       await event.save();
@@ -308,7 +312,7 @@ class SocialFeaturesService {
 
       // Check if already registered
       const isAlreadyRegistered = event.attendees.some(
-        a => a.userId.toString() === userId.toString()
+        (a) => a.userId.toString() === userId.toString()
       );
 
       if (isAlreadyRegistered) {
@@ -322,7 +326,7 @@ class SocialFeaturesService {
 
       event.attendees.push({
         userId,
-        status: 'registered'
+        status: 'registered',
       });
       event.currentAttendeeCount = event.attendees.length;
 
@@ -347,11 +351,11 @@ class SocialFeaturesService {
           $near: {
             $geometry: {
               type: 'Point',
-              coordinates: [longitude, latitude]
+              coordinates: [longitude, latitude],
             },
-            $maxDistance: maxDistance
-          }
-        }
+            $maxDistance: maxDistance,
+          },
+        },
       };
 
       if (category) {
@@ -382,7 +386,7 @@ class SocialFeaturesService {
         sharedByUserId: userId, // User is sharing their own profile
         shareMethod,
         shareToken,
-        customMessage
+        customMessage,
       });
 
       await sharedProfile.save();
@@ -394,7 +398,7 @@ class SocialFeaturesService {
         shareToken,
         shareUrl,
         qrCode: this.generateQRCode(shareUrl),
-        expiresAt: sharedProfile.expiresAt
+        expiresAt: sharedProfile.expiresAt,
       };
     } catch (error) {
       console.error('Error creating shareable profile link:', error);
@@ -413,7 +417,7 @@ class SocialFeaturesService {
         userId,
         sharedByUserId,
         shareMethod: method,
-        shareToken
+        shareToken,
       });
 
       await sharedProfile.save();
@@ -432,7 +436,7 @@ class SocialFeaturesService {
       const sharedProfile = await SharedProfile.findOne({
         shareToken,
         isActive: true,
-        expiresAt: { $gt: new Date() }
+        expiresAt: { $gt: new Date() },
       }).populate('userId', '-password');
 
       if (!sharedProfile) {
@@ -445,7 +449,7 @@ class SocialFeaturesService {
       // Record view if tracking enabled
       if (sharedProfile.trackingEnabled) {
         sharedProfile.viewHistory.push({
-          viewedAt: new Date()
+          viewedAt: new Date(),
         });
       }
 
@@ -454,7 +458,7 @@ class SocialFeaturesService {
       return {
         profile: sharedProfile.userId,
         customMessage: sharedProfile.customMessage,
-        sharedAt: sharedProfile.createdAt
+        sharedAt: sharedProfile.createdAt,
       };
     } catch (error) {
       console.error('Error getting shared profile:', error);
@@ -469,7 +473,7 @@ class SocialFeaturesService {
     try {
       const sharedProfiles = await SharedProfile.find({
         userId,
-        isActive: true
+        isActive: true,
       }).sort({ createdAt: -1 });
 
       return sharedProfiles;

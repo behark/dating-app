@@ -5,11 +5,13 @@ The string `baDyyDNoCITkXoSQafVViT1IWbw1` doesn't look like a Google Web Client 
 ## What a Google Web Client ID Looks Like
 
 A Google Web Client ID has this format:
+
 ```
 466295464562-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com
 ```
 
 It's typically:
+
 - A long string with numbers and letters
 - Ends with `.apps.googleusercontent.com`
 - Has your project number at the start (466295464562 in your case)
@@ -42,12 +44,14 @@ It's typically:
 ## What is `baDyyDNoCITkXoSQafVViT1IWbw1`?
 
 This string could be:
+
 - A Firestore document ID
 - A user UID
 - An API key (but API keys are longer and start with "AIza")
 - Some other identifier
 
 **It's NOT a Google Web Client ID** because:
+
 - It doesn't end with `.apps.googleusercontent.com`
 - It's too short
 - It doesn't have the project number prefix
@@ -74,6 +78,7 @@ Once you have the correct Web Client ID, update `app.json`:
 ```
 
 Then redeploy:
+
 ```bash
 git add app.json
 git commit -m "Add Google Web Client ID"

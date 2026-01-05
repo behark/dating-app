@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
 export const PhoneVerificationScreen = ({ navigation, route }) => {
   const { sendPhoneVerification, verifyPhone, currentUser } = useAuth();
-  
+
   const [step, setStep] = useState(1); // 1: enter phone, 2: verify code
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -26,7 +26,7 @@ export const PhoneVerificationScreen = ({ navigation, route }) => {
   useEffect(() => {
     let interval;
     if (timer > 0) {
-      interval = setInterval(() => setTimer(t => t - 1), 1000);
+      interval = setInterval(() => setTimer((t) => t - 1), 1000);
     } else {
       setCanResend(true);
     }
@@ -38,7 +38,7 @@ export const PhoneVerificationScreen = ({ navigation, route }) => {
     const cleaned = text.replace(/\D/g, '');
     let formatted = cleaned;
     if (cleaned.length > 0) {
-      formatted = '+' + cleaned;
+      formatted = `+${cleaned}`;
     }
     return formatted;
   };
@@ -74,16 +74,12 @@ export const PhoneVerificationScreen = ({ navigation, route }) => {
       setLoading(true);
       await verifyPhone(verificationCode);
 
-      Alert.alert(
-        'Success',
-        'Phone number verified!',
-        [
-          {
-            text: 'OK',
-            onPress: () => navigation.goBack()
-          }
-        ]
-      );
+      Alert.alert('Success', 'Phone number verified!', [
+        {
+          text: 'OK',
+          onPress: () => navigation.goBack(),
+        },
+      ]);
     } catch (error) {
       Alert.alert('Error', error.message || 'Verification failed');
     } finally {
@@ -133,9 +129,7 @@ export const PhoneVerificationScreen = ({ navigation, route }) => {
                 keyboardType="phone-pad"
                 editable={!loading}
               />
-              <Text style={styles.helperText}>
-                Include country code (e.g., +1 for US)
-              </Text>
+              <Text style={styles.helperText}>Include country code (e.g., +1 for US)</Text>
             </View>
 
             <TouchableOpacity
@@ -167,9 +161,7 @@ export const PhoneVerificationScreen = ({ navigation, route }) => {
                 editable={!loading}
                 maxLength={6}
               />
-              <Text style={styles.helperText}>
-                Enter the 6-digit code
-              </Text>
+              <Text style={styles.helperText}>Enter the 6-digit code</Text>
             </View>
 
             <TouchableOpacity
@@ -185,15 +177,13 @@ export const PhoneVerificationScreen = ({ navigation, route }) => {
             </TouchableOpacity>
 
             <View style={styles.resendContainer}>
-              <Text style={styles.resendText}>Didn't receive the code? </Text>
+              <Text style={styles.resendText}>Didn&apos;t receive the code? </Text>
               {canResend ? (
                 <TouchableOpacity onPress={handleResend} disabled={loading}>
                   <Text style={styles.resendButton}>Resend</Text>
                 </TouchableOpacity>
               ) : (
-                <Text style={styles.timerText}>
-                  Resend in {timer}s
-                </Text>
+                <Text style={styles.timerText}>Resend in {timer}s</Text>
               )}
             </View>
 
@@ -210,39 +200,39 @@ export const PhoneVerificationScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   content: {
     flex: 1,
     padding: 20,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   header: {
     marginBottom: 30,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 8
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: '#999',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   form: {
-    marginBottom: 20
+    marginBottom: 20,
   },
   inputGroup: {
-    marginBottom: 20
+    marginBottom: 20,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333'
+    color: '#333',
   },
   input: {
     borderWidth: 1,
@@ -250,61 +240,61 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#333'
+    color: '#333',
   },
   helperText: {
     fontSize: 12,
     color: '#999',
-    marginTop: 4
+    marginTop: 4,
   },
   button: {
     paddingVertical: 14,
     backgroundColor: '#FF6B6B',
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 12
+    marginBottom: 12,
   },
   buttonDisabled: {
-    opacity: 0.6
+    opacity: 0.6,
   },
   buttonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   skipText: {
     color: '#999',
     textAlign: 'center',
     fontSize: 14,
-    padding: 10
+    padding: 10,
   },
   resendContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 16,
-    marginBottom: 8
+    marginBottom: 8,
   },
   resendText: {
     color: '#666',
-    fontSize: 14
+    fontSize: 14,
   },
   resendButton: {
     color: '#FF6B6B',
     fontWeight: 'bold',
-    fontSize: 14
+    fontSize: 14,
   },
   timerText: {
     color: '#999',
-    fontSize: 14
+    fontSize: 14,
   },
   changeNumber: {
     color: '#FF6B6B',
     textAlign: 'center',
     fontSize: 14,
     fontWeight: 'bold',
-    padding: 10
-  }
+    padding: 10,
+  },
 });
 
 export default PhoneVerificationScreen;

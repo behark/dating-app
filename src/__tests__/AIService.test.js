@@ -15,24 +15,25 @@ describe('AIService', () => {
       // Mock the fetch
       global.fetch = jest.fn(() =>
         Promise.resolve({
-          json: () => Promise.resolve({
-            success: true,
-            data: {
-              recommendations: [
-                {
-                  photoIndex: 0,
-                  photoUrl: 'https://example.com/photo1.jpg',
-                  score: 95,
-                  priority: 'high',
-                  reasons: ['Clear face visible', 'Good lighting']
-                }
-              ],
-              analysis: {
-                totalPhotos: 5,
-                averageScore: 85
-              }
-            }
-          })
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: {
+                recommendations: [
+                  {
+                    photoIndex: 0,
+                    photoUrl: 'https://example.com/photo1.jpg',
+                    score: 95,
+                    priority: 'high',
+                    reasons: ['Clear face visible', 'Good lighting'],
+                  },
+                ],
+                analysis: {
+                  totalPhotos: 5,
+                  averageScore: 85,
+                },
+              },
+            }),
         })
       );
 
@@ -52,22 +53,23 @@ describe('AIService', () => {
     test('should return bio suggestions', async () => {
       global.fetch = jest.fn(() =>
         Promise.resolve({
-          json: () => Promise.resolve({
-            success: true,
-            data: {
-              suggestions: [
-                {
-                  bio: 'Adventure seeker | Love exploring new places',
-                  tone: 'casual',
-                  reason: 'Based on your travel interests'
-                }
-              ],
-              explanations: {
-                toneAdvice: 'Keep it genuine',
-                lengthTip: 'Aim for 50-150 characters'
-              }
-            }
-          })
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: {
+                suggestions: [
+                  {
+                    bio: 'Adventure seeker | Love exploring new places',
+                    tone: 'casual',
+                    reason: 'Based on your travel interests',
+                  },
+                ],
+                explanations: {
+                  toneAdvice: 'Keep it genuine',
+                  lengthTip: 'Aim for 50-150 characters',
+                },
+              },
+            }),
         })
       );
 
@@ -81,18 +83,19 @@ describe('AIService', () => {
     test('should calculate compatibility score', async () => {
       global.fetch = jest.fn(() =>
         Promise.resolve({
-          json: () => Promise.resolve({
-            success: true,
-            data: {
-              score: 75,
-              breakdown: {
-                interestMatch: 80,
-                valueMatch: 70,
-                ageCompatibility: 85
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: {
+                score: 75,
+                breakdown: {
+                  interestMatch: 80,
+                  valueMatch: 70,
+                  ageCompatibility: 85,
+                },
+                explanation: 'Great match!',
               },
-              explanation: 'Great match!'
-            }
-          })
+            }),
         })
       );
 
@@ -108,25 +111,26 @@ describe('AIService', () => {
     test('should return conversation starters', async () => {
       global.fetch = jest.fn(() =>
         Promise.resolve({
-          json: () => Promise.resolve({
-            success: true,
-            data: {
-              starters: [
-                'Hey! I noticed you love travel. What\'s your dream destination?',
-                'Your bio caught my attention!'
-              ],
-              reasoning: {
-                interestBased: 'Based on travel',
-                personalizationLevel: 'high'
-              }
-            }
-          })
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: {
+                starters: [
+                  "Hey! I noticed you love travel. What's your dream destination?",
+                  'Your bio caught my attention!',
+                ],
+                reasoning: {
+                  interestBased: 'Based on travel',
+                  personalizationLevel: 'high',
+                },
+              },
+            }),
         })
       );
 
       const result = await aiService.getConversationStarters(userId, targetUserId, {
         interests: ['travel'],
-        bio: 'Love traveling'
+        bio: 'Love traveling',
       });
       expect(result.starters).toBeDefined();
       expect(result.starters.length).toBeGreaterThan(0);
@@ -137,21 +141,22 @@ describe('AIService', () => {
     test('should return personalized matches', async () => {
       global.fetch = jest.fn(() =>
         Promise.resolve({
-          json: () => Promise.resolve({
-            success: true,
-            data: {
-              matches: [
-                {
-                  userId: 'match_1',
-                  name: 'Sarah',
-                  compatibilityScore: 85
-                }
-              ],
-              reasoning: {
-                algorithm: 'Interest-based matching'
-              }
-            }
-          })
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: {
+                matches: [
+                  {
+                    userId: 'match_1',
+                    name: 'Sarah',
+                    compatibilityScore: 85,
+                  },
+                ],
+                reasoning: {
+                  algorithm: 'Interest-based matching',
+                },
+              },
+            }),
         })
       );
 
@@ -165,23 +170,24 @@ describe('AIService', () => {
     test('should return profile improvement suggestions', async () => {
       global.fetch = jest.fn(() =>
         Promise.resolve({
-          json: () => Promise.resolve({
-            success: true,
-            data: {
-              suggestions: [
-                {
-                  area: 'Photos',
-                  priority: 'high',
-                  suggestion: 'Add more photos'
-                }
-              ],
-              priority: ['Add more photos'],
-              impact: {
-                completenessScore: 65,
-                potentialImprovementScore: 85
-              }
-            }
-          })
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: {
+                suggestions: [
+                  {
+                    area: 'Photos',
+                    priority: 'high',
+                    suggestion: 'Add more photos',
+                  },
+                ],
+                priority: ['Add more photos'],
+                impact: {
+                  completenessScore: 65,
+                  potentialImprovementScore: 85,
+                },
+              },
+            }),
         })
       );
 
@@ -195,22 +201,23 @@ describe('AIService', () => {
     test('should return conversation insights', async () => {
       global.fetch = jest.fn(() =>
         Promise.resolve({
-          json: () => Promise.resolve({
-            success: true,
-            data: {
-              insights: [
-                {
-                  title: 'You\'re great at opening lines',
-                  description: '45% response rate',
-                  impact: 'positive'
-                }
-              ],
-              tips: ['Ask open-ended questions'],
-              patterns: {
-                averageMessageLength: '45 characters'
-              }
-            }
-          })
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: {
+                insights: [
+                  {
+                    title: "You're great at opening lines",
+                    description: '45% response rate',
+                    impact: 'positive',
+                  },
+                ],
+                tips: ['Ask open-ended questions'],
+                patterns: {
+                  averageMessageLength: '45 characters',
+                },
+              },
+            }),
         })
       );
 
@@ -235,7 +242,7 @@ describe('SafetyService - Advanced Features', () => {
         location: 'Coffee Shop',
         address: '123 Main St',
         dateTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
-        notes: 'First date'
+        notes: 'First date',
       };
 
       const result = await SafetyService.shareDatePlan(userId, datePlanData, friendIds);
@@ -251,8 +258,7 @@ describe('SafetyService - Advanced Features', () => {
         dateTime: new Date(Date.now() - 60 * 60 * 1000), // Past date
       };
 
-      await expect(SafetyService.shareDatePlan(userId, datePlanData, friendIds))
-        .rejects.toThrow();
+      await expect(SafetyService.shareDatePlan(userId, datePlanData, friendIds)).rejects.toThrow();
     });
   });
 
@@ -276,7 +282,7 @@ describe('SafetyService - Advanced Features', () => {
       const location = {
         latitude: 37.7749,
         longitude: -122.4194,
-        address: '123 Main St'
+        address: '123 Main St',
       };
 
       const result = await SafetyService.sendEmergencySOS(userId, location, 'Emergency!');
@@ -285,16 +291,15 @@ describe('SafetyService - Advanced Features', () => {
     });
 
     test('should require location', async () => {
-      await expect(SafetyService.sendEmergencySOS(userId, {}, 'Emergency!'))
-        .rejects.toThrow();
+      await expect(SafetyService.sendEmergencySOS(userId, {}, 'Emergency!')).rejects.toThrow();
     });
   });
 
   describe('respondToSOS', () => {
     test('should respond to SOS alert', async () => {
       const result = await SafetyService.respondToSOS('sos_123', 'responder_id', {
-        message: 'I\'m coming',
-        confirmedSafe: true
+        message: "I'm coming",
+        confirmedSafe: true,
       });
       expect(result.success).toBe(true);
     });
@@ -313,7 +318,7 @@ describe('SafetyService - Advanced Features', () => {
         firstName: 'John',
         lastName: 'Doe',
         dateOfBirth: '1990-01-01',
-        email: 'john@example.com'
+        email: 'john@example.com',
       };
 
       const result = await SafetyService.initiateBackgroundCheck(userId, userInfo);
@@ -335,7 +340,7 @@ describe('SafetyService - Advanced Features', () => {
       const contact = {
         name: 'Mom',
         phone: '555-1234',
-        relationship: 'Mother'
+        relationship: 'Mother',
       };
 
       const result = await SafetyService.addEmergencyContact(userId, contact);
@@ -348,7 +353,7 @@ describe('SafetyService - Advanced Features', () => {
       const invalidContact = {
         name: '',
         phone: '123',
-        relationship: ''
+        relationship: '',
       };
 
       const validation = SafetyService.validateEmergencyContact(invalidContact);
@@ -370,7 +375,7 @@ describe('SafetyService - Advanced Features', () => {
         method: 'advanced',
         faceDetected: true,
         livenessPassed: true,
-        confidence: 0.95
+        confidence: 0.95,
       });
       expect(result.success).toBe(true);
       expect(result.verificationId).toBeDefined();
@@ -389,7 +394,7 @@ describe('SafetyService - Advanced Features', () => {
     test('should validate date plan', () => {
       const validPlan = {
         location: 'Coffee Shop',
-        dateTime: new Date(Date.now() + 60 * 60 * 1000)
+        dateTime: new Date(Date.now() + 60 * 60 * 1000),
       };
 
       const validation = SafetyService.validateDatePlan(validPlan);
@@ -401,7 +406,7 @@ describe('SafetyService - Advanced Features', () => {
       const validContact = {
         name: 'Mom',
         phone: '5551234567',
-        relationship: 'Mother'
+        relationship: 'Mother',
       };
 
       const validation = SafetyService.validateEmergencyContact(validContact);

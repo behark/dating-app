@@ -22,18 +22,21 @@ This is the backend API for the dating app, built with Node.js, Express, and Mon
 ## Quick Start
 
 1. **Install dependencies**:
+
    ```bash
    cd backend
    npm install
    ```
 
 2. **Set up environment variables**:
+
    ```bash
    cp .env.example .env
    # Edit .env with your MongoDB connection string
    ```
 
 3. **Start MongoDB** (if running locally):
+
    ```bash
    mongod
    ```
@@ -48,21 +51,25 @@ This is the backend API for the dating app, built with Node.js, Express, and Mon
 ## API Endpoints
 
 ### Discovery
+
 - `GET /api/discover?lat={lat}&lng={lng}&radius={radius}` - Discover users within radius
 - `GET /api/discover/settings` - Get user discovery preferences
 - `PUT /api/discover/location` - Update user location
 
 ### AI
+
 - `POST /api/ai/icebreaker` - Generate icebreaker messages for a target user
   - Body: `{ "targetUserId": "user_id_here" }`
   - Returns: `{ "success": true, "icebreakers": ["message1", "message2", "message3"] }`
 
 ### Authentication
+
 Currently using mock authentication via `X-User-ID` header for testing.
 
 ## Socket.io Events
 
 ### Client Events (emit)
+
 - `join_room` (matchId): Join a chat room for a specific match
 - `send_message` (data): Send a message to a room
   - `data.matchId`: Match ID
@@ -72,6 +79,7 @@ Currently using mock authentication via `X-User-ID` header for testing.
 - `typing_stop` (matchId): Indicate user stopped typing
 
 ### Server Events (listen)
+
 - `joined_room` (data): Confirmation of room join
 - `new_message` (data): New message received
 - `user_typing` (data): Typing status update
@@ -79,6 +87,7 @@ Currently using mock authentication via `X-User-ID` header for testing.
 - `error` (error): Error occurred
 
 ### Room-based Architecture
+
 - Each match has its own Socket.io room named by `matchId`
 - Users automatically join their match rooms
 - Messages are broadcast to all room members
@@ -86,24 +95,26 @@ Currently using mock authentication via `X-User-ID` header for testing.
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | Server port | 3000 |
-| `MONGODB_URI` | MongoDB connection string | mongodb://localhost:27017/dating-app |
-| `FRONTEND_URL` | Frontend URL for CORS | http://localhost:3000 |
-| `NODE_ENV` | Environment mode | development |
-| `OPENAI_API_KEY` | OpenAI API key (optional) | - |
-| `OPENAI_MODEL` | OpenAI model to use | gpt-3.5-turbo |
-| `USE_OPENAI` | Enable OpenAI (set to 'false' to use mock) | true if API key exists |
+| Variable         | Description                                | Default                              |
+| ---------------- | ------------------------------------------ | ------------------------------------ |
+| `PORT`           | Server port                                | 3000                                 |
+| `MONGODB_URI`    | MongoDB connection string                  | mongodb://localhost:27017/dating-app |
+| `FRONTEND_URL`   | Frontend URL for CORS                      | http://localhost:3000                |
+| `NODE_ENV`       | Environment mode                           | development                          |
+| `OPENAI_API_KEY` | OpenAI API key (optional)                  | -                                    |
+| `OPENAI_MODEL`   | OpenAI model to use                        | gpt-3.5-turbo                        |
+| `USE_OPENAI`     | Enable OpenAI (set to 'false' to use mock) | true if API key exists               |
 
 ## Database Models
 
 ### User
+
 - **Location**: GeoJSON Point with 2dsphere index for geospatial queries
 - **Profile**: Basic user information, photos, preferences
 - **Activity**: Last active timestamp, verification status
 
 ### Swipe
+
 - **Interactions**: Track likes, passes, and superlikes
 - **Relationships**: Link swiper to swiped user
 - **TTL Index**: Auto-expire old swipes after 30 days
@@ -121,12 +132,14 @@ node test-socket.js   # Run Socket.io test client
 ## API Usage Examples
 
 ### Discover Users
+
 ```bash
 curl -H "X-User-ID: 507f1f77bcf86cd799439011" \
      "http://localhost:3000/api/discover?lat=40.7128&lng=-74.0060&radius=5000"
 ```
 
 ### Update Location
+
 ```bash
 curl -X PUT \
      -H "Content-Type: application/json" \
@@ -136,6 +149,7 @@ curl -X PUT \
 ```
 
 ### Generate Icebreakers
+
 ```bash
 curl -X POST \
      -H "Content-Type: application/json" \

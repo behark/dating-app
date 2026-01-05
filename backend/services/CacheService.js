@@ -49,14 +49,14 @@ const UserCache = {
    */
   async getOrFetch(userId, fetchFn) {
     let user = await this.getProfile(userId);
-    
+
     if (!user) {
       user = await fetchFn(userId);
       if (user) {
         await this.setProfile(userId, user);
       }
     }
-    
+
     return user;
   },
 };
@@ -112,7 +112,7 @@ const DiscoveryCache = {
    * Add to excluded IDs
    */
   async addExcludedId(userId, excludedId) {
-    let excluded = await this.getExcludedIds(userId) || [];
+    const excluded = (await this.getExcludedIds(userId)) || [];
     if (!excluded.includes(excludedId)) {
       excluded.push(excludedId);
       await this.setExcludedIds(userId, excluded);
@@ -150,14 +150,14 @@ const MatchCache = {
    */
   async getOrFetch(userId, fetchFn) {
     let matches = await this.getMatches(userId);
-    
+
     if (!matches) {
       matches = await fetchFn(userId);
       if (matches) {
         await this.setMatches(userId, matches);
       }
     }
-    
+
     return matches || [];
   },
 };
@@ -177,11 +177,7 @@ const ConversationCache = {
    * Cache conversation messages
    */
   async setConversation(matchId, messages) {
-    return cache.set(
-      `${CACHE_KEYS.CONVERSATION}${matchId}`,
-      messages,
-      CACHE_TTL.CONVERSATIONS
-    );
+    return cache.set(`${CACHE_KEYS.CONVERSATION}${matchId}`, messages, CACHE_TTL.CONVERSATIONS);
   },
 
   /**
@@ -217,7 +213,7 @@ const RateLimitCache = {
   async checkLimit(key, maxRequests, windowSeconds) {
     const fullKey = `${CACHE_KEYS.RATE_LIMIT}${key}`;
     const count = await cache.incr(fullKey, windowSeconds);
-    
+
     return {
       allowed: count <= maxRequests,
       remaining: Math.max(0, maxRequests - count),
@@ -239,7 +235,7 @@ const RateLimitCache = {
   async incrementSwipeCount(userId, dailyLimit = 100) {
     const key = `${CACHE_KEYS.SWIPE_COUNT}${userId}`;
     const count = await cache.incr(key, 86400); // 24 hours
-    
+
     return {
       count,
       remaining: Math.max(0, dailyLimit - count),
@@ -276,17 +272,17 @@ const LeaderboardCache = {
       limit - 1,
       true
     );
-    
+
     // Parse results into array of { userId, score }
     const leaderboard = [];
     for (let i = 0; i < results.length; i += 2) {
       leaderboard.push({
         userId: results[i],
         score: parseInt(results[i + 1]),
-        rank: (i / 2) + 1,
+        rank: i / 2 + 1,
       });
     }
-    
+
     return leaderboard;
   },
 
@@ -296,7 +292,7 @@ const LeaderboardCache = {
   async getUserRank(leaderboardName, userId) {
     const client = await require('../config/redis').getRedis();
     if (!client) return null;
-    
+
     const rank = await client.zrevrank(`${CACHE_KEYS.LEADERBOARD}${leaderboardName}`, userId);
     return rank !== null ? rank + 1 : null;
   },
@@ -348,26 +344,28 @@ const SessionCache = {
 const warmCache = async (userId) => {
   const User = require('../models/User');
   const Swipe = require('../models/Swipe');
-  
+
   try {
     // Warm user profile
     const user = await User.findById(userId).lean();
     if (user) {
       await UserCache.setProfile(userId, user);
     }
-    
+
     // Warm matches
     const matches = await Swipe.find({
       $or: [
         { swiperId: userId, isMatch: true },
         { swipedId: userId, isMatch: true },
       ],
-    }).populate('swiperId swipedId', 'name photos').lean();
-    
+    })
+      .populate('swiperId swipedId', 'name photos')
+      .lean();
+
     if (matches.length > 0) {
       await MatchCache.setMatches(userId, matches);
     }
-    
+
     console.log(`Cache warmed for user ${userId}`);
   } catch (error) {
     console.error('Cache warming error:', error);

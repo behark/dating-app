@@ -1,9 +1,9 @@
 /**
  * UserRepository Interface
- * 
+ *
  * Abstract interface for user data operations.
  * Implementations can use Firebase, REST API, or any other data source.
- * 
+ *
  * All methods should handle errors gracefully and return empty arrays/null
  * instead of throwing, allowing the UI to display appropriate empty states.
  */

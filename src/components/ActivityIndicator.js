@@ -1,11 +1,5 @@
-import { useEffect, useState } from 'react';
-import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
-} from 'react-native';
+import { useEffect, useState, useCallback } from 'react';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ActivityService } from '../services/ActivityService';
 
 const ActivityIndicatorComponent = ({ userId, showLabel = true }) => {
@@ -14,14 +8,7 @@ const ActivityIndicatorComponent = ({ userId, showLabel = true }) => {
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchStatus();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchStatus, 30000);
-    return () => clearInterval(interval);
-  }, [userId]);
-
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       const activityStatus = await ActivityService.getOnlineStatus(userId);
       setStatus(activityStatus);
@@ -33,7 +20,14 @@ const ActivityIndicatorComponent = ({ userId, showLabel = true }) => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    fetchStatus();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchStatus, 30000);
+    return () => clearInterval(interval);
+  }, [fetchStatus]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -73,15 +67,9 @@ const ActivityIndicatorComponent = ({ userId, showLabel = true }) => {
   };
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={handleRefresh}
-      disabled={refreshing}
-    >
+    <TouchableOpacity style={styles.container} onPress={handleRefresh} disabled={refreshing}>
       <View style={[styles.statusDot, { backgroundColor: getStatusColor() }]} />
-      {showLabel && (
-        <Text style={styles.statusText}>{getStatusText()}</Text>
-      )}
+      {showLabel && <Text style={styles.statusText}>{getStatusText()}</Text>}
       {refreshing && <ActivityIndicator size="small" color="#007AFF" style={styles.spinner} />}
     </TouchableOpacity>
   );
@@ -93,19 +81,19 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6
+    gap: 6,
   },
   statusDot: {
     width: 8,
     height: 8,
-    borderRadius: 4
+    borderRadius: 4,
   },
   statusText: {
     fontSize: 12,
     color: '#666',
-    fontWeight: '500'
+    fontWeight: '500',
   },
   spinner: {
-    marginLeft: 4
-  }
+    marginLeft: 4,
+  },
 });

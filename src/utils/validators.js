@@ -23,11 +23,11 @@ export const validateEmail = (email) => {
  * Validate password strength
  * @param {string} password - Password to validate
  * @param {Object} options - Validation options
- * @param {number} options.minLength - Minimum password length (default: 6)
+ * @param {number} options.minLength - Minimum password length (default: 8)
  * @returns {boolean} True if password meets requirements
  */
 export const validatePassword = (password, options = {}) => {
-  const { minLength = 6 } = options;
+  const { minLength = 8 } = options;
   if (!password || typeof password !== 'string') return false;
   return password.length >= minLength;
 };
@@ -76,6 +76,82 @@ export const validateBio = (bio, options = {}) => {
 };
 
 /**
+ * Validate latitude
+ * @param {number} lat - Latitude to validate
+ * @returns {boolean} True if latitude is valid
+ */
+export const validateLatitude = (lat) => {
+  if (typeof lat !== 'number' || isNaN(lat)) return false;
+  return lat >= -90 && lat <= 90;
+};
+
+/**
+ * Validate longitude
+ * @param {number} lng - Longitude to validate
+ * @returns {boolean} True if longitude is valid
+ */
+export const validateLongitude = (lng) => {
+  if (typeof lng !== 'number' || isNaN(lng)) return false;
+  return lng >= -180 && lng <= 180;
+};
+
+/**
+ * Validate coordinates (lat, lng)
+ * @param {number} lat - Latitude
+ * @param {number} lng - Longitude
+ * @returns {boolean} True if coordinates are valid
+ */
+export const validateCoordinates = (lat, lng) => {
+  return validateLatitude(lat) && validateLongitude(lng);
+};
+
+/**
+ * Validate user ID format
+ * @param {string} userId - User ID to validate
+ * @returns {boolean} True if user ID is valid
+ */
+export const validateUserId = (userId) => {
+  if (!userId || typeof userId !== 'string') return false;
+  // MongoDB ObjectId format or UUID format
+  return (
+    /^[a-f\d]{24}$/i.test(userId) ||
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)
+  );
+};
+
+/**
+ * Validate number is within range
+ * @param {number} value - Value to validate
+ * @param {number} min - Minimum value
+ * @param {number} max - Maximum value
+ * @returns {boolean} True if value is in range
+ */
+export const validateNumberRange = (value, min, max) => {
+  if (typeof value !== 'number' || isNaN(value)) return false;
+  return value >= min && value <= max;
+};
+
+/**
+ * Validate string is not empty
+ * @param {string} value - String to validate
+ * @returns {boolean} True if string is not empty
+ */
+export const validateNotEmpty = (value) => {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string') return value.trim().length > 0;
+  return true;
+};
+
+/**
+ * Validate array is not empty
+ * @param {Array} array - Array to validate
+ * @returns {boolean} True if array is not empty
+ */
+export const validateArrayNotEmpty = (array) => {
+  return Array.isArray(array) && array.length > 0;
+};
+
+/**
  * Sanitize user input by removing potentially harmful characters
  * @param {string} input - Input string to sanitize
  * @returns {string} Sanitized input
@@ -96,12 +172,46 @@ export const isEmpty = (value) => {
   return false;
 };
 
+/**
+ * Validate API response structure
+ * @param {Object} data - Response data to validate
+ * @param {Object} options - Validation options
+ * @param {boolean} options.requireSuccess - Require success property (default: true)
+ * @param {boolean} options.requireData - Require data property (default: false)
+ * @returns {Object} { valid: boolean, error?: string }
+ */
+export const validateApiResponse = (data, options = {}) => {
+  const { requireSuccess = true, requireData = false } = options;
+
+  if (!data || typeof data !== 'object') {
+    return { valid: false, error: 'Invalid response format' };
+  }
+
+  if (requireSuccess && data.success === false) {
+    return { valid: false, error: data.message || 'Request failed' };
+  }
+
+  if (requireData && data.data === undefined) {
+    return { valid: false, error: 'Response data is missing' };
+  }
+
+  return { valid: true };
+};
+
 export default {
   validateEmail,
   validatePassword,
   validateAge,
   validateName,
   validateBio,
+  validateLatitude,
+  validateLongitude,
+  validateCoordinates,
+  validateUserId,
+  validateNumberRange,
+  validateNotEmpty,
+  validateArrayNotEmpty,
   sanitizeInput,
   isEmpty,
+  validateApiResponse,
 };

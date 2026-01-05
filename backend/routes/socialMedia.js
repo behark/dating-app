@@ -5,7 +5,7 @@ const {
   connectInstagram,
   disconnectSpotify,
   disconnectInstagram,
-  getSocialMedia
+  getSocialMedia,
 } = require('../controllers/socialMediaController');
 const { authenticate } = require('../middleware/auth');
 
@@ -18,25 +18,37 @@ const handleValidationErrors = (req, res, next) => {
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
-      errors: errors.array().map(err => ({ field: err.param, message: err.msg }))
+      errors: errors.array().map((err) => ({ field: err.param, message: err.msg })),
     });
   }
   next();
 };
 
 // Connect Spotify
-router.post('/connect-spotify', authenticate, [
-  body('spotifyId').notEmpty().withMessage('Spotify ID is required'),
-  body('username').notEmpty().withMessage('Username is required'),
-  body('profileUrl').optional().isURL()
-], handleValidationErrors, connectSpotify);
+router.post(
+  '/connect-spotify',
+  authenticate,
+  [
+    body('spotifyId').notEmpty().withMessage('Spotify ID is required'),
+    body('username').notEmpty().withMessage('Username is required'),
+    body('profileUrl').optional().isURL(),
+  ],
+  handleValidationErrors,
+  connectSpotify
+);
 
 // Connect Instagram
-router.post('/connect-instagram', authenticate, [
-  body('instagramId').notEmpty().withMessage('Instagram ID is required'),
-  body('username').notEmpty().withMessage('Username is required'),
-  body('profileUrl').optional().isURL()
-], handleValidationErrors, connectInstagram);
+router.post(
+  '/connect-instagram',
+  authenticate,
+  [
+    body('instagramId').notEmpty().withMessage('Instagram ID is required'),
+    body('username').notEmpty().withMessage('Username is required'),
+    body('profileUrl').optional().isURL(),
+  ],
+  handleValidationErrors,
+  connectInstagram
+);
 
 // Disconnect Spotify
 router.delete('/disconnect-spotify', authenticate, disconnectSpotify);

@@ -102,7 +102,7 @@ export class PreferencesService {
         return [];
       }
 
-      return allUsers.filter(user => {
+      return allUsers.filter((user) => {
         // Don't show current user
         if (user.id === currentUserId) return false;
 
@@ -138,12 +138,7 @@ export class PreferencesService {
    */
   static calculateDistance(coord1, coord2) {
     if (!coord1 || !coord2) return Infinity;
-    return calcDist(
-      coord1.latitude,
-      coord1.longitude,
-      coord2.latitude,
-      coord2.longitude
-    );
+    return calcDist(coord1.latitude, coord1.longitude, coord2.latitude, coord2.longitude);
   }
 
   static validatePreferences(preferences) {

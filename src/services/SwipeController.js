@@ -1,4 +1,14 @@
-import { addDoc, collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  serverTimestamp,
+  setDoc,
+  where,
+} from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Swipe } from '../models/Swipe';
 import { NotificationService } from './NotificationService';
@@ -66,7 +76,7 @@ export class SwipeController {
       // If it's a like, check for mutual like
       if (type === 'like') {
         const matchResult = await this.checkAndCreateMatch(swiperId, targetId);
-        
+
         return {
           success: true,
           swipeId: swipeRef.id,
@@ -101,14 +111,14 @@ export class SwipeController {
     try {
       // Check if target has liked the swiper
       const targetSwipe = await this.getSwipe(targetId, swiperId);
-      
+
       if (targetSwipe && targetSwipe.type === 'like') {
         // Mutual like detected - create a match
         const matchId = await this.createMatch(swiperId, targetId);
-        
+
         // Update both users' matches arrays for backward compatibility
         await this.updateUserMatches(swiperId, targetId);
-        
+
         // Send notification to the target user
         try {
           const swiperDoc = await getDoc(doc(db, 'users', swiperId));
@@ -191,7 +201,7 @@ export class SwipeController {
       );
 
       const querySnapshot = await getDocs(q);
-      
+
       if (querySnapshot.empty) {
         return null;
       }
@@ -211,10 +221,7 @@ export class SwipeController {
    */
   static async getUserSwipes(userId) {
     try {
-      const q = query(
-        collection(db, 'swipes'),
-        where('swiper', '==', userId)
-      );
+      const q = query(collection(db, 'swipes'), where('swiper', '==', userId));
 
       const querySnapshot = await getDocs(q);
       const swipes = [];
@@ -237,10 +244,7 @@ export class SwipeController {
    */
   static async getReceivedSwipes(userId) {
     try {
-      const q = query(
-        collection(db, 'swipes'),
-        where('target', '==', userId)
-      );
+      const q = query(collection(db, 'swipes'), where('target', '==', userId));
 
       const querySnapshot = await getDocs(q);
       const swipes = [];
@@ -269,9 +273,13 @@ export class SwipeController {
       const swipedUsers = userDoc.data()?.swipedUsers || [];
 
       if (!swipedUsers.includes(swipedUserId)) {
-        await setDoc(userRef, {
-          swipedUsers: [...swipedUsers, swipedUserId],
-        }, { merge: true });
+        await setDoc(
+          userRef,
+          {
+            swipedUsers: [...swipedUsers, swipedUserId],
+          },
+          { merge: true }
+        );
       }
     } catch (error) {
       console.error('Error updating user swiped list:', error);
@@ -289,29 +297,34 @@ export class SwipeController {
       const user1Ref = doc(db, 'users', userId1);
       const user2Ref = doc(db, 'users', userId2);
 
-      const [user1Doc, user2Doc] = await Promise.all([
-        getDoc(user1Ref),
-        getDoc(user2Ref),
-      ]);
+      const [user1Doc, user2Doc] = await Promise.all([getDoc(user1Ref), getDoc(user2Ref)]);
 
       const user1Matches = user1Doc.data()?.matches || [];
       const user2Matches = user2Doc.data()?.matches || [];
 
       const updates = [];
-      
+
       if (!user1Matches.includes(userId2)) {
         updates.push(
-          setDoc(user1Ref, {
-            matches: [...user1Matches, userId2],
-          }, { merge: true })
+          setDoc(
+            user1Ref,
+            {
+              matches: [...user1Matches, userId2],
+            },
+            { merge: true }
+          )
         );
       }
 
       if (!user2Matches.includes(userId1)) {
         updates.push(
-          setDoc(user2Ref, {
-            matches: [...user2Matches, userId1],
-          }, { merge: true })
+          setDoc(
+            user2Ref,
+            {
+              matches: [...user2Matches, userId1],
+            },
+            { merge: true }
+          )
         );
       }
 
@@ -336,10 +349,14 @@ export class SwipeController {
 
       if (lastSwipeDate !== today) {
         // Reset counter for new day
-        await setDoc(doc(db, 'users', userId), {
-          swipesToday: 0,
-          lastSwipeDate: today,
-        }, { merge: true });
+        await setDoc(
+          doc(db, 'users', userId),
+          {
+            swipesToday: 0,
+            lastSwipeDate: today,
+          },
+          { merge: true }
+        );
         return 0;
       }
 
@@ -396,10 +413,14 @@ export class SwipeController {
       const swipesCount = await this.getSwipesCountToday(userId);
       const today = new Date().toDateString();
 
-      await setDoc(doc(db, 'users', userId), {
-        swipesToday: swipesCount + 1,
-        lastSwipeDate: today,
-      }, { merge: true });
+      await setDoc(
+        doc(db, 'users', userId),
+        {
+          swipesToday: swipesCount + 1,
+          lastSwipeDate: today,
+        },
+        { merge: true }
+      );
     } catch (error) {
       console.error('Error incrementing swipe counter:', error);
     }
@@ -420,10 +441,14 @@ export class SwipeController {
       const swipesCount = await this.getSwipesCountToday(userId);
       if (swipesCount > 0) {
         const today = new Date().toDateString();
-        await setDoc(doc(db, 'users', userId), {
-          swipesToday: swipesCount - 1,
-          lastSwipeDate: today,
-        }, { merge: true });
+        await setDoc(
+          doc(db, 'users', userId),
+          {
+            swipesToday: swipesCount - 1,
+            lastSwipeDate: today,
+          },
+          { merge: true }
+        );
       }
 
       return {
@@ -446,10 +471,7 @@ export class SwipeController {
    */
   static async getLastSwipe(userId) {
     try {
-      const q = query(
-        collection(db, 'swipes'),
-        where('swiper', '==', userId)
-      );
+      const q = query(collection(db, 'swipes'), where('swiper', '==', userId));
 
       const querySnapshot = await getDocs(q);
       let lastSwipe = null;
@@ -479,7 +501,7 @@ export class SwipeController {
   static async unmatch(userId1, userId2) {
     try {
       const { deleteDoc } = await import('firebase/firestore');
-      
+
       // Delete the match document
       const sortedIds = [userId1, userId2].sort();
       const matchId = `${sortedIds[0]}_${sortedIds[1]}`;
@@ -499,17 +521,25 @@ export class SwipeController {
 
       if (user1Matches.includes(userId2)) {
         updates.push(
-          setDoc(doc(db, 'users', userId1), {
-            matches: user1Matches.filter(id => id !== userId2),
-          }, { merge: true })
+          setDoc(
+            doc(db, 'users', userId1),
+            {
+              matches: user1Matches.filter((id) => id !== userId2),
+            },
+            { merge: true }
+          )
         );
       }
 
       if (user2Matches.includes(userId1)) {
         updates.push(
-          setDoc(doc(db, 'users', userId2), {
-            matches: user2Matches.filter(id => id !== userId1),
-          }, { merge: true })
+          setDoc(
+            doc(db, 'users', userId2),
+            {
+              matches: user2Matches.filter((id) => id !== userId1),
+            },
+            { merge: true }
+          )
         );
       }
 

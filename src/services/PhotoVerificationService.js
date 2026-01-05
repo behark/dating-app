@@ -1,4 +1,13 @@
-import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
 
@@ -29,7 +38,7 @@ export class PhotoVerificationService {
           timestamp: new Date(),
           passed: false,
           confidence: 0,
-          ...metadata
+          ...metadata,
         },
         attempts: 1,
       };
@@ -114,7 +123,7 @@ export class PhotoVerificationService {
     try {
       // In a real app, this would use a ML model or API service like AWS Rekognition
       // For now, we'll simulate basic checks
-      
+
       // Fetch the image
       const response = await fetch(photoUri);
       const blob = await response.blob();
@@ -155,7 +164,7 @@ export class PhotoVerificationService {
     try {
       // Compare current photo with profile photo to ensure it's the same person
       // Uses facial recognition
-      
+
       const currentResponse = await fetch(currentPhotoUri);
       const currentBlob = await currentResponse.blob();
 
@@ -200,12 +209,9 @@ export class PhotoVerificationService {
   // Get pending verifications (for admin)
   static async getPendingVerifications() {
     try {
-      const q = query(
-        collection(db, 'verifications'),
-        where('status', '==', 'pending')
-      );
+      const q = query(collection(db, 'verifications'), where('status', '==', 'pending'));
       const docs = await getDocs(q);
-      return docs.docs.map(doc => ({
+      return docs.docs.map((doc) => ({
         userId: doc.id,
         ...doc.data(),
       }));

@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { ActivityService } from '../services/ActivityService';
+import logger from '../utils/logger';
+import { formatRelativeTime } from '../utils/formatters';
 
 export default function ProfileViewsScreen() {
   const [viewData, setViewData] = useState(null);
@@ -27,7 +29,7 @@ export default function ProfileViewsScreen() {
       setViewData(data);
       setError(null);
     } catch (err) {
-      console.error('Error fetching profile views:', err);
+      logger.error('Error fetching profile views:', err);
       setError(err.message);
       Alert.alert('Error', err.message);
     } finally {
@@ -53,10 +55,7 @@ export default function ProfileViewsScreen() {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.errorText}>Error: {error}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={handleRefresh}
-        >
+        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
@@ -84,9 +83,7 @@ export default function ProfileViewsScreen() {
           </Text>
           {viewers.length > 0 && (
             <TouchableOpacity onPress={handleRefresh} disabled={refreshing}>
-              <Text style={styles.refreshText}>
-                {refreshing ? 'Refreshing...' : 'Refresh'}
-              </Text>
+              <Text style={styles.refreshText}>{refreshing ? 'Refreshing...' : 'Refresh'}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -100,9 +97,7 @@ export default function ProfileViewsScreen() {
               <View style={styles.viewerCard}>
                 <View style={styles.viewerInfo}>
                   <Text style={styles.viewerName}>{item.userName || 'Unknown User'}</Text>
-                  <Text style={styles.viewerTime}>
-                    Viewed {formatRelativeTime(item.viewedAt)}
-                  </Text>
+                  <Text style={styles.viewerTime}>Viewed {formatRelativeTime(item.viewedAt)}</Text>
                 </View>
                 <TouchableOpacity style={styles.viewButton}>
                   <Text style={styles.viewButtonText}>View Profile</Text>
@@ -140,37 +135,37 @@ export default function ProfileViewsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#f5f5f5',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   headerStats: {
     padding: 16,
     backgroundColor: '#fff',
     borderBottomColor: '#eee',
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
   },
   statCard: {
     alignItems: 'center',
-    paddingVertical: 8
+    paddingVertical: 8,
   },
   statNumber: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#007AFF'
+    color: '#007AFF',
   },
   statLabel: {
     fontSize: 14,
     color: '#666',
-    marginTop: 4
+    marginTop: 4,
   },
   viewersSection: {
     flex: 1,
     backgroundColor: '#fff',
-    marginTop: 8
+    marginTop: 8,
   },
   viewersHeader: {
     flexDirection: 'row',
@@ -179,17 +174,17 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomColor: '#eee',
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
   },
   viewersTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#000'
+    color: '#000',
   },
   refreshText: {
     fontSize: 13,
     color: '#007AFF',
-    fontWeight: '600'
+    fontWeight: '600',
   },
   viewerCard: {
     flexDirection: 'row',
@@ -198,41 +193,41 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomColor: '#f0f0f0',
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
   },
   viewerInfo: {
-    flex: 1
+    flex: 1,
   },
   viewerName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 4
+    marginBottom: 4,
   },
   viewerTime: {
     fontSize: 13,
-    color: '#999'
+    color: '#999',
   },
   viewButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
     backgroundColor: '#007AFF',
-    borderRadius: 6
+    borderRadius: 6,
   },
   viewButtonText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 13
+    fontSize: 13,
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40
+    paddingVertical: 40,
   },
   emptyText: {
     fontSize: 14,
     color: '#999',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   premiumNotice: {
     backgroundColor: '#FFF3CD',
@@ -240,39 +235,39 @@ const styles = StyleSheet.create({
     margin: 16,
     borderRadius: 8,
     alignItems: 'center',
-    gap: 12
+    gap: 12,
   },
   premiumText: {
     fontSize: 14,
     color: '#856404',
     fontWeight: '600',
-    textAlign: 'center'
+    textAlign: 'center',
   },
   premiumButton: {
     backgroundColor: '#FFD700',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 6
+    borderRadius: 6,
   },
   premiumButtonText: {
     color: '#000',
     fontWeight: '600',
-    fontSize: 14
+    fontSize: 14,
   },
   errorText: {
     fontSize: 14,
     color: '#d32f2f',
     textAlign: 'center',
-    marginBottom: 16
+    marginBottom: 16,
   },
   retryButton: {
     backgroundColor: '#007AFF',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 6
+    borderRadius: 6,
   },
   retryButtonText: {
     color: '#fff',
-    fontWeight: '600'
-  }
+    fontWeight: '600',
+  },
 });

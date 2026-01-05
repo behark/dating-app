@@ -1,4 +1,12 @@
 import { API_URL as API_BASE_URL } from '../config/api';
+import logger from '../utils/logger';
+import {
+  validateUserId,
+  validateCoordinates,
+  validateNumberRange,
+  validateNotEmpty,
+} from '../utils/validators';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 
 export class PremiumService {
   static PREMIUM_FEATURES = {
@@ -18,16 +26,30 @@ export class PremiumService {
    */
   static async checkPremiumStatus(userId, token) {
     try {
+      if (!validateUserId(userId)) {
+        throw new Error('Invalid user ID provided');
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/subscription/status`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data.data || {
-        isPremium: false,
-        features: {}
-      };
+      return (
+        data.data || {
+          isPremium: false,
+          features: {},
+        }
+      );
     } catch (error) {
-      console.error('Error checking premium status:', error);
+      logger.error('Error checking premium status:', error);
       return { isPremium: false, features: {} };
     }
   }
@@ -37,14 +59,26 @@ export class PremiumService {
    */
   static async startTrialSubscription(userId, token) {
     try {
+      if (!validateUserId(userId)) {
+        throw new Error('Invalid user ID provided');
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/subscription/trial/start`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data;
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error starting trial:', error);
+      logger.error('Error starting trial:', error);
       return { success: false, error: error.message };
     }
   }
@@ -54,18 +88,33 @@ export class PremiumService {
    */
   static async upgradeToPremium(userId, planType = 'monthly', token) {
     try {
+      if (!validateUserId(userId)) {
+        throw new Error('Invalid user ID provided');
+      }
+      if (!['monthly', 'yearly'].includes(planType)) {
+        throw new Error('Plan type must be monthly or yearly');
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/subscription/upgrade`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ planType })
+        body: JSON.stringify({ planType }),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data;
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error upgrading to premium:', error);
+      logger.error('Error upgrading to premium:', error);
       return { success: false, error: error.message };
     }
   }
@@ -75,14 +124,26 @@ export class PremiumService {
    */
   static async cancelSubscription(userId, token) {
     try {
+      if (!validateUserId(userId)) {
+        throw new Error('Invalid user ID provided');
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/subscription/cancel`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data;
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error cancelling subscription:', error);
+      logger.error('Error cancelling subscription:', error);
       return { success: false, error: error.message };
     }
   }
@@ -92,13 +153,25 @@ export class PremiumService {
    */
   static async getReceivedLikes(userId, token) {
     try {
+      if (!validateUserId(userId)) {
+        throw new Error('Invalid user ID provided');
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/likes/received`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data.data || { likes: [] };
+      return data?.data || { likes: [] };
     } catch (error) {
-      console.error('Error getting received likes:', error);
+      logger.error('Error getting received likes:', error);
       return { likes: [] };
     }
   }
@@ -108,18 +181,33 @@ export class PremiumService {
    */
   static async setPassportLocation(longitude, latitude, city, country, token) {
     try {
+      if (!validateCoordinates(latitude, longitude)) {
+        throw new Error('Invalid coordinates provided');
+      }
+      if (!validateNotEmpty(city) || !validateNotEmpty(country)) {
+        throw new Error('City and country are required');
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/passport/location`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ longitude, latitude, city, country })
+        body: JSON.stringify({ longitude, latitude, city, country }),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data;
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error setting passport location:', error);
+      logger.error('Error setting passport location:', error);
       return { success: false, error: error.message };
     }
   }
@@ -129,13 +217,25 @@ export class PremiumService {
    */
   static async getPassportStatus(userId, token) {
     try {
+      if (!validateUserId(userId)) {
+        throw new Error('Invalid user ID provided');
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/passport/status`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data.data || { enabled: false };
+      return data?.data || { enabled: false };
     } catch (error) {
-      console.error('Error getting passport status:', error);
+      logger.error('Error getting passport status:', error);
       return { enabled: false };
     }
   }
@@ -145,14 +245,26 @@ export class PremiumService {
    */
   static async disablePassport(userId, token) {
     try {
+      if (!validateUserId(userId)) {
+        throw new Error('Invalid user ID provided');
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/passport/disable`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data;
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error disabling passport:', error);
+      logger.error('Error disabling passport:', error);
       return { success: false, error: error.message };
     }
   }
@@ -162,13 +274,25 @@ export class PremiumService {
    */
   static async getAdvancedFilterOptions(userId, token) {
     try {
+      if (!validateUserId(userId)) {
+        throw new Error('Invalid user ID provided');
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/filters/options`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data.data || {};
+      return data?.data || {};
     } catch (error) {
-      console.error('Error getting filter options:', error);
+      logger.error('Error getting filter options:', error);
       return {};
     }
   }
@@ -182,14 +306,22 @@ export class PremiumService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(filters)
+        body: JSON.stringify(filters),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data;
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error updating filters:', error);
+      logger.error('Error updating filters:', error);
       return { success: false, error: error.message };
     }
   }
@@ -199,18 +331,30 @@ export class PremiumService {
    */
   static async sendPriorityLike(targetUserId, token) {
     try {
+      if (!validateUserId(targetUserId)) {
+        throw new Error('Invalid target user ID provided');
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/likes/priority`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ targetUserId })
+        body: JSON.stringify({ targetUserId }),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data;
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error sending priority like:', error);
+      logger.error('Error sending priority like:', error);
       return { success: false, error: error.message };
     }
   }
@@ -224,14 +368,22 @@ export class PremiumService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ showAds, adCategories })
+        body: JSON.stringify({ showAds, adCategories }),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data;
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error updating ads preferences:', error);
+      logger.error('Error updating ads preferences:', error);
       return { success: false, error: error.message };
     }
   }
@@ -241,13 +393,25 @@ export class PremiumService {
    */
   static async getBoostAnalytics(userId, token) {
     try {
+      if (!validateUserId(userId)) {
+        throw new Error('Invalid user ID provided');
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/analytics/boosts`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data.data || {};
+      return data?.data || {};
     } catch (error) {
-      console.error('Error getting boost analytics:', error);
+      logger.error('Error getting boost analytics:', error);
       return {};
     }
   }
@@ -257,18 +421,40 @@ export class PremiumService {
    */
   static async recordBoostSession(duration, viewsGained, likesGained, matches, token) {
     try {
+      // Validate inputs
+      if (!validateNumberRange(duration, 0, 1440)) {
+        throw new Error('Duration must be between 0 and 1440 minutes (24 hours)');
+      }
+      if (viewsGained < 0 || !Number.isInteger(viewsGained)) {
+        throw new Error('Views gained must be a non-negative integer');
+      }
+      if (likesGained < 0 || !Number.isInteger(likesGained)) {
+        throw new Error('Likes gained must be a non-negative integer');
+      }
+      if (matches < 0 || !Number.isInteger(matches)) {
+        throw new Error('Matches must be a non-negative integer');
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/analytics/boost-session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ duration, viewsGained, likesGained, matches })
+        body: JSON.stringify({ duration, viewsGained, likesGained, matches }),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      return data;
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error recording boost session:', error);
+      logger.error('Error recording boost session:', error);
       return { success: false, error: error.message };
     }
   }

@@ -140,6 +140,7 @@ dating-app/
 ## Database Schema
 
 ### Users Collection
+
 ```javascript
 {
   name: string,
@@ -154,6 +155,7 @@ dating-app/
 ```
 
 ### Chats Collection
+
 ```
 chats/{chatId}/messages/{messageId}
 {
@@ -167,29 +169,36 @@ chats/{chatId}/messages/{messageId}
 ## Customization
 
 ### Change Colors
+
 Edit the color values in component StyleSheets:
+
 - Primary: `#FF6B6B` (red/pink)
 - Secondary: `#4ECDC4` (teal)
 - Background: `#f5f5f5`
 
 ### Add Filters
+
 Modify `HomeScreen.js` to add age/gender/distance filters in the `loadCards()` function.
 
 ### Photo Upload
+
 Currently uses Firebase Storage. To use Cloudinary instead, update `ProfileScreen.js`.
 
 ## Troubleshooting
 
 ### Firebase Connection Issues
+
 - Verify your Firebase credentials in `app.json`
 - Check Firebase console for API restrictions
 - Ensure Firestore rules allow read/write (for development)
 
 ### Swipe Gestures Not Working
+
 - Make sure `react-native-gesture-handler` is properly installed
 - Check that `react-native-reanimated` plugin is in `babel.config.js`
 
 ### Build Errors
+
 - Clear cache: `expo start -c`
 - Reinstall dependencies: `rm -rf node_modules && npm install`
 
@@ -200,6 +209,7 @@ MIT License - feel free to use this for learning or as a base for your own proje
 ## ✅ Completed Features
 
 ### 🔒 Security & Infrastructure
+
 - **Firebase Security Rules** - Comprehensive database and storage security
 - **Input Validation** - Client-side validation for all forms
 - **Error Boundaries** - Graceful error handling and reporting
@@ -207,12 +217,14 @@ MIT License - feel free to use this for learning or as a base for your own proje
 - **CI/CD Pipeline** - Automated testing and deployment
 
 ### 🚀 Performance & Scalability
+
 - **Chat Pagination** - Load messages in batches (20 at a time)
 - **Image Optimization** - Compression and caching for faster loading
 - **User Caching** - 5-minute cache for profile data
 - **Monitoring Service** - Performance tracking and error reporting
 
 ### 💎 Premium Features
+
 - **Super Likes** - Limited daily super likes with premium upgrade
 - **Unlimited Swipes** - Premium users get unlimited swipes
 - **Advanced Filters** - Premium filtering options
@@ -220,6 +232,7 @@ MIT License - feel free to use this for learning or as a base for your own proje
 - **Who Liked You** - See users who super liked you
 
 ### 📱 User Experience
+
 - **Push Notifications** - Real-time match and message notifications
 - **Location Services** - Distance-based matching and filtering
 - **Advanced Preferences** - Comprehensive user preference settings
@@ -227,6 +240,7 @@ MIT License - feel free to use this for learning or as a base for your own proje
 - **Multiple Photos** - Photo gallery with primary photo selection
 
 ### 🧪 Testing & Quality
+
 - **Unit Tests** - Jest testing framework with React Native Testing Library
 - **Analytics** - Firebase Analytics integration
 - **Error Monitoring** - Comprehensive error tracking
@@ -235,6 +249,7 @@ MIT License - feel free to use this for learning or as a base for your own proje
 ## 🚀 Deployment Options
 
 ### Web Deployment (Recommended for quick start)
+
 ```bash
 # Install Vercel CLI
 npm install -g vercel
@@ -247,6 +262,7 @@ git push origin main
 ```
 
 ### Mobile Deployment
+
 ```bash
 # Install EAS CLI
 npm install -g @expo/eas-cli
@@ -261,6 +277,7 @@ eas submit --platform android
 ```
 
 ### Docker Deployment
+
 ```bash
 # Build and run with Docker
 docker-compose up -d
@@ -282,6 +299,7 @@ The app includes comprehensive monitoring:
 ## 🛠️ Development
 
 ### Running Tests
+
 ```bash
 npm test              # Run all tests
 npm run test:watch    # Watch mode
@@ -289,6 +307,7 @@ npm run test:coverage # With coverage report
 ```
 
 ### Code Quality
+
 ```bash
 npm run lint      # Check code style
 npm run lint:fix  # Fix linting issues
@@ -296,6 +315,7 @@ npm run format    # Format code
 ```
 
 ### Environment Setup
+
 ```bash
 cp env.example .env
 # Fill in your Firebase credentials

@@ -8,16 +8,16 @@ This document describes the complete backend infrastructure implementation for t
 
 ### Backend Infrastructure
 
-| Component | Status | Implementation |
-|-----------|--------|----------------|
-| Database schema design (MongoDB) | ✅ | Enhanced with indexes, connection pooling |
-| REST API endpoints | ✅ | Full Express.js API with validation |
-| File storage (S3/Cloudinary) | ✅ | Dual provider support with CDN |
-| CDN setup for images | ✅ | Cloudinary transformations + CloudFront |
-| Redis for caching | ✅ | ioredis with comprehensive caching service |
-| Message queue (Bull/Redis) | ✅ | Bull queues for background processing |
-| WebSocket server | ✅ | Socket.io with presence & reconnection |
-| Background jobs | ✅ | Job processors for notifications, matches, cleanup |
+| Component                        | Status | Implementation                                     |
+| -------------------------------- | ------ | -------------------------------------------------- |
+| Database schema design (MongoDB) | ✅     | Enhanced with indexes, connection pooling          |
+| REST API endpoints               | ✅     | Full Express.js API with validation                |
+| File storage (S3/Cloudinary)     | ✅     | Dual provider support with CDN                     |
+| CDN setup for images             | ✅     | Cloudinary transformations + CloudFront            |
+| Redis for caching                | ✅     | ioredis with comprehensive caching service         |
+| Message queue (Bull/Redis)       | ✅     | Bull queues for background processing              |
+| WebSocket server                 | ✅     | Socket.io with presence & reconnection             |
+| Background jobs                  | ✅     | Job processors for notifications, matches, cleanup |
 
 ## Architecture
 
@@ -111,6 +111,7 @@ docker compose -f docker-compose.full.yml --profile development up -d
 ```
 
 Access at:
+
 - Redis Commander: http://localhost:8081
 - Mongo Express: http://localhost:8082
 
@@ -186,7 +187,7 @@ const result = await StorageService.upload(file, userId, 'image');
 const url = StorageService.getOptimizedUrl(originalUrl, {
   width: 600,
   height: 800,
-  quality: 'auto'
+  quality: 'auto',
 });
 ```
 
@@ -212,6 +213,7 @@ docker compose -f docker-compose.full.yml --profile production up -d
 ### Environment
 
 Set these in production:
+
 - `NODE_ENV=production`
 - Strong `JWT_SECRET`
 - Production database URIs

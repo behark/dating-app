@@ -11,7 +11,7 @@ const CDN_CONFIG = {
     domain: process.env.CLOUDFRONT_DOMAIN || process.env.CDN_URL,
     enabled: !!process.env.CLOUDFRONT_DOMAIN,
   },
-  
+
   // Cloudflare (alternative)
   cloudflare: {
     zoneId: process.env.CLOUDFLARE_ZONE_ID,
@@ -30,20 +30,20 @@ const CDN_CONFIG = {
 // Cache durations (in seconds)
 const CACHE_DURATIONS = {
   images: {
-    profile: 86400 * 30,    // 30 days
-    chat: 86400 * 7,        // 7 days
+    profile: 86400 * 30, // 30 days
+    chat: 86400 * 7, // 7 days
     thumbnail: 86400 * 365, // 1 year
   },
   static: {
-    js: 86400 * 30,         // 30 days
-    css: 86400 * 30,        // 30 days
-    fonts: 86400 * 365,     // 1 year
-    icons: 86400 * 365,     // 1 year
+    js: 86400 * 30, // 30 days
+    css: 86400 * 30, // 30 days
+    fonts: 86400 * 365, // 1 year
+    icons: 86400 * 365, // 1 year
   },
   api: {
-    discovery: 60,          // 1 minute
-    profile: 300,           // 5 minutes
-    static: 3600,           // 1 hour
+    discovery: 60, // 1 minute
+    profile: 300, // 5 minutes
+    static: 3600, // 1 hour
   },
 };
 
@@ -53,7 +53,7 @@ const getCacheControl = {
   standard: (maxAge) => `public, max-age=${maxAge}`,
   private: (maxAge) => `private, max-age=${maxAge}`,
   noStore: () => 'no-store, no-cache, must-revalidate',
-  staleWhileRevalidate: (maxAge, staleTime) => 
+  staleWhileRevalidate: (maxAge, staleTime) =>
     `public, max-age=${maxAge}, stale-while-revalidate=${staleTime}`,
 };
 
@@ -82,7 +82,7 @@ const getCdnUrl = (path, options = {}) => {
   // For images, add transformation parameters
   if (type === 'image') {
     const transformParams = new URLSearchParams();
-    
+
     // Size presets
     const sizes = {
       thumbnail: { w: 150, h: 150, q: 70 },
@@ -222,7 +222,7 @@ const invalidateCache = async (paths) => {
         CallerReference: `invalidation-${Date.now()}`,
         Paths: {
           Quantity: paths.length,
-          Items: paths.map(p => p.startsWith('/') ? p : `/${p}`),
+          Items: paths.map((p) => (p.startsWith('/') ? p : `/${p}`)),
         },
       },
     });
@@ -240,7 +240,7 @@ const invalidateCache = async (paths) => {
  * Preload critical images
  */
 const getPreloadHeaders = (images) => {
-  return images.map(img => ({
+  return images.map((img) => ({
     key: 'Link',
     value: `<${getCdnUrl(img, { size: 'medium' })}>; rel=preload; as=image`,
   }));
@@ -254,7 +254,7 @@ const transformPhotosForCdn = (photos) => {
     return [];
   }
 
-  return photos.map(photo => {
+  return photos.map((photo) => {
     if (typeof photo === 'string') {
       return {
         url: photo,

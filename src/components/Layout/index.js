@@ -1,6 +1,6 @@
 /**
  * Layout Components
- * 
+ *
  * Responsive layout utilities for cross-platform support:
  * - iOS 14+ (iPhone & iPad)
  * - Android 8+ (phones & tablets)
@@ -8,6 +8,8 @@
  */
 
 export {
-    PlatformInfo, ResponsiveContainer, ResponsiveGrid, TabletSplitView
+  PlatformInfo,
+  ResponsiveContainer,
+  ResponsiveGrid,
+  TabletSplitView,
 } from './ResponsiveContainer';
-

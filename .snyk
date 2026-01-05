@@ -1,0 +1,20 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.28.0
+
+# Ignore vulnerabilities that are false positives or acceptable risks
+# Format: SNYK-<LANGUAGE>-<PACKAGE>-<ID>
+# Example: SNYK-JS-EXPRESS-12345678
+
+patch: {}
+
+ignore: {}
+
+exclude:
+  global:
+    - node_modules
+    - coverage
+    - dist
+    - build
+    - web-build
+    - .expo
+    - .git

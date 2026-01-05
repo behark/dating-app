@@ -5,24 +5,19 @@ const DYNAMIC_CACHE = 'dating-app-dynamic-v1';
 const IMAGE_CACHE = 'dating-app-images-v1';
 
 // Static assets to cache on install
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/favicon.ico',
-];
+const STATIC_ASSETS = ['/', '/index.html', '/manifest.json', '/favicon.ico'];
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
   console.log('[ServiceWorker] Install');
-  
+
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
       console.log('[ServiceWorker] Pre-caching static assets');
       return cache.addAll(STATIC_ASSETS);
     })
   );
-  
+
   // Force the waiting service worker to become active
   self.skipWaiting();
 });
@@ -30,16 +25,18 @@ self.addEventListener('install', (event) => {
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   console.log('[ServiceWorker] Activate');
-  
+
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
           .filter((name) => {
-            return name.startsWith('dating-app-') && 
-                   name !== STATIC_CACHE && 
-                   name !== DYNAMIC_CACHE && 
-                   name !== IMAGE_CACHE;
+            return (
+              name.startsWith('dating-app-') &&
+              name !== STATIC_CACHE &&
+              name !== DYNAMIC_CACHE &&
+              name !== IMAGE_CACHE
+            );
           })
           .map((name) => {
             console.log('[ServiceWorker] Deleting old cache:', name);
@@ -48,7 +45,7 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  
+
   // Take control of all pages immediately
   self.clients.claim();
 });
@@ -95,11 +92,11 @@ self.addEventListener('fetch', (event) => {
 async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cachedResponse = await cache.match(request);
-  
+
   if (cachedResponse) {
     return cachedResponse;
   }
-  
+
   try {
     const networkResponse = await fetch(request);
     cache.put(request, networkResponse.clone());
@@ -113,24 +110,26 @@ async function cacheFirst(request, cacheName) {
 async function cacheFirstWithRefresh(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cachedResponse = await cache.match(request);
-  
+
   // Start network request in background
-  const networkPromise = fetch(request).then((response) => {
-    cache.put(request, response.clone());
-    return response;
-  }).catch(() => null);
-  
+  const networkPromise = fetch(request)
+    .then((response) => {
+      cache.put(request, response.clone());
+      return response;
+    })
+    .catch(() => null);
+
   // Return cached response immediately if available
   if (cachedResponse) {
     return cachedResponse;
   }
-  
+
   // Wait for network if no cache
   const networkResponse = await networkPromise;
   if (networkResponse) {
     return networkResponse;
   }
-  
+
   // Return placeholder for images
   return new Response('', { status: 404 });
 }
@@ -138,32 +137,32 @@ async function cacheFirstWithRefresh(request, cacheName) {
 // Network first with cache fallback
 async function networkFirstWithCache(request, cacheName) {
   const cache = await caches.open(cacheName);
-  
+
   try {
     const networkResponse = await fetch(request);
-    
+
     // Only cache successful responses
     if (networkResponse.ok) {
       cache.put(request, networkResponse.clone());
     }
-    
+
     return networkResponse;
   } catch (error) {
     const cachedResponse = await cache.match(request);
-    
+
     if (cachedResponse) {
       return cachedResponse;
     }
-    
+
     // Return offline response for API calls
     return new Response(
-      JSON.stringify({ 
-        error: 'offline', 
-        message: 'You are currently offline' 
+      JSON.stringify({
+        error: 'offline',
+        message: 'You are currently offline',
       }),
-      { 
+      {
         status: 503,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       }
     );
   }
@@ -172,11 +171,11 @@ async function networkFirstWithCache(request, cacheName) {
 // Background sync for offline actions
 self.addEventListener('sync', (event) => {
   console.log('[ServiceWorker] Sync event:', event.tag);
-  
+
   if (event.tag === 'sync-messages') {
     event.waitUntil(syncMessages());
   }
-  
+
   if (event.tag === 'sync-swipes') {
     event.waitUntil(syncSwipes());
   }
@@ -185,12 +184,12 @@ self.addEventListener('sync', (event) => {
 // Push notifications
 self.addEventListener('push', (event) => {
   console.log('[ServiceWorker] Push received');
-  
+
   let data = {};
   if (event.data) {
     data = event.data.json();
   }
-  
+
   const title = data.title || 'New notification';
   const options = {
     body: data.body || '',
@@ -202,34 +201,31 @@ self.addEventListener('push', (event) => {
     tag: data.tag || 'default',
     renotify: data.renotify || false,
   };
-  
-  event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
+
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 // Notification click handler
 self.addEventListener('notificationclick', (event) => {
   console.log('[ServiceWorker] Notification click');
-  
+
   event.notification.close();
-  
+
   const urlToOpen = event.notification.data?.url || '/';
-  
+
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then((clientList) => {
-        // Focus existing window if available
-        for (const client of clientList) {
-          if (client.url === urlToOpen && 'focus' in client) {
-            return client.focus();
-          }
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Focus existing window if available
+      for (const client of clientList) {
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
         }
-        // Open new window
-        if (clients.openWindow) {
-          return clients.openWindow(urlToOpen);
-        }
-      })
+      }
+      // Open new window
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
   );
 });
 
@@ -249,13 +245,11 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-  
+
   if (event.data && event.data.type === 'CLEAR_CACHE') {
     event.waitUntil(
       caches.keys().then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((name) => caches.delete(name))
-        );
+        return Promise.all(cacheNames.map((name) => caches.delete(name)));
       })
     );
   }

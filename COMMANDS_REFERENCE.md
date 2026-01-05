@@ -19,6 +19,7 @@ npm audit             # Check for vulnerabilities
 ## 📋 Daily Development Commands
 
 ### Before Committing Code
+
 ```bash
 # Fix linting issues automatically
 npm run lint:fix
@@ -35,6 +36,7 @@ git commit -m "your message"
 ```
 
 ### During Development
+
 ```bash
 # Watch mode (re-run tests on changes)
 npm run test:watch
@@ -44,6 +46,7 @@ npm run lint
 ```
 
 ### Code Review / Before Merge
+
 ```bash
 # Full quality check
 npm run lint && npm run format:check && npm test
@@ -56,6 +59,7 @@ npm outdated
 ## 🔄 Upgrade Commands (4-Phase Plan)
 
 ### Phase 1: Critical Dependencies (Week of Jan 3)
+
 ```bash
 # Create upgrade branch
 git checkout -b upgrade/phase-1-critical
@@ -79,6 +83,7 @@ git commit -m "upgrade: phase 1 - critical dependencies"
 ```
 
 ### Phase 2: Navigation (Week of Jan 10)
+
 ```bash
 git checkout -b upgrade/phase-2-navigation
 
@@ -97,6 +102,7 @@ git commit -m "upgrade: phase 2 - react navigation 7"
 ```
 
 ### Phase 3: Expo Modules (Week of Jan 17)
+
 ```bash
 git checkout -b upgrade/phase-3-expo-modules
 
@@ -119,6 +125,7 @@ git commit -m "upgrade: phase 3 - expo modules"
 ```
 
 ### Phase 4: Minor Updates (Week of Jan 24)
+
 ```bash
 git checkout -b upgrade/phase-4-polish
 
@@ -368,22 +375,22 @@ npm start
 
 ## 📖 Reference: npm Scripts in package.json
 
-| Command | Purpose | When to Use |
-|---------|---------|-------------|
-| `npm start` | Dev server | Development |
-| `npm run android` | Android emulator | Mobile testing |
-| `npm run ios` | iOS simulator | Mobile testing |
-| `npm run web` | Web dev server | Web testing |
-| `npm run build` | Build for web | Production web |
-| `npm run lint` | Check code quality | Code review |
-| `npm run lint:fix` | Auto-fix linting | Before commit |
-| `npm run format` | Format code | Before commit |
-| `npm run format:check` | Check formatting | CI pipeline |
-| `npm test` | Run tests | Development |
-| `npm run test:watch` | Watch mode tests | During development |
-| `npm run test:coverage` | Coverage report | Before release |
-| `npm audit` | Security check | Before push |
-| `npm audit:fix` | Fix vulnerabilities | When vulnerabilities found |
+| Command                 | Purpose             | When to Use                |
+| ----------------------- | ------------------- | -------------------------- |
+| `npm start`             | Dev server          | Development                |
+| `npm run android`       | Android emulator    | Mobile testing             |
+| `npm run ios`           | iOS simulator       | Mobile testing             |
+| `npm run web`           | Web dev server      | Web testing                |
+| `npm run build`         | Build for web       | Production web             |
+| `npm run lint`          | Check code quality  | Code review                |
+| `npm run lint:fix`      | Auto-fix linting    | Before commit              |
+| `npm run format`        | Format code         | Before commit              |
+| `npm run format:check`  | Check formatting    | CI pipeline                |
+| `npm test`              | Run tests           | Development                |
+| `npm run test:watch`    | Watch mode tests    | During development         |
+| `npm run test:coverage` | Coverage report     | Before release             |
+| `npm audit`             | Security check      | Before push                |
+| `npm audit:fix`         | Fix vulnerabilities | When vulnerabilities found |
 
 ## 🎯 Typical Daily Workflow
 

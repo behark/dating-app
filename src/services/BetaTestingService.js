@@ -137,9 +137,9 @@ class BetaTestingService {
       acc[f.status] = (acc[f.status] || 0) + 1;
       return acc;
     }, {});
-    const avgRating = this.feedback
-      .filter(f => f.rating)
-      .reduce((sum, f) => sum + f.rating, 0) / (this.feedback.filter(f => f.rating).length || 1);
+    const avgRating =
+      this.feedback.filter((f) => f.rating).reduce((sum, f) => sum + f.rating, 0) /
+      (this.feedback.filter((f) => f.rating).length || 1);
 
     return {
       total: totalFeedback,
@@ -173,15 +173,17 @@ class BetaTestingService {
 
   // Get beta program analytics
   getAnalytics() {
-    const activeUsers = Array.from(this.betaUsers.values())
-      .filter(u => u.status === 'active').length;
-    
-    const avgSessionDuration = this.sessions.length > 0
-      ? this.sessions.reduce((sum, s) => sum + (s.duration || 0), 0) / this.sessions.length
-      : 0;
+    const activeUsers = Array.from(this.betaUsers.values()).filter(
+      (u) => u.status === 'active'
+    ).length;
+
+    const avgSessionDuration =
+      this.sessions.length > 0
+        ? this.sessions.reduce((sum, s) => sum + (s.duration || 0), 0) / this.sessions.length
+        : 0;
 
     const featureUsage = this.sessions.reduce((acc, s) => {
-      s.features.forEach(f => {
+      s.features.forEach((f) => {
         acc[f] = (acc[f] || 0) + 1;
       });
       return acc;
@@ -201,13 +203,17 @@ class BetaTestingService {
   // Export feedback data
   exportFeedback(format = 'json') {
     if (format === 'json') {
-      return JSON.stringify({
-        exportedAt: new Date().toISOString(),
-        feedback: this.feedback,
-        bugs: this.bugs,
-        featureRequests: this.featureRequests,
-        analytics: this.getAnalytics(),
-      }, null, 2);
+      return JSON.stringify(
+        {
+          exportedAt: new Date().toISOString(),
+          feedback: this.feedback,
+          bugs: this.bugs,
+          featureRequests: this.featureRequests,
+          analytics: this.getAnalytics(),
+        },
+        null,
+        2
+      );
     }
     // CSV export could be added here
     return null;
@@ -218,16 +224,16 @@ class BetaTestingService {
     let results = [...this.feedback];
 
     if (filters.type) {
-      results = results.filter(f => f.type === filters.type);
+      results = results.filter((f) => f.type === filters.type);
     }
     if (filters.status) {
-      results = results.filter(f => f.status === filters.status);
+      results = results.filter((f) => f.status === filters.status);
     }
     if (filters.userId) {
-      results = results.filter(f => f.userId === filters.userId);
+      results = results.filter((f) => f.userId === filters.userId);
     }
     if (filters.fromDate) {
-      results = results.filter(f => new Date(f.timestamp) >= new Date(filters.fromDate));
+      results = results.filter((f) => new Date(f.timestamp) >= new Date(filters.fromDate));
     }
 
     // Sort by timestamp descending
@@ -238,7 +244,7 @@ class BetaTestingService {
 
   // Update feedback status
   updateFeedbackStatus(feedbackId, status, assignee = null, notes = null) {
-    const feedback = this.feedback.find(f => f.id === feedbackId);
+    const feedback = this.feedback.find((f) => f.id === feedbackId);
     if (feedback) {
       feedback.status = status;
       if (assignee) feedback.assignee = assignee;

@@ -32,9 +32,7 @@ const structuredFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
   winston.format.errors({ stack: true }),
   winston.format.printf(({ timestamp, level, message, ...metadata }) => {
-    const meta = Object.keys(metadata).length
-      ? JSON.stringify(metadata, null, 2)
-      : '';
+    const meta = Object.keys(metadata).length ? JSON.stringify(metadata, null, 2) : '';
     return `${timestamp} [${level.toUpperCase()}]: ${message} ${meta}`;
   })
 );

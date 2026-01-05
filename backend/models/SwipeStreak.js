@@ -5,75 +5,77 @@ const swipeStreakSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    unique: true
+    unique: true,
   },
   currentStreak: {
     type: Number,
     default: 0,
-    min: 0
+    min: 0,
   },
   longestStreak: {
     type: Number,
     default: 0,
-    min: 0
+    min: 0,
   },
   lastSwipeDate: {
     type: Date,
-    default: null
+    default: null,
   },
   streakStartDate: {
     type: Date,
-    default: null
+    default: null,
   },
   swipesInCurrentStreak: {
     type: Number,
     default: 0,
-    min: 0
+    min: 0,
   },
   totalSwipes: {
     type: Number,
     default: 0,
-    min: 0
+    min: 0,
   },
-  swipeHistory: [{
-    date: {
-      type: Date,
-      default: Date.now
+  swipeHistory: [
+    {
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+      swipeCount: {
+        type: Number,
+        default: 0,
+      },
     },
-    swipeCount: {
-      type: Number,
-      default: 0
-    }
-  }],
+  ],
   streakBrokenCount: {
     type: Number,
     default: 0,
-    min: 0
+    min: 0,
   },
   notifiedAboutStreak: {
     type: Boolean,
-    default: false
+    default: false,
   },
   notifiedAboutMilestone: {
     type: Boolean,
-    default: false
+    default: false,
   },
   milestoneReached: {
     type: Number,
-    default: null // e.g., 7, 14, 30, 60, 100
+    default: null, // e.g., 7, 14, 30, 60, 100
   },
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Update the updatedAt field before saving
-swipeStreakSchema.pre('save', function(next) {
+swipeStreakSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });

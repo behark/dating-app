@@ -1,19 +1,19 @@
 import { useEffect, useState } from 'react';
 import {
-    Alert,
-    ScrollView,
-    SectionList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  ScrollView,
+  SectionList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import {
-    BackgroundCheck,
-    CheckInTimer,
-    DatePlansSharing,
-    EmergencySOS,
-    PhotoVerificationAdvanced,
+  BackgroundCheck,
+  CheckInTimer,
+  DatePlansSharing,
+  EmergencySOS,
+  PhotoVerificationAdvanced,
 } from '../components/Safety/SafetyAdvancedComponents';
 import { SafetyService } from '../services/SafetyService';
 
@@ -130,9 +130,7 @@ const SafetyAdvancedScreen = ({ route, navigation }) => {
           </View>
         )}
 
-        {!isPremiumFeature && (
-          <Text style={styles.arrowIcon}>›</Text>
-        )}
+        {!isPremiumFeature && <Text style={styles.arrowIcon}>›</Text>}
       </TouchableOpacity>
     );
   };
@@ -150,10 +148,7 @@ const SafetyAdvancedScreen = ({ route, navigation }) => {
     return (
       <View style={styles.featureContainer}>
         <View style={styles.featureHeader}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => setActiveFeature(null)}
-          >
+          <TouchableOpacity style={styles.backButton} onPress={() => setActiveFeature(null)}>
             <Text style={styles.backButtonText}>‹ Back</Text>
           </TouchableOpacity>
           <Text style={styles.featureTitle}>{activeFeature.name}</Text>
@@ -237,10 +232,7 @@ const SafetyAdvancedScreen = ({ route, navigation }) => {
           <Text style={styles.tipsTitle}>💡 Safety Tips</Text>
         </View>
 
-        <TouchableOpacity
-          style={styles.tipCard}
-          onPress={() => navigation.navigate('SafetyTips')}
-        >
+        <TouchableOpacity style={styles.tipCard} onPress={() => navigation.navigate('SafetyTips')}>
           <Text style={styles.tipText}>
             Learn best practices for staying safe while dating online
           </Text>
@@ -507,10 +499,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     lineHeight: 16,
-  },
-  featureContent: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
   },
 });
 

@@ -12,8 +12,8 @@ import {
   FlatList,
   Image,
 } from 'react-native';
-import { SafetyService } from '../../services/SafetyService';
 import * as Location from 'expo-location';
+import { SafetyService } from '../../services/SafetyService';
 
 /**
  * DatePlansSharing Component
@@ -55,11 +55,15 @@ export const DatePlansSharing = ({ userId, onPlanShared }) => {
         return;
       }
 
-      const result = await SafetyService.shareDatePlan(userId, {
-        ...formData,
-        matchUserId: 'match_id_placeholder',
-        matchPhotoUrl: '',
-      }, formData.friendIds);
+      const result = await SafetyService.shareDatePlan(
+        userId,
+        {
+          ...formData,
+          matchUserId: 'match_id_placeholder',
+          matchPhotoUrl: '',
+        },
+        formData.friendIds
+      );
 
       if (result.success) {
         Alert.alert('Success', 'Date plan shared with friends!');
@@ -85,10 +89,7 @@ export const DatePlansSharing = ({ userId, onPlanShared }) => {
       <Text style={styles.title}>📍 Date Plans Sharing</Text>
       <Text style={styles.subtitle}>Share your date plans with trusted friends</Text>
 
-      <TouchableOpacity
-        style={styles.primaryButton}
-        onPress={() => setShowForm(true)}
-      >
+      <TouchableOpacity style={styles.primaryButton} onPress={() => setShowForm(true)}>
         <Text style={styles.buttonText}>+ Share New Date Plan</Text>
       </TouchableOpacity>
 
@@ -112,8 +113,12 @@ export const DatePlansSharing = ({ userId, onPlanShared }) => {
                 </View>
                 <View style={styles.planDetails}>
                   <Text style={styles.detailRow}>📍 {plan.location}</Text>
-                  <Text style={styles.detailRow}>⏰ {new Date(plan.dateTime).toLocaleString()}</Text>
-                  <Text style={styles.detailRow}>👥 Shared with {plan.sharedWith.length} friends</Text>
+                  <Text style={styles.detailRow}>
+                    ⏰ {new Date(plan.dateTime).toLocaleString()}
+                  </Text>
+                  <Text style={styles.detailRow}>
+                    👥 Shared with {plan.sharedWith.length} friends
+                  </Text>
                 </View>
               </View>
             ))
@@ -169,17 +174,11 @@ export const DatePlansSharing = ({ userId, onPlanShared }) => {
             />
           </View>
 
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={handleSharePlan}
-          >
+          <TouchableOpacity style={styles.primaryButton} onPress={handleSharePlan}>
             <Text style={styles.buttonText}>Share Plan</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={() => setShowForm(false)}
-          >
+          <TouchableOpacity style={styles.secondaryButton} onPress={() => setShowForm(false)}>
             <Text style={styles.secondaryButtonText}>Cancel</Text>
           </TouchableOpacity>
         </ScrollView>
@@ -219,7 +218,7 @@ export const CheckInTimer = ({ datePlanId, userId, onCheckInComplete }) => {
       await SafetyService.startCheckInTimer(userId, datePlanId, 300000);
       setCheckInActive(true);
       setCheckInStarted(true);
-      Alert.alert('Check-in Started', 'Timer set for 5 minutes. Confirm when you\'re safe!');
+      Alert.alert('Check-in Started', 'Timer set for 5 minutes. Confirm when you&apos;re safe!');
     } catch (error) {
       Alert.alert('Error', error.message);
     }
@@ -230,7 +229,10 @@ export const CheckInTimer = ({ datePlanId, userId, onCheckInComplete }) => {
       // In production, get the actual checkInId
       await SafetyService.completeCheckIn('checkin_id_placeholder');
       setCheckInActive(false);
-      Alert.alert('Success', 'Check-in confirmed! Friends have been notified that you\'re safe.');
+      Alert.alert(
+        'Success',
+        'Check-in confirmed! Friends have been notified that you&apos;re safe.'
+      );
       onCheckInComplete?.();
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -254,10 +256,7 @@ export const CheckInTimer = ({ datePlanId, userId, onCheckInComplete }) => {
       <Text style={styles.subtitle}>Confirm your safety with friends</Text>
 
       {!checkInStarted ? (
-        <TouchableOpacity
-          style={styles.primaryButton}
-          onPress={handleStartCheckIn}
-        >
+        <TouchableOpacity style={styles.primaryButton} onPress={handleStartCheckIn}>
           <Text style={styles.buttonText}>Start Check-in Timer</Text>
         </TouchableOpacity>
       ) : (
@@ -272,7 +271,7 @@ export const CheckInTimer = ({ datePlanId, userId, onCheckInComplete }) => {
             onPress={handleCheckInComplete}
             disabled={!checkInActive}
           >
-            <Text style={styles.buttonText}>✓ I'm Safe - Confirm Check-in</Text>
+            <Text style={styles.buttonText}>✓ I&apos;m Safe - Confirm Check-in</Text>
           </TouchableOpacity>
 
           {timeRemaining === 0 && (
@@ -329,11 +328,15 @@ export const EmergencySOS = ({ userId }) => {
         await requestLocationPermission();
       }
 
-      const result = await SafetyService.sendEmergencySOS(userId, {
-        latitude: location?.latitude || 0,
-        longitude: location?.longitude || 0,
-        address: 'Current Location',
-      }, 'Emergency - Need immediate help!');
+      const result = await SafetyService.sendEmergencySOS(
+        userId,
+        {
+          latitude: location?.latitude || 0,
+          longitude: location?.longitude || 0,
+          address: 'Current Location',
+        },
+        'Emergency - Need immediate help!'
+      );
 
       if (result.success) {
         setSosActive(true);
@@ -441,7 +444,10 @@ export const PhotoVerificationAdvanced = ({ userId, onVerificationComplete }) =>
       });
 
       if (result.success) {
-        Alert.alert('Success', 'Photo submitted for verification. We\'ll review it within 24 hours.');
+        Alert.alert(
+          'Success',
+          "Photo submitted for verification. We'll review it within 24 hours."
+        );
         setShowCamera(false);
         checkVerificationStatus();
         onVerificationComplete?.();
@@ -541,7 +547,7 @@ export const BackgroundCheck = ({ userId, isPremium }) => {
       if (result.success) {
         Alert.alert(
           'Check Initiated',
-          'Background check has been initiated. You\'ll receive results within 24-48 hours.'
+          "Background check has been initiated. You'll receive results within 24-48 hours."
         );
         loadCheckStatus();
       }
@@ -581,7 +587,8 @@ export const BackgroundCheck = ({ userId, isPremium }) => {
       ) : (
         <>
           <Text style={styles.description}>
-            Let matches know you\'ve passed a background check. This builds trust and increases match quality.
+            Let matches know you&apos;ve passed a background check. This builds trust and increases
+            match quality.
           </Text>
 
           <TouchableOpacity
@@ -597,7 +604,7 @@ export const BackgroundCheck = ({ userId, isPremium }) => {
           </TouchableOpacity>
 
           <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>What's included:</Text>
+            <Text style={styles.infoTitle}>What&apos;s included:</Text>
             <Text style={styles.infoItem}>✓ Criminal record check</Text>
             <Text style={styles.infoItem}>✓ Sex offender registry</Text>
             <Text style={styles.infoItem}>✓ Address history</Text>

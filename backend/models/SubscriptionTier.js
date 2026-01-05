@@ -1,6 +1,6 @@
 /**
  * Subscription Tier Model
- * 
+ *
  * Defines subscription tier configurations and features
  */
 
@@ -57,41 +57,41 @@ const subscriptionTierSchema = new mongoose.Schema({
     // Swipes
     dailyLikes: { type: Number, default: 50 }, // -1 for unlimited
     unlimitedSwipes: { type: Boolean, default: false },
-    
+
     // Super Likes
     superLikesPerDay: { type: Number, default: 0 },
-    
+
     // Rewinds
     rewindsPerDay: { type: Number, default: 0 }, // -1 for unlimited
-    
+
     // See who liked you
     seeWhoLikedYou: { type: Boolean, default: false },
-    
+
     // Passport (location change)
     passport: { type: Boolean, default: false },
-    
+
     // Advanced filters
     advancedFilters: { type: Boolean, default: false },
-    
+
     // Priority likes
     priorityLikes: { type: Boolean, default: false },
-    
+
     // Ads
     hideAds: { type: Boolean, default: false },
-    
+
     // Profile boosts
     profileBoostsPerMonth: { type: Number, default: 0 },
     profileBoostAnalytics: { type: Boolean, default: false },
-    
+
     // Messaging
     messageBeforeMatch: { type: Boolean, default: false },
     readReceipts: { type: Boolean, default: false },
-    
+
     // Privacy
     incognitoMode: { type: Boolean, default: false },
     hideAge: { type: Boolean, default: false },
     hideDistance: { type: Boolean, default: false },
-    
+
     // Spotlight
     weeklySpotlight: { type: Boolean, default: false },
   },
@@ -129,28 +129,28 @@ const subscriptionTierSchema = new mongoose.Schema({
 });
 
 // Update timestamp
-subscriptionTierSchema.pre('save', function(next) {
+subscriptionTierSchema.pre('save', function (next) {
   this.updatedAt = new Date();
   next();
 });
 
 // Static method: Get all active tiers
-subscriptionTierSchema.statics.getActiveTiers = function() {
+subscriptionTierSchema.statics.getActiveTiers = function () {
   return this.find({ isActive: true }).sort({ level: 1 });
 };
 
 // Static method: Get tier by ID
-subscriptionTierSchema.statics.getTierById = function(tierId) {
+subscriptionTierSchema.statics.getTierById = function (tierId) {
   return this.findOne({ tierId, isActive: true });
 };
 
 // Static method: Compare tiers
-subscriptionTierSchema.statics.compareTiers = function(tier1Id, tier2Id) {
+subscriptionTierSchema.statics.compareTiers = function (tier1Id, tier2Id) {
   return this.find({ tierId: { $in: [tier1Id, tier2Id] }, isActive: true });
 };
 
 // Static method: Initialize default tiers
-subscriptionTierSchema.statics.initializeDefaultTiers = async function() {
+subscriptionTierSchema.statics.initializeDefaultTiers = async function () {
   const defaultTiers = [
     {
       tierId: 'free',
@@ -256,18 +256,14 @@ subscriptionTierSchema.statics.initializeDefaultTiers = async function() {
   ];
 
   for (const tier of defaultTiers) {
-    await this.findOneAndUpdate(
-      { tierId: tier.tierId },
-      tier,
-      { upsert: true, new: true }
-    );
+    await this.findOneAndUpdate({ tierId: tier.tierId }, tier, { upsert: true, new: true });
   }
 
   console.log('Default subscription tiers initialized');
 };
 
 // Instance method: Check if tier has feature
-subscriptionTierSchema.methods.hasFeature = function(featureName) {
+subscriptionTierSchema.methods.hasFeature = function (featureName) {
   const value = this.features[featureName];
   if (typeof value === 'boolean') return value;
   if (typeof value === 'number') return value !== 0;
@@ -275,7 +271,7 @@ subscriptionTierSchema.methods.hasFeature = function(featureName) {
 };
 
 // Instance method: Get feature value
-subscriptionTierSchema.methods.getFeatureValue = function(featureName) {
+subscriptionTierSchema.methods.getFeatureValue = function (featureName) {
   return this.features[featureName];
 };
 

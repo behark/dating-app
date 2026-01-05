@@ -6,21 +6,21 @@ const subscriptionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    unique: true
+    unique: true,
   },
 
   // Subscription status
   status: {
     type: String,
     enum: ['free', 'trial', 'active', 'expired', 'cancelled'],
-    default: 'free'
+    default: 'free',
   },
 
   // Plan type
   planType: {
     type: String,
     enum: ['trial', 'monthly', 'yearly'],
-    default: null
+    default: null,
   },
 
   // Trial information
@@ -29,8 +29,8 @@ const subscriptionSchema = new mongoose.Schema({
     endDate: Date,
     isUsed: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
 
   // Subscription period
@@ -39,14 +39,14 @@ const subscriptionSchema = new mongoose.Schema({
   renewalDate: Date,
   autoRenew: {
     type: Boolean,
-    default: true
+    default: true,
   },
 
   // Payment information
   paymentMethod: {
     type: String,
     enum: ['stripe', 'apple', 'google', 'manual'],
-    default: null
+    default: null,
   },
   paymentId: String,
   transactionId: String,
@@ -59,44 +59,46 @@ const subscriptionSchema = new mongoose.Schema({
     advancedFilters: { type: Boolean, default: false },
     priorityLikes: { type: Boolean, default: false },
     hideAds: { type: Boolean, default: false },
-    profileBoostAnalytics: { type: Boolean, default: false }
+    profileBoostAnalytics: { type: Boolean, default: false },
   },
 
   // Usage tracking
   superLikesUsedToday: {
     type: Number,
-    default: 0
+    default: 0,
   },
   lastSuperLikeDate: Date,
   dailyLikesLimit: {
     type: Number,
-    default: 50
+    default: 50,
   },
   profileBoostsUsedThisMonth: {
     type: Number,
-    default: 0
+    default: 0,
   },
   maxProfileBoostsPerMonth: {
     type: Number,
-    default: 5
+    default: 5,
   },
 
   // Ad settings
   showAds: {
     type: Boolean,
-    default: true
+    default: true,
   },
 
   // Premium features usage
   lastPassportChange: Date,
-  passportLocations: [{
-    longitude: Number,
-    latitude: Number,
-    changedAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
+  passportLocations: [
+    {
+      longitude: Number,
+      latitude: Number,
+      changedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
 
   // Boost analytics
   boostAnalytics: {
@@ -104,23 +106,25 @@ const subscriptionSchema = new mongoose.Schema({
     totalProfileViews: { type: Number, default: 0 },
     totalLikesReceived: { type: Number, default: 0 },
     lastBoostDate: Date,
-    boostHistory: [{
-      startDate: Date,
-      endDate: Date,
-      viewsGained: Number,
-      likesGained: Number
-    }]
+    boostHistory: [
+      {
+        startDate: Date,
+        endDate: Date,
+        viewsGained: Number,
+        likesGained: Number,
+      },
+    ],
   },
 
   // Timestamps
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // Index for efficient queries
@@ -132,27 +136,30 @@ subscriptionSchema.index({ endDate: 1 });
 // Index for premium conversion rate queries
 subscriptionSchema.index({ createdAt: -1, status: 1 }, { name: 'createdAt_status_premium' });
 // Index for churn rate queries (cancelled subscriptions)
-subscriptionSchema.index({ cancelledAt: -1, status: 1 }, { name: 'cancelledAt_status_churn', sparse: true });
+subscriptionSchema.index(
+  { cancelledAt: -1, status: 1 },
+  { name: 'cancelledAt_status_churn', sparse: true }
+);
 
 // Update timestamp before saving
-subscriptionSchema.pre('save', function(next) {
+subscriptionSchema.pre('save', function (next) {
   this.updatedAt = new Date();
   next();
 });
 
 // Virtual for checking if premium is active
-subscriptionSchema.virtual('isActive').get(function() {
+subscriptionSchema.virtual('isActive').get(function () {
   const now = new Date();
   return this.status === 'active' && this.endDate > now;
 });
 
 // Method to check if trial is available
-subscriptionSchema.methods.isTrialAvailable = function() {
+subscriptionSchema.methods.isTrialAvailable = function () {
   return !this.trial.isUsed && this.status === 'free';
 };
 
 // Method to check if premium features are available
-subscriptionSchema.methods.hasFeature = function(featureName) {
+subscriptionSchema.methods.hasFeature = function (featureName) {
   if (this.status !== 'active' || this.endDate <= new Date()) {
     return false;
   }
@@ -160,7 +167,7 @@ subscriptionSchema.methods.hasFeature = function(featureName) {
 };
 
 // Static method to get or create subscription for user
-subscriptionSchema.statics.getOrCreate = async function(userId) {
+subscriptionSchema.statics.getOrCreate = async function (userId) {
   let subscription = await this.findOne({ userId });
   if (!subscription) {
     subscription = new this({ userId });
@@ -170,9 +177,9 @@ subscriptionSchema.statics.getOrCreate = async function(userId) {
 };
 
 // Static method to activate trial
-subscriptionSchema.statics.activateTrial = async function(userId) {
+subscriptionSchema.statics.activateTrial = async function (userId) {
   const subscription = await this.getOrCreate(userId);
-  
+
   if (!subscription.isTrialAvailable()) {
     return { success: false, message: 'Trial already used or subscription active' };
   }
@@ -193,7 +200,7 @@ subscriptionSchema.statics.activateTrial = async function(userId) {
     advancedFilters: true,
     priorityLikes: true,
     hideAds: true,
-    profileBoostAnalytics: true
+    profileBoostAnalytics: true,
   };
 
   await subscription.save();
@@ -201,7 +208,7 @@ subscriptionSchema.statics.activateTrial = async function(userId) {
 };
 
 // Static method to upgrade to paid subscription
-subscriptionSchema.statics.upgradeToPremium = async function(userId, planType, paymentData = {}) {
+subscriptionSchema.statics.upgradeToPremium = async function (userId, planType, paymentData = {}) {
   const subscription = await this.getOrCreate(userId);
 
   const endDate = new Date();
@@ -231,7 +238,7 @@ subscriptionSchema.statics.upgradeToPremium = async function(userId, planType, p
     advancedFilters: true,
     priorityLikes: true,
     hideAds: true,
-    profileBoostAnalytics: true
+    profileBoostAnalytics: true,
   };
 
   await subscription.save();
@@ -239,7 +246,7 @@ subscriptionSchema.statics.upgradeToPremium = async function(userId, planType, p
 };
 
 // Static method to cancel subscription
-subscriptionSchema.statics.cancelSubscription = async function(userId) {
+subscriptionSchema.statics.cancelSubscription = async function (userId) {
   const subscription = await this.getOrCreate(userId);
 
   subscription.status = 'cancelled';

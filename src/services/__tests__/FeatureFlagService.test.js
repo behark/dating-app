@@ -22,17 +22,17 @@ describe('FeatureFlagService', () => {
       });
 
       const flags = service.getAllFlags();
-      const testFlag = flags.find(f => f.name === 'test_feature');
-      
+      const testFlag = flags.find((f) => f.name === 'test_feature');
+
       expect(testFlag).toBeDefined();
       expect(testFlag.enabled).toBe(true);
     });
 
     it('should initialize default flags', () => {
       const flags = service.getAllFlags();
-      
+
       expect(flags.length).toBeGreaterThan(0);
-      expect(flags.some(f => f.name.startsWith('beta_'))).toBe(true);
+      expect(flags.some((f) => f.name.startsWith('beta_'))).toBe(true);
     });
   });
 
@@ -70,7 +70,7 @@ describe('FeatureFlagService', () => {
 
       // User without premium group
       expect(service.isEnabled('premium_feature', 'user_1', ['free'])).toBe(false);
-      
+
       // User with premium group
       expect(service.isEnabled('premium_feature', 'user_1', ['premium'])).toBe(true);
     });
@@ -173,8 +173,16 @@ describe('FeatureFlagService', () => {
 
   describe('Get User Flags', () => {
     it('should return all flags status for user', () => {
-      service.registerFlag('flag_1', { enabled: true, rolloutPercentage: 100, allowedGroups: ['all'] });
-      service.registerFlag('flag_2', { enabled: false, rolloutPercentage: 0, allowedGroups: ['all'] });
+      service.registerFlag('flag_1', {
+        enabled: true,
+        rolloutPercentage: 100,
+        allowedGroups: ['all'],
+      });
+      service.registerFlag('flag_2', {
+        enabled: false,
+        rolloutPercentage: 0,
+        allowedGroups: ['all'],
+      });
 
       const userFlags = service.getUserFlags('user_123', ['all']);
 
@@ -194,27 +202,35 @@ describe('FeatureFlagService', () => {
       service.updateRollout('updateable', 50);
 
       const flags = service.getAllFlags();
-      const flag = flags.find(f => f.name === 'updateable');
+      const flag = flags.find((f) => f.name === 'updateable');
       expect(flag.rolloutPercentage).toBe(50);
     });
 
     it('should cap rollout at 100', () => {
-      service.registerFlag('cap_test', { enabled: true, rolloutPercentage: 50, allowedGroups: ['all'] });
-      
+      service.registerFlag('cap_test', {
+        enabled: true,
+        rolloutPercentage: 50,
+        allowedGroups: ['all'],
+      });
+
       service.updateRollout('cap_test', 150);
 
       const flags = service.getAllFlags();
-      const flag = flags.find(f => f.name === 'cap_test');
+      const flag = flags.find((f) => f.name === 'cap_test');
       expect(flag.rolloutPercentage).toBe(100);
     });
 
     it('should floor rollout at 0', () => {
-      service.registerFlag('floor_test', { enabled: true, rolloutPercentage: 50, allowedGroups: ['all'] });
-      
+      service.registerFlag('floor_test', {
+        enabled: true,
+        rolloutPercentage: 50,
+        allowedGroups: ['all'],
+      });
+
       service.updateRollout('floor_test', -10);
 
       const flags = service.getAllFlags();
-      const flag = flags.find(f => f.name === 'floor_test');
+      const flag = flags.find((f) => f.name === 'floor_test');
       expect(flag.rolloutPercentage).toBe(0);
     });
   });
@@ -223,14 +239,14 @@ describe('FeatureFlagService', () => {
     it('should produce consistent hashes for same input', () => {
       const hash1 = service.hashUserId('test_user');
       const hash2 = service.hashUserId('test_user');
-      
+
       expect(hash1).toBe(hash2);
     });
 
     it('should produce different hashes for different inputs', () => {
       const hash1 = service.hashUserId('user_1');
       const hash2 = service.hashUserId('user_2');
-      
+
       expect(hash1).not.toBe(hash2);
     });
   });

@@ -1,26 +1,37 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import RangeSlider from '../components/Slider/RangeSlider';
 import SingleSlider from '../components/Slider/SingleSlider';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import logger from '../utils/logger';
 import { PreferencesService } from '../services/PreferencesService';
 import { LocationService } from '../services/LocationService';
 
 const PreferencesScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
+  const { theme, isDark, toggleTheme } = useTheme();
   const [preferences, setPreferences] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Dynamic styles that depend on theme
+  const themeStyles = {
+    themeToggleContainer: {
+      ...styles.themeToggleContainer,
+      backgroundColor: theme.background.card,
+    },
+    themeLabel: {
+      ...styles.themeLabel,
+      color: theme.text.primary,
+    },
+    themeDescription: {
+      ...styles.themeDescription,
+      color: theme.text.secondary,
+    },
+  };
 
   useEffect(() => {
     loadPreferences();
@@ -31,7 +42,7 @@ const PreferencesScreen = ({ navigation }) => {
       const prefs = await PreferencesService.getUserPreferences(currentUser.uid);
       setPreferences(prefs);
     } catch (error) {
-      console.error('Error loading preferences:', error);
+      logger.error('Error loading preferences:', error);
       Alert.alert('Error', 'Failed to load preferences');
     } finally {
       setLoading(false);
@@ -56,7 +67,7 @@ const PreferencesScreen = ({ navigation }) => {
         Alert.alert('Error', 'Failed to save preferences');
       }
     } catch (error) {
-      console.error('Error saving preferences:', error);
+      logger.error('Error saving preferences:', error);
       Alert.alert('Error', 'Failed to save preferences');
     } finally {
       setSaving(false);
@@ -64,7 +75,7 @@ const PreferencesScreen = ({ navigation }) => {
   };
 
   const updatePreference = (key, value) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
+    setPreferences((prev) => ({ ...prev, [key]: value }));
   };
 
   const renderAgePreference = () => (
@@ -101,13 +112,13 @@ const PreferencesScreen = ({ navigation }) => {
 
   const renderGenderPreference = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>I'm Interested In</Text>
+      <Text style={styles.sectionTitle}>I&apos;m Interested In</Text>
       <View style={styles.optionGroup}>
         {[
           { key: 'women', label: 'Women', icon: 'female' },
           { key: 'men', label: 'Men', icon: 'male' },
           { key: 'both', label: 'Everyone', icon: 'people' },
-        ].map(option => (
+        ].map((option) => (
           <TouchableOpacity
             key={option.key}
             style={[
@@ -144,7 +155,7 @@ const PreferencesScreen = ({ navigation }) => {
           { key: 'serious', label: '💑 Serious', icon: 'heart' },
           { key: 'marriage', label: '💍 Marriage', icon: 'ribbon' },
           { key: 'any', label: '🤔 Not Sure', icon: 'help-circle' },
-        ].map(option => (
+        ].map((option) => (
           <TouchableOpacity
             key={option.key}
             style={[
@@ -270,25 +281,25 @@ const PreferencesScreen = ({ navigation }) => {
       <Text style={styles.sectionTitle}>Location Privacy</Text>
       <View style={styles.optionGroup}>
         {[
-          { 
-            key: 'hidden', 
-            label: 'Hidden', 
+          {
+            key: 'hidden',
+            label: 'Hidden',
             icon: 'eye-off',
-            description: 'Your location is not visible'
+            description: 'Your location is not visible',
           },
-          { 
-            key: 'visible_to_matches', 
-            label: 'Matches Only', 
+          {
+            key: 'visible_to_matches',
+            label: 'Matches Only',
             icon: 'eye',
-            description: 'Only visible to your matches'
+            description: 'Only visible to your matches',
           },
-          { 
-            key: 'visible_to_all', 
-            label: 'Everyone', 
+          {
+            key: 'visible_to_all',
+            label: 'Everyone',
             icon: 'globe',
-            description: 'Visible to all users'
+            description: 'Visible to all users',
           },
-        ].map(option => (
+        ].map((option) => (
           <TouchableOpacity
             key={option.key}
             style={[
@@ -311,13 +322,36 @@ const PreferencesScreen = ({ navigation }) => {
               >
                 {option.label}
               </Text>
-              <Text style={[styles.optionSubtext, preferences.locationPrivacy === option.key && styles.optionSubtextSelected]}>
+              <Text
+                style={[
+                  styles.optionSubtext,
+                  preferences.locationPrivacy === option.key && styles.optionSubtextSelected,
+                ]}
+              >
                 {option.description}
               </Text>
             </View>
           </TouchableOpacity>
         ))}
       </View>
+    </View>
+  );
+
+  const renderThemePreference = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Appearance</Text>
+      <View style={themeStyles.themeToggleContainer}>
+        <Text style={themeStyles.themeLabel}>Dark Mode</Text>
+        <Switch
+          value={isDark}
+          onValueChange={toggleTheme}
+          trackColor={{ false: '#767577', true: '#81C995' }}
+          thumbColor={isDark ? '#FFFFFF' : '#f4f3f4'}
+        />
+      </View>
+      <Text style={themeStyles.themeDescription}>
+        Switch between light and dark themes. Changes apply immediately.
+      </Text>
     </View>
   );
 
@@ -334,22 +368,12 @@ const PreferencesScreen = ({ navigation }) => {
 
   return (
     <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.header}
-      >
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Preferences</Text>
-        <TouchableOpacity
-          onPress={savePreferences}
-          style={styles.saveButton}
-          disabled={saving}
-        >
+        <TouchableOpacity onPress={savePreferences} style={styles.saveButton} disabled={saving}>
           <Ionicons name="checkmark" size={24} color="#fff" />
         </TouchableOpacity>
       </LinearGradient>
@@ -363,6 +387,7 @@ const PreferencesScreen = ({ navigation }) => {
           {renderNotificationPreferences()}
           {renderPrivacyPreferences()}
           {renderLocationPrivacyPreference()}
+          {renderThemePreference()}
 
           <TouchableOpacity
             style={styles.saveButtonLarge}
@@ -374,9 +399,7 @@ const PreferencesScreen = ({ navigation }) => {
               style={styles.saveButtonGradient}
             >
               <Ionicons name="checkmark-circle" size={24} color="#fff" style={{ marginRight: 8 }} />
-              <Text style={styles.saveButtonText}>
-                {saving ? 'Saving...' : 'Save Preferences'}
-              </Text>
+              <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save Preferences'}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -621,6 +644,24 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '700',
+  },
+  themeToggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  themeLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  themeDescription: {
+    fontSize: 14,
+    paddingHorizontal: 16,
+    lineHeight: 20,
   },
 });
 

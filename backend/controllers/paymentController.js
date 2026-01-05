@@ -1,6 +1,6 @@
 /**
  * Payment Controller
- * 
+ *
  * Handles all payment-related API endpoints including:
  * - Stripe checkout and subscriptions
  * - PayPal payments
@@ -67,15 +67,17 @@ const getPaymentStatus = async (req, res) => {
     res.json({
       success: true,
       data: {
-        subscription: subscription ? {
-          status: subscription.status,
-          planType: subscription.planType,
-          startDate: subscription.startDate,
-          endDate: subscription.endDate,
-          autoRenew: subscription.autoRenew,
-          paymentMethod: subscription.paymentMethod,
-          features: subscription.features,
-        } : null,
+        subscription: subscription
+          ? {
+              status: subscription.status,
+              planType: subscription.planType,
+              startDate: subscription.startDate,
+              endDate: subscription.endDate,
+              autoRenew: subscription.autoRenew,
+              paymentMethod: subscription.paymentMethod,
+              features: subscription.features,
+            }
+          : null,
         paymentMethods,
         upcomingInvoice,
         balances: {
@@ -153,12 +155,7 @@ const createStripePaymentIntent = async (req, res) => {
 
     const user = await User.findById(userId);
 
-    const result = await StripeService.createPaymentIntent(
-      user,
-      productType,
-      productId,
-      quantity
-    );
+    const result = await StripeService.createPaymentIntent(user, productType, productId, quantity);
 
     // Save Stripe customer ID if new
     if (!user.stripeCustomerId) {
@@ -225,10 +222,7 @@ const getStripePortal = async (req, res) => {
       });
     }
 
-    const portalUrl = await StripeService.createPortalSession(
-      user,
-      `${baseUrl}/settings/billing`
-    );
+    const portalUrl = await StripeService.createPortalSession(user, `${baseUrl}/settings/billing`);
 
     res.json({
       success: true,
@@ -350,12 +344,7 @@ const createPayPalOrder = async (req, res) => {
 
     const user = await User.findById(userId);
 
-    const result = await PayPalService.createOrder(
-      user,
-      productType,
-      productId,
-      quantity
-    );
+    const result = await PayPalService.createOrder(user, productType, productId, quantity);
 
     res.json({
       success: true,
@@ -409,11 +398,7 @@ const validateAppleReceipt = async (req, res) => {
       });
     }
 
-    const result = await AppleIAPService.processPurchase(
-      userId,
-      receiptData,
-      productId
-    );
+    const result = await AppleIAPService.processPurchase(userId, receiptData, productId);
 
     res.json({
       success: result.success,
@@ -483,11 +468,7 @@ const validateGooglePurchase = async (req, res) => {
         productId
       );
     } else {
-      result = await GooglePlayService.processProductPurchase(
-        userId,
-        purchaseToken,
-        productId
-      );
+      result = await GooglePlayService.processProductPurchase(userId, purchaseToken, productId);
     }
 
     res.json({
@@ -597,12 +578,7 @@ const requestRefund = async (req, res) => {
       });
     }
 
-    const result = await RefundService.requestRefund(
-      userId,
-      transactionId,
-      reason,
-      amount
-    );
+    const result = await RefundService.requestRefund(userId, transactionId, reason, amount);
 
     res.json({
       success: true,
@@ -641,10 +617,7 @@ const stripeWebhook = async (req, res) => {
  */
 const paypalWebhook = async (req, res) => {
   try {
-    const isValid = await PayPalService.verifyWebhookSignature(
-      req.headers,
-      req.body
-    );
+    const isValid = await PayPalService.verifyWebhookSignature(req.headers, req.body);
 
     if (!isValid) {
       return res.status(400).json({ error: 'Invalid signature' });
@@ -705,34 +678,34 @@ module.exports = {
   getSubscriptionTiers,
   getPaymentStatus,
   getBillingHistory,
-  
+
   // Stripe
   createStripeCheckout,
   createStripePaymentIntent,
   createStripeSetupIntent,
   getStripePortal,
-  
+
   // PayPal
   createPayPalSubscription,
   activatePayPalSubscription,
   createPayPalOrder,
   capturePayPalOrder,
-  
+
   // Apple
   validateAppleReceipt,
   restoreApplePurchases,
-  
+
   // Google
   validateGooglePurchase,
   restoreGooglePurchases,
-  
+
   // Subscription Management
   cancelSubscription,
   resumeSubscription,
-  
+
   // Refunds
   requestRefund,
-  
+
   // Webhooks
   stripeWebhook,
   paypalWebhook,

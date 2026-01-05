@@ -1,6 +1,6 @@
 /**
  * Payment Service (Frontend)
- * 
+ *
  * Handles all payment operations on the client side including:
  * - Subscription management
  * - In-app purchases (iOS/Android)
@@ -10,6 +10,9 @@
 import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
 import { API_URL as API_BASE_URL } from '../config/api';
+import logger from '../utils/logger';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { validateNotEmpty } from '../utils/validators';
 
 export class PaymentService {
   // ==================== SUBSCRIPTION TIERS ====================
@@ -20,10 +23,18 @@ export class PaymentService {
   static async getSubscriptionTiers() {
     try {
       const response = await fetch(`${API_BASE_URL}/payment/tiers`);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
       return data.data || { tiers: [], consumables: {} };
     } catch (error) {
-      console.error('Error getting subscription tiers:', error);
+      logger.error('Error getting subscription tiers:', error);
       return { tiers: [], consumables: {} };
     }
   }
@@ -33,13 +44,25 @@ export class PaymentService {
    */
   static async getPaymentStatus(token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
+
       const response = await fetch(`${API_BASE_URL}/payment/status`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
       return data.data || null;
     } catch (error) {
-      console.error('Error getting payment status:', error);
+      logger.error('Error getting payment status:', error);
       return null;
     }
   }
@@ -52,10 +75,18 @@ export class PaymentService {
       const response = await fetch(`${API_BASE_URL}/payment/history`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
       return data.data || { invoices: [], transactions: [] };
     } catch (error) {
-      console.error('Error getting billing history:', error);
+      logger.error('Error getting billing history:', error);
       return { invoices: [], transactions: [] };
     }
   }
@@ -67,6 +98,13 @@ export class PaymentService {
    */
   static async createStripeCheckout(planType, token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
+      if (!['monthly', 'yearly'].includes(planType)) {
+        throw new Error('Plan type must be monthly or yearly');
+      }
+
       const response = await fetch(`${API_BASE_URL}/payment/stripe/checkout`, {
         method: 'POST',
         headers: {
@@ -75,17 +113,25 @@ export class PaymentService {
         },
         body: JSON.stringify({ planType }),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      
-      if (data.success && data.data.url) {
+
+      if (data.success && data.data?.url) {
         // Open Stripe checkout in browser
         await Linking.openURL(data.data.url);
       }
-      
-      return data;
+
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error creating Stripe checkout:', error);
-      return { success: false, error: error.message };
+      logger.error('Error creating Stripe checkout:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -102,10 +148,19 @@ export class PaymentService {
         },
         body: JSON.stringify({ productType, productId, quantity }),
       });
-      return await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
+      const data = await response.json();
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error creating payment intent:', error);
-      return { success: false, error: error.message };
+      logger.error('Error creating payment intent:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -117,16 +172,24 @@ export class PaymentService {
       const response = await fetch(`${API_BASE_URL}/payment/stripe/portal`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      
-      if (data.success && data.data.url) {
+
+      if (data.success && data.data?.url) {
         await Linking.openURL(data.data.url);
       }
-      
-      return data;
+
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error getting Stripe portal:', error);
-      return { success: false, error: error.message };
+      logger.error('Error getting Stripe portal:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -145,16 +208,24 @@ export class PaymentService {
         },
         body: JSON.stringify({ planType }),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      
-      if (data.success && data.data.approvalUrl) {
+
+      if (data.success && data.data?.approvalUrl) {
         await Linking.openURL(data.data.approvalUrl);
       }
-      
+
       return data;
     } catch (error) {
-      console.error('Error creating PayPal subscription:', error);
-      return { success: false, error: error.message };
+      logger.error('Error creating PayPal subscription:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -171,10 +242,19 @@ export class PaymentService {
         },
         body: JSON.stringify({ subscriptionId }),
       });
-      return await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
+      const data = await response.json();
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error activating PayPal subscription:', error);
-      return { success: false, error: error.message };
+      logger.error('Error activating PayPal subscription:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -191,16 +271,24 @@ export class PaymentService {
         },
         body: JSON.stringify({ productType, productId, quantity }),
       });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
       const data = await response.json();
-      
-      if (data.success && data.data.approvalUrl) {
+
+      if (data.success && data.data?.approvalUrl) {
         await Linking.openURL(data.data.approvalUrl);
       }
-      
+
       return data;
     } catch (error) {
-      console.error('Error creating PayPal order:', error);
-      return { success: false, error: error.message };
+      logger.error('Error creating PayPal order:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -217,10 +305,19 @@ export class PaymentService {
         },
         body: JSON.stringify({ orderId }),
       });
-      return await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
+      const data = await response.json();
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error capturing PayPal order:', error);
-      return { success: false, error: error.message };
+      logger.error('Error capturing PayPal order:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -239,10 +336,19 @@ export class PaymentService {
         },
         body: JSON.stringify({ receiptData, productId }),
       });
-      return await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
+      const data = await response.json();
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error validating Apple receipt:', error);
-      return { success: false, error: error.message };
+      logger.error('Error validating Apple receipt:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -259,10 +365,19 @@ export class PaymentService {
         },
         body: JSON.stringify({ receiptData }),
       });
-      return await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
+      const data = await response.json();
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error restoring Apple purchases:', error);
-      return { success: false, error: error.message };
+      logger.error('Error restoring Apple purchases:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -281,10 +396,19 @@ export class PaymentService {
         },
         body: JSON.stringify({ purchaseToken, productId, isSubscription }),
       });
-      return await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
+      const data = await response.json();
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error validating Google purchase:', error);
-      return { success: false, error: error.message };
+      logger.error('Error validating Google purchase:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -301,10 +425,19 @@ export class PaymentService {
         },
         body: JSON.stringify({ purchases }),
       });
-      return await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
+      const data = await response.json();
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error restoring Google purchases:', error);
-      return { success: false, error: error.message };
+      logger.error('Error restoring Google purchases:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -323,10 +456,19 @@ export class PaymentService {
         },
         body: JSON.stringify({ immediately }),
       });
-      return await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
+      const data = await response.json();
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error cancelling subscription:', error);
-      return { success: false, error: error.message };
+      logger.error('Error cancelling subscription:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -342,10 +484,19 @@ export class PaymentService {
           Authorization: `Bearer ${token}`,
         },
       });
-      return await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
+      const data = await response.json();
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error resuming subscription:', error);
-      return { success: false, error: error.message };
+      logger.error('Error resuming subscription:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 
@@ -364,10 +515,19 @@ export class PaymentService {
         },
         body: JSON.stringify({ transactionId, reason, amount }),
       });
-      return await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          getUserFriendlyMessage(
+            errorData.message || `HTTP ${response.status}: ${response.statusText}`
+          )
+        );
+      }
+      const data = await response.json();
+      return data || { success: false, error: 'No response from server' };
     } catch (error) {
-      console.error('Error requesting refund:', error);
-      return { success: false, error: error.message };
+      logger.error('Error requesting refund:', error);
+      return { success: false, error: getUserFriendlyMessage(error.message) };
     }
   }
 

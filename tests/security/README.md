@@ -10,6 +10,7 @@ This directory contains configuration and scripts for security penetration testi
 ## Quick Start
 
 ### Using Docker
+
 ```bash
 # Pull OWASP ZAP Docker image
 docker pull zaproxy/zap-stable
@@ -22,6 +23,7 @@ docker run -t zaproxy/zap-stable zap-full-scan.py -t http://localhost:3001
 ```
 
 ### Using ZAP CLI
+
 ```bash
 # Start ZAP in daemon mode
 zap.sh -daemon -port 8090

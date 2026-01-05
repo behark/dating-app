@@ -36,7 +36,9 @@ export const SocialFeaturesService = {
 
   getNearbyGroupDates: async (longitude, latitude, maxDistance = 5000) => {
     try {
-      const response = await api.get(`/social/group-dates/nearby?longitude=${longitude}&latitude=${latitude}&maxDistance=${maxDistance}`);
+      const response = await api.get(
+        `/social/group-dates/nearby?longitude=${longitude}&latitude=${latitude}&maxDistance=${maxDistance}`
+      );
       return response.data;
     } catch (error) {
       console.error('Error getting nearby group dates:', error);
@@ -111,7 +113,7 @@ export const SocialFeaturesService = {
     try {
       const response = await api.post(`/social/share-profile/${userId}`, {
         shareMethod,
-        customMessage
+        customMessage,
       });
       return response.data;
     } catch (error) {
@@ -124,7 +126,7 @@ export const SocialFeaturesService = {
     try {
       const response = await api.post(`/social/share-profile/${userId}/with`, {
         sharedByUserId,
-        method
+        method,
       });
       return response.data;
     } catch (error) {
@@ -138,8 +140,8 @@ export const SocialFeaturesService = {
       // This endpoint doesn't require auth
       const response = await api.get(`/social/shared-profile/${shareToken}`, {
         headers: {
-          Authorization: undefined
-        }
+          Authorization: undefined,
+        },
       });
       return response.data;
     } catch (error) {
@@ -166,7 +168,7 @@ export const SocialFeaturesService = {
       console.error('Error deactivating share link:', error);
       throw error;
     }
-  }
+  },
 };
 
 export default SocialFeaturesService;

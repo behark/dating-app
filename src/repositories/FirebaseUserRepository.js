@@ -1,12 +1,20 @@
 /**
  * FirebaseUserRepository
- * 
+ *
  * Implementation of UserRepository using Firebase Firestore.
  * Handles all Firebase-specific logic and error handling.
  * Returns empty arrays/null on errors instead of throwing.
  */
 
-import { arrayUnion, collection, doc, getDoc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  arrayUnion,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { UserRepository } from './UserRepository';
 
@@ -20,7 +28,7 @@ export class FirebaseUserRepository extends UserRepository {
     this.db = db;
     this.cache = userCache;
     this.cacheDuration = CACHE_DURATION;
-    
+
     // Start periodic cache cleanup
     this.cleanupInterval = setInterval(() => this.cleanupCache(), CACHE_DURATION);
   }
@@ -38,7 +46,7 @@ export class FirebaseUserRepository extends UserRepository {
       }
 
       const userDoc = await getDoc(doc(this.db, 'users', userId));
-      
+
       if (!userDoc.exists()) {
         console.log('FirebaseUserRepository: User not found:', userId);
         return null;
@@ -68,7 +76,7 @@ export class FirebaseUserRepository extends UserRepository {
 
       // Get current user data for swiped users and matches
       const currentUserData = await this.getCurrentUser(userId);
-      
+
       // Combine exclusion lists
       const swipedUsers = currentUserData?.swipedUsers || [];
       const matches = currentUserData?.matches || [];
@@ -79,10 +87,10 @@ export class FirebaseUserRepository extends UserRepository {
       const querySnapshot = await getDocs(usersRef);
 
       const availableUsers = [];
-      
+
       querySnapshot.forEach((docSnapshot) => {
         const docId = docSnapshot.id;
-        
+
         // Skip excluded users
         if (allExcluded.has(docId)) {
           return;
@@ -92,7 +100,7 @@ export class FirebaseUserRepository extends UserRepository {
         const cachedUser = this.cache.get(docId);
         let user;
 
-        if (cachedUser && (Date.now() - cachedUser.cachedAt) < this.cacheDuration) {
+        if (cachedUser && Date.now() - cachedUser.cachedAt < this.cacheDuration) {
           user = cachedUser.data;
         } else {
           // Cache the user data
@@ -100,7 +108,7 @@ export class FirebaseUserRepository extends UserRepository {
           user = { id: docId, ...userData };
           this.cache.set(docId, {
             data: user,
-            cachedAt: Date.now()
+            cachedAt: Date.now(),
           });
         }
 
@@ -135,7 +143,7 @@ export class FirebaseUserRepository extends UserRepository {
       const userRef = doc(this.db, 'users', userId);
       await updateDoc(userRef, {
         ...data,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       });
 
       // Invalidate cache for this user
@@ -161,22 +169,22 @@ export class FirebaseUserRepository extends UserRepository {
 
       // Check cache first
       const cached = this.cache.get(userId);
-      if (cached && (Date.now() - cached.cachedAt) < this.cacheDuration) {
+      if (cached && Date.now() - cached.cachedAt < this.cacheDuration) {
         return cached.data;
       }
 
       const userDoc = await getDoc(doc(this.db, 'users', userId));
-      
+
       if (!userDoc.exists()) {
         return null;
       }
 
       const user = { id: userDoc.id, ...userDoc.data() };
-      
+
       // Update cache
       this.cache.set(userId, {
         data: user,
-        cachedAt: Date.now()
+        cachedAt: Date.now(),
       });
 
       return user;
@@ -202,13 +210,13 @@ export class FirebaseUserRepository extends UserRepository {
       // Add to swiped users list
       const swiperRef = doc(this.db, 'users', swiperId);
       await updateDoc(swiperRef, {
-        swipedUsers: arrayUnion(swipedUserId)
+        swipedUsers: arrayUnion(swipedUserId),
       });
 
       // If right swipe or super like, check for match
       if (direction === 'right' || direction === 'super') {
         const swipedUserData = await this.getUserById(swipedUserId);
-        
+
         // Check if the other user has already swiped right on us
         if (swipedUserData?.swipedUsers?.includes(swiperId)) {
           // It's a match!
@@ -236,7 +244,7 @@ export class FirebaseUserRepository extends UserRepository {
 
       await Promise.all([
         updateDoc(user1Ref, { matches: arrayUnion(userId2) }),
-        updateDoc(user2Ref, { matches: arrayUnion(userId1) })
+        updateDoc(user2Ref, { matches: arrayUnion(userId1) }),
       ]);
 
       // Create a match document
@@ -244,7 +252,7 @@ export class FirebaseUserRepository extends UserRepository {
       await setDoc(doc(this.db, 'matches', matchId), {
         users: [userId1, userId2],
         createdAt: new Date().toISOString(),
-        lastMessage: null
+        lastMessage: null,
       });
 
       return true;

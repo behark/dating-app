@@ -77,7 +77,7 @@ exports.getUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -85,15 +85,14 @@ exports.getUser = async (req, res) => {
 
     res.json({
       success: true,
-      data: { user, matches }
+      data: { user, matches },
     });
-
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({
       success: false,
       message: 'Error retrieving user',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -175,13 +174,13 @@ exports.getDashboard = async (req, res) => {
       User.findById(userId),
       Match.find({ userId }).limit(10),
       Notification.find({ userId, read: false }).limit(20),
-      Stats.getForUser(userId)
+      Stats.getForUser(userId),
     ]);
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -191,15 +190,14 @@ exports.getDashboard = async (req, res) => {
         user,
         matches,
         notifications,
-        stats
-      }
+        stats,
+      },
     });
-
   } catch (error) {
     console.error('Dashboard error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error loading dashboard'
+      message: 'Error loading dashboard',
     });
   }
 };
@@ -212,28 +210,27 @@ exports.sendBulkNotifications = async (req, res) => {
     const { userIds, message } = req.body;
 
     const results = await Promise.allSettled(
-      userIds.map(userId => NotificationService.send(userId, message))
+      userIds.map((userId) => NotificationService.send(userId, message))
     );
 
     const summary = {
       total: results.length,
-      successful: results.filter(r => r.status === 'fulfilled').length,
-      failed: results.filter(r => r.status === 'rejected').length,
+      successful: results.filter((r) => r.status === 'fulfilled').length,
+      failed: results.filter((r) => r.status === 'rejected').length,
       failures: results
-        .filter(r => r.status === 'rejected')
-        .map((r, i) => ({ userId: userIds[i], error: r.reason?.message }))
+        .filter((r) => r.status === 'rejected')
+        .map((r, i) => ({ userId: userIds[i], error: r.reason?.message })),
     };
 
     res.json({
       success: true,
-      data: summary
+      data: summary,
     });
-
   } catch (error) {
     console.error('Bulk notification error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error sending notifications'
+      message: 'Error sending notifications',
     });
   }
 };
@@ -254,16 +251,24 @@ exports.createMatchWithNotification = async (req, res) => {
     const { userId, targetUserId } = req.body;
 
     // Create the match
-    const match = await Match.create([{
-      users: [userId, targetUserId],
-      createdAt: new Date()
-    }], { session });
+    const match = await Match.create(
+      [
+        {
+          users: [userId, targetUserId],
+          createdAt: new Date(),
+        },
+      ],
+      { session }
+    );
 
     // Create notifications for both users
-    await Notification.create([
-      { userId, type: 'match', matchId: match[0]._id },
-      { userId: targetUserId, type: 'match', matchId: match[0]._id }
-    ], { session });
+    await Notification.create(
+      [
+        { userId, type: 'match', matchId: match[0]._id },
+        { userId: targetUserId, type: 'match', matchId: match[0]._id },
+      ],
+      { session }
+    );
 
     // Update user stats
     await User.updateMany(
@@ -276,15 +281,14 @@ exports.createMatchWithNotification = async (req, res) => {
 
     res.json({
       success: true,
-      data: { match: match[0] }
+      data: { match: match[0] },
     });
-
   } catch (error) {
     await session.abortTransaction();
     console.error('Match creation error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error creating match'
+      message: 'Error creating match',
     });
   } finally {
     session.endSession();
@@ -309,7 +313,7 @@ const retryWithBackoff = async (fn, maxRetries = 3, baseDelay = 1000) => {
 
       if (attempt < maxRetries - 1) {
         const delay = baseDelay * Math.pow(2, attempt);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }
@@ -345,14 +349,13 @@ exports.processAllUsers = async (req, res) => {
 
     res.json({
       success: true,
-      data: { processed, errors }
+      data: { processed, errors },
     });
-
   } catch (error) {
     console.error('Batch processing error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error in batch processing'
+      message: 'Error in batch processing',
     });
   }
 };
@@ -403,5 +406,5 @@ module.exports = {
   ValidationError,
   UnauthorizedError,
   retryWithBackoff,
-  processBatch
+  processBatch,
 };

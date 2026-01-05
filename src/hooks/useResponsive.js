@@ -91,7 +91,7 @@ export const responsiveHeight = (value) => {
 export const responsiveFontSize = (size) => {
   const scale = SCREEN_WIDTH / baseWidth;
   const newSize = size * scale;
-  
+
   if (Platform.OS === 'ios') {
     return Math.round(PixelRatio.roundToNearestPixel(newSize));
   }

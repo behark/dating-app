@@ -1,8 +1,10 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { AnalyticsService } from '../services/AnalyticsService';
+import { Colors } from '../constants/colors';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -10,7 +12,7 @@ class ErrorBoundary extends React.Component {
     this.state = { hasError: false, error: null, errorInfo: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(_error) {
     // Update state so the next render will show the fallback UI
     return { hasError: true };
   }
@@ -43,27 +45,23 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+        <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={styles.container}>
           <View style={styles.errorContainer}>
             <View style={styles.errorIcon}>
-              <Ionicons name="alert-circle" size={80} color="#fff" />
+              <Ionicons name="alert-circle" size={80} color={Colors.text.white} />
             </View>
 
             <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
             <Text style={styles.errorMessage}>
-              We're sorry, but something unexpected happened. Our team has been notified.
+              We&apos;re sorry, but something unexpected happened. Our team has been notified.
             </Text>
 
             {__DEV__ && this.state.error && (
               <View style={styles.devErrorContainer}>
                 <Text style={styles.devErrorTitle}>Development Error Details:</Text>
-                <Text style={styles.devErrorText}>
-                  {this.state.error.toString()}
-                </Text>
+                <Text style={styles.devErrorText}>{this.state.error.toString()}</Text>
                 {this.state.errorInfo && (
-                  <Text style={styles.devErrorStack}>
-                    {this.state.errorInfo.componentStack}
-                  </Text>
+                  <Text style={styles.devErrorStack}>{this.state.errorInfo.componentStack}</Text>
                 )}
               </View>
             )}
@@ -74,11 +72,8 @@ class ErrorBoundary extends React.Component {
                 onPress={this.handleRetry}
                 activeOpacity={0.8}
               >
-                <LinearGradient
-                  colors={['#667eea', '#764ba2']}
-                  style={styles.retryButtonGradient}
-                >
-                  <Ionicons name="refresh" size={20} color="#fff" style={{ marginRight: 8 }} />
+                <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={styles.retryButtonGradient}>
+                  <Ionicons name="refresh" size={20} color={Colors.text.white} style={styles.refreshIcon} />
                   <Text style={styles.retryButtonText}>Try Again</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -121,23 +116,23 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#fff',
+    color: Colors.text.white,
     textAlign: 'center',
     marginBottom: 15,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowColor: Colors.shadow.black,
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
   errorMessage: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: Colors.text.white90,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 20,
     paddingHorizontal: 20,
   },
   devErrorContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: Colors.background.white10,
     borderRadius: 10,
     padding: 15,
     marginBottom: 20,
@@ -147,19 +142,19 @@ const styles = StyleSheet.create({
   devErrorTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.text.white,
     marginBottom: 8,
   },
   devErrorText: {
     fontSize: 12,
-    color: '#fff',
+    color: Colors.text.white,
     fontFamily: 'monospace',
     marginBottom: 8,
     lineHeight: 16,
   },
   devErrorStack: {
     fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: Colors.text.white70,
     fontFamily: 'monospace',
     lineHeight: 14,
   },
@@ -172,7 +167,7 @@ const styles = StyleSheet.create({
   retryButton: {
     borderRadius: 15,
     overflow: 'hidden',
-    shadowColor: '#667eea',
+    shadowColor: Colors.shadow.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -185,30 +180,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   retryButtonText: {
-    color: '#fff',
+    color: Colors.text.white,
     fontSize: 16,
     fontWeight: '700',
   },
   reportButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: Colors.background.white20,
     borderRadius: 15,
     paddingVertical: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: Colors.background.white30,
   },
   reportButtonText: {
-    color: '#fff',
+    color: Colors.text.white,
     fontSize: 14,
     fontWeight: '600',
   },
   helpText: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: Colors.text.white70,
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: 20,
   },
+  refreshIcon: {
+    marginRight: 8,
+  },
 });
+
+ErrorBoundary.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 
 export default ErrorBoundary;

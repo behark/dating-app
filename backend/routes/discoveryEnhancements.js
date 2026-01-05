@@ -10,7 +10,11 @@ router.get('/explore', authenticate, discoveryEnhancementsController.exploreUser
 router.get('/top-picks', authenticate, discoveryEnhancementsController.getTopPicks);
 
 // Recently Active Users
-router.get('/recently-active', authenticate, discoveryEnhancementsController.getRecentlyActiveUsers);
+router.get(
+  '/recently-active',
+  authenticate,
+  discoveryEnhancementsController.getRecentlyActiveUsers
+);
 
 // Verified Profiles
 router.get('/verified', authenticate, discoveryEnhancementsController.getVerifiedProfiles);
@@ -19,6 +23,10 @@ router.get('/verified', authenticate, discoveryEnhancementsController.getVerifie
 router.post('/verify-profile', authenticate, discoveryEnhancementsController.verifyProfile);
 
 // Admin: Approve verification
-router.post('/approve-verification', authenticate, discoveryEnhancementsController.approveProfileVerification);
+router.post(
+  '/approve-verification',
+  authenticate,
+  discoveryEnhancementsController.approveProfileVerification
+);
 
 module.exports = router;

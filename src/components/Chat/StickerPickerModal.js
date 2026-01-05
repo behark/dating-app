@@ -1,16 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
-    ActivityIndicator,
-    Dimensions,
-    FlatList,
-    Image,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  FlatList,
+  Image,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import MediaMessagesService from '../../services/MediaMessagesService';
 
@@ -24,19 +24,7 @@ const StickerPickerModal = ({ visible, onClose, onSelectSticker, authToken }) =>
   const [loading, setLoading] = useState(false);
   const mediaService = new MediaMessagesService(authToken);
 
-  useEffect(() => {
-    if (visible) {
-      loadStickerPacks();
-    }
-  }, [visible]);
-
-  useEffect(() => {
-    if (packs.length > 0 && !selectedPackId) {
-      setSelectedPackId(packs[0].id);
-    }
-  }, [packs]);
-
-  const loadStickerPacks = async () => {
+  const loadStickerPacks = useCallback(async () => {
     setLoading(true);
     try {
       const result = await mediaService.getStickerPacks();
@@ -46,9 +34,21 @@ const StickerPickerModal = ({ visible, onClose, onSelectSticker, authToken }) =>
     } finally {
       setLoading(false);
     }
-  };
+  }, [mediaService]);
 
-  const selectedPack = packs.find(p => p.id === selectedPackId);
+  useEffect(() => {
+    if (visible) {
+      loadStickerPacks();
+    }
+  }, [visible, loadStickerPacks]);
+
+  useEffect(() => {
+    if (packs.length > 0 && !selectedPackId) {
+      setSelectedPackId(packs[0].id);
+    }
+  }, [packs, selectedPackId]);
+
+  const selectedPack = packs.find((p) => p.id === selectedPackId);
 
   const renderSticker = ({ item }) => (
     <TouchableOpacity
@@ -57,15 +57,12 @@ const StickerPickerModal = ({ visible, onClose, onSelectSticker, authToken }) =>
         onSelectSticker({
           url: item.url,
           packId: selectedPackId,
-          stickerId: item.id
+          stickerId: item.id,
         });
         onClose();
       }}
     >
-      <Image
-        source={{ uri: item.url }}
-        style={styles.sticker}
-      />
+      <Image source={{ uri: item.url }} style={styles.sticker} />
     </TouchableOpacity>
   );
 
@@ -89,24 +86,19 @@ const StickerPickerModal = ({ visible, onClose, onSelectSticker, authToken }) =>
 
         {/* Pack Tabs */}
         {packs.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.packTabs}
-          >
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.packTabs}>
             {packs.map((pack) => (
               <TouchableOpacity
                 key={pack.id}
-                style={[
-                  styles.packTab,
-                  selectedPackId === pack.id && styles.packTabActive
-                ]}
+                style={[styles.packTab, selectedPackId === pack.id && styles.packTabActive]}
                 onPress={() => setSelectedPackId(pack.id)}
               >
-                <Text style={[
-                  styles.packTabText,
-                  selectedPackId === pack.id && styles.packTabTextActive
-                ]}>
+                <Text
+                  style={[
+                    styles.packTabText,
+                    selectedPackId === pack.id && styles.packTabTextActive,
+                  ]}
+                >
                   {pack.name}
                 </Text>
               </TouchableOpacity>

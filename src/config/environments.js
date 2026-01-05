@@ -151,7 +151,7 @@ export class EnvironmentConfig {
       'EXPO_PUBLIC_FIREBASE_APP_ID',
     ];
 
-    const missing = requiredVars.filter(varName => !process.env[varName]);
+    const missing = requiredVars.filter((varName) => !process.env[varName]);
 
     if (missing.length > 0) {
       console.error('Missing required environment variables:', missing);

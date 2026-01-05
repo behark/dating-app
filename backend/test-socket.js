@@ -4,8 +4,8 @@ const io = require('socket.io-client');
 // Connect to the server
 const socket = io('http://localhost:3000', {
   auth: {
-    userId: 'test-user-1'
-  }
+    userId: 'test-user-1',
+  },
 });
 
 socket.on('connect', () => {
@@ -20,7 +20,7 @@ socket.on('connect', () => {
     socket.emit('send_message', {
       matchId: 'test-match-123',
       content: 'Hello from test client!',
-      type: 'text'
+      type: 'text',
     });
     console.log('Sent test message');
   }, 1000);

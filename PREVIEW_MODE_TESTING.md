@@ -1,12 +1,15 @@
 # Preview Mode Testing Guide
 
 ## Overview
+
 The app now shows a **PreviewHomeScreen** to unlogged users by default, allowing them to explore demo profiles before signing up.
 
 ## Test Scenarios
 
 ### 1. Unlogged User Flow
+
 **Expected Behavior:**
+
 - ✅ User opens app → Sees PreviewHomeScreen with demo profiles
 - ✅ "Preview Mode" badge visible at top
 - ✅ Value proposition header visible
@@ -14,6 +17,7 @@ The app now shows a **PreviewHomeScreen** to unlogged users by default, allowing
 - ✅ Demo badges visible on each card
 
 **Test Steps:**
+
 1. Log out (if logged in)
 2. Close and reopen app
 3. Verify PreviewHomeScreen is shown
@@ -22,13 +26,16 @@ The app now shows a **PreviewHomeScreen** to unlogged users by default, allowing
 ---
 
 ### 2. Interaction Triggers Login Modal
+
 **Expected Behavior:**
+
 - ✅ Swiping left/right → Opens login modal
 - ✅ Tapping profile info button → Opens login modal
 - ✅ Tapping action buttons (pass/like/super like) → Opens login modal
 - ✅ Modal shows context-aware message based on interaction
 
 **Test Steps:**
+
 1. Try swiping a card left → Modal should appear with "Sign up to start matching!"
 2. Try swiping a card right → Modal should appear
 3. Tap the info button on a card → Modal should say "Create an account to view full profiles"
@@ -38,7 +45,9 @@ The app now shows a **PreviewHomeScreen** to unlogged users by default, allowing
 ---
 
 ### 3. Login/Signup
+
 **Expected Behavior:**
+
 - ✅ Login/Signup form works in modal
 - ✅ Can switch between login and signup
 - ✅ Google sign-in works
@@ -46,6 +55,7 @@ The app now shows a **PreviewHomeScreen** to unlogged users by default, allowing
 - ✅ User is automatically navigated to full app (HomeScreen)
 
 **Test Steps:**
+
 1. Trigger login modal (by swiping)
 2. Try signing up with new account
 3. Verify modal closes after successful signup
@@ -56,13 +66,16 @@ The app now shows a **PreviewHomeScreen** to unlogged users by default, allowing
 ---
 
 ### 4. Navigation Flow
+
 **Expected Behavior:**
+
 - ✅ Logged-in users never see PreviewHomeScreen
 - ✅ Unlogged users see PreviewHomeScreen by default
 - ✅ After login, seamless transition to MainTabs
 - ✅ Can navigate back to preview if logged out
 
 **Test Steps:**
+
 1. While logged in, verify you see MainTabs (not preview)
 2. Log out → Should see PreviewHomeScreen
 3. Log in → Should see MainTabs immediately
@@ -71,7 +84,9 @@ The app now shows a **PreviewHomeScreen** to unlogged users by default, allowing
 ---
 
 ### 5. Demo Profile Display
+
 **Expected Behavior:**
+
 - ✅ All demo profiles show correctly
 - ✅ Photos load from Unsplash
 - ✅ Names, ages, bios display correctly
@@ -80,6 +95,7 @@ The app now shows a **PreviewHomeScreen** to unlogged users by default, allowing
 - ✅ Can swipe through all 5 profiles
 
 **Test Steps:**
+
 1. Check each demo profile displays correctly
 2. Verify photos load (may take a moment)
 3. Check distance formatting
@@ -89,12 +105,15 @@ The app now shows a **PreviewHomeScreen** to unlogged users by default, allowing
 ---
 
 ### 6. Empty State
+
 **Expected Behavior:**
+
 - ✅ After viewing all demo profiles, empty state appears
 - ✅ Empty state has clear CTA to sign up
 - ✅ Tapping CTA opens login modal
 
 **Test Steps:**
+
 1. Swipe through all 5 demo profiles
 2. Verify empty state appears
 3. Tap "Get Started Free" button
@@ -103,13 +122,16 @@ The app now shows a **PreviewHomeScreen** to unlogged users by default, allowing
 ---
 
 ### 7. Edge Cases
+
 **Expected Behavior:**
+
 - ✅ Modal can be closed with X button
 - ✅ Closing modal doesn't break app state
 - ✅ Can reopen modal after closing
 - ✅ App handles network errors gracefully
 
 **Test Steps:**
+
 1. Open login modal
 2. Close it with X button
 3. Try interacting again → Modal should reopen
@@ -149,21 +171,25 @@ The app now shows a **PreviewHomeScreen** to unlogged users by default, allowing
 ## Troubleshooting
 
 ### Issue: PreviewHomeScreen not showing
+
 - Check if user is logged in (should see MainTabs instead)
 - Verify AppNavigator has PreviewHomeScreen imported
 - Check navigation stack order
 
 ### Issue: Login modal not opening
+
 - Check if showLoginModal state is being set
 - Verify interaction handlers are connected
 - Check console for errors
 
 ### Issue: Modal doesn't close after login
+
 - Verify AuthContext updates currentUser
 - Check useEffect dependency array
 - Verify onAuthSuccess callback is called
 
 ### Issue: Photos not loading
+
 - Check network connection
 - Verify Unsplash URLs are accessible
 - Check image loading errors in console

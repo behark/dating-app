@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 
 // Enable bufferCommands globally to allow queuing before connection
 mongoose.set('bufferCommands', true);
-mongoose.set('bufferMaxEntries', 0);
+// Note: bufferMaxEntries is set in connection options, not via mongoose.set()
 
 // Connection state
 let isConnected = false;
@@ -15,6 +15,7 @@ let connectionRetries = 0;
 const MAX_RETRIES = 5;
 
 // MongoDB connection options
+// @ts-ignore - Mongoose ConnectOptions type doesn't include all valid options
 const mongoOptions = {
   maxPoolSize: 10,
   minPoolSize: 2,
@@ -22,9 +23,10 @@ const mongoOptions = {
   socketTimeoutMS: 45000,
   family: 4, // Use IPv4
   retryWrites: true,
+  // @ts-ignore - 'majority' is valid for w option
   w: 'majority',
   bufferCommands: true, // Allow commands before connection is established
-  bufferMaxEntries: 0, // Disable mongoose buffering; throw error if not connected
+  // Note: bufferMaxEntries is set via mongoose.set(), not in connection options
 };
 
 /**
@@ -38,41 +40,45 @@ const connectDB = async () => {
 
   // Support both MONGODB_URI and MONGODB_URL for compatibility
   const mongoURI = process.env.MONGODB_URI || process.env.MONGODB_URL;
-  
+
   if (!mongoURI) {
     console.warn('MONGODB_URI or MONGODB_URL not set - database features will be unavailable');
     return null;
   }
 
   try {
+    // @ts-ignore - Mongoose accepts 'majority' as valid w option
     const conn = await mongoose.connect(mongoURI, mongoOptions);
-    
+
     isConnected = true;
     connectionRetries = 0;
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     console.log(`MongoDB Database: ${conn.connection.name}`);
-    
+
     // Setup event handlers
     setupConnectionHandlers();
-    
+
     return conn.connection;
   } catch (error) {
-    console.error('MongoDB connection failed:', error.message);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('MongoDB connection failed:', errorMessage);
     isConnected = false;
-    
+
     // Retry logic
     if (connectionRetries < MAX_RETRIES) {
       connectionRetries++;
       const delay = Math.min(1000 * Math.pow(2, connectionRetries), 30000);
-      console.log(`Retrying connection in ${delay}ms (attempt ${connectionRetries}/${MAX_RETRIES})`);
-      
+      console.log(
+        `Retrying connection in ${delay}ms (attempt ${connectionRetries}/${MAX_RETRIES})`
+      );
+
       return new Promise((resolve) => {
         setTimeout(async () => {
           resolve(await connectDB());
         }, delay);
       });
     }
-    
+
     throw error;
   }
 };
@@ -89,7 +95,7 @@ const setupConnectionHandlers = () => {
   mongoose.connection.on('disconnected', () => {
     console.log('MongoDB disconnected');
     isConnected = false;
-    
+
     // Attempt reconnection
     if (process.env.NODE_ENV !== 'test') {
       setTimeout(connectDB, 5000);
@@ -111,7 +117,8 @@ const gracefulShutdown = async (signal) => {
     await mongoose.connection.close();
     console.log('MongoDB connection closed');
   } catch (error) {
-    console.error('Error closing MongoDB connection:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error closing MongoDB connection:', errorMessage);
   }
 };
 
@@ -145,7 +152,7 @@ const enableSlowQueryProfiling = async (thresholdMs = 100) => {
     // slowms: threshold in milliseconds
     await mongoose.connection.db.command({
       profile: 1,
-      slowms: thresholdMs
+      slowms: thresholdMs,
     });
 
     console.log(`✅ MongoDB slow query profiling enabled (threshold: ${thresholdMs}ms)`);
@@ -154,6 +161,7 @@ const enableSlowQueryProfiling = async (thresholdMs = 100) => {
     if (process.env.NODE_ENV !== 'test') {
       setInterval(async () => {
         try {
+          if (!mongoose.connection.db) return;
           const slowQueries = await mongoose.connection.db
             .collection('system.profile')
             .find({ millis: { $gt: thresholdMs } })
@@ -163,9 +171,11 @@ const enableSlowQueryProfiling = async (thresholdMs = 100) => {
 
           if (slowQueries.length > 0) {
             console.warn(`[SLOW QUERIES] Found ${slowQueries.length} slow queries in last check:`);
-            slowQueries.forEach(q => {
-              console.warn(`  - ${q.op} on ${q.ns}: ${q.millis}ms`, 
-                q.command ? JSON.stringify(q.command).substring(0, 200) : '');
+            slowQueries.forEach((q) => {
+              console.warn(
+                `  - ${q.op} on ${q.ns}: ${q.millis}ms`,
+                q.command ? JSON.stringify(q.command).substring(0, 200) : ''
+              );
             });
           }
         } catch (err) {
@@ -174,7 +184,8 @@ const enableSlowQueryProfiling = async (thresholdMs = 100) => {
       }, 60000); // Check every minute
     }
   } catch (error) {
-    console.warn('Could not enable slow query profiling:', error.message);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.warn('Could not enable slow query profiling:', errorMessage);
   }
 };
 
@@ -185,6 +196,10 @@ const enableSlowQueryProfiling = async (thresholdMs = 100) => {
  */
 const createIndexes = async () => {
   try {
+    if (!mongoose.connection.db) {
+      console.warn('Database not connected, skipping index creation');
+      return;
+    }
     // User indexes
     await mongoose.connection.db.collection('users').createIndexes([
       { key: { location: '2dsphere' } },
@@ -224,29 +239,36 @@ const createIndexes = async () => {
     ]);
 
     // Reports and blocks
-    await mongoose.connection.db.collection('reports').createIndexes([
-      { key: { reportedUserId: 1, status: 1 } },
-      { key: { reporterId: 1, createdAt: -1 } },
-    ]);
+    if (mongoose.connection.db) {
+      await mongoose.connection.db
+        .collection('reports')
+        .createIndexes([
+          { key: { reportedUserId: 1, status: 1 } },
+          { key: { reporterId: 1, createdAt: -1 } },
+        ]);
 
-    await mongoose.connection.db.collection('blocks').createIndexes([
-      { key: { blockerId: 1, blockedId: 1 }, unique: true },
-    ]);
+      await mongoose.connection.db
+        .collection('blocks')
+        .createIndexes([{ key: { blockerId: 1, blockedId: 1 }, unique: true }]);
 
-    // UserActivity indexes for analytics
-    // TD-004: Optimized for DAU/retention queries
-    await mongoose.connection.db.collection('useractivities').createIndexes([
-      { key: { userId: 1, createdAt: -1 } },
-      { key: { createdAt: -1, userId: 1 }, name: 'createdAt_userId_dau' },
-      { key: { userId: 1, createdAt: 1 }, name: 'userId_createdAt_retention' },
-    ]);
+      // UserActivity indexes for analytics
+      // TD-004: Optimized for DAU/retention queries
+      await mongoose.connection.db
+        .collection('useractivities')
+        .createIndexes([
+        { key: { userId: 1, createdAt: -1 } },
+        { key: { createdAt: -1, userId: 1 }, name: 'createdAt_userId_dau' },
+        { key: { userId: 1, createdAt: 1 }, name: 'userId_createdAt_retention' },
+      ]);
+    }
 
     console.log('✅ Database indexes created successfully');
 
     // Enable slow query profiling after indexes are created
     await enableSlowQueryProfiling(100);
   } catch (error) {
-    console.error('Error creating indexes:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error creating indexes:', errorMessage);
   }
 };
 

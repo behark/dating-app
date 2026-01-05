@@ -1,6 +1,6 @@
 /**
  * Payment Routes
- * 
+ *
  * All payment-related API endpoints including:
  * - /api/payment/tiers - Subscription tiers
  * - /api/payment/status - Payment status
@@ -32,23 +32,11 @@ router.post(
   paymentController.stripeWebhook
 );
 
-router.post(
-  '/webhooks/paypal',
-  express.json(),
-  paymentController.paypalWebhook
-);
+router.post('/webhooks/paypal', express.json(), paymentController.paypalWebhook);
 
-router.post(
-  '/webhooks/apple',
-  express.json(),
-  paymentController.appleWebhook
-);
+router.post('/webhooks/apple', express.json(), paymentController.appleWebhook);
 
-router.post(
-  '/webhooks/google',
-  express.json(),
-  paymentController.googleWebhook
-);
+router.post('/webhooks/google', express.json(), paymentController.googleWebhook);
 
 // ==================== AUTHENTICATED ENDPOINTS ====================
 

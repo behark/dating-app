@@ -13,7 +13,7 @@ exports.updateProfile = async (req, res) => {
     if (bio && bio.length > 500) {
       return res.status(400).json({
         success: false,
-        message: 'Bio must not exceed 500 characters'
+        message: 'Bio must not exceed 500 characters',
       });
     }
 
@@ -24,7 +24,7 @@ exports.updateProfile = async (req, res) => {
     if (gender) updateData.gender = gender;
     if (bio) updateData.bio = bio.trim();
     if (interests && Array.isArray(interests)) {
-      updateData.interests = interests.filter(i => i.trim()).slice(0, 20); // Max 20 interests
+      updateData.interests = interests.filter((i) => i.trim()).slice(0, 20); // Max 20 interests
     }
 
     const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
@@ -32,7 +32,7 @@ exports.updateProfile = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -49,16 +49,16 @@ exports.updateProfile = async (req, res) => {
           bio: user.bio,
           interests: user.interests,
           photos: user.photos,
-          profileCompleteness: user.profileCompleteness
-        }
-      }
+          profileCompleteness: user.profileCompleteness,
+        },
+      },
     });
   } catch (error) {
     console.error('Profile update error:', error);
     res.status(500).json({
       success: false,
       message: 'Error updating profile',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -70,12 +70,14 @@ exports.getProfile = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const user = await User.findById(userId).select('-password -passwordResetToken -emailVerificationToken -phoneVerificationCode');
+    const user = await User.findById(userId).select(
+      '-password -passwordResetToken -emailVerificationToken -phoneVerificationCode'
+    );
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -92,16 +94,16 @@ exports.getProfile = async (req, res) => {
           interests: user.interests,
           photos: user.photos,
           profileCompleteness: user.profileCompleteness,
-          createdAt: user.createdAt
-        }
-      }
+          createdAt: user.createdAt,
+        },
+      },
     });
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching profile',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -129,16 +131,16 @@ exports.getMyProfile = async (req, res) => {
           isPhoneVerified: user.isPhoneVerified,
           isEmailVerified: user.isEmailVerified,
           profileCompleteness: user.profileCompleteness,
-          createdAt: user.createdAt
-        }
-      }
+          createdAt: user.createdAt,
+        },
+      },
     });
   } catch (error) {
     console.error('Get my profile error:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching profile',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -154,14 +156,14 @@ exports.uploadPhotos = async (req, res) => {
     if (!Array.isArray(photos) || photos.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Photos array is required'
+        message: 'Photos array is required',
       });
     }
 
     if (photos.length > 6) {
       return res.status(400).json({
         success: false,
-        message: 'Maximum 6 photos allowed'
+        message: 'Maximum 6 photos allowed',
       });
     }
 
@@ -169,25 +171,27 @@ exports.uploadPhotos = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
     // Add new photos with moderation status
     const newPhotos = photos.map((photo, index) => ({
-      _id: mongoose.Types.ObjectId.createFromTime 
+      _id: mongoose.Types.ObjectId.createFromTime
         ? mongoose.Types.ObjectId.createFromTime(Math.floor(Date.now() / 1000))
         : new mongoose.Types.ObjectId(),
       url: photo.url,
       order: photo.order || index,
       moderationStatus: 'pending',
-      uploadedAt: new Date()
+      uploadedAt: new Date(),
     }));
 
     user.photos = [...user.photos, ...newPhotos];
 
     // Keep only 6 most recent photos
-    user.photos = user.photos.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt)).slice(0, 6);
+    user.photos = user.photos
+      .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))
+      .slice(0, 6);
 
     // Re-order photos
     user.photos.forEach((photo, index) => {
@@ -200,15 +204,15 @@ exports.uploadPhotos = async (req, res) => {
       success: true,
       message: 'Photos uploaded successfully. They are pending moderation.',
       data: {
-        photos: user.photos
-      }
+        photos: user.photos,
+      },
     });
   } catch (error) {
     console.error('Photo upload error:', error);
     res.status(500).json({
       success: false,
       message: 'Error uploading photos',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -224,7 +228,7 @@ exports.reorderPhotos = async (req, res) => {
     if (!Array.isArray(photoIds) || photoIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Photo IDs array is required'
+        message: 'Photo IDs array is required',
       });
     }
 
@@ -232,7 +236,7 @@ exports.reorderPhotos = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -243,7 +247,7 @@ exports.reorderPhotos = async (req, res) => {
     });
 
     // Update photo orders
-    user.photos.forEach(photo => {
+    user.photos.forEach((photo) => {
       const newOrder = orderMap.get(photo._id.toString());
       if (newOrder !== undefined) {
         photo.order = newOrder;
@@ -259,15 +263,15 @@ exports.reorderPhotos = async (req, res) => {
       success: true,
       message: 'Photos reordered successfully',
       data: {
-        photos: user.photos
-      }
+        photos: user.photos,
+      },
     });
   } catch (error) {
     console.error('Photo reorder error:', error);
     res.status(500).json({
       success: false,
       message: 'Error reordering photos',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -284,11 +288,11 @@ exports.deletePhoto = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
-    user.photos = user.photos.filter(photo => photo._id.toString() !== photoId);
+    user.photos = user.photos.filter((photo) => photo._id.toString() !== photoId);
 
     await user.save();
 
@@ -296,15 +300,15 @@ exports.deletePhoto = async (req, res) => {
       success: true,
       message: 'Photo deleted successfully',
       data: {
-        photos: user.photos
-      }
+        photos: user.photos,
+      },
     });
   } catch (error) {
     console.error('Photo delete error:', error);
     res.status(500).json({
       success: false,
       message: 'Error deleting photo',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -320,7 +324,7 @@ exports.approvePhoto = async (req, res) => {
     if (!req.user.isAdmin) {
       return res.status(403).json({
         success: false,
-        message: 'Only admins can approve photos'
+        message: 'Only admins can approve photos',
       });
     }
 
@@ -329,15 +333,15 @@ exports.approvePhoto = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Photo not found'
+        message: 'Photo not found',
       });
     }
 
-    const photo = user.photos.find(p => p._id.toString() === photoId);
+    const photo = user.photos.find((p) => p._id.toString() === photoId);
     if (!photo) {
       return res.status(404).json({
         success: false,
-        message: 'Photo not found'
+        message: 'Photo not found',
       });
     }
 
@@ -346,14 +350,14 @@ exports.approvePhoto = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Photo approved'
+      message: 'Photo approved',
     });
   } catch (error) {
     console.error('Approve photo error:', error);
     res.status(500).json({
       success: false,
       message: 'Error approving photo',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -370,7 +374,7 @@ exports.rejectPhoto = async (req, res) => {
     if (!req.user.isAdmin) {
       return res.status(403).json({
         success: false,
-        message: 'Only admins can reject photos'
+        message: 'Only admins can reject photos',
       });
     }
 
@@ -379,15 +383,15 @@ exports.rejectPhoto = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Photo not found'
+        message: 'Photo not found',
       });
     }
 
-    const photo = user.photos.find(p => p._id.toString() === photoId);
+    const photo = user.photos.find((p) => p._id.toString() === photoId);
     if (!photo) {
       return res.status(404).json({
         success: false,
-        message: 'Photo not found'
+        message: 'Photo not found',
       });
     }
 
@@ -397,14 +401,14 @@ exports.rejectPhoto = async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Photo rejected'
+      message: 'Photo rejected',
     });
   } catch (error) {
     console.error('Reject photo error:', error);
     res.status(500).json({
       success: false,
       message: 'Error rejecting photo',
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -418,22 +422,22 @@ exports.getPendingPhotos = async (req, res) => {
     if (!req.user.isAdmin) {
       return res.status(403).json({
         success: false,
-        message: 'Only admins can access this'
+        message: 'Only admins can access this',
       });
     }
 
     const users = await User.find({ 'photos.moderationStatus': 'pending' });
 
     const pendingPhotos = [];
-    users.forEach(user => {
-      user.photos.forEach(photo => {
+    users.forEach((user) => {
+      user.photos.forEach((photo) => {
         if (photo.moderationStatus === 'pending') {
           pendingPhotos.push({
             _id: photo._id,
             userId: user._id,
             userName: user.name,
             url: photo.url,
-            uploadedAt: photo.uploadedAt
+            uploadedAt: photo.uploadedAt,
           });
         }
       });
@@ -443,15 +447,15 @@ exports.getPendingPhotos = async (req, res) => {
       success: true,
       data: {
         photos: pendingPhotos,
-        total: pendingPhotos.length
-      }
+        total: pendingPhotos.length,
+      },
     });
   } catch (error) {
     console.error('Get pending photos error:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching pending photos',
-      error: error.message
+      error: error.message,
     });
   }
 };

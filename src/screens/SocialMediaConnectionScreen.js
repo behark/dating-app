@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SocialMediaService } from '../services/SocialMediaService';
 
@@ -17,11 +17,11 @@ export default function SocialMediaConnectionScreen() {
   const [loading, setLoading] = useState(false);
   const [connectedAccounts, setConnectedAccounts] = useState({
     spotify: null,
-    instagram: null
+    instagram: null,
   });
   const [loadingConnection, setLoadingConnection] = useState({
     spotify: false,
-    instagram: false
+    instagram: false,
   });
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export default function SocialMediaConnectionScreen() {
     // For now, we'll initialize as empty
     setConnectedAccounts({
       spotify: null,
-      instagram: null
+      instagram: null,
     });
   };
 
@@ -44,39 +44,35 @@ export default function SocialMediaConnectionScreen() {
 
       // In a real app, you'd use Spotify OAuth flow
       // This is a simplified version
-      Alert.prompt(
-        'Connect Spotify',
-        'Enter your Spotify username',
-        [
-          {
-            text: 'Cancel',
-            onPress: () => setLoadingConnection({ ...loadingConnection, spotify: false }),
-            style: 'cancel'
-          },
-          {
-            text: 'Connect',
-            onPress: async (username) => {
-              try {
-                await SocialMediaService.connectSpotify({
-                  username,
-                  profileUrl: `https://open.spotify.com/user/${username}`
-                });
-                
-                setConnectedAccounts({
-                  ...connectedAccounts,
-                  spotify: { username, isVerified: false }
-                });
-                
-                Alert.alert('Success', 'Spotify account connected');
-              } catch (error) {
-                Alert.alert('Error', error.message);
-              } finally {
-                setLoadingConnection({ ...loadingConnection, spotify: false });
-              }
+      Alert.prompt('Connect Spotify', 'Enter your Spotify username', [
+        {
+          text: 'Cancel',
+          onPress: () => setLoadingConnection({ ...loadingConnection, spotify: false }),
+          style: 'cancel',
+        },
+        {
+          text: 'Connect',
+          onPress: async (username) => {
+            try {
+              await SocialMediaService.connectSpotify({
+                username,
+                profileUrl: `https://open.spotify.com/user/${username}`,
+              });
+
+              setConnectedAccounts({
+                ...connectedAccounts,
+                spotify: { username, isVerified: false },
+              });
+
+              Alert.alert('Success', 'Spotify account connected');
+            } catch (error) {
+              Alert.alert('Error', error.message);
+            } finally {
+              setLoadingConnection({ ...loadingConnection, spotify: false });
             }
-          }
-        ]
-      );
+          },
+        },
+      ]);
     } catch (error) {
       Alert.alert('Error', error.message);
       setLoadingConnection({ ...loadingConnection, spotify: false });
@@ -89,39 +85,35 @@ export default function SocialMediaConnectionScreen() {
 
       // In a real app, you'd use Instagram OAuth flow
       // This is a simplified version
-      Alert.prompt(
-        'Connect Instagram',
-        'Enter your Instagram username',
-        [
-          {
-            text: 'Cancel',
-            onPress: () => setLoadingConnection({ ...loadingConnection, instagram: false }),
-            style: 'cancel'
-          },
-          {
-            text: 'Connect',
-            onPress: async (username) => {
-              try {
-                await SocialMediaService.connectInstagram({
-                  username,
-                  profileUrl: `https://instagram.com/${username}`
-                });
-                
-                setConnectedAccounts({
-                  ...connectedAccounts,
-                  instagram: { username, isVerified: false }
-                });
-                
-                Alert.alert('Success', 'Instagram account connected');
-              } catch (error) {
-                Alert.alert('Error', error.message);
-              } finally {
-                setLoadingConnection({ ...loadingConnection, instagram: false });
-              }
+      Alert.prompt('Connect Instagram', 'Enter your Instagram username', [
+        {
+          text: 'Cancel',
+          onPress: () => setLoadingConnection({ ...loadingConnection, instagram: false }),
+          style: 'cancel',
+        },
+        {
+          text: 'Connect',
+          onPress: async (username) => {
+            try {
+              await SocialMediaService.connectInstagram({
+                username,
+                profileUrl: `https://instagram.com/${username}`,
+              });
+
+              setConnectedAccounts({
+                ...connectedAccounts,
+                instagram: { username, isVerified: false },
+              });
+
+              Alert.alert('Success', 'Instagram account connected');
+            } catch (error) {
+              Alert.alert('Error', error.message);
+            } finally {
+              setLoadingConnection({ ...loadingConnection, instagram: false });
             }
-          }
-        ]
-      );
+          },
+        },
+      ]);
     } catch (error) {
       Alert.alert('Error', error.message);
       setLoadingConnection({ ...loadingConnection, instagram: false });
@@ -148,8 +140,8 @@ export default function SocialMediaConnectionScreen() {
             } finally {
               setLoadingConnection({ ...loadingConnection, spotify: false });
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -174,8 +166,8 @@ export default function SocialMediaConnectionScreen() {
             } finally {
               setLoadingConnection({ ...loadingConnection, instagram: false });
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -197,9 +189,7 @@ export default function SocialMediaConnectionScreen() {
               <Text style={styles.platformEmoji}>🎵</Text>
               <View>
                 <Text style={styles.platformName}>Spotify</Text>
-                <Text style={styles.platformDescription}>
-                  Share your music taste
-                </Text>
+                <Text style={styles.platformDescription}>Share your music taste</Text>
               </View>
             </View>
             {connectedAccounts.spotify ? (
@@ -215,9 +205,7 @@ export default function SocialMediaConnectionScreen() {
 
           {connectedAccounts.spotify && (
             <View style={styles.accountInfo}>
-              <Text style={styles.accountUsername}>
-                @{connectedAccounts.spotify.username}
-              </Text>
+              <Text style={styles.accountUsername}>@{connectedAccounts.spotify.username}</Text>
               {connectedAccounts.spotify.isVerified && (
                 <Text style={styles.verifiedBadge}>✓ Verified</Text>
               )}
@@ -260,9 +248,7 @@ export default function SocialMediaConnectionScreen() {
               <Text style={styles.platformEmoji}>📸</Text>
               <View>
                 <Text style={styles.platformName}>Instagram</Text>
-                <Text style={styles.platformDescription}>
-                  Show your best photos
-                </Text>
+                <Text style={styles.platformDescription}>Show your best photos</Text>
               </View>
             </View>
             {connectedAccounts.instagram ? (
@@ -278,9 +264,7 @@ export default function SocialMediaConnectionScreen() {
 
           {connectedAccounts.instagram && (
             <View style={styles.accountInfo}>
-              <Text style={styles.accountUsername}>
-                @{connectedAccounts.instagram.username}
-              </Text>
+              <Text style={styles.accountUsername}>@{connectedAccounts.instagram.username}</Text>
               {connectedAccounts.instagram.isVerified && (
                 <Text style={styles.verifiedBadge}>✓ Verified</Text>
               )}
@@ -329,27 +313,27 @@ export default function SocialMediaConnectionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#f5f5f5',
   },
   header: {
     backgroundColor: '#fff',
     padding: 16,
     borderBottomColor: '#eee',
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#000'
+    color: '#000',
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#666'
+    color: '#666',
   },
   section: {
     paddingHorizontal: 16,
-    paddingVertical: 12
+    paddingVertical: 12,
   },
   socialMediaCard: {
     backgroundColor: '#fff',
@@ -357,54 +341,54 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 8,
     borderColor: '#eee',
-    borderWidth: 1
+    borderWidth: 1,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12
+    marginBottom: 12,
   },
   platformInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    gap: 12
+    gap: 12,
   },
   platformEmoji: {
-    fontSize: 28
+    fontSize: 28,
   },
   platformName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 2
+    marginBottom: 2,
   },
   platformDescription: {
     fontSize: 12,
-    color: '#999'
+    color: '#999',
   },
   connectedBadge: {
     backgroundColor: '#E8F5E9',
     paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 6
+    borderRadius: 6,
   },
   connectedText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#2E7D32'
+    color: '#2E7D32',
   },
   disconnectedBadge: {
     backgroundColor: '#F5F5F5',
     paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 6
+    borderRadius: 6,
   },
   disconnectedText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#999'
+    color: '#999',
   },
   accountInfo: {
     marginVertical: 12,
@@ -412,18 +396,18 @@ const styles = StyleSheet.create({
     borderTopColor: '#f0f0f0',
     borderTopWidth: 1,
     borderBottomColor: '#f0f0f0',
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
   },
   accountUsername: {
     fontSize: 14,
     fontWeight: '500',
     color: '#333',
-    marginBottom: 4
+    marginBottom: 4,
   },
   verifiedBadge: {
     fontSize: 12,
     color: '#2E7D32',
-    fontWeight: '600'
+    fontWeight: '600',
   },
   connectButton: {
     backgroundColor: '#007AFF',
@@ -431,12 +415,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 8
+    marginTop: 8,
   },
   connectButtonText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 14
+    fontSize: 14,
   },
   disconnectButton: {
     backgroundColor: '#FFEBEE',
@@ -446,12 +430,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     borderColor: '#FFCDD2',
-    borderWidth: 1
+    borderWidth: 1,
   },
   disconnectButtonText: {
     color: '#d32f2f',
     fontWeight: '600',
-    fontSize: 14
+    fontSize: 14,
   },
   privacyNotice: {
     backgroundColor: '#E3F2FD',
@@ -459,17 +443,17 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     borderLeftColor: '#2196F3',
-    borderLeftWidth: 4
+    borderLeftWidth: 4,
   },
   privacyTitle: {
     fontSize: 14,
     fontWeight: '600',
     color: '#1976D2',
-    marginBottom: 8
+    marginBottom: 8,
   },
   privacyText: {
     fontSize: 13,
     color: '#1565C0',
-    lineHeight: 18
-  }
+    lineHeight: 18,
+  },
 });

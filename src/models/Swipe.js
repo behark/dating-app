@@ -52,12 +52,7 @@ export class Swipe {
       }
     }
 
-    const swipe = new Swipe(
-      data.swiper,
-      data.target,
-      data.type,
-      createdAt
-    );
+    const swipe = new Swipe(data.swiper, data.target, data.type, createdAt);
     swipe.id = id;
     return swipe;
   }

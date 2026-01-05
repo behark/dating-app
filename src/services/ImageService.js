@@ -1,7 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { storage, db } from '../config/firebase';
 
 export class ImageService {
@@ -21,7 +21,7 @@ export class ImageService {
     } = options;
 
     try {
-      const manipulatedImage = await ImageManipulator.manipulateAsync(
+      return await ImageManipulator.manipulateAsync(
         uri,
         [
           {
@@ -36,8 +36,6 @@ export class ImageService {
           format,
         }
       );
-
-      return manipulatedImage;
     } catch (error) {
       console.error('Error compressing image:', error);
       // Return original if compression fails
@@ -47,7 +45,7 @@ export class ImageService {
 
   static async createThumbnail(uri, size = 200) {
     try {
-      const thumbnail = await ImageManipulator.manipulateAsync(
+      return await ImageManipulator.manipulateAsync(
         uri,
         [
           {
@@ -62,8 +60,6 @@ export class ImageService {
           format: ImageManipulator.SaveFormat.JPEG,
         }
       );
-
-      return thumbnail;
     } catch (error) {
       console.error('Error creating thumbnail:', error);
       return null;
@@ -180,14 +176,14 @@ export class ImageService {
       if (imageData.isPrimary) {
         const userDoc = await getDoc(userRef);
         const userData = userDoc.data();
-        const remainingPhotos = userData.photos?.filter(p => p.id !== imageId) || [];
+        const remainingPhotos = userData.photos?.filter((p) => p.id !== imageId) || [];
 
         if (remainingPhotos.length > 0) {
           // Set first remaining photo as primary
           const newPrimary = remainingPhotos[0];
           await updateDoc(userRef, {
             photoURL: newPrimary.fullUrl,
-            photos: remainingPhotos.map(p =>
+            photos: remainingPhotos.map((p) =>
               p.id === newPrimary.id ? { ...p, isPrimary: true } : p
             ),
           });
@@ -212,12 +208,13 @@ export class ImageService {
       const userDoc = await getDoc(userRef);
       const userData = userDoc.data();
 
-      const updatedPhotos = userData.photos?.map(photo => ({
-        ...photo,
-        isPrimary: photo.id === imageId,
-      })) || [];
+      const updatedPhotos =
+        userData.photos?.map((photo) => ({
+          ...photo,
+          isPrimary: photo.id === imageId,
+        })) || [];
 
-      const primaryPhoto = updatedPhotos.find(p => p.isPrimary);
+      const primaryPhoto = updatedPhotos.find((p) => p.isPrimary);
 
       await updateDoc(userRef, {
         photos: updatedPhotos,
@@ -239,9 +236,9 @@ export class ImageService {
       const userData = userDoc.data();
 
       // Reorder photos based on new order
-      const reorderedPhotos = photoIds.map(id =>
-        userData.photos?.find(p => p.id === id)
-      ).filter(Boolean);
+      const reorderedPhotos = photoIds
+        .map((id) => userData.photos?.find((p) => p.id === id))
+        .filter(Boolean);
 
       await updateDoc(userRef, {
         photos: reorderedPhotos,
@@ -321,13 +318,11 @@ export class ImageService {
       }
 
       // Compress and optimize
-      const optimized = await this.compressImage(uri, {
+      return await this.compressImage(uri, {
         quality: compressionQuality,
         maxWidth: 1200,
         maxHeight: 1200,
       });
-
-      return optimized;
     } catch (error) {
       console.error('Error optimizing image:', error);
       return { uri }; // Return original on error

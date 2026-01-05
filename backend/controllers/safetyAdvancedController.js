@@ -8,13 +8,23 @@ const User = require('../models/User');
 const shareDatePlan = async (req, res) => {
   try {
     const { userId } = req.user;
-    const { matchUserId, matchName, matchPhotoUrl, location, address, coordinates, dateTime, notes, friendIds } = req.body;
+    const {
+      matchUserId,
+      matchName,
+      matchPhotoUrl,
+      location,
+      address,
+      coordinates,
+      dateTime,
+      notes,
+      friendIds,
+    } = req.body;
 
     // Validate input
     if (!location || !dateTime || !matchUserId) {
       return res.status(400).json({
         success: false,
-        message: 'location, dateTime, and matchUserId are required'
+        message: 'location, dateTime, and matchUserId are required',
       });
     }
 
@@ -23,7 +33,7 @@ const shareDatePlan = async (req, res) => {
     if (planDate < new Date()) {
       return res.status(400).json({
         success: false,
-        message: 'Date must be in the future'
+        message: 'Date must be in the future',
       });
     }
 
@@ -51,14 +61,14 @@ const shareDatePlan = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Date plan shared successfully',
-      data: { datePlanId, datePlan }
+      data: { datePlanId, datePlan },
     });
   } catch (error) {
     console.error('Error sharing date plan:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to share date plan',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -75,7 +85,7 @@ const startCheckIn = async (req, res) => {
     if (!datePlanId) {
       return res.status(400).json({
         success: false,
-        message: 'datePlanId is required'
+        message: 'datePlanId is required',
       });
     }
 
@@ -95,15 +105,15 @@ const startCheckIn = async (req, res) => {
       data: {
         checkInId,
         checkIn,
-        expiresIn: duration * 60 // seconds
-      }
+        expiresIn: duration * 60, // seconds
+      },
     });
   } catch (error) {
     console.error('Error starting check-in:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to start check-in',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -121,20 +131,20 @@ const completeCheckIn = async (req, res) => {
     const completedCheckIn = {
       status: 'checked_in',
       checkedInAt: new Date(),
-      userId
+      userId,
     };
 
     return res.status(200).json({
       success: true,
       message: 'Check-in completed - friends notified of your safety',
-      data: completedCheckIn
+      data: completedCheckIn,
     });
   } catch (error) {
     console.error('Error completing check-in:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to complete check-in',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -151,7 +161,7 @@ const sendEmergencySOS = async (req, res) => {
     if (!location || !location.latitude || !location.longitude) {
       return res.status(400).json({
         success: false,
-        message: 'location with latitude and longitude is required'
+        message: 'location with latitude and longitude is required',
       });
     }
 
@@ -183,15 +193,15 @@ const sendEmergencySOS = async (req, res) => {
       message: 'Emergency SOS sent to your emergency contacts and trusted friends',
       data: {
         sosAlertId,
-        sosAlert
-      }
+        sosAlert,
+      },
     });
   } catch (error) {
     console.error('Error sending SOS:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to send SOS',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -209,14 +219,14 @@ const getActiveSOS = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: activeAlerts
+      data: activeAlerts,
     });
   } catch (error) {
     console.error('Error getting active SOS:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to get SOS alerts',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -244,14 +254,14 @@ const respondToSOS = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Response recorded',
-      data: response
+      data: response,
     });
   } catch (error) {
     console.error('Error responding to SOS:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to respond to SOS',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -272,15 +282,15 @@ const resolveSOS = async (req, res) => {
       data: {
         sosAlertId,
         status,
-        resolvedAt: new Date()
-      }
+        resolvedAt: new Date(),
+      },
     });
   } catch (error) {
     console.error('Error resolving SOS:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to resolve SOS',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -299,7 +309,7 @@ const initiateBackgroundCheck = async (req, res) => {
     if (!user || !user.isPremium) {
       return res.status(403).json({
         success: false,
-        message: 'Background checks are a premium feature'
+        message: 'Background checks are a premium feature',
       });
     }
 
@@ -311,7 +321,7 @@ const initiateBackgroundCheck = async (req, res) => {
         lastName: userInfo?.lastName || '',
         dateOfBirth: userInfo?.dateOfBirth || '',
         email: userInfo?.email || '',
-        ...userInfo
+        ...userInfo,
       },
       checks: {
         criminalRecord: false,
@@ -332,15 +342,15 @@ const initiateBackgroundCheck = async (req, res) => {
       data: {
         backgroundCheckId,
         backgroundCheck,
-        estimatedDuration: '24-48 hours'
-      }
+        estimatedDuration: '24-48 hours',
+      },
     });
   } catch (error) {
     console.error('Error initiating background check:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to initiate background check',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -365,19 +375,19 @@ const getBackgroundCheckStatus = async (req, res) => {
         addressHistory: { status: 'in_progress' },
         identityVerification: { status: 'pending' },
       },
-      estimatedCompletion: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      estimatedCompletion: new Date(Date.now() + 24 * 60 * 60 * 1000),
     };
 
     return res.status(200).json({
       success: true,
-      data: status
+      data: status,
     });
   } catch (error) {
     console.error('Error getting background check status:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to get background check status',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -395,7 +405,7 @@ const addEmergencyContact = async (req, res) => {
     if (!name || !phone || !relationship) {
       return res.status(400).json({
         success: false,
-        message: 'name, phone, and relationship are required'
+        message: 'name, phone, and relationship are required',
       });
     }
 
@@ -405,7 +415,7 @@ const addEmergencyContact = async (req, res) => {
       phone,
       relationship,
       addedAt: new Date(),
-      verified: false
+      verified: false,
     };
 
     // Add to user's emergency contacts
@@ -414,14 +424,14 @@ const addEmergencyContact = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Emergency contact added',
-      data: contact
+      data: contact,
     });
   } catch (error) {
     console.error('Error adding emergency contact:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to add emergency contact',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -439,14 +449,14 @@ const getEmergencyContacts = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: contacts
+      data: contacts,
     });
   } catch (error) {
     console.error('Error getting emergency contacts:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to get emergency contacts',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -463,14 +473,14 @@ const deleteEmergencyContact = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Emergency contact deleted',
-      data: { contactId }
+      data: { contactId },
     });
   } catch (error) {
     console.error('Error deleting emergency contact:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to delete emergency contact',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -487,7 +497,7 @@ const submitAdvancedPhotoVerification = async (req, res) => {
     if (!photoUri) {
       return res.status(400).json({
         success: false,
-        message: 'photoUri is required'
+        message: 'photoUri is required',
       });
     }
 
@@ -511,7 +521,7 @@ const submitAdvancedPhotoVerification = async (req, res) => {
         imageQuality: livenessData?.imageQuality || 0,
         spoofingRisk: livenessData?.spoofingRisk || 'low',
         matchWithProfilePhoto: livenessData?.matchWithProfilePhoto || 0,
-      }
+      },
     };
 
     const verificationId = `verify_${Date.now()}`;
@@ -521,15 +531,15 @@ const submitAdvancedPhotoVerification = async (req, res) => {
       message: 'Photo verification submitted',
       data: {
         verificationId,
-        verification
-      }
+        verification,
+      },
     });
   } catch (error) {
     console.error('Error submitting photo verification:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to submit photo verification',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -547,14 +557,14 @@ const getActiveDatePlans = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: datePlans
+      data: datePlans,
     });
   } catch (error) {
     console.error('Error getting date plans:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to get date plans',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 };
@@ -573,5 +583,5 @@ module.exports = {
   getEmergencyContacts,
   deleteEmergencyContact,
   submitAdvancedPhotoVerification,
-  getActiveDatePlans
+  getActiveDatePlans,
 };

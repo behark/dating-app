@@ -5,27 +5,27 @@ const swipeSchema = new mongoose.Schema({
   swiperId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
 
   // The user who was swiped on
   swipedId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
   },
 
   // The action taken
   action: {
     type: String,
     enum: ['like', 'pass', 'superlike'],
-    required: true
+    required: true,
   },
 
   // Premium feature: Priority Like flag
   isPriority: {
     type: Boolean,
-    default: false
+    default: false,
   },
   prioritySentAt: Date,
 
@@ -33,8 +33,8 @@ const swipeSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 2592000 // Automatically delete after 30 days (30 * 24 * 60 * 60 seconds)
-  }
+    expires: 2592000, // Automatically delete after 30 days (30 * 24 * 60 * 60 seconds)
+  },
 });
 
 // Compound index for efficient queries
@@ -59,11 +59,11 @@ swipeSchema.index({ swipedId: 1, swiperId: 1, action: 1 }, { name: 'reverse_matc
 swipeSchema.index({ swipedId: 1, action: 1, createdAt: -1 }, { name: 'who_liked_me' });
 
 // Prevent duplicate swipes between same users
-swipeSchema.pre('save', async function(next) {
+swipeSchema.pre('save', async function (next) {
   if (this.isNew) {
     const existingSwipe = await this.constructor.findOne({
       swiperId: this.swiperId,
-      swipedId: this.swipedId
+      swipedId: this.swipedId,
     });
 
     if (existingSwipe) {
@@ -76,73 +76,73 @@ swipeSchema.pre('save', async function(next) {
 });
 
 // Static method to get swiped user IDs for a swiper
-swipeSchema.statics.getSwipedUserIds = function(swiperId) {
+swipeSchema.statics.getSwipedUserIds = function (swiperId) {
   return this.distinct('swipedId', { swiperId });
 };
 
 // Static method to check if user has swiped on another user
-swipeSchema.statics.hasSwiped = function(swiperId, swipedId) {
+swipeSchema.statics.hasSwiped = function (swiperId, swipedId) {
   return this.exists({ swiperId, swipedId });
 };
 
 // Static method to get mutual likes (matches)
-swipeSchema.statics.getMatches = function(userId) {
+swipeSchema.statics.getMatches = function (userId) {
   return this.aggregate([
     {
       $match: {
         $or: [
           { swiperId: userId, action: 'like' },
-          { swipedId: userId, action: 'like' }
-        ]
-      }
+          { swipedId: userId, action: 'like' },
+        ],
+      },
     },
     {
       $group: {
         _id: {
           user1: { $min: ['$swiperId', '$swipedId'] },
-          user2: { $max: ['$swiperId', '$swipedId'] }
+          user2: { $max: ['$swiperId', '$swipedId'] },
         },
         likes: {
           $push: {
             swiperId: '$swiperId',
             swipedId: '$swipedId',
             action: '$action',
-            createdAt: '$createdAt'
-          }
-        }
-      }
+            createdAt: '$createdAt',
+          },
+        },
+      },
     },
     {
       $match: {
-        'likes.1': { $exists: true } // Must have at least 2 likes (mutual)
-      }
+        'likes.1': { $exists: true }, // Must have at least 2 likes (mutual)
+      },
     },
     {
       $project: {
         user1: '$_id.user1',
         user2: '$_id.user2',
-        matchDate: { $max: '$likes.createdAt' }
-      }
-    }
+        matchDate: { $max: '$likes.createdAt' },
+      },
+    },
   ]);
 };
 
 // Static method to get swipe count for today
-swipeSchema.statics.getSwipeCountToday = async function(swiperId) {
+swipeSchema.statics.getSwipeCountToday = async function (swiperId) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  
+
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   return this.countDocuments({
     swiperId: swiperId,
-    createdAt: { $gte: today, $lt: tomorrow }
+    createdAt: { $gte: today, $lt: tomorrow },
   });
 };
 
 // Static method to check if user can swipe (freemium limit check)
-swipeSchema.statics.canSwipe = async function(swiperId, isPremium = false) {
+swipeSchema.statics.canSwipe = async function (swiperId, isPremium = false) {
   if (isPremium) {
     return { canSwipe: true, remaining: -1 };
   }
@@ -154,7 +154,7 @@ swipeSchema.statics.canSwipe = async function(swiperId, isPremium = false) {
   return {
     canSwipe: swipeCount < DAILY_SWIPE_LIMIT,
     remaining: remaining,
-    used: swipeCount
+    used: swipeCount,
   };
 };
 

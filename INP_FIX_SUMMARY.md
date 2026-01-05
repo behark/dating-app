@@ -3,6 +3,7 @@
 ## 🔴 Issue Reported
 
 **INP (Interaction to Next Paint) Problem:**
+
 - Event handlers blocking UI updates for 224ms
 - Element: `div.css-g5y9jx.r-1i6wzkk.r-lrvibr...`
 - Impact: Poor user experience, slow interactions
@@ -12,6 +13,7 @@
 ## 🔍 Root Causes Identified
 
 ### 1. Header Conflicts (Backend)
+
 - **Problem**: Multiple middlewares overriding `res.end` and `res.json`
 - **Impact**: "Cannot set headers after they are sent" errors
 - **Files Affected**:
@@ -21,6 +23,7 @@
   - `backend/server.js`
 
 ### 2. Heavy Event Handlers (Frontend)
+
 - **Problem**: Swipe handlers doing heavy async work synchronously
 - **Impact**: Blocking UI thread for 224ms+
 - **Files Affected**:
@@ -63,12 +66,14 @@
 ## 📝 Changes Made
 
 ### Backend Files:
+
 - ✅ `backend/middleware/metricsMiddleware.js` - Added headersSent checks
 - ✅ `backend/middleware/loadTimeOptimization.js` - Fixed header setting
 - ✅ `backend/middleware/apiCache.js` - Made cache async, added checks
 - ✅ `backend/server.js` - Removed duplicate middleware, fixed error handler
 
 ### Frontend Files:
+
 - ✅ `src/screens/HomeScreen.js` - Optimized swipe handlers with useCallback and InteractionManager
 
 ---
@@ -76,11 +81,13 @@
 ## 🎯 Expected Results
 
 ### Before:
+
 - ❌ Event handlers blocking UI for 224ms+
 - ❌ "Cannot set headers" errors in logs
 - ❌ Slow swipe interactions
 
 ### After:
+
 - ✅ Event handlers complete in <50ms
 - ✅ No header errors
 - ✅ Smooth, responsive swipe interactions
@@ -91,6 +98,7 @@
 ## 🧪 Testing
 
 After deployment, test:
+
 1. **Swipe interactions** - Should feel instant
 2. **Backend logs** - No more header errors
 3. **Performance** - Check INP in browser DevTools

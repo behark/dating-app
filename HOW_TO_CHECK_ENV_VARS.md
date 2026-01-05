@@ -15,16 +15,19 @@ I've created scripts to help you check environment variables. Here's what you ne
    - Add your public SSH key (usually `~/.ssh/id_rsa.pub` or `~/.ssh/id_ed25519.pub`)
 
 2. **Test SSH access**:
+
    ```bash
    ssh srv-d5cooc2li9vc73ct9j70@ssh.oregon.render.com
    ```
 
 3. **Run the script**:
+
    ```bash
    ./check-render-env-via-ssh.sh
    ```
 
    Or manually:
+
    ```bash
    ssh srv-d5cooc2li9vc73ct9j70@ssh.oregon.render.com "printenv | grep -E '^(MONGODB_URI|JWT_SECRET|ENCRYPTION_KEY|CORS_ORIGIN|NODE_ENV|PORT|REDIS|FIREBASE|STORAGE|STRIPE|GOOGLE)' | sort"
    ```
@@ -32,6 +35,7 @@ I've created scripts to help you check environment variables. Here's what you ne
 ### What You'll See
 
 All environment variables that are set, including:
+
 - `MONGODB_URI`
 - `JWT_SECRET` (may be hidden/masked)
 - `ENCRYPTION_KEY` (may be hidden/masked)
@@ -53,6 +57,7 @@ All environment variables that are set, including:
    - **Copy it immediately** (you won't see it again!)
 
 2. **Set the API key**:
+
    ```bash
    export RENDER_API_KEY=your-api-key-here
    ```
@@ -77,6 +82,7 @@ All environment variables that are set, including:
 3. **See all variables** listed there
 
 **Advantages:**
+
 - ✅ No setup required
 - ✅ Shows everything clearly
 - ✅ Can edit directly
@@ -88,23 +94,25 @@ All environment variables that are set, including:
 
 **Choose based on your situation:**
 
-| Your Situation | Recommended Method |
-|---------------|-------------------|
-| Just want to check quickly | **Dashboard** (Method 3) |
-| Want to automate/script | **SSH** (Method 1) |
-| Already have API key | **API** (Method 2) |
-| Need to check from terminal | **SSH** (Method 1) |
+| Your Situation              | Recommended Method       |
+| --------------------------- | ------------------------ |
+| Just want to check quickly  | **Dashboard** (Method 3) |
+| Want to automate/script     | **SSH** (Method 1)       |
+| Already have API key        | **API** (Method 2)       |
+| Need to check from terminal | **SSH** (Method 1)       |
 
 ---
 
 ## 🔒 Security Notes
 
 ### SSH Key
+
 - ✅ **Safe to share**: Your SSH **public** key (ends in `.pub`)
 - ❌ **Never share**: Your SSH **private** key (no extension)
 - Your public key is meant to be shared with services like Render
 
 ### API Key
+
 - ❌ **Never share**: Your API key gives access to your Render account
 - ✅ **Safe**: Only use in secure environments
 - ✅ **Rotate**: Change it if compromised
@@ -116,17 +124,20 @@ All environment variables that are set, including:
 ### If Using SSH:
 
 1. **Check if you have an SSH key**:
+
    ```bash
    ls -la ~/.ssh/id_*.pub
    ```
 
 2. **If you don't have one, create it**:
+
    ```bash
    ssh-keygen -t ed25519 -C "your-email@example.com"
    # Press Enter to accept defaults
    ```
 
 3. **Copy your public key**:
+
    ```bash
    cat ~/.ssh/id_ed25519.pub
    # Or
@@ -140,6 +151,7 @@ All environment variables that are set, including:
    - Save
 
 5. **Test connection**:
+
    ```bash
    ssh srv-d5cooc2li9vc73ct9j70@ssh.oregon.render.com
    ```
@@ -177,7 +189,8 @@ All environment variables that are set, including:
 
 ### API: "Unauthorized" or "403 Forbidden"
 
-**Solution**: 
+**Solution**:
+
 - Check API key is correct
 - Ensure API key has proper permissions
 - Try creating a new API key
@@ -185,6 +198,7 @@ All environment variables that are set, including:
 ### Can't see some variables
 
 **Normal**: Some variables are:
+
 - **Auto-generated** by Render (like `JWT_SECRET`)
 - **Hidden** for security (marked `sync: false` in render.yaml)
 - **Masked** in output (values shown as `***`)
@@ -196,6 +210,7 @@ All environment variables that are set, including:
 After running any method, you should see:
 
 ### Variables Currently Set (from render.yaml):
+
 - ✅ `NODE_ENV=production`
 - ✅ `PORT=10000`
 - ✅ `FIREBASE_PROJECT_ID=my-project-de65d`
@@ -204,6 +219,7 @@ After running any method, you should see:
 - ✅ `ENCRYPTION_KEY` (auto-generated)
 
 ### Variables You Need to Check:
+
 - ❓ `MONGODB_URI` - **CRITICAL - Must be set manually**
 - ❓ `REDIS_HOST` or `REDIS_URL`
 - ❓ `FIREBASE_PRIVATE_KEY`
@@ -228,7 +244,7 @@ After running any method, you should see:
 ## 📁 Files Created
 
 - ✅ `check-render-env-via-ssh.sh` - SSH method script
-- ✅ `check-render-env-via-api.js` - API method script  
+- ✅ `check-render-env-via-api.js` - API method script
 - ✅ `check-render-env-vars.js` - Analysis script (what's needed vs configured)
 - ✅ `CHECK_ENV_VARS_GUIDE.md` - Detailed guide
 - ✅ `HOW_TO_CHECK_ENV_VARS.md` - This file

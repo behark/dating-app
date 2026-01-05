@@ -1,12 +1,6 @@
+import PropTypes from 'prop-types';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-    ActivityIndicator,
-    Animated,
-    Image,
-    Platform,
-    StyleSheet,
-    View,
-} from 'react-native';
+import { ActivityIndicator, Animated, Image, Platform, StyleSheet, View } from 'react-native';
 
 // Image cache manager
 const imageCache = new Map();
@@ -15,7 +9,7 @@ const MAX_CACHE_SIZE = 50; // Maximum number of images to cache
 
 /**
  * OptimizedImage - A lazy-loading image component with caching and placeholder support
- * 
+ *
  * Features:
  * - Lazy loading (loads when in viewport)
  * - Smooth fade-in animation
@@ -53,7 +47,7 @@ const OptimizedImage = ({
   // Check if image is cached
   const checkCache = useCallback(async (uri) => {
     if (!uri) return null;
-    
+
     // Check in-memory cache first
     if (imageCache.has(uri)) {
       return imageCache.get(uri);
@@ -70,10 +64,10 @@ const OptimizedImage = ({
   // Cache the image
   const cacheImage = useCallback(async (uri) => {
     if (!uri) return;
-    
+
     // Add to in-memory cache
     imageCache.set(uri, uri);
-    
+
     // Manage cache size
     if (imageCache.size > MAX_CACHE_SIZE) {
       const firstKey = imageCache.keys().next().value;
@@ -94,18 +88,20 @@ const OptimizedImage = ({
 
       try {
         const cachedUri = await checkCache(uri);
-        
+
         if (isMounted.current) {
           setImageSource({ uri: cachedUri || uri });
         }
 
         // Prefetch the image
         if (Platform.OS !== 'web') {
-          Image.prefetch(uri).then(() => {
-            cacheImage(uri);
-          }).catch(() => {
-            // Prefetch failed, but we can still try to load
-          });
+          Image.prefetch(uri)
+            .then(() => {
+              cacheImage(uri);
+            })
+            .catch(() => {
+              // Prefetch failed, but we can still try to load
+            });
         }
       } catch (err) {
         if (isMounted.current) {
@@ -122,37 +118,43 @@ const OptimizedImage = ({
   }, [source, getUri, checkCache, cacheImage]);
 
   // Handle image load complete
-  const handleLoad = useCallback((event) => {
-    if (!isMounted.current) return;
-    
-    setLoaded(true);
-    
-    // Animate fade in
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: fadeDuration,
-      useNativeDriver: true,
-    }).start();
+  const handleLoad = useCallback(
+    (event) => {
+      if (!isMounted.current) return;
 
-    onLoad?.(event);
-  }, [fadeAnim, fadeDuration, onLoad]);
+      setLoaded(true);
+
+      // Animate fade in
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: fadeDuration,
+        useNativeDriver: true,
+      }).start();
+
+      onLoad?.(event);
+    },
+    [fadeAnim, fadeDuration, onLoad]
+  );
 
   // Handle image error
-  const handleError = useCallback((event) => {
-    if (!isMounted.current) return;
-    
-    setError(true);
-    setLoaded(true);
-    
-    // Still show something even on error
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: fadeDuration,
-      useNativeDriver: true,
-    }).start();
+  const handleError = useCallback(
+    (event) => {
+      if (!isMounted.current) return;
 
-    onError?.(event);
-  }, [fadeAnim, fadeDuration, onError]);
+      setError(true);
+      setLoaded(true);
+
+      // Still show something even on error
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: fadeDuration,
+        useNativeDriver: true,
+      }).start();
+
+      onError?.(event);
+    },
+    [fadeAnim, fadeDuration, onError]
+  );
 
   // Render placeholder
   const renderPlaceholder = () => {
@@ -185,13 +187,7 @@ const OptimizedImage = ({
       if (typeof placeholder === 'function') {
         return placeholder();
       }
-      return (
-        <Image
-          source={placeholder}
-          style={[styles.image, style]}
-          resizeMode={resizeMode}
-        />
-      );
+      return <Image source={placeholder} style={[styles.image, style]} resizeMode={resizeMode} />;
     }
 
     return (
@@ -228,11 +224,7 @@ const OptimizedImage = ({
       {imageSource && !error && (
         <Animated.Image
           source={imageSource}
-          style={[
-            styles.image,
-            style,
-            { opacity: fadeAnim },
-          ]}
+          style={[styles.image, style, { opacity: fadeAnim }]}
           resizeMode={resizeMode}
           onLoad={handleLoad}
           onError={handleError}
@@ -249,7 +241,7 @@ const OptimizedImage = ({
  * @param {string[]} urls - Array of image URLs to preload
  */
 export const preloadImages = async (urls) => {
-  const promises = urls.map(url => {
+  const promises = urls.map((url) => {
     return new Promise((resolve) => {
       if (Platform.OS === 'web') {
         const img = new window.Image();
@@ -323,5 +315,18 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '45deg' }],
   },
 });
+
+OptimizedImage.propTypes = {
+  source: PropTypes.oneOfType([PropTypes.string, PropTypes.object]).isRequired,
+  style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+  placeholder: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+  resizeMode: PropTypes.string,
+  fadeDuration: PropTypes.number,
+  showLoadingIndicator: PropTypes.bool,
+  loadingIndicatorColor: PropTypes.string,
+  onLoad: PropTypes.func,
+  onError: PropTypes.func,
+  blurRadius: PropTypes.number,
+};
 
 export default OptimizedImage;

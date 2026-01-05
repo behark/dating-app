@@ -21,22 +21,22 @@ const { QUEUES, JOB_TYPES } = QueueService;
 const initializeProcessors = () => {
   // Notification processors
   setupNotificationProcessors();
-  
+
   // Match processors
   setupMatchProcessors();
-  
+
   // Email processors
   setupEmailProcessors();
-  
+
   // Moderation processors
   setupModerationProcessors();
-  
+
   // Analytics processors
   setupAnalyticsProcessors();
-  
+
   // Cleanup processors
   setupCleanupProcessors();
-  
+
   console.log('All job processors initialized');
 };
 
@@ -53,19 +53,19 @@ const setupNotificationProcessors = () => {
     },
     prefix: 'dating-app',
   });
-  
+
   // Process push notifications
   notificationQueue.process(JOB_TYPES.SEND_PUSH_NOTIFICATION, async (job) => {
     const { userId, title, body, data } = job.data;
-    
+
     try {
       // Get user's push token
       const user = await User.findById(userId).select('expoPushToken notificationPreferences');
-      
+
       if (!user?.expoPushToken) {
         return { success: false, reason: 'No push token' };
       }
-      
+
       // Check notification preferences
       if (data.type === 'message' && !user.notificationPreferences?.messageNotifications) {
         return { success: false, reason: 'User disabled message notifications' };
@@ -73,15 +73,15 @@ const setupNotificationProcessors = () => {
       if (data.type === 'match' && !user.notificationPreferences?.matchNotifications) {
         return { success: false, reason: 'User disabled match notifications' };
       }
-      
+
       // Send via Expo Push Notification Service
       const { Expo } = require('expo-server-sdk');
       const expo = new Expo();
-      
+
       if (!Expo.isExpoPushToken(user.expoPushToken)) {
         return { success: false, reason: 'Invalid push token' };
       }
-      
+
       const message = {
         to: user.expoPushToken,
         sound: 'default',
@@ -90,27 +90,27 @@ const setupNotificationProcessors = () => {
         data,
         priority: 'high',
       };
-      
+
       const ticket = await expo.sendPushNotificationsAsync([message]);
-      
+
       return { success: true, ticket };
     } catch (error) {
       console.error('Push notification error:', error);
       throw error;
     }
   });
-  
+
   // Batch notifications
   notificationQueue.process(JOB_TYPES.SEND_BATCH_NOTIFICATIONS, async (job) => {
     const { notifications } = job.data;
     const { Expo } = require('expo-server-sdk');
     const expo = new Expo();
-    
+
     const messages = [];
-    
+
     for (const notif of notifications) {
       const user = await User.findById(notif.userId).select('expoPushToken');
-      
+
       if (user?.expoPushToken && Expo.isExpoPushToken(user.expoPushToken)) {
         messages.push({
           to: user.expoPushToken,
@@ -121,19 +121,19 @@ const setupNotificationProcessors = () => {
         });
       }
     }
-    
+
     if (messages.length === 0) {
       return { success: true, sent: 0 };
     }
-    
+
     const chunks = expo.chunkPushNotifications(messages);
     const tickets = [];
-    
+
     for (const chunk of chunks) {
       const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
       tickets.push(...ticketChunk);
     }
-    
+
     return { success: true, sent: tickets.length };
   });
 };
@@ -151,25 +151,25 @@ const setupMatchProcessors = () => {
     },
     prefix: 'dating-app',
   });
-  
+
   // Process new match
   matchQueue.process(JOB_TYPES.PROCESS_MATCH, async (job) => {
     const { swiperId, swipedId, matchId } = job.data;
-    
+
     try {
       // Get both users
       const [swiper, swiped] = await Promise.all([
         User.findById(swiperId).select('name photos expoPushToken notificationPreferences'),
         User.findById(swipedId).select('name photos expoPushToken notificationPreferences'),
       ]);
-      
+
       if (!swiper || !swiped) {
         return { success: false, reason: 'User not found' };
       }
-      
+
       // Send match notifications to both users
       const notifications = [];
-      
+
       if (swiper.notificationPreferences?.matchNotifications !== false && swiper.expoPushToken) {
         notifications.push({
           userId: swiperId,
@@ -178,7 +178,7 @@ const setupMatchProcessors = () => {
           data: { type: 'match', matchId, userId: swipedId },
         });
       }
-      
+
       if (swiped.notificationPreferences?.matchNotifications !== false && swiped.expoPushToken) {
         notifications.push({
           userId: swipedId,
@@ -187,16 +187,14 @@ const setupMatchProcessors = () => {
           data: { type: 'match', matchId, userId: swiperId },
         });
       }
-      
+
       // Queue notifications
       if (notifications.length > 0) {
-        await QueueService.addJob(
-          QUEUES.PUSH_NOTIFICATIONS,
-          JOB_TYPES.SEND_BATCH_NOTIFICATIONS,
-          { notifications }
-        );
+        await QueueService.addJob(QUEUES.PUSH_NOTIFICATIONS, JOB_TYPES.SEND_BATCH_NOTIFICATIONS, {
+          notifications,
+        });
       }
-      
+
       // Invalidate cache for both users
       await Promise.all([
         cache.del(`${CACHE_KEYS.MATCHES}${swiperId}`),
@@ -204,58 +202,59 @@ const setupMatchProcessors = () => {
         cache.del(`${CACHE_KEYS.DISCOVERY}${swiperId}`),
         cache.del(`${CACHE_KEYS.DISCOVERY}${swipedId}`),
       ]);
-      
+
       // Update match counts
       await User.updateMany(
         { _id: { $in: [swiperId, swipedId] } },
         { $inc: { 'stats.totalMatches': 1 } }
       );
-      
+
       return { success: true, matchId };
     } catch (error) {
       console.error('Process match error:', error);
       throw error;
     }
   });
-  
+
   // Calculate compatibility score
   matchQueue.process(JOB_TYPES.CALCULATE_COMPATIBILITY, async (job) => {
     const { userId1, userId2 } = job.data;
-    
-    const [user1, user2] = await Promise.all([
-      User.findById(userId1),
-      User.findById(userId2),
-    ]);
-    
+
+    const [user1, user2] = await Promise.all([User.findById(userId1), User.findById(userId2)]);
+
     if (!user1 || !user2) {
       return { success: false, score: 0 };
     }
-    
+
     let score = 0;
-    
+
     // Interest overlap (max 40 points)
-    const commonInterests = user1.interests?.filter(i => 
-      user2.interests?.includes(i)
-    ) || [];
+    const commonInterests = user1.interests?.filter((i) => user2.interests?.includes(i)) || [];
     score += Math.min(commonInterests.length * 5, 40);
-    
+
     // Age preference match (max 20 points)
-    const age1InRange = user1.age >= user2.preferredAgeRange?.min && 
-                        user1.age <= user2.preferredAgeRange?.max;
-    const age2InRange = user2.age >= user1.preferredAgeRange?.min && 
-                        user2.age <= user1.preferredAgeRange?.max;
+    const age1InRange =
+      user1.age >= user2.preferredAgeRange?.min && user1.age <= user2.preferredAgeRange?.max;
+    const age2InRange =
+      user2.age >= user1.preferredAgeRange?.min && user2.age <= user1.preferredAgeRange?.max;
     if (age1InRange && age2InRange) score += 20;
     else if (age1InRange || age2InRange) score += 10;
-    
+
     // Education similarity (max 15 points)
-    if (user1.education?.school && user2.education?.school &&
-        user1.education.school === user2.education.school) {
+    if (
+      user1.education?.school &&
+      user2.education?.school &&
+      user1.education.school === user2.education.school
+    ) {
       score += 15;
-    } else if (user1.education?.degree && user2.education?.degree &&
-               user1.education.degree === user2.education.degree) {
+    } else if (
+      user1.education?.degree &&
+      user2.education?.degree &&
+      user1.education.degree === user2.education.degree
+    ) {
       score += 10;
     }
-    
+
     // Lifestyle compatibility (max 25 points)
     if (user1.lifestyle && user2.lifestyle) {
       const lifestyleMatch = [
@@ -267,18 +266,18 @@ const setupMatchProcessors = () => {
       ].filter(Boolean).length;
       score += lifestyleMatch * 5;
     }
-    
+
     return { success: true, score: Math.min(score, 100) };
   });
-  
+
   // Update recommendations
   matchQueue.process(JOB_TYPES.UPDATE_RECOMMENDATIONS, async (job) => {
     const { userId } = job.data;
-    
+
     // This would typically run a more sophisticated ML recommendation algorithm
     // For now, we just invalidate cache to force fresh discovery
     await cache.del(`${CACHE_KEYS.DISCOVERY}${userId}`);
-    
+
     return { success: true };
   });
 };
@@ -296,9 +295,9 @@ const setupEmailProcessors = () => {
     },
     prefix: 'dating-app',
   });
-  
+
   const nodemailer = require('nodemailer');
-  
+
   // Create transporter only if credentials are configured
   let transporter = null;
   if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
@@ -314,7 +313,7 @@ const setupEmailProcessors = () => {
   } else {
     console.warn('⚠️  SMTP credentials not configured - email job processing disabled');
   }
-  
+
   // Generic email sender
   emailQueue.process(JOB_TYPES.SEND_EMAIL, async (job) => {
     if (!transporter) {
@@ -323,7 +322,7 @@ const setupEmailProcessors = () => {
     }
 
     const { to, template, data } = job.data;
-    
+
     const emailTemplates = {
       welcome: {
         subject: 'Welcome to Dating App! 💕',
@@ -346,12 +345,12 @@ const setupEmailProcessors = () => {
         html: `<p>Click <a href="${data.resetLink}">here</a> to reset your password.</p>`,
       },
     };
-    
+
     const emailTemplate = emailTemplates[template];
     if (!emailTemplate) {
       throw new Error(`Unknown email template: ${template}`);
     }
-    
+
     try {
       const result = await transporter.sendMail({
         from: process.env.EMAIL_FROM || 'noreply@datingapp.com',
@@ -359,14 +358,14 @@ const setupEmailProcessors = () => {
         subject: emailTemplate.subject,
         html: emailTemplate.html,
       });
-      
+
       return { success: true, messageId: result.messageId };
     } catch (error) {
       console.error('Email sending failed:', error);
       throw error;
     }
   });
-  
+
   // Weekly digest
   emailQueue.process(JOB_TYPES.SEND_WEEKLY_DIGEST, async (job) => {
     if (!transporter) {
@@ -375,17 +374,17 @@ const setupEmailProcessors = () => {
     }
 
     const { userId } = job.data;
-    
+
     const user = await User.findById(userId).select('email name');
     if (!user || !user.email) {
       return { success: false, reason: 'User not found or no email' };
     }
-    
+
     // Get weekly stats
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    
+
     const [views, likes, matches] = await Promise.all([
-      User.countDocuments({ 
+      User.countDocuments({
         'profileViews.viewerId': { $exists: true },
         'profileViews.viewedAt': { $gte: weekAgo },
         _id: userId,
@@ -401,7 +400,7 @@ const setupEmailProcessors = () => {
         createdAt: { $gte: weekAgo },
       }),
     ]);
-    
+
     try {
       await transporter.sendMail({
         from: process.env.EMAIL_FROM || 'noreply@datingapp.com',
@@ -422,7 +421,7 @@ const setupEmailProcessors = () => {
       console.error('Email sending failed:', error);
       throw error;
     }
-    
+
     return { success: true };
   });
 };
@@ -440,66 +439,66 @@ const setupModerationProcessors = () => {
     },
     prefix: 'dating-app',
   });
-  
+
   // Image moderation
   moderationQueue.process(JOB_TYPES.MODERATE_IMAGE, async (job) => {
     const { userId, imageUrl, photoId } = job.data;
-    
+
     try {
       // Use Cloudinary's moderation or external service
       const result = await StorageService.moderateImage(imageUrl);
-      
+
       // Update photo moderation status
       const status = result.safe ? 'approved' : 'rejected';
-      
+
       await User.updateOne(
         { _id: userId, 'photos._id': photoId },
         { $set: { 'photos.$.moderationStatus': status } }
       );
-      
+
       // If rejected, notify user
       if (!result.safe) {
         await QueueService.sendPushNotification(
           userId,
           'Photo Rejected',
-          'One of your photos didn\'t meet our community guidelines and was removed.',
+          "One of your photos didn't meet our community guidelines and was removed.",
           { type: 'moderation', photoId }
         );
       }
-      
+
       return { success: true, status, moderation: result.moderation };
     } catch (error) {
       console.error('Image moderation error:', error);
       throw error;
     }
   });
-  
+
   // Profile review
   moderationQueue.process(JOB_TYPES.MODERATE_PROFILE, async (job) => {
     const { userId } = job.data;
-    
+
     const user = await User.findById(userId);
     if (!user) {
       return { success: false, reason: 'User not found' };
     }
-    
+
     const issues = [];
-    
+
     // Check bio for inappropriate content
     if (user.bio) {
       const bannedWords = ['spam', 'sell', 'buy', 'website', 'click here'];
       const lowerBio = user.bio.toLowerCase();
-      const foundBanned = bannedWords.filter(w => lowerBio.includes(w));
+      const foundBanned = bannedWords.filter((w) => lowerBio.includes(w));
       if (foundBanned.length > 0) {
         issues.push({ field: 'bio', reason: 'Potentially promotional content' });
       }
     }
-    
+
     // Check for suspicious patterns
     if (user.photos?.length === 0 && user.bio?.length > 200) {
       issues.push({ field: 'profile', reason: 'Long bio with no photos' });
     }
-    
+
     return { success: true, issues, needsReview: issues.length > 0 };
   });
 };
@@ -517,18 +516,18 @@ const setupAnalyticsProcessors = () => {
     },
     prefix: 'dating-app',
   });
-  
+
   // Track event
   analyticsQueue.process(JOB_TYPES.TRACK_EVENT, async (job) => {
     const { userId, eventType, eventData, timestamp } = job.data;
-    
+
     // Store in analytics collection or send to external service
     // For now, log and update user activity
     console.log(`Analytics: ${eventType} for user ${userId}`, eventData);
-    
+
     await User.updateOne(
       { _id: userId },
-      { 
+      {
         $set: { lastActive: timestamp },
         $push: {
           activityLog: {
@@ -538,14 +537,14 @@ const setupAnalyticsProcessors = () => {
         },
       }
     );
-    
+
     return { success: true };
   });
-  
+
   // Update user stats
   analyticsQueue.process(JOB_TYPES.UPDATE_USER_STATS, async (job) => {
     const { userId } = job.data;
-    
+
     const [swipesGiven, swipesReceived, matches, messages] = await Promise.all([
       Swipe.countDocuments({ swiperId: userId }),
       Swipe.countDocuments({ swipedId: userId }),
@@ -555,7 +554,7 @@ const setupAnalyticsProcessors = () => {
       }),
       Message.countDocuments({ senderId: userId }),
     ]);
-    
+
     await User.updateOne(
       { _id: userId },
       {
@@ -567,7 +566,7 @@ const setupAnalyticsProcessors = () => {
         },
       }
     );
-    
+
     return { success: true, stats: { swipesGiven, swipesReceived, matches, messages } };
   });
 };
@@ -585,45 +584,45 @@ const setupCleanupProcessors = () => {
     },
     prefix: 'dating-app',
   });
-  
+
   // Cleanup expired tokens
   cleanupQueue.process(JOB_TYPES.CLEANUP_EXPIRED_TOKENS, async (job) => {
     const result = await User.updateMany(
       { passwordResetTokenExpiry: { $lt: new Date() } },
       { $unset: { passwordResetToken: 1, passwordResetTokenExpiry: 1 } }
     );
-    
+
     return { success: true, modified: result.modifiedCount };
   });
-  
+
   // Cleanup old messages (archive messages older than 1 year)
   cleanupQueue.process(JOB_TYPES.CLEANUP_OLD_MESSAGES, async (job) => {
     const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
-    
+
     // Archive to a separate collection before deleting
     const oldMessages = await Message.find({ createdAt: { $lt: oneYearAgo } });
-    
+
     if (oldMessages.length > 0) {
       // In production, you'd move these to an archive collection
       console.log(`Archiving ${oldMessages.length} old messages`);
     }
-    
+
     return { success: true, archived: oldMessages.length };
   });
-  
+
   // Flag inactive users
   cleanupQueue.process(JOB_TYPES.CLEANUP_INACTIVE_USERS, async (job) => {
     const sixMonthsAgo = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000);
-    
+
     const result = await User.updateMany(
-      { 
+      {
         lastActive: { $lt: sixMonthsAgo },
         isActive: true,
         isDeactivated: { $ne: true },
       },
       { $set: { isInactive: true } }
     );
-    
+
     return { success: true, flagged: result.modifiedCount };
   });
 };
@@ -639,7 +638,7 @@ const scheduleRecurringJobs = async () => {
     {},
     { cron: '0 3 * * *' }
   );
-  
+
   // Weekly message cleanup on Sundays at 4 AM
   await QueueService.addRepeatableJob(
     QUEUES.CLEANUP,
@@ -647,7 +646,7 @@ const scheduleRecurringJobs = async () => {
     {},
     { cron: '0 4 * * 0' }
   );
-  
+
   // Monthly inactive user cleanup on 1st at 5 AM
   await QueueService.addRepeatableJob(
     QUEUES.CLEANUP,
@@ -655,7 +654,7 @@ const scheduleRecurringJobs = async () => {
     {},
     { cron: '0 5 1 * *' }
   );
-  
+
   console.log('Recurring jobs scheduled');
 };
 

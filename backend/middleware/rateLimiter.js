@@ -10,8 +10,8 @@ const { rateLimiter, cache, CACHE_KEYS } = require('../config/redis');
  */
 const createRateLimiter = (options = {}) => {
   const {
-    windowMs = 60000,        // 1 minute window
-    maxRequests = 100,       // 100 requests per window
+    windowMs = 60000, // 1 minute window
+    maxRequests = 100, // 100 requests per window
     keyGenerator = (req) => req.ip || req.headers['x-forwarded-for'] || 'unknown',
     message = 'Too many requests, please try again later.',
     skipFailedRequests = false,
@@ -33,7 +33,7 @@ const createRateLimiter = (options = {}) => {
 
       if (!result.allowed) {
         res.set('Retry-After', windowSeconds);
-        
+
         if (onLimitReached) {
           onLimitReached(req, res);
         }
@@ -82,7 +82,7 @@ const authLimiter = createRateLimiter({
 const swipeLimiter = async (req, res, next) => {
   try {
     const userId = req.userId || req.user?.id;
-    
+
     if (!userId) {
       return res.status(401).json({
         success: false,
@@ -93,7 +93,7 @@ const swipeLimiter = async (req, res, next) => {
     // Get user subscription tier
     const User = require('../models/User');
     const user = await User.findById(userId).select('subscription').lean();
-    
+
     const tier = user?.subscription?.tier || 'free';
     const limits = {
       free: parseInt(process.env.FREE_DAILY_SWIPE_LIMIT) || 100,
@@ -101,9 +101,9 @@ const swipeLimiter = async (req, res, next) => {
       platinum: parseInt(process.env.PREMIUM_DAILY_SWIPE_LIMIT) || 500,
       unlimited: Infinity,
     };
-    
+
     const dailyLimit = limits[tier] || limits.free;
-    
+
     if (dailyLimit === Infinity) {
       return next();
     }
@@ -111,7 +111,7 @@ const swipeLimiter = async (req, res, next) => {
     const key = `swipe:${userId}`;
     const today = new Date().toISOString().split('T')[0];
     const fullKey = `${key}:${today}`;
-    
+
     const count = await cache.incr(fullKey, 86400); // 24 hours
 
     res.set('X-Swipe-Limit', dailyLimit);
@@ -268,43 +268,43 @@ const endpointRateLimits = {
   'POST /api/auth/verify-email': verificationLimiter,
   'POST /api/auth/verify-phone': verificationLimiter,
   'POST /api/auth/resend-verification': verificationLimiter,
-  
+
   // Profile endpoints
   'GET /api/profile': profileViewLimiter,
   'PUT /api/profile': apiLimiter,
   'POST /api/profile/photos': uploadLimiter,
-  
+
   // Discovery endpoints
   'GET /api/discovery': discoveryLimiter,
   'GET /api/discovery/nearby': discoveryLimiter,
   'GET /api/discovery/recommended': discoveryLimiter,
-  
+
   // Swipe endpoints
   'POST /api/swipe': swipeLimiter,
   'GET /api/swipe/matches': apiLimiter,
-  
+
   // Chat endpoints
   'POST /api/chat/messages': messageLimiter,
   'GET /api/chat/conversations': apiLimiter,
   'GET /api/chat/messages': apiLimiter,
-  
+
   // Payment endpoints
   'POST /api/payment': paymentLimiter,
   'POST /api/premium/subscribe': paymentLimiter,
   'POST /api/premium/cancel': paymentLimiter,
-  
+
   // AI endpoints
   'POST /api/ai': aiLimiter,
   'GET /api/ai/suggestions': aiLimiter,
-  
+
   // Social/Safety endpoints
   'POST /api/safety/report': reportLimiter,
   'POST /api/social': socialLimiter,
-  
+
   // Notification endpoints
   'GET /api/notifications': notificationLimiter,
   'PUT /api/notifications': notificationLimiter,
-  
+
   // Search endpoints
   'GET /api/search': searchLimiter,
 };
@@ -316,22 +316,20 @@ const endpointRateLimits = {
  */
 const dynamicRateLimiter = (customLimits = {}) => {
   const limits = { ...endpointRateLimits, ...customLimits };
-  
+
   return async (req, res, next) => {
     const routeKey = `${req.method} ${req.baseUrl}${req.path}`.replace(/\/[a-f0-9]{24}/gi, '/:id');
-    
+
     // Find matching rate limiter
     let limiter = null;
-    
+
     // Try exact match first
     if (limits[routeKey]) {
       limiter = limits[routeKey];
     } else {
       // Try pattern match (e.g., GET /api/profile matches GET /api/profile/:id)
       for (const [pattern, rateLimiter] of Object.entries(limits)) {
-        const regexPattern = pattern
-          .replace(/:[^/]+/g, '[^/]+')
-          .replace(/\//g, '\\/');
+        const regexPattern = pattern.replace(/:[^/]+/g, '[^/]+').replace(/\//g, '\\/');
         const regex = new RegExp(`^${regexPattern}$`);
         if (regex.test(routeKey)) {
           limiter = rateLimiter;
@@ -339,12 +337,12 @@ const dynamicRateLimiter = (customLimits = {}) => {
         }
       }
     }
-    
+
     // Fall back to API limiter
     if (!limiter) {
       limiter = apiLimiter;
     }
-    
+
     return limiter(req, res, next);
   };
 };

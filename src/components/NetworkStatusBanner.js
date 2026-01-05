@@ -1,28 +1,54 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useOffline } from '../hooks/useOffline';
 
 /**
  * NetworkStatusBanner - Shows offline/online status notification
- * 
+ *
  * Features:
  * - Animated slide-in/out
  * - Shows pending actions count
  * - Dismissible
  * - Auto-hides when back online after brief display
  */
-const NetworkStatusBanner = ({ 
-  style,
-  showWhenOnline = true,
-  autoHideDelay = 3000,
-  onRetry,
-}) => {
+const NetworkStatusBanner = ({ style, showWhenOnline = true, autoHideDelay = 3000, onRetry }) => {
   const { isOnline } = useOffline();
   const slideAnim = useRef(new Animated.Value(-100)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const hideTimeoutRef = useRef(null);
   const wasOfflineRef = useRef(false);
+
+  const showBanner = useCallback(() => {
+    Animated.parallel([
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 8,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [slideAnim, opacityAnim]);
+
+  const hideBanner = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: -100,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [slideAnim, opacityAnim]);
 
   useEffect(() => {
     // Clear any existing timeout
@@ -50,38 +76,7 @@ const NetworkStatusBanner = ({
         clearTimeout(hideTimeoutRef.current);
       }
     };
-  }, [isOnline, showWhenOnline, autoHideDelay]);
-
-  const showBanner = () => {
-    Animated.parallel([
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 50,
-        friction: 8,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
-
-  const hideBanner = () => {
-    Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue: -100,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
+  }, [isOnline, showWhenOnline, autoHideDelay, showBanner, hideBanner]);
 
   const handleDismiss = () => {
     if (hideTimeoutRef.current) {
@@ -96,8 +91,8 @@ const NetworkStatusBanner = ({
 
   const backgroundColor = isOnline ? '#4caf50' : '#f44336';
   const iconName = isOnline ? 'cloud-done' : 'cloud-offline';
-  const message = isOnline 
-    ? "You're back online!" 
+  const message = isOnline
+    ? "You're back online!"
     : "You're offline. Some features may be limited.";
 
   return (
@@ -117,7 +112,7 @@ const NetworkStatusBanner = ({
         <Ionicons name={iconName} size={20} color="#fff" />
         <Text style={styles.message}>{message}</Text>
       </View>
-      
+
       <View style={styles.actions}>
         {!isOnline && onRetry && (
           <TouchableOpacity onPress={handleRetry} style={styles.retryButton}>

@@ -54,9 +54,7 @@ describe('useBetaTesting', () => {
     });
 
     it('should load enrollment status from storage', async () => {
-      AsyncStorage.getItem.mockResolvedValue(
-        JSON.stringify({ isEnrolled: true })
-      );
+      AsyncStorage.getItem.mockResolvedValue(JSON.stringify({ isEnrolled: true }));
 
       const { result, waitForNextUpdate } = renderHook(() =>
         useBetaTesting(mockUserId, mockUserGroups)
@@ -74,10 +72,7 @@ describe('useBetaTesting', () => {
 
       await waitForNextUpdate();
 
-      expect(featureFlagService.getUserFlags).toHaveBeenCalledWith(
-        mockUserId,
-        mockUserGroups
-      );
+      expect(featureFlagService.getUserFlags).toHaveBeenCalledWith(mockUserId, mockUserGroups);
       expect(result.current.featureFlags).toEqual({
         beta_video_chat: { enabled: false },
         beta_ai_matching: { enabled: true },
@@ -111,9 +106,7 @@ describe('useBetaTesting', () => {
     });
 
     it('should allow user to leave beta program', async () => {
-      AsyncStorage.getItem.mockResolvedValue(
-        JSON.stringify({ isEnrolled: true })
-      );
+      AsyncStorage.getItem.mockResolvedValue(JSON.stringify({ isEnrolled: true }));
 
       const { result, waitForNextUpdate } = renderHook(() =>
         useBetaTesting(mockUserId, mockUserGroups)
@@ -214,10 +207,7 @@ describe('useBetaTesting', () => {
         await result.current.startSession({ platform: 'ios' });
       });
 
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-        '@beta_session',
-        expect.any(String)
-      );
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith('@beta_session', expect.any(String));
     });
 
     it('should track screen views', async () => {

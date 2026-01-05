@@ -5,6 +5,7 @@ This guide covers the beta testing framework implementation for the Dating App.
 ## Overview
 
 The beta testing framework provides:
+
 - **Feature Flags**: Control feature rollout and A/B testing
 - **User Enrollment**: Manage beta tester signups and tiers
 - **Feedback Collection**: In-app feedback and bug reporting
@@ -87,12 +88,10 @@ Location: `src/hooks/useBetaTesting.js`
 import { useBetaTesting } from '../hooks/useBetaTesting';
 
 function MyComponent() {
-  const {
-    isBetaUser,
-    isFeatureEnabled,
-    submitFeedback,
-    trackAction,
-  } = useBetaTesting(userId, userGroups);
+  const { isBetaUser, isFeatureEnabled, submitFeedback, trackAction } = useBetaTesting(
+    userId,
+    userGroups
+  );
 
   // Check feature flag
   if (isFeatureEnabled('beta_video_chat')) {
@@ -108,21 +107,21 @@ function MyComponent() {
 
 ### Current Beta Features
 
-| Flag Name | Description | Default Rollout |
-|-----------|-------------|-----------------|
-| `beta_video_chat` | Video chat feature | 0% (beta only) |
-| `beta_ai_matchmaking` | AI-powered matching | 10% |
-| `beta_voice_notes` | Voice notes in chat | 25% |
-| `beta_profile_prompts` | Interactive prompts | 50% |
-| `beta_date_spots` | Date spot suggestions | 0% (beta only) |
-| `beta_icebreakers` | AI icebreakers | 75% |
+| Flag Name              | Description           | Default Rollout |
+| ---------------------- | --------------------- | --------------- |
+| `beta_video_chat`      | Video chat feature    | 0% (beta only)  |
+| `beta_ai_matchmaking`  | AI-powered matching   | 10%             |
+| `beta_voice_notes`     | Voice notes in chat   | 25%             |
+| `beta_profile_prompts` | Interactive prompts   | 50%             |
+| `beta_date_spots`      | Date spot suggestions | 0% (beta only)  |
+| `beta_icebreakers`     | AI icebreakers        | 75%             |
 
 ### A/B Tests
 
-| Flag Name | Description | Rollout |
-|-----------|-------------|---------|
-| `ab_profile_layout_v2` | New profile layout | 50% |
-| `ab_discovery_algorithm_v3` | Updated discovery | 30% |
+| Flag Name                   | Description        | Rollout |
+| --------------------------- | ------------------ | ------- |
+| `ab_profile_layout_v2`      | New profile layout | 50%     |
+| `ab_discovery_algorithm_v3` | Updated discovery  | 30%     |
 
 ## Beta Testing Workflow
 
@@ -136,7 +135,7 @@ const handleJoinBeta = async () => {
     deviceInfo: await getDeviceInfo(),
     screenshotConsent: agreedToScreenshots,
   });
-  
+
   Alert.alert('Welcome to Beta!', 'Thank you for helping us improve.');
 };
 ```
@@ -145,19 +144,20 @@ const handleJoinBeta = async () => {
 
 ```jsx
 // Conditionally render features
-{isFeatureEnabled('beta_video_chat') && (
-  <VideoChatButton onPress={startVideoCall} />
-)}
+{
+  isFeatureEnabled('beta_video_chat') && <VideoChatButton onPress={startVideoCall} />;
+}
 
 // Or use fallback
 <FeatureGate feature="beta_video_chat" fallback={<StandardChat />}>
   <VideoChat />
-</FeatureGate>
+</FeatureGate>;
 ```
 
 ### 3. Feedback Collection
 
 Feedback types:
+
 - **Bug Report**: Technical issues
 - **Feature Request**: New functionality ideas
 - **Improvement**: Enhancements to existing features
@@ -169,7 +169,7 @@ Feedback types:
 // On app start
 useEffect(() => {
   startSession({ platform: 'ios', version: '15.0' });
-  
+
   return () => {
     endSession('1.0.0-beta');
   };
@@ -255,12 +255,12 @@ node -e "
 
 ### 4. Bug Triage
 
-| Severity | Response Time | Description |
-|----------|---------------|-------------|
-| Critical | 4 hours | App crashes, data loss |
-| High | 24 hours | Major feature broken |
-| Medium | 72 hours | Minor feature broken |
-| Low | 1 week | Cosmetic issues |
+| Severity | Response Time | Description            |
+| -------- | ------------- | ---------------------- |
+| Critical | 4 hours       | App crashes, data loss |
+| High     | 24 hours      | Major feature broken   |
+| Medium   | 72 hours      | Minor feature broken   |
+| Low      | 1 week        | Cosmetic issues        |
 
 ## Integration with CI/CD
 
@@ -315,6 +315,7 @@ module.exports = {
 ## Support
 
 For beta testing support:
+
 - Slack: #beta-testing
 - Email: beta@datingapp.com
 - Dashboard: admin.datingapp.com/beta

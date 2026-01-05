@@ -11,9 +11,9 @@ let isConnected = false;
 // Redis configuration
 const redisConfig = {
   host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT) || 6379,
+  port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT, 10) : 6379,
   password: process.env.REDIS_PASSWORD || undefined,
-  db: parseInt(process.env.REDIS_DB) || 0,
+  db: process.env.REDIS_DB ? parseInt(process.env.REDIS_DB, 10) : 0,
   maxRetriesPerRequest: 3,
   retryDelayOnFailover: 100,
   enableReadyCheck: true,
@@ -26,15 +26,15 @@ const redisConfig = {
 
 // Cache TTL settings (in seconds)
 const CACHE_TTL = {
-  USER_PROFILE: 300,        // 5 minutes
-  USER_PREFERENCES: 600,    // 10 minutes
-  DISCOVERY_PROFILES: 60,   // 1 minute
-  MATCHES: 120,             // 2 minutes
-  CONVERSATIONS: 180,       // 3 minutes
-  SESSION: 86400,           // 24 hours
-  RATE_LIMIT: 60,           // 1 minute
-  ONLINE_STATUS: 30,        // 30 seconds
-  LEADERBOARD: 300,         // 5 minutes
+  USER_PROFILE: 300, // 5 minutes
+  USER_PREFERENCES: 600, // 10 minutes
+  DISCOVERY_PROFILES: 60, // 1 minute
+  MATCHES: 120, // 2 minutes
+  CONVERSATIONS: 180, // 3 minutes
+  SESSION: 86400, // 24 hours
+  RATE_LIMIT: 60, // 1 minute
+  ONLINE_STATUS: 30, // 30 seconds
+  LEADERBOARD: 300, // 5 minutes
 };
 
 // Cache key prefixes
@@ -63,9 +63,10 @@ const initRedis = async () => {
 
   // Check if Redis URL is provided (for cloud services like Upstash, Railway)
   const redisUrl = process.env.REDIS_URL;
-  
+
   try {
     if (redisUrl) {
+      // @ts-ignore - ioredis constructor accepts URL string
       redisClient = new Redis(redisUrl, {
         maxRetriesPerRequest: 3,
         lazyConnect: true,
@@ -73,6 +74,7 @@ const initRedis = async () => {
         tls: redisUrl.startsWith('rediss://') ? {} : undefined,
       });
     } else {
+      // @ts-ignore - ioredis constructor accepts config object
       redisClient = new Redis(redisConfig);
     }
 
@@ -102,10 +104,11 @@ const initRedis = async () => {
 
     // Connect
     await redisClient.connect();
-    
+
     return redisClient;
   } catch (error) {
-    console.error('Failed to initialize Redis:', error.message);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Failed to initialize Redis:', errorMessage);
     isConnected = false;
     return null;
   }
@@ -132,11 +135,12 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return null;
-      
+
       const data = await client.get(key);
       return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error('Cache get error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache get error:', errorMessage);
       return null;
     }
   },
@@ -148,11 +152,12 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return false;
-      
+
       await client.setex(key, ttl, JSON.stringify(value));
       return true;
     } catch (error) {
-      console.error('Cache set error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache set error:', errorMessage);
       return false;
     }
   },
@@ -164,11 +169,12 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return false;
-      
+
       await client.del(key);
       return true;
     } catch (error) {
-      console.error('Cache delete error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache delete error:', errorMessage);
       return false;
     }
   },
@@ -180,14 +186,15 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return false;
-      
+
       const keys = await client.keys(pattern);
       if (keys.length > 0) {
         await client.del(...keys);
       }
       return true;
     } catch (error) {
-      console.error('Cache delete pattern error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache delete pattern error:', errorMessage);
       return false;
     }
   },
@@ -199,10 +206,11 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return false;
-      
+
       return await client.exists(key);
     } catch (error) {
-      console.error('Cache exists error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache exists error:', errorMessage);
       return false;
     }
   },
@@ -214,14 +222,15 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return null;
-      
+
       const value = await client.incr(key);
       if (value === 1) {
         await client.expire(key, ttl);
       }
       return value;
     } catch (error) {
-      console.error('Cache incr error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache incr error:', errorMessage);
       return null;
     }
   },
@@ -233,11 +242,12 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return 0;
-      
+
       const value = await client.get(key);
       return parseInt(value) || 0;
     } catch (error) {
-      console.error('Cache getCounter error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache getCounter error:', errorMessage);
       return 0;
     }
   },
@@ -249,11 +259,12 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return false;
-      
+
       await client.zadd(key, score, member);
       return true;
     } catch (error) {
-      console.error('Cache zadd error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache zadd error:', errorMessage);
       return false;
     }
   },
@@ -265,13 +276,14 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return [];
-      
+
       if (withScores) {
         return await client.zrevrange(key, start, stop, 'WITHSCORES');
       }
       return await client.zrevrange(key, start, stop);
     } catch (error) {
-      console.error('Cache zrevrange error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache zrevrange error:', errorMessage);
       return [];
     }
   },
@@ -283,11 +295,12 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return false;
-      
+
       await client.hset(key, field, JSON.stringify(value));
       return true;
     } catch (error) {
-      console.error('Cache hset error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache hset error:', errorMessage);
       return false;
     }
   },
@@ -299,11 +312,12 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return null;
-      
+
       const data = await client.hget(key, field);
       return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error('Cache hget error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache hget error:', errorMessage);
       return null;
     }
   },
@@ -315,10 +329,10 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return null;
-      
+
       const data = await client.hgetall(key);
       if (!data) return null;
-      
+
       // Parse JSON values
       const result = {};
       for (const [field, value] of Object.entries(data)) {
@@ -330,7 +344,8 @@ const cache = {
       }
       return result;
     } catch (error) {
-      console.error('Cache hgetall error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache hgetall error:', errorMessage);
       return null;
     }
   },
@@ -342,11 +357,12 @@ const cache = {
     try {
       const client = await getRedis();
       if (!client) return false;
-      
+
       await client.expire(key, seconds);
       return true;
     } catch (error) {
-      console.error('Cache expire error:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Cache expire error:', errorMessage);
       return false;
     }
   },
@@ -357,11 +373,19 @@ const cache = {
  */
 const onlineStatus = {
   async setOnline(userId) {
-    await cache.set(`${CACHE_KEYS.ONLINE}${userId}`, { online: true, lastSeen: new Date() }, CACHE_TTL.ONLINE_STATUS);
+    await cache.set(
+      `${CACHE_KEYS.ONLINE}${userId}`,
+      { online: true, lastSeen: new Date() },
+      CACHE_TTL.ONLINE_STATUS
+    );
   },
 
   async setOffline(userId) {
-    await cache.set(`${CACHE_KEYS.ONLINE}${userId}`, { online: false, lastSeen: new Date() }, CACHE_TTL.SESSION);
+    await cache.set(
+      `${CACHE_KEYS.ONLINE}${userId}`,
+      { online: false, lastSeen: new Date() },
+      CACHE_TTL.SESSION
+    );
   },
 
   async isOnline(userId) {
@@ -390,7 +414,7 @@ const rateLimiter = {
   async checkLimit(key, maxRequests, windowSeconds) {
     const fullKey = `${CACHE_KEYS.RATE_LIMIT}${key}`;
     const count = await cache.incr(fullKey, windowSeconds);
-    
+
     return {
       allowed: count <= maxRequests,
       remaining: Math.max(0, maxRequests - count),

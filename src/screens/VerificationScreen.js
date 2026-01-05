@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  Image,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { VerificationService } from '../services/VerificationService';
 import { useAuth } from '../context/AuthContext';
+import logger from '../utils/logger';
 
 const VerificationScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
@@ -32,7 +25,7 @@ const VerificationScreen = ({ navigation }) => {
       const status = await VerificationService.getVerificationStatus(currentUser.uid);
       setVerificationStatus(status);
     } catch (error) {
-      console.error('Error loading verification status:', error);
+      logger.error('Error loading verification status:', error);
       Alert.alert('Error', 'Failed to load verification status');
     } finally {
       setLoading(false);
@@ -61,10 +54,10 @@ const VerificationScreen = ({ navigation }) => {
           name: `photo_${Date.now()}.jpg`,
           documentType: 'selfie',
         };
-        setSelectedDocuments(prev => [...prev, newDoc]);
+        setSelectedDocuments((prev) => [...prev, newDoc]);
       }
     } catch (error) {
-      console.error('Error picking image:', error);
+      logger.error('Error picking image:', error);
       Alert.alert('Error', 'Failed to select image');
     }
   };
@@ -83,16 +76,16 @@ const VerificationScreen = ({ navigation }) => {
           name: result.name,
           documentType: 'government_id',
         };
-        setSelectedDocuments(prev => [...prev, newDoc]);
+        setSelectedDocuments((prev) => [...prev, newDoc]);
       }
     } catch (error) {
-      console.error('Error picking document:', error);
+      logger.error('Error picking document:', error);
       Alert.alert('Error', 'Failed to select document');
     }
   };
 
   const removeDocument = (index) => {
-    setSelectedDocuments(prev => prev.filter((_, i) => i !== index));
+    setSelectedDocuments((prev) => prev.filter((_, i) => i !== index));
   };
 
   const submitVerification = async () => {
@@ -134,7 +127,7 @@ const VerificationScreen = ({ navigation }) => {
       if (result.success) {
         Alert.alert(
           'Verification Submitted',
-          'Your verification request has been submitted. We\'ll review it within 24-48 hours.',
+          "Your verification request has been submitted. We'll review it within 24-48 hours.",
           [{ text: 'OK', onPress: loadVerificationStatus }]
         );
         setSelectedDocuments([]);
@@ -143,7 +136,7 @@ const VerificationScreen = ({ navigation }) => {
         throw new Error(result.error);
       }
     } catch (error) {
-      console.error('Error submitting verification:', error);
+      logger.error('Error submitting verification:', error);
       Alert.alert('Error', 'Failed to submit verification request. Please try again.');
     } finally {
       setSubmitting(false);
@@ -160,7 +153,10 @@ const VerificationScreen = ({ navigation }) => {
           text: 'Yes',
           onPress: async () => {
             try {
-              const result = await VerificationService.cancelVerificationRequest(requestId, currentUser.uid);
+              const result = await VerificationService.cancelVerificationRequest(
+                requestId,
+                currentUser.uid
+              );
               if (result.success) {
                 Alert.alert('Success', 'Verification request cancelled');
                 loadVerificationStatus();
@@ -168,7 +164,7 @@ const VerificationScreen = ({ navigation }) => {
                 throw new Error(result.error);
               }
             } catch (error) {
-              console.error('Error cancelling request:', error);
+              logger.error('Error cancelling request:', error);
               Alert.alert('Error', 'Failed to cancel verification request');
             }
           },
@@ -191,7 +187,7 @@ const VerificationScreen = ({ navigation }) => {
         case 'pending':
           return {
             title: 'Verification Pending',
-            subtitle: 'We\'re reviewing your documents',
+            subtitle: 'We&apos;re reviewing your documents',
             color: '#FFA500',
             icon: 'time',
             showBadge: true,
@@ -199,7 +195,9 @@ const VerificationScreen = ({ navigation }) => {
         case 'rejected':
           return {
             title: 'Verification Rejected',
-            subtitle: verificationStatus.rejectionReason || 'Please try again with better quality documents',
+            subtitle:
+              verificationStatus.rejectionReason ||
+              'Please try again with better quality documents',
             color: '#FF6B6B',
             icon: 'close-circle',
             showBadge: false,
@@ -270,10 +268,7 @@ const VerificationScreen = ({ navigation }) => {
                 />
                 <Text style={styles.documentName}>{doc.name}</Text>
               </View>
-              <TouchableOpacity
-                onPress={() => removeDocument(index)}
-                style={styles.removeButton}
-              >
+              <TouchableOpacity onPress={() => removeDocument(index)} style={styles.removeButton}>
                 <Ionicons name="close" size={20} color="#FF6B6B" />
               </TouchableOpacity>
             </View>
@@ -291,9 +286,7 @@ const VerificationScreen = ({ navigation }) => {
       >
         <LinearGradient
           colors={
-            selectedDocuments.length === 0 || submitting
-              ? ['#ccc', '#bbb']
-              : ['#667eea', '#764ba2']
+            selectedDocuments.length === 0 || submitting ? ['#ccc', '#bbb'] : ['#667eea', '#764ba2']
           }
           style={styles.submitButtonGradient}
         >
@@ -307,14 +300,14 @@ const VerificationScreen = ({ navigation }) => {
   );
 
   const renderPendingRequests = () => {
-    const pendingRequests = verificationStatus.requests.filter(req => req.status === 'pending');
+    const pendingRequests = verificationStatus.requests.filter((req) => req.status === 'pending');
 
     if (pendingRequests.length === 0) return null;
 
     return (
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Pending Requests</Text>
-        {pendingRequests.map(request => (
+        {pendingRequests.map((request) => (
           <View key={request.id} style={styles.requestCard}>
             <View style={styles.requestInfo}>
               <Ionicons name="time" size={20} color="#FFA500" />
@@ -325,10 +318,7 @@ const VerificationScreen = ({ navigation }) => {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={() => cancelRequest(request.id)}
-              style={styles.cancelButton}
-            >
+            <TouchableOpacity onPress={() => cancelRequest(request.id)} style={styles.cancelButton}>
               <Ionicons name="close" size={20} color="#FF6B6B" />
             </TouchableOpacity>
           </View>
@@ -350,14 +340,8 @@ const VerificationScreen = ({ navigation }) => {
 
   return (
     <LinearGradient colors={['#f5f7fa', '#c3cfe2']} style={styles.container}>
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.header}
-      >
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
+      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Verification</Text>

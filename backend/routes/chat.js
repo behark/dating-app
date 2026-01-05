@@ -7,7 +7,7 @@ const {
   deleteMessage,
   markMessageAsRead,
   getReadReceipts,
-  sendEncryptedMessage
+  sendEncryptedMessage,
 } = require('../controllers/chatController');
 
 // Mock authentication middleware (replace with actual auth in production)

@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  PanResponder,
-  Animated,
-  Text,
-} from 'react-native';
+import { View, StyleSheet, PanResponder, Animated, Text } from 'react-native';
 
 const RangeSlider = ({
   min = 0,
@@ -41,7 +35,7 @@ const RangeSlider = ({
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
-      
+
       <View style={styles.sliderContainer}>
         {/* Track Background */}
         <View style={[styles.track, { backgroundColor: '#e9ecef' }]} />

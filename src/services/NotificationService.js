@@ -76,7 +76,7 @@ export class NotificationService {
       const response = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
           'Accept-encoding': 'gzip, deflate',
           'Content-Type': 'application/json',
         },
@@ -94,19 +94,17 @@ export class NotificationService {
   static async sendMatchNotification(matchedUserId, matcherName) {
     await this.sendNotification(
       matchedUserId,
-      '🎉 It\'s a Match!',
+      "🎉 It's a Match!",
       `You and ${matcherName} liked each other!`,
       { type: 'match', matcherName }
     );
   }
 
   static async sendLikeNotification(likedUserId, likerName) {
-    await this.sendNotification(
-      likedUserId,
-      '💗 New Like!',
-      `${likerName} liked your profile!`,
-      { type: 'like', likerName }
-    );
+    await this.sendNotification(likedUserId, '💗 New Like!', `${likerName} liked your profile!`, {
+      type: 'like',
+      likerName,
+    });
   }
 
   static async sendMessageNotification(toUserId, fromName, message) {
@@ -119,12 +117,7 @@ export class NotificationService {
   }
 
   static async sendSystemNotification(toUserId, title, message, data = {}) {
-    await this.sendNotification(
-      toUserId,
-      title,
-      message,
-      { type: 'system', ...data }
-    );
+    await this.sendNotification(toUserId, title, message, { type: 'system', ...data });
   }
 
   static async sendBulkNotification(userIds, title, body, data = {}) {
@@ -187,7 +180,11 @@ export class NotificationService {
         likeNotifications: userData?.preferences?.likeNotifications !== false,
         systemNotifications: userData?.preferences?.systemNotifications !== false,
         notificationFrequency: userData?.preferences?.notificationFrequency || 'instant',
-        quietHours: userData?.preferences?.quietHours || { enabled: false, start: '22:00', end: '08:00' },
+        quietHours: userData?.preferences?.quietHours || {
+          enabled: false,
+          start: '22:00',
+          end: '08:00',
+        },
       };
     } catch (error) {
       console.error('Error getting notification preferences:', error);

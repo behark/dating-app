@@ -3,7 +3,7 @@
  * Benchmarks and load testing for the dating app
  */
 
-const { performance, PerformanceObserver } = require('perf_hooks');
+const { performance } = require('perf_hooks');
 
 // Performance metrics collector
 class PerformanceMetrics {
@@ -33,13 +33,13 @@ class PerformanceMetrics {
   }
 
   getP95(category) {
-    const items = this.metrics[category].map(i => i.duration).sort((a, b) => a - b);
+    const items = this.metrics[category].map((i) => i.duration).sort((a, b) => a - b);
     const index = Math.floor(items.length * 0.95);
     return items[index] || 0;
   }
 
   getP99(category) {
-    const items = this.metrics[category].map(i => i.duration).sort((a, b) => a - b);
+    const items = this.metrics[category].map((i) => i.duration).sort((a, b) => a - b);
     const index = Math.floor(items.length * 0.99);
     return items[index] || 0;
   }
@@ -265,9 +265,13 @@ describe('Database Performance Tests', () => {
     it('should find user by ID quickly', async () => {
       mockDbQuery.mockResolvedValue({ _id: 'user_123', name: 'Test' });
 
-      const { duration } = await measureAsync(async () => {
-        return mockDbQuery({ _id: 'user_123' });
-      }, 'find_user_by_id', 'database');
+      const { duration } = await measureAsync(
+        async () => {
+          return mockDbQuery({ _id: 'user_123' });
+        },
+        'find_user_by_id',
+        'database'
+      );
 
       expect(duration).toBeLessThan(50); // 50ms max
     });
@@ -280,14 +284,18 @@ describe('Database Performance Tests', () => {
         }))
       );
 
-      const { duration } = await measureAsync(async () => {
-        return mockDbQuery({
-          $geoNear: {
-            near: { type: 'Point', coordinates: [-74, 40] },
-            maxDistance: 50000,
-          },
-        });
-      }, 'geo_near_query', 'database');
+      const { duration } = await measureAsync(
+        async () => {
+          return mockDbQuery({
+            $geoNear: {
+              near: { type: 'Point', coordinates: [-74, 40] },
+              maxDistance: 50000,
+            },
+          });
+        },
+        'geo_near_query',
+        'database'
+      );
 
       expect(duration).toBeLessThan(200);
     });
@@ -295,16 +303,18 @@ describe('Database Performance Tests', () => {
 
   describe('Aggregation Pipelines', () => {
     it('should aggregate match statistics efficiently', async () => {
-      mockDbQuery.mockResolvedValue([
-        { totalMatches: 500, averageResponseTime: 3600 },
-      ]);
+      mockDbQuery.mockResolvedValue([{ totalMatches: 500, averageResponseTime: 3600 }]);
 
-      const { duration } = await measureAsync(async () => {
-        return mockDbQuery([
-          { $match: { createdAt: { $gte: new Date(Date.now() - 86400000) } } },
-          { $group: { _id: null, total: { $sum: 1 } } },
-        ]);
-      }, 'match_aggregation', 'database');
+      const { duration } = await measureAsync(
+        async () => {
+          return mockDbQuery([
+            { $match: { createdAt: { $gte: new Date(Date.now() - 86400000) } } },
+            { $group: { _id: null, total: { $sum: 1 } } },
+          ]);
+        },
+        'match_aggregation',
+        'database'
+      );
 
       expect(duration).toBeLessThan(300);
     });
@@ -324,7 +334,7 @@ describe('Memory Performance Tests', () => {
         photos: ['photo1.jpg', 'photo2.jpg'],
       }));
       // Process and discard
-      data.filter(d => d.id > 0.5);
+      data.filter((d) => d.id > 0.5);
     }
 
     // Force garbage collection if available
@@ -352,7 +362,7 @@ describe('Memory Performance Tests', () => {
     }));
 
     // Process profiles
-    const filtered = profiles.filter(p => p.age >= 25 && p.age <= 35);
+    const filtered = profiles.filter((p) => p.age >= 25 && p.age <= 35);
     const sorted = filtered.sort((a, b) => a.age - b.age);
 
     const finalMemory = process.memoryUsage().heapUsed;
@@ -375,9 +385,7 @@ describe('Concurrent Request Performance', () => {
     const start = performance.now();
 
     // Simulate 50 concurrent requests
-    const requests = Array.from({ length: 50 }, (_, i) =>
-      fetch(`/api/endpoint_${i}`)
-    );
+    const requests = Array.from({ length: 50 }, (_, i) => fetch(`/api/endpoint_${i}`));
 
     await Promise.all(requests);
 

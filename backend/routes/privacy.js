@@ -15,7 +15,7 @@ router.use(authenticate);
 // Apply stricter rate limiting to privacy endpoints
 const privacyLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 10 // Max 10 requests per window
+  maxRequests: 10, // Max 10 requests per window
 });
 
 /**

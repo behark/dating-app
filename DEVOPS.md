@@ -2,24 +2,25 @@
 
 ## Quick Links
 
-| Component | File | Purpose |
-|-----------|------|---------|
-| CI/CD | `.github/workflows/ci.yml` | Main CI/CD pipeline |
-| Scheduled Tasks | `.github/workflows/scheduled.yml` | Backups, security scans |
-| Staging | `docker-compose.staging.yml` | Staging environment |
-| Production | `docker-compose.production.yml` | Production environment |
-| Nginx Staging | `nginx/nginx.staging.conf` | Staging load balancer |
-| Nginx Production | `nginx/nginx.production.conf` | Production load balancer |
-| Monitoring | `backend/services/MonitoringService.js` | Sentry/Datadog integration |
-| Logging | `backend/services/LoggingService.js` | Winston structured logging |
-| Backup | `scripts/backup.sh` | Database backup script |
-| Restore | `scripts/restore.sh` | Database restore script |
+| Component        | File                                    | Purpose                    |
+| ---------------- | --------------------------------------- | -------------------------- |
+| CI/CD            | `.github/workflows/ci.yml`              | Main CI/CD pipeline        |
+| Scheduled Tasks  | `.github/workflows/scheduled.yml`       | Backups, security scans    |
+| Staging          | `docker-compose.staging.yml`            | Staging environment        |
+| Production       | `docker-compose.production.yml`         | Production environment     |
+| Nginx Staging    | `nginx/nginx.staging.conf`              | Staging load balancer      |
+| Nginx Production | `nginx/nginx.production.conf`           | Production load balancer   |
+| Monitoring       | `backend/services/MonitoringService.js` | Sentry/Datadog integration |
+| Logging          | `backend/services/LoggingService.js`    | Winston structured logging |
+| Backup           | `scripts/backup.sh`                     | Database backup script     |
+| Restore          | `scripts/restore.sh`                    | Database restore script    |
 
 ## CI/CD Pipeline
 
 ### GitHub Actions Workflows
 
 **Main CI Pipeline** (`.github/workflows/ci.yml`):
+
 - Frontend tests and linting
 - Backend tests with MongoDB/Redis services
 - Security scanning (npm audit, Trivy)
@@ -28,6 +29,7 @@
 - Production deployment (main branch)
 
 **Scheduled Tasks** (`.github/workflows/scheduled.yml`):
+
 - Daily database backups at 2 AM UTC
 - Weekly security scans
 - Cleanup of old resources
@@ -169,6 +171,7 @@ docker compose -f docker-compose.production.yml --profile monitoring up -d
 Backups run daily at 2 AM UTC via GitHub Actions scheduled workflow.
 
 Backups are stored:
+
 1. Locally: `/opt/dating-app/backups/`
 2. S3: `s3://${BACKUP_S3_BUCKET}/YYYY/MM/`
 
@@ -193,6 +196,7 @@ Backups are stored:
 ### Nginx Configuration
 
 **Production features**:
+
 - Least connections load balancing
 - Health checks with automatic failover
 - WebSocket support
@@ -215,13 +219,13 @@ docker compose -f docker-compose.production.yml up -d --scale worker=3
 
 ### Endpoints
 
-| Endpoint | Purpose |
-|----------|---------|
-| `/health` | Basic health check |
+| Endpoint           | Purpose                                 |
+| ------------------ | --------------------------------------- |
+| `/health`          | Basic health check                      |
 | `/health/detailed` | Detailed health with all service checks |
-| `/ready` | Kubernetes readiness probe |
-| `/live` | Kubernetes liveness probe |
-| `/nginx-health` | Nginx health check |
+| `/ready`           | Kubernetes readiness probe              |
+| `/live`            | Kubernetes liveness probe               |
+| `/nginx-health`    | Nginx health check                      |
 
 ### Example Response
 

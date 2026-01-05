@@ -144,6 +144,7 @@ EXPO_ACCESS_TOKEN=<expo-access-token>
 ### Step 4: Get Your Backend URL
 
 After deployment, Render will give you a URL like:
+
 ```
 https://dating-app-backend-x4yq.onrender.com
 ```
@@ -243,11 +244,13 @@ vercel --prod
 ### Step 4: Update Backend CORS
 
 After Vercel deployment, you'll get a URL like:
+
 ```
 https://your-app-name.vercel.app
 ```
 
 **Update Render backend environment variables:**
+
 ```bash
 FRONTEND_URL=https://your-app-name.vercel.app
 CORS_ORIGIN=https://your-app-name.vercel.app
@@ -273,6 +276,7 @@ Then **restart** the Render backend service.
 7. Add this as `MONGODB_URI` in Render
 
 **Important:**
+
 - Whitelist Render's IP addresses (or use `0.0.0.0/0` for all IPs)
 - Create a database user with read/write permissions
 
@@ -319,6 +323,7 @@ See "Frontend Step 1" above for getting Firebase config values.
 3. Add to both Render backend and Vercel frontend
 
 **Backend (.env):**
+
 ```bash
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
@@ -326,6 +331,7 @@ CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 **Frontend (.env):**
+
 ```bash
 EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
 ```
@@ -333,6 +339,7 @@ EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
 ### Redis (Caching & Job Queues)
 
 **Free Options:**
+
 - [Upstash](https://upstash.com/) - Free 10K commands/day
 - [Redis Cloud](https://redis.com/redis-enterprise-cloud/) - 30MB free
 
@@ -346,11 +353,13 @@ EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
 ### Email Service
 
 **Options:**
+
 - Gmail (free, limited) - Use App Password
 - SendGrid (free 100 emails/day)
 - Mailgun (free tier available)
 
 **For Gmail:**
+
 1. Enable 2FA on your Google account
 2. Generate an App Password
 3. Use in Render:
@@ -389,6 +398,7 @@ curl https://your-backend.onrender.com/health
 ### Check Browser Console
 
 Open browser DevTools (F12) and check for:
+
 - ✅ No CORS errors
 - ✅ API requests succeeding
 - ✅ No Firebase errors
@@ -401,17 +411,21 @@ Open browser DevTools (F12) and check for:
 ### Backend won't start on Render
 
 **Error:** "JWT_SECRET environment variable is not set"
+
 - **Solution:** Add JWT_SECRET, JWT_REFRESH_SECRET, HASH_SALT to Render environment variables
 
 **Error:** "MongoDB connection failed"
+
 - **Solution:** Check MONGODB_URI is correct and MongoDB Atlas allows Render's IP
 
 ### Frontend can't connect to backend
 
 **Error:** CORS errors in browser
+
 - **Solution:** Update FRONTEND_URL and CORS_ORIGIN in Render to match your Vercel URL
 
 **Error:** "Network request failed"
+
 - **Solution:** Check EXPO_PUBLIC_API_URL in Vercel matches your Render backend URL
 
 ### Firebase authentication not working
@@ -430,15 +444,18 @@ Open browser DevTools (F12) and check for:
 ## 📊 MONITORING
 
 ### Render Dashboard
+
 - Monitor backend health, logs, metrics
 - Check for errors in real-time logs
 
 ### Vercel Dashboard
+
 - Monitor frontend deployments
 - Check build logs
 - View analytics
 
 ### Firebase Console
+
 - Monitor authentication
 - Check Firestore usage
 - View error logs
@@ -449,13 +466,13 @@ Open browser DevTools (F12) and check for:
 
 ### Free Tier (Perfect for MVP/Testing)
 
-| Service | Free Tier | Limit |
-|---------|-----------|-------|
-| **Render** | Free | 750 hours/month, sleeps after 15 min inactivity |
-| **Vercel** | Free | 100 GB bandwidth/month, unlimited deployments |
-| **MongoDB Atlas** | Free | 512 MB storage, shared cluster |
-| **Firebase** | Free | 50K reads/day, 20K writes/day, 1 GB storage |
-| **Cloudinary** | Free | 25 GB storage, 25 GB bandwidth/month |
+| Service           | Free Tier | Limit                                           |
+| ----------------- | --------- | ----------------------------------------------- |
+| **Render**        | Free      | 750 hours/month, sleeps after 15 min inactivity |
+| **Vercel**        | Free      | 100 GB bandwidth/month, unlimited deployments   |
+| **MongoDB Atlas** | Free      | 512 MB storage, shared cluster                  |
+| **Firebase**      | Free      | 50K reads/day, 20K writes/day, 1 GB storage     |
+| **Cloudinary**    | Free      | 25 GB storage, 25 GB bandwidth/month            |
 
 **Total: $0/month** for getting started!
 
