@@ -1,5 +1,4 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../constants/colors';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -18,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import logger from '../utils/logger';
@@ -66,7 +66,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
   const [messageReactions, setMessageReactions] = useState({});
 
   // Chat Theme
-  const { currentTheme } = useChatTheme();
+  const { theme: currentTheme, pattern } = useChatTheme(route?.params?.matchId);
 
   // Refs
   const flatListRef = useRef();
@@ -234,11 +234,19 @@ const EnhancedChatScreen = ({ route, navigation }) => {
 
   // Get theme styles
   const getThemeStyles = () => {
-    if (currentTheme) {
-      const foundTheme = CHAT_THEMES.find((t) => t.id === currentTheme);
-      if (foundTheme) return foundTheme;
+    if (currentTheme && currentTheme.id) {
+      return currentTheme;
     }
-    return CHAT_THEMES[0] || null;
+    // Fallback to default theme
+    return CHAT_THEMES.default || CHAT_THEMES[Object.keys(CHAT_THEMES)[0]] || {
+      background: { type: 'solid', color: '#f5f7fa' },
+      myMessage: { gradient: Colors.gradient.primary, textColor: Colors.background.white },
+      theirMessage: { backgroundColor: Colors.background.white, textColor: Colors.text.dark },
+      receiverBubbleColor: Colors.background.light,
+      receiverTextColor: Colors.text.dark,
+      backgroundColor: '#f5f7fa',
+      pattern: null,
+    };
   };
 
   const themeStyles = getThemeStyles();
