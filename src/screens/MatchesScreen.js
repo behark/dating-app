@@ -17,6 +17,8 @@ import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { PremiumService } from '../services/PremiumService';
 import { SwipeController } from '../services/SwipeController';
+import { showStandardError } from '../utils/errorHandler';
+import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 
 const MatchesScreen = () => {
@@ -62,15 +64,8 @@ const MatchesScreen = () => {
         errorMessage = "You don't have permission to view conversations.";
       } else if (error.statusCode === 404) {
         errorMessage = 'Conversations not found.';
-      } else if (error.statusCode === 500) {
-        errorMessage = 'Server error. Please try again later.';
-      } else if (error.message?.includes('Network') || error.message?.includes('fetch')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      Alert.alert('Error', errorMessage, [
+      const errorMessage = getUserFriendlyMessage(error, 'load');
+      Alert.alert('Unable to Load Matches', errorMessage, [
         {
           text: 'Retry',
           onPress: () => loadConversationsList(),

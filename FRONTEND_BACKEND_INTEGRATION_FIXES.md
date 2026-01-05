@@ -114,6 +114,44 @@ This document details the fixes applied to migrate frontend services from direct
 
 ---
 
+### 7. ViewProfileScreen.js ✅
+
+**Before:** Used Firebase Firestore directly:
+- `loadProfile()` - read from `users` collection via `getDoc(doc(db, 'users', userId))`
+
+**After:** Now uses backend API:
+- `loadProfile()` → `GET /api/profile/:userId`
+
+**Benefits:**
+- Profile access now goes through backend authorization
+- Only matched users can view each other's profiles (IDOR protection)
+
+---
+
+### 8. EnhancedProfileScreen.js ✅
+
+**Before:** Used Firebase Firestore directly:
+- `loadProfile()` - read from `users` collection
+- `handleVideoChange()` - wrote via `setDoc(doc(db, 'users', ...))`
+- `handlePhotosChange()` - wrote via `setDoc(doc(db, 'users', ...))`
+
+**After:** Now uses backend API:
+- `loadProfile()` → `GET /api/profile/me`
+- `handleVideoChange()` → `PUT /api/profile/update`
+- `handlePhotosChange()` → `PUT /api/profile/update`
+
+---
+
+### 9. PhotoGalleryScreen.js ✅
+
+**Before:** Used Firebase Firestore directly:
+- `loadPhotos()` - read from `users` collection via `getDoc()`
+
+**After:** Now uses backend API:
+- `loadPhotos()` → `GET /api/profile/me`
+
+---
+
 ## Architecture After Changes
 
 ```
@@ -159,9 +197,9 @@ This document details the fixes applied to migrate frontend services from direct
    - User properties
    - Standard mobile analytics pattern
 
-3. **Firebase Auth** (if used) - Authentication
-   - Can be replaced with backend JWT auth
-   - Currently using backend auth endpoints
+3. **FirebaseUserRepository** - Legacy repository (not active)
+   - Kept for backwards compatibility
+   - `USE_API_REPOSITORY = true` ensures ApiUserRepository is used
 
 ## Testing Recommendations
 
@@ -185,9 +223,14 @@ This document details the fixes applied to migrate frontend services from direct
    - Verify report submission
    - Test emergency SOS features
 
+5. **Profile Screens:**
+   - Test ViewProfileScreen loads profiles via API
+   - Verify EnhancedProfileScreen updates go to backend
+   - Test PhotoGalleryScreen loads and manages photos via API
+
 ## Migration Complete ✅
 
-All frontend services now properly use the backend API for data operations, ensuring:
+All frontend services and screens now properly use the backend API for data operations, ensuring:
 - Data consistency through single source of truth (MongoDB)
 - Server-side validation and business logic
 - Proper security through authenticated API calls

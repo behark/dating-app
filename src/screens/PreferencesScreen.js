@@ -7,6 +7,7 @@ import RangeSlider from '../components/Slider/RangeSlider';
 import SingleSlider from '../components/Slider/SingleSlider';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { showStandardError, showSuccess } from '../utils/errorHandler';
 import logger from '../utils/logger';
 import { PreferencesService } from '../services/PreferencesService';
 import { LocationService } from '../services/LocationService';
@@ -44,7 +45,7 @@ const PreferencesScreen = ({ navigation }) => {
       setPreferences(prefs);
     } catch (error) {
       logger.error('Error loading preferences:', error);
-      Alert.alert('Error', 'Failed to load preferences');
+      showStandardError(error, 'load', 'Unable to Load');
     } finally {
       setLoading(false);
     }
@@ -55,7 +56,7 @@ const PreferencesScreen = ({ navigation }) => {
 
     const validation = PreferencesService.validatePreferences(preferences);
     if (!validation.isValid) {
-      Alert.alert('Invalid Preferences', validation.errors.join('\n'));
+      showStandardError(validation.errors.join('\n'), 'validation', 'Invalid Preferences');
       return;
     }
 
@@ -63,13 +64,13 @@ const PreferencesScreen = ({ navigation }) => {
     try {
       const success = await PreferencesService.updateUserPreferences(currentUser.uid, preferences);
       if (success) {
-        Alert.alert('Success', 'Preferences saved successfully!');
+        showSuccess('Preferences saved successfully!');
       } else {
-        Alert.alert('Error', 'Failed to save preferences');
+        showStandardError('Unable to save preferences', 'save', 'Save Failed');
       }
     } catch (error) {
       logger.error('Error saving preferences:', error);
-      Alert.alert('Error', 'Failed to save preferences');
+      showStandardError(error, 'save', 'Save Failed');
     } finally {
       setSaving(false);
     }

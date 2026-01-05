@@ -14,6 +14,7 @@ import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import AIService from '../services/AIService';
 import { PremiumService } from '../services/PremiumService';
+import { showStandardError } from '../utils/errorHandler';
 import logger from '../utils/logger';
 import api from '../services/api';
 
@@ -59,7 +60,7 @@ const AIInsightsScreen = ({ navigation }) => {
       }
     } catch (error) {
       logger.error('Error loading AI insights:', error);
-      Alert.alert('Error', 'Failed to load insights. Please try again.');
+      showStandardError(error, 'load', 'Unable to Load');
     }
   };
 

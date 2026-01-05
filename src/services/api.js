@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { getUserFriendlyMessage, STANDARD_ERROR_MESSAGES } from '../utils/errorMessages';
+import rateLimiter from '../utils/rateLimiter';
 import logger from '../utils/logger';
 
 // Token storage keys
@@ -166,6 +167,21 @@ const api = {
    * @param {boolean} _isRetry - Internal flag to prevent infinite retry loops
    */
   async request(method, endpoint, data = null, options = {}, _isRetry = false) {
+    // Client-side rate limiting (unless explicitly bypassed)
+    if (!options.bypassRateLimit && !_isRetry) {
+      const rateLimitKey = `${method}:${endpoint}`;
+      const maxRequests = options.maxRequests || 10; // Default: 10 requests
+      const windowMs = options.rateLimitWindow || 1000; // Default: 1 second window
+
+      if (!rateLimiter.canMakeRequest(rateLimitKey, maxRequests, windowMs)) {
+        const timeRemaining = rateLimiter.getTimeUntilNextRequest(rateLimitKey, windowMs);
+        const error = new Error(STANDARD_ERROR_MESSAGES.RATE_LIMIT);
+        error.code = 'RATE_LIMIT';
+        error.retryAfter = Math.ceil(timeRemaining / 1000);
+        throw error;
+      }
+    }
+
     const url = `${API_URL}${endpoint}`;
 
     // Get auth token
@@ -233,14 +249,29 @@ const api = {
       // Return the entire response to maintain access to success, message, pagination, etc.
       return await response.json();
     } catch (error) {
-      // Don't double-wrap errors we already threw
-      if (error.message && !error.message.includes('HTTP')) {
+      // Don't double-wrap errors we already threw (they already have user-friendly messages)
+      if (error.message && error.code) {
         throw error;
       }
-      logger.apiError(endpoint, method, 'NETWORK', error);
-      throw new Error(
-        getUserFriendlyMessage(error.message || 'Network error. Please check your connection.')
-      );
+
+      // Handle network errors
+      if (
+        error.message?.includes('Network') ||
+        error.message?.includes('fetch') ||
+        error.name === 'TypeError' ||
+        error.name === 'NetworkError'
+      ) {
+        logger.apiError(endpoint, method, 'NETWORK', error);
+        const networkError = new Error(STANDARD_ERROR_MESSAGES.NETWORK_ERROR);
+        networkError.code = 'NETWORK_ERROR';
+        throw networkError;
+      }
+
+      // Log and wrap other errors
+      logger.apiError(endpoint, method, 'ERROR', error);
+      const friendlyError = new Error(getUserFriendlyMessage(error, options.context || ''));
+      friendlyError.code = error.code || 'UNKNOWN_ERROR';
+      throw friendlyError;
     }
   },
 

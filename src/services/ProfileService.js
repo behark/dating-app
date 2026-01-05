@@ -4,6 +4,7 @@ import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 import api from './api';
 import { validateNotEmpty, validateUserId } from '../utils/validators';
+import OfflineService from './OfflineService';
 
 export class ProfileService {
   static async getProfile(userId) {
@@ -12,30 +13,93 @@ export class ProfileService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
+      // Check if offline - try cache first
+      const isOnline = OfflineService.getNetworkStatus();
+      if (!isOnline) {
+        const cachedProfiles = await OfflineService.getCachedProfiles();
+        if (cachedProfiles) {
+          const cachedProfile = cachedProfiles.find((p) => p._id === userId || p.uid === userId);
+          if (cachedProfile) {
+            logger.info('Loading profile from cache (offline)');
+            return cachedProfile;
+          }
+        }
+        throw new Error('No cached profile available. Please check your connection.');
+      }
+
       const data = await api.get(`/profile/${userId}`);
 
       if (!data.success) {
         throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch profile'));
       }
 
-      return data.data?.user || null;
+      const profile = data.data?.user || null;
+      
+      // Cache profile for offline use
+      if (profile) {
+        const cachedProfiles = await OfflineService.getCachedProfiles() || [];
+        const updatedProfiles = cachedProfiles.filter((p) => 
+          (p._id || p.uid) !== (profile._id || profile.uid)
+        );
+        updatedProfiles.push(profile);
+        await OfflineService.cacheProfiles(updatedProfiles);
+      }
+
+      return profile;
     } catch (error) {
       logger.error('Error fetching profile:', error);
+      
+      // Try cache on error
+      const cachedProfiles = await OfflineService.getCachedProfiles();
+      if (cachedProfiles) {
+        const cachedProfile = cachedProfiles.find((p) => p._id === userId || p.uid === userId);
+        if (cachedProfile) {
+          logger.info('Loading profile from cache (error fallback)');
+          return cachedProfile;
+        }
+      }
+      
       throw error;
     }
   }
 
   static async getMyProfile() {
     try {
+      // Check if offline - try cache first
+      const isOnline = OfflineService.getNetworkStatus();
+      if (!isOnline) {
+        const cachedProfile = await OfflineService.getCachedUserProfile();
+        if (cachedProfile) {
+          logger.info('Loading my profile from cache (offline)');
+          return cachedProfile;
+        }
+        throw new Error('No cached profile available. Please check your connection.');
+      }
+
       const data = await api.get('/profile/me');
 
       if (!data.success) {
         throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch profile'));
       }
 
-      return data.data?.user || null;
+      const profile = data.data?.user || null;
+      
+      // Cache profile for offline use
+      if (profile) {
+        await OfflineService.cacheUserProfile(profile);
+      }
+
+      return profile;
     } catch (error) {
       logger.error('Error fetching my profile:', error);
+      
+      // Try cache on error
+      const cachedProfile = await OfflineService.getCachedUserProfile();
+      if (cachedProfile) {
+        logger.info('Loading my profile from cache (error fallback)');
+        return cachedProfile;
+      }
+      
       throw error;
     }
   }

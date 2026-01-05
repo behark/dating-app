@@ -16,6 +16,7 @@ import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { ImageService } from '../services/ImageService';
+import { showStandardError, STANDARD_ERROR_MESSAGES } from '../utils/errorHandler';
 import logger from '../utils/logger';
 
 const PhotoGalleryScreen = ({ navigation, route }) => {
@@ -37,7 +38,7 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
       }
     } catch (error) {
       logger.error('Error loading photos:', error);
-      Alert.alert('Error', 'Failed to load photos');
+      showStandardError(error, 'load', 'Unable to Load Photos');
     } finally {
       setLoading(false);
     }
@@ -83,12 +84,12 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
           Alert.alert('Success', 'Photo uploaded successfully!');
           loadPhotos(); // Refresh photos
         } else {
-          Alert.alert('Error', uploadResult.error || 'Failed to upload photo');
+          showStandardError(uploadResult.error || STANDARD_ERROR_MESSAGES.UPLOAD_FAILED, 'upload', 'Upload Failed');
         }
       }
     } catch (error) {
       logger.error('Error picking/uploading image:', error);
-      Alert.alert('Error', 'Failed to upload photo');
+      showStandardError(error, 'upload', 'Upload Failed');
     } finally {
       setUploading(false);
     }
@@ -108,11 +109,11 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
               Alert.alert('Success', 'Photo deleted successfully');
               loadPhotos();
             } else {
-              Alert.alert('Error', result.error || 'Failed to delete photo');
+              showStandardError(result.error || STANDARD_ERROR_MESSAGES.DELETE_FAILED, 'delete', 'Delete Failed');
             }
           } catch (error) {
             logger.error('Error deleting photo:', error);
-            Alert.alert('Error', 'Failed to delete photo');
+            showStandardError(error, 'delete', 'Delete Failed');
           }
         },
       },
@@ -127,11 +128,11 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
         Alert.alert('Success', 'Primary photo updated!');
         loadPhotos();
       } else {
-        Alert.alert('Error', result.error || 'Failed to update primary photo');
+        showStandardError(result.error || STANDARD_ERROR_MESSAGES.SAVE_FAILED, 'update', 'Update Failed');
       }
     } catch (error) {
       logger.error('Error setting primary photo:', error);
-      Alert.alert('Error', 'Failed to update primary photo');
+      showStandardError(error, 'update', 'Update Failed');
     }
   };
 

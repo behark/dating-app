@@ -126,7 +126,7 @@ const ExploreScreen = ({ navigation }) => {
       }
     } catch (error) {
       logger.error('Error exploring users:', error);
-      Alert.alert('Error', 'Failed to load users');
+      showStandardError(error, 'load', 'Unable to Load');
     } finally {
       setLoading(false);
     }

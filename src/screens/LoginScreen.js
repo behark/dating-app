@@ -16,6 +16,8 @@ import {
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { validateEmail, validatePassword } from '../utils/validators';
+import { showStandardError, STANDARD_ERROR_MESSAGES } from '../utils/errorHandler';
+import { useThrottle } from '../hooks/useDebounce';
 import logger from '../utils/logger';
 
 const LoginScreen = ({ navigation, onAuthSuccess }) => {
@@ -27,39 +29,39 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login, signup, signInWithGoogle } = useAuth();
+  const { login, signup, signInWithGoogle, isGoogleSignInConfigured } = useAuth();
 
-  const handleAuth = async () => {
-    // Prevent double-submit
-    if (loading) return;
+  // Throttle auth calls to prevent rapid submissions
+  const { execute: executeAuth, isPending: isAuthPending } = useThrottle(async () => {
+    if (loading || isAuthPending) return;
 
     // Input validation
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      showStandardError(STANDARD_ERROR_MESSAGES.REQUIRED_FIELD, 'validation');
       return;
     }
 
     // Additional validation for signup
     if (!isLogin) {
       if (!name || !age || !gender) {
-        Alert.alert('Error', 'Please fill in all required fields (name, age, gender)');
+        showStandardError('Please fill in all required fields (name, age, gender)', 'validation');
         return;
       }
 
       const ageNum = parseInt(age);
       if (isNaN(ageNum) || ageNum < 18 || ageNum > 100) {
-        Alert.alert('Error', 'Please enter a valid age (18-100)');
+        showStandardError('Please enter a valid age between 18 and 100', 'validation');
         return;
       }
     }
 
     if (!validateEmail(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      showStandardError('Please enter a valid email address', 'validation');
       return;
     }
 
     if (!isLogin && !validatePassword(password, { minLength: 8 })) {
-      Alert.alert('Error', 'Password must be at least 8 characters long');
+      showStandardError('Password must be at least 8 characters long', 'validation');
       return;
     }
 
@@ -76,27 +78,19 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
       }
     } catch (error) {
       logger.error('Authentication error:', error);
-      const errorMessage =
-        error.message ||
-        (isLogin ? 'Login failed. Please check your credentials and try again.' : 'Signup failed. Please try again.');
-      Alert.alert(
-        isLogin ? 'Login Failed' : 'Signup Failed',
-        errorMessage,
-        [
-          {
-            text: 'OK',
-            style: 'cancel',
-          },
-        ]
-      );
+      showStandardError(error, isLogin ? 'login' : 'signup', isLogin ? 'Sign In Failed' : 'Sign Up Failed');
     } finally {
       setLoading(false);
     }
+  }, 500);
+
+  const handleAuth = () => {
+    executeAuth();
   };
 
-  const handleGoogleSignIn = async () => {
-    // Prevent double-submit
-    if (loading) return;
+  // Throttle Google sign-in to prevent rapid clicks
+  const { execute: executeGoogleSignIn, isPending: isGooglePending } = useThrottle(async () => {
+    if (loading || isGooglePending) return;
 
     setLoading(true);
     try {
@@ -107,20 +101,14 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
       }
     } catch (error) {
       logger.error('Google sign-in error:', error);
-      const errorMessage = error.message || 'Google sign-in failed. Please try again.';
-      Alert.alert(
-        'Google Sign-In Failed',
-        errorMessage,
-        [
-          {
-            text: 'OK',
-            style: 'cancel',
-          },
-        ]
-      );
+      showStandardError(error, 'login', 'Google Sign-In Failed');
     } finally {
       setLoading(false);
     }
+  }, 500);
+
+  const handleGoogleSignIn = () => {
+    executeGoogleSignIn();
   };
 
   return (
@@ -278,10 +266,10 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
             </View>
 
             <TouchableOpacity
-              style={[styles.primaryButton, loading && styles.buttonDisabled]}
+              style={[styles.primaryButton, (loading || isAuthPending) && styles.buttonDisabled]}
               onPress={handleAuth}
               activeOpacity={0.8}
-              disabled={loading}
+              disabled={loading || isAuthPending}
             >
               <LinearGradient
                 colors={loading ? Colors.gradient.disabled || ['#999', '#777'] : Colors.gradient.primary}
@@ -302,30 +290,34 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
               </LinearGradient>
             </TouchableOpacity>
 
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.googleButton, loading && styles.buttonDisabled]}
-              onPress={handleGoogleSignIn}
-              activeOpacity={0.8}
-              disabled={loading}
-            >
-              {loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color={Colors.text.tertiary} />
-                  <Text style={[styles.googleButtonText, styles.textDisabled]}>Please wait...</Text>
+            {isGoogleSignInConfigured && (
+              <>
+                <View style={styles.divider}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>OR</Text>
+                  <View style={styles.dividerLine} />
                 </View>
-              ) : (
-                <>
-                  <Ionicons name="logo-google" size={20} color={Colors.brand.google} />
-                  <Text style={styles.googleButtonText}>Continue with Google</Text>
-                </>
-              )}
-            </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.googleButton, (loading || isGooglePending) && styles.buttonDisabled]}
+                  onPress={handleGoogleSignIn}
+                  activeOpacity={0.8}
+                  disabled={loading || isGooglePending}
+                >
+                  {(loading || isGooglePending) ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator size="small" color={Colors.text.tertiary} />
+                      <Text style={[styles.googleButtonText, styles.textDisabled]}>Please wait...</Text>
+                    </View>
+                  ) : (
+                    <>
+                      <Ionicons name="logo-google" size={20} color={Colors.brand.google} />
+                      <Text style={styles.googleButtonText}>Continue with Google</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
 
             <TouchableOpacity onPress={() => setIsLogin(!isLogin)} style={styles.switchButton}>
               <Text style={styles.switchText}>
