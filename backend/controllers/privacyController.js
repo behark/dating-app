@@ -1,14 +1,21 @@
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
 /**
  * Privacy Controller
  * Handles GDPR and CCPA compliance endpoints
  */
 
 const User = require('../models/User');
+
 const Message = require('../models/Message');
+
 const Swipe = require('../models/Swipe');
+
 const Report = require('../models/Report');
+
 const Block = require('../models/Block');
+
 const UserActivity = require('../models/UserActivity');
+
 
 /**
  * Export all user data (GDPR Article 20 - Data Portability)
@@ -84,7 +91,7 @@ exports.exportUserData = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to export user data',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -96,6 +103,12 @@ exports.exportUserData = async (req, res) => {
 exports.getPrivacySettings = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('privacySettings email name');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     res.json({
       success: true,
@@ -162,6 +175,12 @@ exports.updatePrivacySettings = async (req, res) => {
       },
       { new: true }
     ).select('privacySettings');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     res.json({
       success: true,
@@ -228,6 +247,12 @@ exports.deleteAccount = async (req, res) => {
 
     // Verify email confirmation
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
     if (user.email !== confirmEmail) {
       return res.status(400).json({
         success: false,
@@ -300,6 +325,12 @@ exports.rectifyData = async (req, res) => {
       { $set: updates },
       { new: true, runValidators: true }
     ).select(allowedFields.join(' '));
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     res.json({
       success: true,
@@ -322,6 +353,12 @@ exports.rectifyData = async (req, res) => {
 exports.getConsentStatus = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('privacySettings createdAt');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     res.json({
       success: true,

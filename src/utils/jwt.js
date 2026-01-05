@@ -2,6 +2,7 @@
  * JWT Decoding Utility
  * Decodes JWT tokens without verification (for client-side use)
  */
+import logger from './logger';
 
 /**
  * Base64 decode helper that works in both web and React Native
@@ -66,7 +67,7 @@ export const decodeJWT = (token) => {
     const decoded = base64Decode(padded);
     return JSON.parse(decoded);
   } catch (error) {
-    console.error('Error decoding JWT:', error);
+    logger.error('Error decoding JWT', error);
     return null;
   }
 };

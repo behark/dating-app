@@ -57,9 +57,10 @@ class AppleIAPService {
     const pendingRenewalInfo = data.pending_renewal_info || [];
 
     // Get the most recent subscription
-    const activeSubscription = latestReceiptInfo
+    const sortedSubscriptions = latestReceiptInfo
       .filter((item) => this.isSubscriptionProduct(item.product_id))
-      .sort((a, b) => parseInt(b.expires_date_ms) - parseInt(a.expires_date_ms))[0];
+      .sort((a, b) => parseInt(b.expires_date_ms) - parseInt(a.expires_date_ms));
+    const activeSubscription = sortedSubscriptions.length > 0 ? sortedSubscriptions[0] : null;
 
     // Get consumable purchases
     const consumables = (receipt.in_app || []).filter(
@@ -86,7 +87,7 @@ class AppleIAPService {
               : null,
           }
         : null,
-      pendingRenewal: pendingRenewalInfo[0]
+      pendingRenewal: (pendingRenewalInfo.length > 0 && pendingRenewalInfo[0])
         ? {
             productId: pendingRenewalInfo[0].product_id,
             autoRenewStatus: pendingRenewalInfo[0].auto_renew_status === '1',
@@ -371,7 +372,8 @@ class AppleIAPService {
 
       return response.data;
     } catch (error) {
-      console.error('Error getting subscription status:', error.response?.data || error);
+      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : error;
+      console.error('Error getting subscription status:', errorData || error);
       throw error;
     }
   }
@@ -395,7 +397,8 @@ class AppleIAPService {
 
       return response.data;
     } catch (error) {
-      console.error('Error looking up order:', error.response?.data || error);
+      const errorData = error && typeof error === 'object' && 'response' in error ? error.response?.data : error;
+      console.error('Error looking up order:', errorData || error);
       throw error;
     }
   }
@@ -412,6 +415,9 @@ class AppleIAPService {
       }
 
       // Decode payload (in production, verify signature with Apple's certificate)
+      if (parts.length < 2 || !parts[1]) {
+        throw new Error('Invalid token format: missing payload');
+      }
       const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
 
       const { notificationType, subtype, data } = payload;

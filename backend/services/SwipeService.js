@@ -49,7 +49,7 @@ class SwipeService {
     } catch (error) {
       // Handle MongoDB duplicate key error (E11000) gracefully
       // This can still happen in edge cases with high concurrency
-      if (error.code === 11000 || error.message?.includes('duplicate key')) {
+      if ((error instanceof Error && 'code' in error ? (error instanceof Error && 'code' in error ? error.code : 'UNKNOWN_ERROR') : 'UNKNOWN_ERROR') === 11000 || (error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error))?.includes('duplicate key')) {
         const existingSwipe = await Swipe.findOne({ swiperId, swipedId: targetId }).lean();
         if (existingSwipe) {
           // Return the existing swipe - user already swiped

@@ -87,6 +87,7 @@ topPicksSchema.index({ forUserId: 1, userId: 1 }, { unique: true });
 
 // Static method to get top picks for a user
 topPicksSchema.statics.getTopPicksForUser = function (userId, limit = 10) {
+  // @ts-ignore - Mongoose static method context
   return this.find({
     forUserId: userId,
     isActive: true,
@@ -114,4 +115,12 @@ topPicksSchema.methods.markAsSeen = function () {
   return this.save();
 };
 
-module.exports = mongoose.model('TopPicks', topPicksSchema);
+/**
+ * @typedef {import('../types/index').TopPicksDocument} TopPicksDocument
+ * @typedef {import('../types/index').TopPicksModel} TopPicksModel
+ */
+
+/** @type {TopPicksModel} */
+const TopPicksModel = mongoose.model('TopPicks', topPicksSchema);
+
+module.exports = TopPicksModel;

@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from '../config/api';
+import api from './api';
 import logger from '../utils/logger';
 import { validateUserId } from '../utils/validators';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { handleApiResponse, handlePaginatedResponse, isValidationError } from '../utils/apiResponseHandler';
 
 /**
  * ActivityService - Manages user activity tracking and online status
@@ -13,41 +13,32 @@ import { getUserFriendlyMessage } from '../utils/errorMessages';
  * - Fetching activity data (who viewed profile, etc.)
  */
 export class ActivityService {
-  /**
-   * Retrieve the authentication token from AsyncStorage
-   * @returns {Promise<string|null>} The auth token or null if not found
-   * @private
-   */
-  static async getAuthToken() {
-    try {
-      return await AsyncStorage.getItem('authToken');
-    } catch (error) {
-      logger.error('Error retrieving auth token:', error);
-      return null;
-    }
-  }
 
   /**
    * Update the current user's online status
    * @param {boolean} isOnline - Whether the user is online
    * @returns {Promise<Object>} The updated activity data
-   * @throws {Error} If no auth token or request fails
+   * @throws {Error} If validation fails or request fails
    */
   static async updateOnlineStatus(isOnline) {
     try {
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error('No authentication token found');
+      if (typeof isOnline !== 'boolean') {
+        throw new Error('isOnline must be a boolean value');
       }
 
-      const response = await fetch(`${API_URL}/activity/update-online-status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ isOnline }),
-      });
+      const response = await api.put('/activity/update-online-status', { isOnline });
+      const handled = handleApiResponse(response, 'Update online status');
+      
+      return handled.data;
+    } catch (error) {
+      if (isValidationError(error)) {
+        logger.warn('Validation error updating online status:', error.validationErrors);
+      } else {
+        logger.error('Error updating online status:', error);
+      }
+      throw error;
+    }
+  }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

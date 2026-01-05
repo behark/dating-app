@@ -226,7 +226,7 @@ const invalidateCache = async (paths) => {
     });
 
     const response = await client.send(command);
-    console.log('CDN invalidation created:', response.Invalidation.Id);
+    console.log('CDN invalidation created:', response?.Invalidation.Id);
     return response;
   } catch (error) {
     console.error('CDN invalidation error:', error);

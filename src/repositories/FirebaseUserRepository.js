@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { UserRepository } from './UserRepository';
+import logger from '../utils/logger';
 
 // Simple in-memory cache for user profiles
 const userCache = new Map();
@@ -41,20 +42,20 @@ export class FirebaseUserRepository extends UserRepository {
   async getCurrentUser(userId) {
     try {
       if (!userId) {
-        console.warn('FirebaseUserRepository: No userId provided to getCurrentUser');
+        logger.warn('FirebaseUserRepository: No userId provided to getCurrentUser');
         return null;
       }
 
       const userDoc = await getDoc(doc(this.db, 'users', userId));
 
       if (!userDoc.exists()) {
-        console.log('FirebaseUserRepository: User not found:', userId);
+        logger.debug('FirebaseUserRepository: User not found', { userId });
         return null;
       }
 
       return { id: userDoc.id, ...userDoc.data() };
     } catch (error) {
-      console.error('FirebaseUserRepository: Error getting current user:', error);
+      logger.error('FirebaseUserRepository: Error getting current user', error, { userId });
       return null;
     }
   }
@@ -68,7 +69,7 @@ export class FirebaseUserRepository extends UserRepository {
   async getDiscoverableUsers(userId, options = {}) {
     try {
       if (!userId) {
-        console.warn('FirebaseUserRepository: No userId provided to getDiscoverableUsers');
+        logger.warn('FirebaseUserRepository: No userId provided to getDiscoverableUsers');
         return [];
       }
 
@@ -121,7 +122,7 @@ export class FirebaseUserRepository extends UserRepository {
       // Apply limit
       return availableUsers.slice(0, limit);
     } catch (error) {
-      console.error('FirebaseUserRepository: Error getting discoverable users:', error);
+      logger.error('FirebaseUserRepository: Error getting discoverable users', error, { userId, options });
       // Return empty array instead of throwing - allows UI to show "No users found"
       return [];
     }
@@ -136,7 +137,7 @@ export class FirebaseUserRepository extends UserRepository {
   async updateUser(userId, data) {
     try {
       if (!userId) {
-        console.warn('FirebaseUserRepository: No userId provided to updateUser');
+        logger.warn('FirebaseUserRepository: No userId provided to updateUser');
         return false;
       }
 
@@ -151,7 +152,7 @@ export class FirebaseUserRepository extends UserRepository {
 
       return true;
     } catch (error) {
-      console.error('FirebaseUserRepository: Error updating user:', error);
+      logger.error('FirebaseUserRepository: Error updating user', error, { userId });
       return false;
     }
   }
@@ -189,7 +190,7 @@ export class FirebaseUserRepository extends UserRepository {
 
       return user;
     } catch (error) {
-      console.error('FirebaseUserRepository: Error getting user by ID:', error);
+      logger.error('FirebaseUserRepository: Error getting user by ID', error, { userId });
       return null;
     }
   }
@@ -227,7 +228,7 @@ export class FirebaseUserRepository extends UserRepository {
 
       return { success: true, isMatch: false };
     } catch (error) {
-      console.error('FirebaseUserRepository: Error recording swipe:', error);
+      logger.error('FirebaseUserRepository: Error recording swipe', error, { swiperId, swipedUserId, direction });
       return { success: false, isMatch: false };
     }
   }
@@ -257,7 +258,7 @@ export class FirebaseUserRepository extends UserRepository {
 
       return true;
     } catch (error) {
-      console.error('FirebaseUserRepository: Error creating match:', error);
+      logger.error('FirebaseUserRepository: Error creating match', error, { userId1, userId2 });
       return false;
     }
   }

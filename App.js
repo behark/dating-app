@@ -7,6 +7,7 @@ import { AppProvider } from './src/context/AppContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ChatProvider } from './src/context/ChatContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import { SocketProvider } from './src/contexts/SocketContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { AnalyticsService } from './src/services/AnalyticsService';
 import { PWAService } from './src/services/PWAService';
@@ -128,9 +129,11 @@ export default function App() {
     <ThemeProvider>
       <AppProvider>
         <AuthProvider>
-          <ChatProvider>
-            <AppWithErrorHandling />
-          </ChatProvider>
+          <SocketProvider>
+            <ChatProvider>
+              <AppWithErrorHandling />
+            </ChatProvider>
+          </SocketProvider>
         </AuthProvider>
       </AppProvider>
     </ThemeProvider>

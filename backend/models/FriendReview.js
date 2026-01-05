@@ -126,4 +126,12 @@ friendReviewSchema.pre('save', function (next) {
   next();
 });
 
-module.exports = mongoose.model('FriendReview', friendReviewSchema);
+/**
+ * @typedef {import('../types/index').FriendReviewDocument} FriendReviewDocument
+ * @typedef {import('../types/index').FriendReviewModel} FriendReviewModel
+ */
+
+/** @type {FriendReviewModel} */
+const FriendReviewModel = mongoose.model('FriendReview', friendReviewSchema);
+
+module.exports = FriendReviewModel;

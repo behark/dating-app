@@ -154,6 +154,7 @@ messageSchema.methods.markAsRead = function (timestamp = new Date()) {
 
 // Static method to get all messages for a match
 messageSchema.statics.getMessagesForMatch = function (matchId, limit = 50, skip = 0) {
+  // @ts-ignore - Mongoose static method context
   return this.find({ matchId })
     .populate('senderId', 'name photos')
     .populate('receiverId', 'name photos')
@@ -164,6 +165,7 @@ messageSchema.statics.getMessagesForMatch = function (matchId, limit = 50, skip 
 };
 
 // Static method to get unread messages count for a user
+// @ts-ignore - Mongoose static method context
 messageSchema.statics.getUnreadCount = function (userId) {
   return this.countDocuments({
     receiverId: userId,
@@ -171,6 +173,7 @@ messageSchema.statics.getUnreadCount = function (userId) {
   });
 };
 
+// @ts-ignore - Mongoose static method context
 // Static method to mark all messages as read for a match
 messageSchema.statics.markMatchAsRead = function (matchId, userId) {
   return this.updateMany(
@@ -193,4 +196,12 @@ messageSchema.pre('save', function (next) {
   next();
 });
 
-module.exports = mongoose.model('Message', messageSchema);
+/**
+ * @typedef {import('../types/index').MessageDocument} MessageDocument
+ * @typedef {import('../types/index').MessageModel} MessageModel
+ */
+
+/** @type {MessageModel} */
+const MessageModel = mongoose.model('Message', messageSchema);
+
+module.exports = MessageModel;

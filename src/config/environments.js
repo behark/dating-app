@@ -130,14 +130,16 @@ export class EnvironmentConfig {
     const config = this.getConfig();
     const features = this.getFeatureFlags();
 
-    console.log('=== Environment Configuration ===');
-    console.log('Environment:', env);
-    console.log('API URL:', config.apiUrl);
-    console.log('Debug Mode:', config.debugMode);
-    console.log('Analytics Enabled:', config.analyticsEnabled);
-    console.log('Error Reporting:', config.errorReportingEnabled);
-    console.log('Feature Flags:', features);
-    console.log('================================');
+    // Import logger dynamically to avoid circular dependency
+    const logger = require('../utils/logger').default;
+    logger.info('Environment Configuration', {
+      environment: env,
+      apiUrl: config.apiUrl,
+      debugMode: config.debugMode,
+      analyticsEnabled: config.analyticsEnabled,
+      errorReportingEnabled: config.errorReportingEnabled,
+      featureFlags: features,
+    });
   }
 
   // Validation helpers

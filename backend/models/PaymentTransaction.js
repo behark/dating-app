@@ -170,15 +170,22 @@ paymentTransactionSchema.statics.getUserTransactions = async function (userId, o
     if (endDate) query.createdAt.$lte = endDate;
   }
 
+  // @ts-ignore - Mongoose static method context
   return this.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit);
 };
 
 // Static method: Get transaction by provider ID
+// @ts-ignore - Mongoose static method context
 paymentTransactionSchema.statics.findByProviderId = function (provider, providerTransactionId) {
   return this.findOne({ provider, providerTransactionId });
 };
 
 // Static method: Calculate user total spend
+/**
+ * @param {string} userId 
+ * @returns {Promise<{totalSpend: number, totalTransactions: number}>}
+ */
+// @ts-ignore - Mongoose static method context
 paymentTransactionSchema.statics.getUserTotalSpend = async function (userId) {
   const mongoose = require('mongoose');
   const result = await this.aggregate([
@@ -200,8 +207,14 @@ paymentTransactionSchema.statics.getUserTotalSpend = async function (userId) {
     },
   ]);
 
-  return result[0] || { totalSpend: 0, totalTransactions: 0 };
+  /** @type {any[]} */
+  const typedResult = result;
+  if (typedResult.length > 0 && typedResult[0]) {
+    return typedResult[0];
+  }
+  return { totalSpend: 0, totalTransactions: 0 };
 };
+// @ts-ignore - Mongoose static method context
 
 // Static method: Get revenue analytics
 paymentTransactionSchema.statics.getRevenueAnalytics = async function (startDate, endDate) {
@@ -228,6 +241,7 @@ paymentTransactionSchema.statics.getRevenueAnalytics = async function (startDate
       $sort: { '_id.date': 1 },
     },
   ]);
+// @ts-ignore - Mongoose static method context
 };
 
 // Static method: Get refund statistics
@@ -276,4 +290,12 @@ paymentTransactionSchema.methods.processRefund = function (refundAmount, refundI
   return this.save();
 };
 
-module.exports = mongoose.model('PaymentTransaction', paymentTransactionSchema);
+/**
+ * @typedef {import('../types/index').PaymentTransactionDocument} PaymentTransactionDocument
+ * @typedef {import('../types/index').PaymentTransactionModel} PaymentTransactionModel
+ */
+
+/** @type {PaymentTransactionModel} */
+const PaymentTransactionModel = mongoose.model('PaymentTransaction', paymentTransactionSchema);
+
+module.exports = PaymentTransactionModel;

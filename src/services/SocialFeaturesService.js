@@ -1,4 +1,5 @@
 import api from './api';
+import logger from '../utils/logger';
 
 export const SocialFeaturesService = {
   /**
@@ -9,7 +10,7 @@ export const SocialFeaturesService = {
       const response = await api.post('/social/group-dates', data);
       return response.data;
     } catch (error) {
-      console.error('Error creating group date:', error);
+      logger.error('Error creating group date', error, { data });
       throw error;
     }
   },
@@ -19,7 +20,7 @@ export const SocialFeaturesService = {
       const response = await api.post(`/social/group-dates/${groupDateId}/join`, { userId });
       return response.data;
     } catch (error) {
-      console.error('Error joining group date:', error);
+      logger.error('Error joining group date', error, { groupDateId, userId });
       throw error;
     }
   },
@@ -29,7 +30,7 @@ export const SocialFeaturesService = {
       const response = await api.post(`/social/group-dates/${groupDateId}/leave`, { userId });
       return response.data;
     } catch (error) {
-      console.error('Error leaving group date:', error);
+      logger.error('Error leaving group date', error, { groupDateId, userId });
       throw error;
     }
   },
@@ -41,7 +42,7 @@ export const SocialFeaturesService = {
       );
       return response.data;
     } catch (error) {
-      console.error('Error getting nearby group dates:', error);
+      logger.error('Error getting nearby group dates', error, { longitude, latitude, maxDistance });
       throw error;
     }
   },
@@ -54,7 +55,7 @@ export const SocialFeaturesService = {
       const response = await api.post('/social/reviews', data);
       return response.data;
     } catch (error) {
-      console.error('Error creating friend review:', error);
+      logger.error('Error creating friend review', error, { data });
       throw error;
     }
   },
@@ -64,7 +65,7 @@ export const SocialFeaturesService = {
       const response = await api.get(`/social/reviews/${userId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting user reviews:', error);
+      logger.error('Error getting user reviews', error, { userId });
       throw error;
     }
   },
@@ -77,7 +78,7 @@ export const SocialFeaturesService = {
       const response = await api.post('/social/events', data);
       return response.data;
     } catch (error) {
-      console.error('Error creating event:', error);
+      logger.error('Error creating event', error, { data });
       throw error;
     }
   },
@@ -87,7 +88,7 @@ export const SocialFeaturesService = {
       const response = await api.post(`/social/events/${eventId}/register`, { userId });
       return response.data;
     } catch (error) {
-      console.error('Error registering for event:', error);
+      logger.error('Error registering for event', error, { eventId, userId });
       throw error;
     }
   },
@@ -101,7 +102,7 @@ export const SocialFeaturesService = {
       const response = await api.get(url);
       return response.data;
     } catch (error) {
-      console.error('Error getting nearby events:', error);
+      logger.error('Error getting nearby events', error, { longitude, latitude, maxDistance, category });
       throw error;
     }
   },
@@ -117,7 +118,7 @@ export const SocialFeaturesService = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error creating share link:', error);
+      logger.error('Error creating share link', error, { userId, shareMethod });
       throw error;
     }
   },
@@ -130,7 +131,7 @@ export const SocialFeaturesService = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error sharing profile:', error);
+      logger.error('Error sharing profile', error, { userId, sharedByUserId, method });
       throw error;
     }
   },
@@ -145,7 +146,7 @@ export const SocialFeaturesService = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error getting shared profile:', error);
+      logger.error('Error getting shared profile', error, { shareToken });
       throw error;
     }
   },
@@ -155,7 +156,7 @@ export const SocialFeaturesService = {
       const response = await api.get(`/social/share-profile/${userId}/links`);
       return response.data;
     } catch (error) {
-      console.error('Error getting shared profiles:', error);
+      logger.error('Error getting shared profiles', error, { userId });
       throw error;
     }
   },
@@ -165,7 +166,7 @@ export const SocialFeaturesService = {
       const response = await api.delete(`/social/share-profile/${shareToken}`);
       return response.data;
     } catch (error) {
-      console.error('Error deactivating share link:', error);
+      logger.error('Error deactivating share link', error, { shareToken });
       throw error;
     }
   },

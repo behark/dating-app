@@ -134,7 +134,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
     <PanGestureHandler onGestureEvent={gestureHandler}>
       <Animated.View style={[styles.card, cardStyle]} testID="swipe-card">
         <ProgressiveImage
-          source={{ uri: card.photoURL || 'https://via.placeholder.com/400' }}
+          source={{ uri: card.photoURL || process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL || 'https://via.placeholder.com/400' }}
           style={styles.image}
         />
 

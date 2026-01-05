@@ -1,6 +1,10 @@
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
 const User = require('../models/User');
+
 const Report = require('../models/Report');
+
 const Block = require('../models/Block');
+
 
 // Report a user for abuse
 exports.reportUser = async (req, res) => {
@@ -75,6 +79,12 @@ exports.reportUser = async (req, res) => {
     // This is more conservative to prevent false positives
     const AUTO_SUSPEND_THRESHOLD = 5;
     const updatedUser = await User.findById(reportedUserId);
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'UpdatedUser not found',
+      });
+    }
     
     if (uniqueReporterCount >= AUTO_SUSPEND_THRESHOLD && !updatedUser.suspended) {
       await User.findByIdAndUpdate(reportedUserId, {
@@ -100,7 +110,7 @@ exports.reportUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error submitting report',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -130,7 +140,7 @@ exports.getReports = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error retrieving reports',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -187,7 +197,7 @@ exports.reviewReport = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error reviewing report',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -226,7 +236,7 @@ exports.blockUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error blocking user',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -257,7 +267,7 @@ exports.unblockUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error unblocking user',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -268,6 +278,12 @@ exports.getBlockedUsers = async (req, res) => {
     const userId = req.user.id;
 
     const user = await User.findById(userId).populate('blockedUsers', 'username profilePhoto');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     res.json({
       success: true,
@@ -279,7 +295,7 @@ exports.getBlockedUsers = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error retrieving blocked users',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -291,6 +307,12 @@ exports.checkIfBlocked = async (req, res) => {
     const userId = req.user.id;
 
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
     const isBlocked = user.blockedUsers?.includes(otherUserId);
 
     const otherUser = await User.findById(otherUserId);
@@ -307,7 +329,7 @@ exports.checkIfBlocked = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error checking block status',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -358,7 +380,7 @@ exports.flagContent = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error flagging content',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -404,7 +426,7 @@ exports.getSafetyScore = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error calculating safety score',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -494,7 +516,7 @@ exports.getSafetyTips = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error retrieving safety tips',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -521,6 +543,12 @@ exports.suspendUser = async (req, res) => {
       },
       { new: true }
     );
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     if (!user) {
       return res.status(404).json({
@@ -539,7 +567,7 @@ exports.suspendUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error suspending user',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -558,6 +586,12 @@ exports.unsuspendUser = async (req, res) => {
       },
       { new: true }
     );
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     if (!user) {
       return res.status(404).json({
@@ -576,7 +610,7 @@ exports.unsuspendUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error unsuspending user',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -637,7 +671,7 @@ exports.getAccountStatus = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error checking account status',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -699,7 +733,7 @@ exports.appealSuspension = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error submitting appeal',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };

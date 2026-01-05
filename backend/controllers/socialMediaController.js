@@ -1,5 +1,7 @@
 const User = require('../models/User');
 
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
+
 // @route   POST /api/profile/social-media/connect-spotify
 // @desc    Connect Spotify to user profile
 // @access  Private
@@ -39,7 +41,7 @@ exports.connectSpotify = async (req, res) => {
       success: true,
       message: 'Spotify connected successfully',
       data: {
-        spotify: user.socialMedia.spotify,
+        spotify: user?.socialMedia.spotify,
       },
     });
   } catch (error) {
@@ -47,7 +49,7 @@ exports.connectSpotify = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error connecting Spotify',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -91,7 +93,7 @@ exports.connectInstagram = async (req, res) => {
       success: true,
       message: 'Instagram connected successfully',
       data: {
-        instagram: user.socialMedia.instagram,
+        instagram: user?.socialMedia.instagram,
       },
     });
   } catch (error) {
@@ -99,7 +101,7 @@ exports.connectInstagram = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error connecting Instagram',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -140,7 +142,7 @@ exports.disconnectSpotify = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error disconnecting Spotify',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -181,7 +183,7 @@ exports.disconnectInstagram = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error disconnecting Instagram',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -204,16 +206,16 @@ exports.getSocialMedia = async (req, res) => {
 
     // Only return verified connections
     const socialMedia = {
-      spotify: user.socialMedia.spotify.isVerified
+      spotify: user?.socialMedia.spotify.isVerified
         ? {
-            username: user.socialMedia.spotify.username,
-            profileUrl: user.socialMedia.spotify.profileUrl,
+            username: user?.socialMedia.spotify.username,
+            profileUrl: user?.socialMedia.spotify.profileUrl,
           }
         : null,
-      instagram: user.socialMedia.instagram.isVerified
+      instagram: user?.socialMedia.instagram.isVerified
         ? {
-            username: user.socialMedia.instagram.username,
-            profileUrl: user.socialMedia.instagram.profileUrl,
+            username: user?.socialMedia.instagram.username,
+            profileUrl: user?.socialMedia.instagram.profileUrl,
           }
         : null,
     };
@@ -229,7 +231,7 @@ exports.getSocialMedia = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching social media',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };

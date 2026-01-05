@@ -1,9 +1,16 @@
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
 const SuperLike = require('../models/SuperLike');
+
 const Rewind = require('../models/Rewind');
+
 const BoostProfile = require('../models/BoostProfile');
+
 const User = require('../models/User');
+
 const Swipe = require('../models/Swipe');
+
 const UserActivity = require('../models/UserActivity');
+
 
 // SUPER LIKES
 
@@ -42,6 +49,12 @@ const sendSuperLike = async (req, res) => {
 
     // Get sender info
     const sender = await User.findById(senderId);
+    if (!sender) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sender not found',
+      });
+    }
 
     // Check if already swiped on this user
     const existingSwipe = await Swipe.findOne({
@@ -135,7 +148,7 @@ const sendSuperLike = async (req, res) => {
     console.error('Error sending super like:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 };
@@ -182,7 +195,7 @@ const getSuperLikeQuota = async (req, res) => {
     console.error('Error getting super like quota:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 };
@@ -271,7 +284,7 @@ const rewindLastSwipe = async (req, res) => {
     console.error('Error rewinding swipe:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 };
@@ -318,7 +331,7 @@ const getRewindQuota = async (req, res) => {
     console.error('Error getting rewind quota:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 };
@@ -409,7 +422,7 @@ const boostProfile = async (req, res) => {
     console.error('Error boosting profile:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 };
@@ -474,7 +487,7 @@ const getBoostQuota = async (req, res) => {
     console.error('Error getting boost quota:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 };

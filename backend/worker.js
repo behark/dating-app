@@ -25,7 +25,7 @@ const connectWorkerDB = async () => {
     }
     console.log('Worker connected to MongoDB');
   } catch (error) {
-    console.error('Worker MongoDB connection failed:', error.message);
+    console.error('Worker MongoDB connection failed:', (error instanceof Error ? error.message : String(error)));
     throw error;
   }
 };

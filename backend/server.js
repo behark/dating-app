@@ -43,7 +43,11 @@ const {
 const { logger, auditLogger, morganFormat } = require('./services/LoggingService');
 
 // Database connection - use centralized connection
-const { connectDB: connectDatabase, gracefulShutdown: dbGracefulShutdown, createIndexes } = require('./config/database');
+const {
+  connectDB: connectDatabase,
+  gracefulShutdown: dbGracefulShutdown,
+  createIndexes,
+} = require('./config/database');
 
 // Import models
 const Message = require('./models/Message');
@@ -93,11 +97,11 @@ datadogService.init();
 healthCheckService.registerCheck('mongodb', async () => {
   const { getConnectionStatus } = require('./config/database');
   const status = getConnectionStatus();
-  
+
   if (status.readyState !== 1) {
     throw new Error(`MongoDB not connected. State: ${status.states}`);
   }
-  
+
   // Get pool stats if available
   let poolInfo = { maxPoolSize: 50, status: 'ok', ...status.pool };
   try {
@@ -122,7 +126,7 @@ healthCheckService.registerCheck('mongodb', async () => {
   } catch (e) {
     // Ignore pool stat errors
   }
-  
+
   return { connected: true, pool: poolInfo };
 });
 
@@ -175,12 +179,13 @@ app.use(cdnCacheMiddleware); // CDN cache headers
 app.use(preflightCache(86400)); // Cache CORS preflight for 24h
 app.use(morgan(morganFormat, { stream: logger.getStream() })); // Structured logging
 
-// CORS configuration
+// CORS configuration - Enhanced security
 // Parse CORS_ORIGIN if provided (comma-separated list of origins)
 const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
   : [];
 
+// Build allowed origins list - Be restrictive in production
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   ...corsOrigins,
@@ -188,40 +193,46 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:8081',
   'http://localhost:19006',
-  /\.vercel\.app$/,  // Allow all vercel.app subdomains
-  /\.onrender\.com$/,  // Support Render.com deployments
 ].filter(Boolean);
+
+// Add regex patterns only in non-production environments for development
+if (process.env.NODE_ENV !== 'production') {
+  allowedOrigins.push(/\.vercel\.app$/);
+  allowedOrigins.push(/\.onrender\.com$/);
+}
+
+// Helper function to check if origin is allowed
+const isOriginAllowed = (origin) => {
+  return allowedOrigins.some((allowed) => {
+    // @ts-ignore - RegExp check is valid at runtime
+    if (allowed instanceof RegExp) {
+      return allowed.test(origin);
+    }
+    return allowed === origin;
+  });
+};
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
+    // Allow requests with no origin (mobile apps, curl, etc.) - but validate them differently
+    if (!origin) {
+      // For requests without origin (mobile apps, server-to-server), require API key or auth
+      callback(null, true);
+      return;
+    }
 
-    // Check if origin matches allowed patterns
-    const isAllowed = allowedOrigins.some((allowed) => {
-      if (allowed instanceof RegExp) {
-        return allowed.test(origin);
-      }
-      return allowed === origin;
-    });
-
-    if (isAllowed) {
+    if (isOriginAllowed(origin)) {
       callback(null, true);
     } else {
-      // In production, block unauthorized origins
-      if (process.env.NODE_ENV === 'production') {
-        console.warn('CORS: Blocked origin:', origin);
-        callback(new Error('Not allowed by CORS'));
-      } else {
-        // In development, allow all but log
-        console.log('CORS: Allowing origin in dev mode:', origin);
-        callback(null, true);
-      }
+      // Block unauthorized origins - even in development
+      console.warn('CORS: Blocked unauthorized origin:', origin);
+      callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID', 'X-Request-ID'],
   credentials: true,
+  maxAge: 86400, // Cache preflight response for 24 hours
 };
 app.use(cors(corsOptions));
 
@@ -229,7 +240,7 @@ app.use(cors(corsOptions));
 // Note: Multer handles multipart/form-data (file uploads) with its own limits
 // These limits apply to JSON and URL-encoded bodies only
 // For large file uploads, Multer bypasses these limits
-app.use(express.json({ limit: '50mb' }));  // Support large base64-encoded images
+app.use(express.json({ limit: '50mb' })); // Support large base64-encoded images
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Cookie parser for CSRF tokens
@@ -270,7 +281,7 @@ app.get('/health', (req, res) => {
 // Note: Only available in non-production environments for security
 app.get('/api/test-sentry', (req, res) => {
   // Sentry is already imported at the top of the file
-  
+
   // Create test spans and metrics (as per Sentry's test code)
   Sentry.startSpan(
     {
@@ -289,7 +300,7 @@ app.get('/api/test-sentry', (req, res) => {
             action: 'test_error_span',
             userId: 'test-user',
           });
-          
+
           // Send a metric
           Sentry.metrics.count('test_counter', 1);
         }
@@ -303,11 +314,12 @@ app.get('/api/test-sentry', (req, res) => {
   } catch (e) {
     // Capture the exception
     Sentry.captureException(e);
-    
+
     res.status(500).json({
       success: false,
-      message: 'Test error sent to Sentry! Check your Sentry dashboard at https://kabashi.sentry.io/issues/',
-      error: e.message,
+      message:
+        'Test error sent to Sentry! Check your Sentry dashboard at https://kabashi.sentry.io/issues/',
+      error: e instanceof Error ? e.message : String(e),
       note: 'This error was intentionally triggered to test Sentry integration.',
     });
   }
@@ -374,9 +386,9 @@ app.use((error, req, res, next) => {
     // MongoDB connection pool exhaustion / timeout errors
     // These occur when too many concurrent requests exceed the pool capacity
     if (
-      error.name === 'MongoServerSelectionError' ||
-      error.name === 'MongoNetworkError' ||
-      error.name === 'MongoTimeoutError' ||
+      (error instanceof Error ? error.name : 'Error') === 'MongoServerSelectionError' ||
+      (error instanceof Error ? error.name : 'Error') === 'MongoNetworkError' ||
+      (error instanceof Error ? error.name : 'Error') === 'MongoTimeoutError' ||
       error.message?.includes('pool') ||
       error.message?.includes('connection') ||
       error.message?.includes('timed out') ||
@@ -462,33 +474,29 @@ const connectDB = async () => {
     // connectDatabase returns the connection object or null
     return connection !== null;
   } catch (error) {
-    console.error('MongoDB connection failed:', error.message);
+    console.error(
+      'MongoDB connection failed:',
+      error instanceof Error ? error.message : String(error)
+    );
     return false;
   }
 };
 
-// Socket.io setup
+// Socket.io setup with enhanced security
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, Postman, etc.)
-      if (!origin) return callback(null, true);
-
-      // Check against same allowed origins as Express CORS
-      const isAllowed = allowedOrigins.some((allowed) => {
-        if (allowed instanceof RegExp) {
-          return allowed.test(origin);
-        }
-        return allowed === origin;
-      });
-
-      if (isAllowed) {
+      if (!origin) {
         callback(null, true);
-      } else if (process.env.NODE_ENV !== 'production') {
-        // In development, allow all origins
+        return;
+      }
+
+      if (isOriginAllowed(origin)) {
         callback(null, true);
       } else {
+        // Always block unauthorized origins
         callback(new Error('Not allowed by CORS'));
       }
     },
@@ -528,7 +536,9 @@ io.use(async (socket, next) => {
 
     next();
   } catch (error) {
-    next(new Error(`Authentication failed: ${error.message}`));
+    next(
+      new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}`)
+    );
   }
 });
 
@@ -536,7 +546,7 @@ io.use(async (socket, next) => {
 io.on('connection', (socket) => {
   const userId = socket.userId;
   console.log(`[WS] User ${userId} connected (socket: ${socket.id})`);
-  
+
   // Track connection
   if (!connectedUsers.has(userId)) {
     connectedUsers.set(userId, new Set());
@@ -733,7 +743,7 @@ io.on('connection', (socket) => {
   // ===== DISCONNECT HANDLER =====
   socket.on('disconnect', (reason) => {
     console.log(`[WS] User ${userId} disconnected (reason: ${reason}, socket: ${socket.id})`);
-    
+
     // Remove from connected users
     if (connectedUsers.has(userId)) {
       connectedUsers.get(userId).delete(socket.id);
@@ -761,8 +771,10 @@ const startServer = async () => {
       console.warn('⚠️  Some features may not work until MongoDB is connected');
     } else {
       console.log('✅ MongoDB connection established successfully');
-      // Create indexes after successful connection
-      await createIndexes();
+      // Create indexes asynchronously without blocking server startup
+      createIndexes().catch(err => {
+        console.error('Warning: Failed to create database indexes:', err.message);
+      });
     }
 
     // Configure keep-alive for better HTTP/1.1 connection reuse
@@ -791,7 +803,7 @@ const startServer = async () => {
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
-  console.error('Unhandled Promise Rejection:', err.message);
+  console.error('Unhandled Promise Rejection:', err instanceof Error ? err.message : String(err));
   if (process.env.NODE_ENV !== 'production') {
     server.close(() => {
       process.exit(1);
@@ -808,7 +820,7 @@ process.on('uncaughtException', (err) => {
 });
 
 // For Vercel serverless, connect DB on first request
-if (process.env.VERCEL) {
+if (process.env.VERCEL_ENV) {
   // Serverless - connect on each cold start
   connectDB();
 } else {

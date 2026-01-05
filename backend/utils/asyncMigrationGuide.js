@@ -53,14 +53,14 @@ const util = require('util');
  * exports.getUser = function(req, res) {
  *   User.findById(req.params.id, function(err, user) {
  *     if (err) {
- *       return res.status(500).json({ error: err.message });
+ *       return res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
  *     }
  *     if (!user) {
  *       return res.status(404).json({ message: 'User not found' });
  *     }
  *     user.getMatches(function(err, matches) {
  *       if (err) {
- *         return res.status(500).json({ error: err.message });
+ *         return res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
  *       }
  *       res.json({ user, matches });
  *     });
@@ -92,7 +92,7 @@ exports.getUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error retrieving user',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };

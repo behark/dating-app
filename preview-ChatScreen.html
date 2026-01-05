@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Screen Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 50px 20px 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+        }
+        .back-btn {
+            cursor: pointer;
+            font-size: 24px;
+        }
+        .header-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            border: 2px solid white;
+            object-fit: cover;
+        }
+        .header-info {
+            flex: 1;
+        }
+        .header-name {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .header-status {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            display: flex;
+            gap: 10px;
+            max-width: 70%;
+        }
+        .message.sent {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            flex-shrink: 0;
+        }
+        .message-bubble {
+            padding: 12px 16px;
+            border-radius: 20px;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+        .message.received .message-bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+        .message.sent .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+            text-align: right;
+        }
+        .message.sent .message-time {
+            text-align: left;
+        }
+        .input-container {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid #eee;
+        }
+        .input-box {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 25px;
+            border: 1px solid #ddd;
+            font-size: 15px;
+            outline: none;
+        }
+        .send-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 22.5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .typing-indicator {
+            padding: 12px 16px;
+            background: white;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="back-btn">←</div>
+        <div class="header-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">👤</div>
+        <div class="header-info">
+            <div class="header-name">Sarah</div>
+            <div class="header-status">Online • Active now</div>
+        </div>
+        <div style="font-size: 20px; cursor: pointer;">⋯</div>
+    </div>
+    
+    <div class="messages">
+        <div class="message received">
+            <div class="message-avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white;">S</div>
+            <div>
+                <div class="message-bubble">Hey! How's your day going? 😊</div>
+                <div class="message-time">10:30 AM</div>
+            </div>
+        </div>
+        
+        <div class="message sent">
+            <div class="message-avatar" style="background: linear-gradient(135deg, #FF6B9D 0%, #FF6B6B 100%); display: flex; align-items: center; justify-content: center; color: white;">M</div>
+            <div>
+                <div class="message-bubble">It's going great! Just finished work. How about you?</div>
+                <div class="message-time">10:32 AM</div>
+            </div>
+        </div>
+        
+        <div class="message received">
+            <div class="message-avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white;">S</div>
+            <div>
+                <div class="message-bubble">Same here! Want to grab coffee this weekend?</div>
+                <div class="message-time">10:35 AM</div>
+            </div>
+        </div>
+        
+        <div class="message sent">
+            <div class="message-avatar" style="background: linear-gradient(135deg, #FF6B9D 0%, #FF6B6B 100%); display: flex; align-items: center; justify-content: center; color: white;">M</div>
+            <div>
+                <div class="message-bubble">That sounds perfect! Saturday works for me ☕</div>
+                <div class="message-time">10:36 AM</div>
+            </div>
+        </div>
+        
+        <div class="typing-indicator">Sarah is typing...</div>
+    </div>
+    
+    <div class="input-container">
+        <div style="font-size: 24px; cursor: pointer;">📷</div>
+        <input type="text" class="input-box" placeholder="Type a message...">
+        <div style="font-size: 24px; cursor: pointer;">😊</div>
+        <button class="send-btn">→</button>
+    </div>
+</body>
+</html>

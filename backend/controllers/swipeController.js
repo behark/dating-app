@@ -3,6 +3,13 @@ const Match = require('../models/Match');
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const SwipeService = require('../services/SwipeService');
+const { 
+  sendSuccess, 
+  sendError, 
+  sendValidationError, 
+  sendRateLimit,
+  asyncHandler 
+} = require('../utils/responseHelpers');
 
 /**
  * Helper function to send notifications
@@ -64,11 +71,10 @@ const createSwipe = async (req, res) => {
     // Check swipe limit for free users
     const limitCheck = await Swipe.canSwipe(swiperId, isPremium);
     if (!limitCheck.canSwipe) {
-      return res.status(429).json({
-        success: false,
+      return sendRateLimit(res, {
         message: 'Daily swipe limit reached',
-        remaining: 0,
         limit: 50,
+        remaining: 0,
       });
     }
 
@@ -81,8 +87,8 @@ const createSwipe = async (req, res) => {
     // If this swipe was already processed (rapid double-click), return early
     // This prevents duplicate notifications and duplicate match processing
     if (result.alreadyProcessed) {
-      return res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Swipe already recorded',
         data: {
           swipeId: result.swipe.id,
           action: result.swipe.action,
@@ -92,7 +98,6 @@ const createSwipe = async (req, res) => {
           remaining: limitCheck.remaining,
           alreadyProcessed: true,
         },
-        message: 'Swipe already recorded',
       });
     }
 
@@ -227,17 +232,17 @@ const undoSwipe = async (req, res) => {
   } catch (error) {
     console.error('Error undoing swipe:', error);
 
-    if (error.message === 'Swipe not found') {
+    if ((error instanceof Error ? error.message : String(error)) === 'Swipe not found') {
       return res.status(404).json({
         success: false,
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
 
-    if (error.message === 'Unauthorized to undo this swipe') {
+    if ((error instanceof Error ? error.message : String(error)) === 'Unauthorized to undo this swipe') {
       return res.status(403).json({
         success: false,
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
 
@@ -399,7 +404,7 @@ const getMatches = async (req, res) => {
     console.error(`Error getting matches after ${queryTime}ms:`, error);
     
     // Check for timeout error
-    if (error.name === 'MongooseError' && error.message.includes('maxTimeMS')) {
+    if ((error instanceof Error ? (error instanceof Error ? error.name : 'Error') : 'Error') === 'MongooseError' && (error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error)).includes('maxTimeMS')) {
       return res.status(503).json({
         success: false,
         message: 'Match query timed out. Please try again.',
@@ -429,6 +434,7 @@ const unmatch = async (req, res) => {
       });
     }
 
+    /** @type {import('../types/index.d.ts').MatchDocument} */
     const match = await Match.unmatch(matchId, userId);
 
     res.json({
@@ -442,17 +448,17 @@ const unmatch = async (req, res) => {
   } catch (error) {
     console.error('Error unmatching:', error);
 
-    if (error.message === 'Match not found') {
+    if ((error instanceof Error ? error.message : String(error)) === 'Match not found') {
       return res.status(404).json({
         success: false,
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
 
-    if (error.message === 'User is not part of this match') {
+    if ((error instanceof Error ? error.message : String(error)) === 'User is not part of this match') {
       return res.status(403).json({
         success: false,
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
 

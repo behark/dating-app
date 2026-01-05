@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import GamificationService from '../../services/GamificationService';
+import logger from '../../utils/logger';
 
 const DailyRewardNotification = ({ userId, onRewardClaimed }) => {
   const [rewards, setRewards] = useState([]);
@@ -12,7 +13,7 @@ const DailyRewardNotification = ({ userId, onRewardClaimed }) => {
       const data = await GamificationService.getDailyRewards(userId);
       setRewards(data.unclaimedRewards || []);
     } catch (error) {
-      console.error('Error fetching rewards:', error);
+      logger.error('Error fetching rewards', error, { userId });
     } finally {
       setLoading(false);
     }
@@ -32,7 +33,7 @@ const DailyRewardNotification = ({ userId, onRewardClaimed }) => {
         onRewardClaimed();
       }
     } catch (error) {
-      console.error('Error claiming reward:', error);
+      logger.error('Error claiming reward', error, { userId, rewardId });
     }
   };
 

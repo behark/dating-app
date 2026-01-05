@@ -29,6 +29,11 @@ const EventsScreen = ({ navigation }) => {
 
     try {
       setLoading(true);
+      if (!currentUser.location?.coordinates || currentUser.location.coordinates.length < 2) {
+        setError('Location not available');
+        setLoading(false);
+        return;
+      }
       const data = await SocialFeaturesService.getNearbyEvents(
         currentUser.location.coordinates[0],
         currentUser.location.coordinates[1],

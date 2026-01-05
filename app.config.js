@@ -17,6 +17,11 @@ export default {
       supportsTablet: true,
       bundleIdentifier: 'com.datingapp.app',
       buildNumber: '1',
+      // Deep linking support
+      associatedDomains: [
+        'applinks:dating-app.com',
+        'applinks:*.dating-app.com',
+      ],
       infoPlist: {
         MinimumOSVersion: '14.0',
         UIRequiresFullScreen: false, // Required for iPad multitasking
@@ -32,6 +37,13 @@ export default {
           'UIInterfaceOrientationLandscapeRight',
         ],
         UIUserInterfaceStyle: 'Automatic',
+        // Deep linking configuration
+        CFBundleURLTypes: [
+          {
+            CFBundleURLSchemes: ['dating-app', 'exp'],
+            CFBundleURLName: 'com.datingapp.app',
+          },
+        ],
       },
       config: {
         usesNonExemptEncryption: false,
@@ -54,6 +66,34 @@ export default {
       permissions: [],
       allowBackup: false,
       softwareKeyboardLayoutMode: 'pan',
+      // Deep linking support
+      intentFilters: [
+        {
+          action: 'VIEW',
+          autoVerify: true,
+          data: [
+            {
+              scheme: 'dating-app',
+              host: '*',
+            },
+            {
+              scheme: 'exp',
+              host: '*',
+            },
+            {
+              scheme: 'https',
+              host: 'dating-app.com',
+              pathPrefix: '/',
+            },
+            {
+              scheme: 'https',
+              host: '*.dating-app.com',
+              pathPrefix: '/',
+            },
+          ],
+          category: ['BROWSABLE', 'DEFAULT'],
+        },
+      ],
     },
     // Web Configuration - Responsive
     web: {
@@ -68,6 +108,14 @@ export default {
       startUrl: '/',
       display: 'standalone',
       orientation: 'any',
+    },
+    // Deep Linking Configuration
+    scheme: 'dating-app',
+    // Support Expo Go for development
+    extra: {
+      ...(process.env.EXPO_PUBLIC_ENV === 'development' && {
+        expoGoScheme: 'exp',
+      }),
     },
     extra: {
       // Backend API URL - Uses Vercel env var or defaults to production Render URL

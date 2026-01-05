@@ -77,10 +77,19 @@ superLikeSchema.statics.getRemainingForToday = async function (userId) {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
+  // @ts-ignore - Mongoose static method context
   return await this.countDocuments({
     senderId: userId,
     createdAt: { $gte: today, $lt: tomorrow },
   });
 };
 
-module.exports = mongoose.model('SuperLike', superLikeSchema);
+/**
+ * @typedef {import('../types/index').SuperLikeDocument} SuperLikeDocument
+ * @typedef {import('../types/index').SuperLikeModel} SuperLikeModel
+ */
+
+/** @type {SuperLikeModel} */
+const SuperLikeModel = mongoose.model('SuperLike', superLikeSchema);
+
+module.exports = SuperLikeModel;

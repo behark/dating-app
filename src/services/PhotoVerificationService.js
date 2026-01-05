@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
+import logger from '../utils/logger';
 
 export class PhotoVerificationService {
   // Submit a photo for verification
@@ -52,10 +53,10 @@ export class PhotoVerificationService {
         photoVerified: false,
       });
 
-      console.log('Verification photo submitted:', photoUrl);
+      logger.info('Verification photo submitted', { userId, photoUrl });
       return { success: true, photoUrl };
     } catch (error) {
-      console.error('Error submitting verification photo:', error);
+      logger.error('Error submitting verification photo', error, { userId });
       return { success: false, error: error.message };
     }
   }
@@ -98,7 +99,7 @@ export class PhotoVerificationService {
         photoUrl: data.photoUrl || null,
       };
     } catch (error) {
-      console.error('Error getting verification status:', error);
+      logger.error('Error getting verification status', error, { userId });
       return {
         verified: false,
         status: 'error',
@@ -113,7 +114,7 @@ export class PhotoVerificationService {
       const status = await this.getVerificationStatus(userId);
       return status.verified;
     } catch (error) {
-      console.error('Error checking verification:', error);
+      logger.error('Error checking verification', error, { userId });
       return false;
     }
   }
@@ -149,7 +150,7 @@ export class PhotoVerificationService {
         confidence: checks.confidence,
       };
     } catch (error) {
-      console.error('Error performing liveness check:', error);
+      logger.error('Error performing liveness check', error);
       return {
         passed: false,
         checks: {},
@@ -194,7 +195,7 @@ export class PhotoVerificationService {
         confidence: faceMatchSimilarity,
       };
     } catch (error) {
-      console.error('Error performing advanced liveness check:', error);
+      logger.error('Error performing advanced liveness check', error);
       return {
         passed: false,
         similarity: 0,
@@ -216,7 +217,7 @@ export class PhotoVerificationService {
         ...doc.data(),
       }));
     } catch (error) {
-      console.error('Error getting pending verifications:', error);
+      logger.error('Error getting pending verifications', error);
       return [];
     }
   }
@@ -234,10 +235,10 @@ export class PhotoVerificationService {
         verificationApprovedAt: new Date(),
       });
 
-      console.log('Verification approved:', userId);
+      logger.info('Verification approved', { userId });
       return { success: true };
     } catch (error) {
-      console.error('Error approving verification:', error);
+      logger.error('Error approving verification', error, { userId });
       return { success: false, error: error.message };
     }
   }
@@ -255,10 +256,10 @@ export class PhotoVerificationService {
         photoVerified: false,
       });
 
-      console.log('Verification rejected:', userId);
+      logger.info('Verification rejected', { userId, reason });
       return { success: true };
     } catch (error) {
-      console.error('Error rejecting verification:', error);
+      logger.error('Error rejecting verification', error, { userId });
       return { success: false, error: error.message };
     }
   }

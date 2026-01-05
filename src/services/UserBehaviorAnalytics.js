@@ -1,4 +1,5 @@
 import { AnalyticsService } from './AnalyticsService';
+import logger from '../utils/logger';
 
 /**
  * User Behavior Analytics Service
@@ -52,7 +53,7 @@ export class UserBehaviorAnalytics {
    */
   static initialize() {
     this.startNewSwipeSession();
-    console.log('[Analytics] User Behavior Analytics initialized');
+    logger.info('User Behavior Analytics initialized');
   }
 
   // ==================== SWIPE PATTERN ANALYSIS ====================
@@ -334,10 +335,16 @@ export class UserBehaviorAnalytics {
     return {
       screenTimes: timeTracking.screenTimes,
       featureUsage: timeTracking.featureUsage,
-      mostUsedScreen: Object.entries(timeTracking.screenTimes)
-        .sort((a, b) => b[1].totalTime - a[1].totalTime)[0]?.[0],
-      mostUsedFeature: Object.entries(timeTracking.featureUsage)
-        .sort((a, b) => b[1].usageCount - a[1].usageCount)[0]?.[0],
+      mostUsedScreen: (() => {
+        const sorted = Object.entries(timeTracking.screenTimes)
+          .sort((a, b) => b[1].totalTime - a[1].totalTime);
+        return sorted.length > 0 ? sorted[0]?.[0] : null;
+      })(),
+      mostUsedFeature: (() => {
+        const sorted = Object.entries(timeTracking.featureUsage)
+          .sort((a, b) => b[1].usageCount - a[1].usageCount);
+        return sorted.length > 0 ? sorted[0]?.[0] : null;
+      })(),
     };
   }
 
@@ -349,13 +356,13 @@ export class UserBehaviorAnalytics {
   static trackFunnelStep(funnelName, stepName, userId = 'anonymous') {
     const funnel = funnels[funnelName];
     if (!funnel) {
-      console.warn(`[Analytics] Unknown funnel: ${funnelName}`);
+      logger.warn('Unknown funnel', null, { funnelName });
       return;
     }
 
     const stepIndex = funnel.steps.indexOf(stepName);
     if (stepIndex === -1) {
-      console.warn(`[Analytics] Unknown step: ${stepName} in funnel ${funnelName}`);
+      logger.warn('Unknown step in funnel', null, { funnelName, stepName });
       return;
     }
 
@@ -449,7 +456,7 @@ export class UserBehaviorAnalytics {
       }, {}),
     };
 
-    console.log(`[Analytics] A/B Test registered: ${testId} with variants: ${variants.join(', ')}`);
+    logger.info('A/B Test registered', { testId, variants: variants.join(', ') });
   }
 
   /**
@@ -458,14 +465,14 @@ export class UserBehaviorAnalytics {
   static getVariant(testId, userId = 'anonymous') {
     const test = abTests[testId];
     if (!test) {
-      console.warn(`[Analytics] Unknown A/B test: ${testId}`);
+      logger.warn('Unknown A/B test', null, { testId });
       return null;
     }
 
     // Check if test is active
     const now = Date.now();
     if (test.config.endDate && now > test.config.endDate) {
-      return test.variants[0]; // Return control after test ends
+      return test.variants.length > 0 ? test.variants[0] : null; // Return control after test ends
     }
 
     // Return cached variant for user
@@ -476,7 +483,7 @@ export class UserBehaviorAnalytics {
     // Assign variant based on distribution
     const random = this.hashUserToNumber(userId + testId);
     let cumulativeProb = 0;
-    let selectedVariant = test.variants[0];
+    let selectedVariant = test.variants.length > 0 ? test.variants[0] : null;
 
     for (let i = 0; i < test.variants.length; i++) {
       cumulativeProb += test.config.distribution[i];
@@ -548,7 +555,13 @@ export class UserBehaviorAnalytics {
     });
 
     // Calculate statistical significance (simplified)
+    if (results.length === 0) {
+      return { results: [], significance: [] };
+    }
     const control = results[0];
+    if (!control) {
+      return { results: [], significance: [] };
+    }
     const significanceResults = results.slice(1).map(variant => {
       const lift = control.conversionRate > 0
         ? (variant.conversionRate - control.conversionRate) / control.conversionRate

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matches Screen Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .header {
+            padding: 50px 25px 15px;
+            background: transparent;
+        }
+        .title {
+            font-size: 36px;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+            font-weight: 600;
+        }
+        .toggle-container {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 4px;
+            margin-top: 15px;
+        }
+        .toggle-button {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 16px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .toggle-button.active {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        }
+        .list {
+            padding: 20px;
+            padding-top: 10px;
+        }
+        .match-card {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .image-container {
+            position: relative;
+            margin-right: 15px;
+        }
+        .match-image {
+            width: 70px;
+            height: 70px;
+            border-radius: 35px;
+            border: 3px solid #667eea;
+            object-fit: cover;
+        }
+        .online-indicator {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            background: #4ECDC4;
+            border: 2px solid white;
+        }
+        .match-info {
+            flex: 1;
+        }
+        .name-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .match-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+        .unread-badge {
+            background: #FF6B6B;
+            border-radius: 10px;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 8px;
+            padding: 0 6px;
+        }
+        .unread-text {
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .last-message {
+            font-size: 14px;
+            color: #666;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .action-btn {
+            padding: 8px;
+            cursor: pointer;
+            color: #FF6B6B;
+        }
+        .chat-button {
+            width: 45px;
+            height: 45px;
+            border-radius: 22.5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">Your Conversations</div>
+        <div class="subtitle">3 conversations</div>
+        <div class="toggle-container">
+            <div class="toggle-button active">❤️ Matches</div>
+            <div class="toggle-button">⭐ Likes</div>
+        </div>
+    </div>
+    
+    <div class="list">
+        <div class="match-card">
+            <div class="image-container">
+                <div class="match-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">👤</div>
+                <div class="online-indicator"></div>
+            </div>
+            <div class="match-info">
+                <div class="name-row">
+                    <div class="match-name">Sarah</div>
+                    <div class="unread-badge">
+                        <div class="unread-text">3</div>
+                    </div>
+                </div>
+                <div class="last-message">Hey! How's your day going? 😊</div>
+            </div>
+            <div class="action-buttons">
+                <div class="action-btn">✕</div>
+                <div class="action-btn">❤️</div>
+                <div class="action-btn">📅</div>
+                <div class="chat-button">💬</div>
+            </div>
+        </div>
+        
+        <div class="match-card">
+            <div class="image-container">
+                <div class="match-image" style="background: linear-gradient(135deg, #FF6B9D 0%, #FF6B6B 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">👤</div>
+                <div class="online-indicator"></div>
+            </div>
+            <div class="match-info">
+                <div class="name-row">
+                    <div class="match-name">Alex</div>
+                </div>
+                <div class="last-message">Want to grab coffee this weekend?</div>
+            </div>
+            <div class="action-buttons">
+                <div class="action-btn">✕</div>
+                <div class="action-btn">❤️</div>
+                <div class="action-btn">📅</div>
+                <div class="chat-button">💬</div>
+            </div>
+        </div>
+        
+        <div class="match-card">
+            <div class="image-container">
+                <div class="match-image" style="background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">👤</div>
+            </div>
+            <div class="match-info">
+                <div class="name-row">
+                    <div class="match-name">Jordan</div>
+                </div>
+                <div class="last-message">No messages yet</div>
+            </div>
+            <div class="action-buttons">
+                <div class="action-btn">✕</div>
+                <div class="action-btn">❤️</div>
+                <div class="action-btn">📅</div>
+                <div class="chat-button">💬</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

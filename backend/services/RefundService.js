@@ -203,7 +203,7 @@ class RefundService {
       console.error('Stripe refund error:', error);
       return {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -242,7 +242,7 @@ class RefundService {
       console.error('PayPal refund error:', error);
       return {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -279,7 +279,7 @@ class RefundService {
       console.error('Google refund error:', error);
       return {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -448,6 +448,12 @@ class RefundService {
   static async cancelSubscription(userId, cancelAtPeriodEnd = true) {
     try {
       const subscription = await Subscription.findOne({ userId });
+      if (!subscription) {
+        return res.status(404).json({
+          success: false,
+          message: 'Subscription not found',
+        });
+      }
 
       if (!subscription || subscription.status !== 'active') {
         return {
@@ -539,7 +545,7 @@ class RefundService {
         };
       }
 
-      if (subscription.status !== 'active' || subscription.endDate <= new Date()) {
+      if (subscription.status !== 'active' || subscription?.endDate <= new Date()) {
         return {
           success: false,
           error: 'Subscription cannot be resumed. Please start a new subscription.',

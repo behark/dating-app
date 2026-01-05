@@ -30,10 +30,20 @@ export class PremiumService {
         throw new Error('Invalid user ID provided');
       }
 
+      if (!token) {
+        logger.warn('PremiumService: No token provided, returning free tier');
+        return { isPremium: false, features: {} };
+      }
+
       const response = await fetch(`${API_BASE_URL}/premium/subscription/status`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) {
+        // For 401 (unauthorized), return free tier instead of throwing
+        if (response.status === 401) {
+          logger.warn('PremiumService: Unauthorized (401), returning free tier');
+          return { isPremium: false, features: {} };
+        }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           getUserFriendlyMessage(
@@ -42,12 +52,17 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return (
-        data.data || {
+      if (!data.success) {
+        // Return default free tier on error
+        return {
           isPremium: false,
           features: {},
-        }
-      );
+        };
+      }
+      return data.data || {
+        isPremium: false,
+        features: {},
+      };
     } catch (error) {
       logger.error('Error checking premium status:', error);
       return { isPremium: false, features: {} };
@@ -76,7 +91,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+      }
+      return data.data || { success: true };
     } catch (error) {
       logger.error('Error starting trial:', error);
       return { success: false, error: error.message };
@@ -112,7 +130,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+      }
+      return data.data || { success: true };
     } catch (error) {
       logger.error('Error upgrading to premium:', error);
       return { success: false, error: error.message };
@@ -141,7 +162,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+      }
+      return data.data || { success: true };
     } catch (error) {
       logger.error('Error cancelling subscription:', error);
       return { success: false, error: error.message };
@@ -169,7 +193,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data?.data || { likes: [] };
+      if (!data.success) {
+        return { likes: [] };
+      }
+      return data.data || { likes: [] };
     } catch (error) {
       logger.error('Error getting received likes:', error);
       return { likes: [] };
@@ -205,7 +232,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+      }
+      return data.data || { success: true };
     } catch (error) {
       logger.error('Error setting passport location:', error);
       return { success: false, error: error.message };
@@ -233,7 +263,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data?.data || { enabled: false };
+      if (!data.success) {
+        return { enabled: false };
+      }
+      return data.data || { enabled: false };
     } catch (error) {
       logger.error('Error getting passport status:', error);
       return { enabled: false };
@@ -262,7 +295,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+      }
+      return data.data || { success: true };
     } catch (error) {
       logger.error('Error disabling passport:', error);
       return { success: false, error: error.message };
@@ -290,7 +326,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data?.data || {};
+      if (!data.success) {
+        return {};
+      }
+      return data.data || {};
     } catch (error) {
       logger.error('Error getting filter options:', error);
       return {};
@@ -319,7 +358,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+      }
+      return data.data || { success: true };
     } catch (error) {
       logger.error('Error updating filters:', error);
       return { success: false, error: error.message };
@@ -352,7 +394,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+      }
+      return data.data || { success: true };
     } catch (error) {
       logger.error('Error sending priority like:', error);
       return { success: false, error: error.message };
@@ -381,7 +426,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+      }
+      return data.data || { success: true };
     } catch (error) {
       logger.error('Error updating ads preferences:', error);
       return { success: false, error: error.message };
@@ -409,7 +457,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data?.data || {};
+      if (!data.success) {
+        return {};
+      }
+      return data.data || {};
     } catch (error) {
       logger.error('Error getting boost analytics:', error);
       return {};
@@ -452,7 +503,10 @@ export class PremiumService {
         );
       }
       const data = await response.json();
-      return data || { success: false, error: 'No response from server' };
+      if (!data.success) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Request failed'));
+      }
+      return data.data || { success: true };
     } catch (error) {
       logger.error('Error recording boost session:', error);
       return { success: false, error: error.message };

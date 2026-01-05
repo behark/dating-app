@@ -10,6 +10,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
+import logger from '../utils/logger';
 
 export class VerificationService {
   static async submitVerificationRequest(userId, verificationData) {
@@ -34,10 +35,10 @@ export class VerificationService {
         verificationSubmittedAt: new Date(),
       });
 
-      console.log('Verification request submitted:', docRef.id);
+      logger.info('Verification request submitted', { userId, requestId: docRef.id, type: verificationData.type });
       return { success: true, requestId: docRef.id };
     } catch (error) {
-      console.error('Error submitting verification request:', error);
+      logger.error('Error submitting verification request', error, { userId, type: verificationData.type });
       return { success: false, error: error.message };
     }
   }
@@ -83,7 +84,7 @@ export class VerificationService {
         documentType,
       };
     } catch (error) {
-      console.error('Error uploading verification document:', error);
+      logger.error('Error uploading verification document', error, { userId, documentType });
       return { success: false, error: error.message };
     }
   }
@@ -91,7 +92,23 @@ export class VerificationService {
   static async getVerificationStatus(userId) {
     try {
       const userDoc = await getDoc(doc(db, 'users', userId));
+      if (!userDoc.exists()) {
+        return {
+          status: 'unverified',
+          verifiedAt: null,
+          rejectionReason: null,
+          requests: [],
+        };
+      }
       const userData = userDoc.data();
+      if (!userData) {
+        return {
+          status: 'unverified',
+          verifiedAt: null,
+          rejectionReason: null,
+          requests: [],
+        };
+      }
 
       const verificationRequestsQuery = query(
         collection(db, 'verification_requests'),
@@ -111,7 +128,7 @@ export class VerificationService {
         requests: requests.sort((a, b) => b.submittedAt - a.submittedAt),
       };
     } catch (error) {
-      console.error('Error getting verification status:', error);
+      logger.error('Error getting verification status', error, { userId });
       return {
         status: 'unverified',
         verifiedAt: null,
@@ -148,7 +165,7 @@ export class VerificationService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error cancelling verification request:', error);
+      logger.error('Error cancelling verification request', error, { requestId, userId });
       return { success: false, error: error.message };
     }
   }
@@ -169,22 +186,25 @@ export class VerificationService {
         const userDoc = await getDoc(doc(db, 'users', requestData.userId));
 
         if (userDoc.exists()) {
-          requests.push({
-            id: docSnap.id,
-            ...requestData,
-            user: {
-              id: userDoc.id,
-              name: userDoc.data().name,
-              email: userDoc.data().email,
-              photoURL: userDoc.data().photoURL,
-            },
-          });
+          const userData = userDoc.data();
+          if (userData) {
+            requests.push({
+              id: docSnap.id,
+              ...requestData,
+              user: {
+                id: userDoc.id,
+                name: userData.name,
+                email: userData.email,
+                photoURL: userData.photoURL,
+              },
+            });
+          }
         }
       }
 
       return requests;
     } catch (error) {
-      console.error('Error getting pending verifications:', error);
+      logger.error('Error getting pending verifications', error);
       return [];
     }
   }
@@ -224,7 +244,7 @@ export class VerificationService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error reviewing verification:', error);
+      logger.error('Error reviewing verification', error, { requestId, reviewerId, approved });
       return { success: false, error: error.message };
     }
   }

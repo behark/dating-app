@@ -261,7 +261,7 @@ const MessageReactions = ({
 };
 
 // Quick reaction button for inline use
-export const QuickReactionButton = ({ onPress, reaction = REACTIONS[0] }) => {
+export const QuickReactionButton = ({ onPress, reaction = (REACTIONS.length > 0 ? REACTIONS[0] : null) }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const handlePress = () => {

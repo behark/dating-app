@@ -228,8 +228,11 @@ const EnhancedChatScreen = ({ route, navigation }) => {
 
   // Get theme styles
   const getThemeStyles = () => {
-    const theme = currentTheme ? CHAT_THEMES.find(t => t.id === currentTheme) : CHAT_THEMES[0];
-    return theme || CHAT_THEMES[0];
+    if (currentTheme) {
+      const foundTheme = CHAT_THEMES.find(t => t.id === currentTheme);
+      if (foundTheme) return foundTheme;
+    }
+    return CHAT_THEMES[0] || null;
   };
 
   const themeStyles = getThemeStyles();

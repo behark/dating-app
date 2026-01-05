@@ -149,7 +149,7 @@ const verifyFacebookToken = async (accessToken, facebookId) => {
     };
   } catch (err) {
     const error = err;
-    if (error.response?.data?.error) {
+    if (error && typeof error === 'object' && 'response' in error && error.response?.data?.error) {
       const fbError = error.response.data.error;
       if (fbError.code === 190) {
         throw new Error('Facebook OAuth token has expired or is invalid. Please sign in again.');
@@ -192,6 +192,9 @@ const verifyAppleToken = async (identityToken, appleId) => {
       throw new Error('Invalid Apple identity token format');
     }
 
+    if (tokenParts.length < 1 || !tokenParts[0]) {
+      throw new Error('Invalid token format');
+    }
     const header = JSON.parse(Buffer.from(tokenParts[0], 'base64').toString());
     const kid = header.kid;
 

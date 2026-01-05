@@ -1,6 +1,8 @@
 const { db } = require('../config/firebase');
 const User = require('../models/User');
 
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
+
 /**
  * Share date plan with friends for safety
  * POST /api/safety/date-plan
@@ -68,7 +70,7 @@ const shareDatePlan = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to share date plan',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -113,7 +115,7 @@ const startCheckIn = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to start check-in',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -144,7 +146,7 @@ const completeCheckIn = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to complete check-in',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -201,7 +203,7 @@ const sendEmergencySOS = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to send SOS',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -226,7 +228,7 @@ const getActiveSOS = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to get SOS alerts',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -261,7 +263,7 @@ const respondToSOS = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to respond to SOS',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -290,7 +292,7 @@ const resolveSOS = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to resolve SOS',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -350,7 +352,7 @@ const initiateBackgroundCheck = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to initiate background check',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -387,7 +389,7 @@ const getBackgroundCheckStatus = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to get background check status',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -431,7 +433,7 @@ const addEmergencyContact = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to add emergency contact',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -456,7 +458,7 @@ const getEmergencyContacts = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to get emergency contacts',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -480,7 +482,7 @@ const deleteEmergencyContact = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to delete emergency contact',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -539,7 +541,7 @@ const submitAdvancedPhotoVerification = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to submit photo verification',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };
@@ -564,7 +566,7 @@ const getActiveDatePlans = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to get date plans',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      error: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.message : String(error)) : undefined,
     });
   }
 };

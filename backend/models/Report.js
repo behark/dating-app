@@ -68,4 +68,12 @@ reportSchema.index({ reportedUserId: 1 });
 reportSchema.index({ status: 1 });
 reportSchema.index({ createdAt: -1 });
 
-module.exports = mongoose.model('Report', reportSchema);
+/**
+ * @typedef {import('../types/index').ReportDocument} ReportDocument
+ * @typedef {import('../types/index').ReportModel} ReportModel
+ */
+
+/** @type {ReportModel} */
+const ReportModel = mongoose.model('Report', reportSchema);
+
+module.exports = ReportModel;

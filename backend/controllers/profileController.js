@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
 
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
+
 // @route   PUT /api/profile/update
 // @desc    Update user profile information
 // @access  Private
@@ -58,7 +60,7 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating profile',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -130,7 +132,7 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching profile',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -167,7 +169,7 @@ exports.getMyProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching profile',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -239,7 +241,7 @@ exports.uploadPhotos = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error uploading photos',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -282,7 +284,7 @@ exports.reorderPhotos = async (req, res) => {
     });
 
     // Sort by order
-    user.photos.sort((a, b) => a.order - b.order);
+    user.photos.sort((a, b) => a?.order - b.order);
 
     await user.save();
 
@@ -298,7 +300,7 @@ exports.reorderPhotos = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error reordering photos',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -335,7 +337,7 @@ exports.deletePhoto = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error deleting photo',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -384,7 +386,7 @@ exports.approvePhoto = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error approving photo',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -435,7 +437,7 @@ exports.rejectPhoto = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error rejecting photo',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -482,7 +484,7 @@ exports.getPendingPhotos = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching pending photos',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };

@@ -34,7 +34,7 @@ router.get('/dashboard', isAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching dashboard metrics',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -60,7 +60,7 @@ router.get('/dau', isAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching DAU',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -92,7 +92,7 @@ router.get('/active-users', isAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching active users',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -122,7 +122,7 @@ router.get('/retention', isAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching retention metrics',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -148,7 +148,7 @@ router.get('/retention/rolling', isAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching rolling retention',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -182,7 +182,7 @@ router.get('/matches', isAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching match metrics',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -216,7 +216,7 @@ router.get('/messages', isAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching message metrics',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -250,7 +250,7 @@ router.get('/premium', isAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching premium metrics',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -278,7 +278,7 @@ router.get('/photos', isAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching photo metrics',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -352,7 +352,7 @@ router.get('/export', isAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error exporting metrics',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });

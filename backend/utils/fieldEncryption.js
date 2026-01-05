@@ -143,7 +143,7 @@ const decryptDocument = (doc, fields) => {
         obj[field] = decrypt(obj[field]);
       } catch (e) {
         // Keep encrypted value if decryption fails
-        console.error(`Failed to decrypt field ${field}:`, e.message);
+        console.error(`Failed to decrypt field ${field}:`, (e instanceof Error ? e.message : String(e)));
       }
     }
   }

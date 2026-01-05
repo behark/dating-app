@@ -121,12 +121,20 @@ const api = {
       }
 
       const data = await response.json();
-      const newAuthToken = data.data?.authToken;
+      // Handle standardized response format: { success: true, data: { tokens: {...} } }
+      const newAuthToken = data.data?.tokens?.accessToken || data.data?.authToken || data.authToken;
+      const newRefreshToken = data.data?.tokens?.refreshToken || data.data?.refreshToken || data.refreshToken;
 
       if (newAuthToken) {
         // Update tokens in memory and storage
         this._authToken = newAuthToken;
         await AsyncStorage.setItem(AUTH_TOKEN_KEY, newAuthToken);
+        
+        if (newRefreshToken) {
+          this._refreshToken = newRefreshToken;
+          await AsyncStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+        }
+        
         logger.debug('Auth token refreshed successfully');
 
         // Resolve all queued requests with the new token
@@ -205,24 +213,24 @@ const api = {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        // Handle standardized error format: { success: false, message: '...', error: 'CODE' }
         const errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
         logger.apiError(endpoint, method, response.status, errorMessage);
-        throw new Error(getUserFriendlyMessage(errorMessage));
+        
+        // Create error object with additional info from standardized format
+        const error = new Error(getUserFriendlyMessage(errorMessage));
+        error.code = errorData.error;
+        error.statusCode = response.status;
+        error.validationErrors = errorData.errors;
+        
+        throw error;
       }
       
       const responseData = await response.json();
       
-      // Return consistent response structure
-      // If response already has 'data' property, return as-is
-      // Otherwise wrap in { data: response, success: true }
-      if (responseData && typeof responseData === 'object') {
-        if ('data' in responseData) {
-          return responseData;
-        }
-        return { data: responseData, success: true };
-      }
-      
-      return { data: responseData || {}, success: true };
+      // All responses now follow standardized format: { success: true, message: '...', data: {...}, pagination?: {...} }
+      // Return the entire response to maintain access to success, message, pagination, etc.
+      return responseData;
     } catch (error) {
       // Don't double-wrap errors we already threw
       if (error.message && !error.message.includes('HTTP')) {

@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
 const Swipe = require('../models/Swipe');
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
 const { encryptMessage, decryptMessage, generateConversationKey } = require('../utils/encryption');
 
 // Get all messages for a specific match
@@ -11,9 +12,9 @@ const getMessages = async (req, res) => {
 
     // Validate matchId
     if (!matchId || !require('mongoose').Types.ObjectId.isValid(matchId)) {
-      return res.status(400).json({
-        success: false,
+      return sendError(res, 400, {
         message: 'Invalid match ID',
+        error: 'VALIDATION_ERROR',
       });
     }
 
@@ -26,10 +27,7 @@ const getMessages = async (req, res) => {
       }).lean();
 
       if (!match) {
-        return res.status(403).json({
-          success: false,
-          message: 'Access denied to this conversation',
-        });
+        return sendForbidden(res, 'Access denied to this conversation');
       }
     }
 
@@ -74,23 +72,23 @@ const getMessages = async (req, res) => {
       }
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
+      message: 'Messages retrieved successfully',
       data: {
         messages: messages.reverse(), // Return in chronological order (oldest first)
-        pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: totalMessages,
-          pages: Math.ceil(totalMessages / parseInt(limit)),
-        },
+      },
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: totalMessages,
+        pages: Math.ceil(totalMessages / parseInt(limit)),
       },
     });
   } catch (error) {
     console.error('Get messages error:', error);
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Internal server error',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -103,10 +101,7 @@ const getConversations = async (req, res) => {
     const userObjectId = require('mongoose').Types.ObjectId.createFromHexString(userId);
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required',
-      });
+      return sendUnauthorized(res, 'Authentication required');
     }
 
     // Optimized: Single aggregation pipeline instead of N+1 queries
@@ -206,8 +201,8 @@ const getConversations = async (req, res) => {
       },
     ]);
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
+      message: 'Conversations retrieved successfully',
       data: {
         conversations,
         count: conversations.length,
@@ -215,9 +210,9 @@ const getConversations = async (req, res) => {
     });
   } catch (error) {
     console.error('Get conversations error:', error);
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Internal server error',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -229,17 +224,14 @@ const markAsRead = async (req, res) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required',
-      });
+      return sendUnauthorized(res, 'Authentication required');
     }
 
     // Validate matchId
     if (!matchId || !require('mongoose').Types.ObjectId.isValid(matchId)) {
-      return res.status(400).json({
-        success: false,
+      return sendError(res, 400, {
         message: 'Invalid match ID',
+        error: 'VALIDATION_ERROR',
       });
     }
 
@@ -251,26 +243,23 @@ const markAsRead = async (req, res) => {
     }).lean();
 
     if (!match) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied to this conversation',
-      });
+      return sendForbidden(res, 'Access denied to this conversation');
     }
 
     // Mark messages as read
     const result = await Message.markMatchAsRead(matchId, userId);
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
+      message: 'Messages marked as read',
       data: {
-        markedAsRead: result.modifiedCount,
+        markedAsRead: result.modifiedCount || 0,
       },
     });
   } catch (error) {
     console.error('Mark as read error:', error);
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Internal server error',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -281,25 +270,22 @@ const getUnreadCount = async (req, res) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required',
-      });
+      return sendUnauthorized(res, 'Authentication required');
     }
 
     const unreadCount = await Message.getUnreadCount(userId);
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
+      message: 'Unread count retrieved successfully',
       data: {
         unreadCount,
       },
     });
   } catch (error) {
     console.error('Get unread count error:', error);
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Internal server error',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -311,10 +297,7 @@ const deleteMessage = async (req, res) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required',
-      });
+      return sendUnauthorized(res, 'Authentication required');
     }
 
     // Find and verify ownership
@@ -354,10 +337,7 @@ const markMessageAsRead = async (req, res) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required',
-      });
+      return sendUnauthorized(res, 'Authentication required');
     }
 
     if (!messageId || !require('mongoose').Types.ObjectId.isValid(messageId)) {
@@ -407,10 +387,7 @@ const getReadReceipts = async (req, res) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required',
-      });
+      return sendUnauthorized(res, 'Authentication required');
     }
 
     if (!matchId || !require('mongoose').Types.ObjectId.isValid(matchId)) {
@@ -448,10 +425,7 @@ const sendEncryptedMessage = async (req, res) => {
     const userId = req.user?.id;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required',
-      });
+      return sendUnauthorized(res, 'Authentication required');
     }
 
     if (!matchId || !content) {

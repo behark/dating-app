@@ -12,6 +12,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { PaymentService } from '../services/PaymentService';
+import logger from '../utils/logger';
 
 // Product IDs - these must match App Store Connect / Google Play Console
 const SUBSCRIPTION_SKUS = Platform.select({
@@ -87,7 +88,7 @@ export const useInAppPurchase = () => {
 
         setLoading(false);
       } catch (err) {
-        console.error('Error initializing IAP:', err);
+        logger.error('Error initializing IAP', err);
         setError(err.message);
         setLoading(false);
       }
@@ -159,7 +160,7 @@ export const useInAppPurchase = () => {
         }
       }
     } catch (err) {
-      console.error('Error processing purchase:', err);
+      logger.error('Error processing purchase', err, { productId: purchase.productId });
       Alert.alert('Error', `Failed to process purchase: ${err.message}`);
     } finally {
       setPurchasing(false);
@@ -168,7 +169,7 @@ export const useInAppPurchase = () => {
 
   // Handle purchase error
   const handlePurchaseError = (error) => {
-    console.error('Purchase error:', error);
+    logger.error('Purchase error', error);
     setPurchasing(false);
 
     // Don't show alert for user cancellation
@@ -204,7 +205,7 @@ export const useInAppPurchase = () => {
           await requestSubscription({ sku: productId });
         }
       } catch (err) {
-        console.error('Error purchasing subscription:', err);
+        logger.error('Error purchasing subscription', err, { productId });
         setError(err.message);
         setPurchasing(false);
 
@@ -225,7 +226,7 @@ export const useInAppPurchase = () => {
       const { requestPurchase } = await import('react-native-iap');
       await requestPurchase({ sku: productId });
     } catch (err) {
-      console.error('Error purchasing product:', err);
+      logger.error('Error purchasing product', err, { productId });
       setError(err.message);
       setPurchasing(false);
 
@@ -287,7 +288,7 @@ export const useInAppPurchase = () => {
         }
       }
     } catch (err) {
-      console.error('Error restoring purchases:', err);
+      logger.error('Error restoring purchases', err);
       setError(err.message);
       Alert.alert('Error', 'Failed to restore purchases');
     } finally {
@@ -314,10 +315,12 @@ export const useInAppPurchase = () => {
       return product.localizedPrice;
     } else if (Platform.OS === 'android') {
       // For subscriptions, get the price from the first offer
-      if (product.subscriptionOfferDetails) {
+      if (product.subscriptionOfferDetails && product.subscriptionOfferDetails.length > 0) {
         const offer = product.subscriptionOfferDetails[0];
-        const pricing = offer?.pricingPhases?.pricingPhaseList?.[0];
-        return pricing?.formattedPrice || '';
+        if (offer?.pricingPhases?.pricingPhaseList && offer.pricingPhases.pricingPhaseList.length > 0) {
+          const pricing = offer.pricingPhases.pricingPhaseList[0];
+          return pricing?.formattedPrice || '';
+        }
       }
       return product.localizedPrice || '';
     }

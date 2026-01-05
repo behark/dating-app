@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { betaTestingService } from '../services/BetaTestingService';
 import { featureFlagService } from '../services/FeatureFlagService';
+import logger from '../utils/logger';
 
 const BETA_STORAGE_KEY = '@beta_enrollment';
 const SESSION_STORAGE_KEY = '@beta_session';
@@ -34,7 +35,7 @@ export const useBetaTesting = (userId, userGroups = []) => {
         const flags = featureFlagService.getUserFlags(userId, userGroups);
         setFeatureFlags(flags);
       } catch (error) {
-        console.error('Error checking beta enrollment:', error);
+        logger.error('Error checking beta enrollment', error, { userId });
       } finally {
         setIsLoading(false);
       }
@@ -71,7 +72,7 @@ export const useBetaTesting = (userId, userGroups = []) => {
 
         return enrollment;
       } catch (error) {
-        console.error('Error enrolling in beta:', error);
+        logger.error('Error enrolling in beta', error, { userId });
         throw error;
       }
     },
@@ -88,7 +89,7 @@ export const useBetaTesting = (userId, userGroups = []) => {
       const flags = featureFlagService.getUserFlags(userId, userGroups);
       setFeatureFlags(flags);
     } catch (error) {
-      console.error('Error leaving beta:', error);
+      logger.error('Error leaving beta', error, { userId });
       throw error;
     }
   }, [userId, userGroups]);
@@ -118,7 +119,7 @@ export const useBetaTesting = (userId, userGroups = []) => {
 
         return feedback;
       } catch (error) {
-        console.error('Error submitting feedback:', error);
+        logger.error('Error submitting feedback', error, { userId });
         throw error;
       }
     },
@@ -131,7 +132,7 @@ export const useBetaTesting = (userId, userGroups = []) => {
       try {
         return betaTestingService.submitBugReport(userId, bugData);
       } catch (error) {
-        console.error('Error submitting bug report:', error);
+        logger.error('Error submitting bug report', error, { userId });
         throw error;
       }
     },
@@ -186,7 +187,7 @@ export const useBetaTesting = (userId, userGroups = []) => {
 
         return session;
       } catch (error) {
-        console.error('Error recording session:', error);
+        logger.error('Error recording session', error, { userId });
       }
     },
     [userId]
@@ -216,7 +217,7 @@ export const useBetaTesting = (userId, userGroups = []) => {
       const stored = await AsyncStorage.getItem('@pending_feedback');
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
-      console.error('Error getting pending feedback:', error);
+      logger.error('Error getting pending feedback', error);
       return [];
     }
   }, []);
@@ -226,7 +227,7 @@ export const useBetaTesting = (userId, userGroups = []) => {
     try {
       await AsyncStorage.removeItem('@pending_feedback');
     } catch (error) {
-      console.error('Error clearing pending feedback:', error);
+      logger.error('Error clearing pending feedback', error);
     }
   }, []);
 

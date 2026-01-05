@@ -9,6 +9,7 @@
  */
 
 import { API_URL } from '../config/api';
+import logger from '../utils/logger';
 import { UserRepository } from './UserRepository';
 
 // Simple in-memory cache for user profiles
@@ -54,13 +55,13 @@ export class ApiUserRepository extends UserRepository {
       const data = await response.json();
 
       if (!response.ok) {
-        console.error(`API Error [${endpoint}]:`, data.message || response.statusText);
+        logger.error(`API Error [${endpoint}]`, null, { endpoint, status: response.status, message: data.message || response.statusText });
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error(`API Request Failed [${endpoint}]:`, error);
+      logger.error(`API Request Failed [${endpoint}]`, error, { endpoint });
       return null;
     }
   }
@@ -73,11 +74,12 @@ export class ApiUserRepository extends UserRepository {
   async getCurrentUser(userId) {
     try {
       if (!userId) {
-        console.warn('ApiUserRepository: No userId provided to getCurrentUser');
+        logger.warn('ApiUserRepository: No userId provided to getCurrentUser');
         return null;
       }
 
-      const response = await this.apiRequest(`/users/${userId}`);
+      // Use /profile/me endpoint for current user (more reliable than /users/:id)
+      const response = await this.apiRequest('/profile/me');
 
       if (!response?.success || !response?.data) {
         return null;
@@ -86,7 +88,7 @@ export class ApiUserRepository extends UserRepository {
       const user = response.data.user || response.data;
       return { ...user, uid: user._id || user.uid || userId };
     } catch (error) {
-      console.error('ApiUserRepository: Error getting current user:', error);
+      logger.error('ApiUserRepository: Error getting current user', error, { userId });
       return null;
     }
   }
@@ -100,7 +102,7 @@ export class ApiUserRepository extends UserRepository {
   async getDiscoverableUsers(userId, options = {}) {
     try {
       if (!userId) {
-        console.warn('ApiUserRepository: No userId provided to getDiscoverableUsers');
+        logger.warn('ApiUserRepository: No userId provided to getDiscoverableUsers');
         return [];
       }
 
@@ -114,18 +116,24 @@ export class ApiUserRepository extends UserRepository {
         gender = 'any',
       } = options;
 
-      // Build query params
+      // Build query params - lat and lng are required by backend
+      // If not provided, use default location (center of world) or skip the request
+      if (!lat || !lng) {
+        logger.warn('ApiUserRepository: Missing lat/lng for discovery, returning empty array');
+        return [];
+      }
+
       const params = new URLSearchParams({
         limit: limit.toString(),
-        ...(lat && { lat: lat.toString() }),
-        ...(lng && { lng: lng.toString() }),
+        lat: lat.toString(),
+        lng: lng.toString(),
         ...(radius && { radius: radius.toString() }),
         minAge: minAge.toString(),
         maxAge: maxAge.toString(),
         gender,
       });
 
-      const response = await this.apiRequest(`/discovery/discover?${params}`, {
+      const response = await this.apiRequest(`/discover?${params}`, {
         headers: { 'X-User-ID': userId },
       });
 
@@ -160,7 +168,7 @@ export class ApiUserRepository extends UserRepository {
         return normalizedUser;
       });
     } catch (error) {
-      console.error('ApiUserRepository: Error getting discoverable users:', error);
+      logger.error('ApiUserRepository: Error getting discoverable users', error, { userId, options });
       return [];
     }
   }
@@ -174,7 +182,7 @@ export class ApiUserRepository extends UserRepository {
   async updateUser(userId, data) {
     try {
       if (!userId) {
-        console.warn('ApiUserRepository: No userId provided to updateUser');
+        logger.warn('ApiUserRepository: No userId provided to updateUser');
         return false;
       }
 
@@ -191,7 +199,7 @@ export class ApiUserRepository extends UserRepository {
 
       return false;
     } catch (error) {
-      console.error('ApiUserRepository: Error updating user:', error);
+      logger.error('ApiUserRepository: Error updating user', error, { userId });
       return false;
     }
   }
@@ -234,7 +242,7 @@ export class ApiUserRepository extends UserRepository {
 
       return normalizedUser;
     } catch (error) {
-      console.error('ApiUserRepository: Error getting user by ID:', error);
+      logger.error('ApiUserRepository: Error getting user by ID', error, { userId });
       return null;
     }
   }
@@ -272,7 +280,7 @@ export class ApiUserRepository extends UserRepository {
 
       return { success: false, isMatch: false };
     } catch (error) {
-      console.error('ApiUserRepository: Error recording swipe:', error);
+      logger.error('ApiUserRepository: Error recording swipe', error, { swiperId, swipedUserId, direction });
       return { success: false, isMatch: false };
     }
   }

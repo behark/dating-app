@@ -83,7 +83,7 @@ const ViewProfileScreen = ({ route, navigation }) => {
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: profile.photoURL || profile.photos?.[0]?.url || profile.photos?.[0] || 'https://via.placeholder.com/400' }}
+            source={{ uri: profile.photoURL || profile.photos?.[0]?.url || profile.photos?.[0] || process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL || 'https://via.placeholder.com/400' }}
             style={styles.profileImage}
           />
         </View>

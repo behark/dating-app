@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ActivityService } from '../services/ActivityService';
+import logger from '../utils/logger';
 
 const ActivityIndicatorComponent = ({ userId, showLabel = true }) => {
   const [status, setStatus] = useState(null);
@@ -14,7 +15,7 @@ const ActivityIndicatorComponent = ({ userId, showLabel = true }) => {
       setStatus(activityStatus);
       setError(null);
     } catch (err) {
-      console.error('Error fetching activity status:', err);
+      logger.error('Error fetching activity status', err, { userId });
       setError(err.message);
     } finally {
       setLoading(false);

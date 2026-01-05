@@ -1,7 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useOffline } from '../hooks/useOffline';
+
+// useNativeDriver is not supported on web
+const useNativeDriver = Platform.OS !== 'web';
 
 /**
  * NetworkStatusBanner - Shows offline/online status notification
@@ -23,14 +26,14 @@ const NetworkStatusBanner = ({ style, showWhenOnline = true, autoHideDelay = 300
     Animated.parallel([
       Animated.spring(slideAnim, {
         toValue: 0,
-        useNativeDriver: true,
+        useNativeDriver,
         tension: 50,
         friction: 8,
       }),
       Animated.timing(opacityAnim, {
         toValue: 1,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver,
       }),
     ]).start();
   }, [slideAnim, opacityAnim]);
@@ -40,12 +43,12 @@ const NetworkStatusBanner = ({ style, showWhenOnline = true, autoHideDelay = 300
       Animated.timing(slideAnim, {
         toValue: -100,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver,
       }),
       Animated.timing(opacityAnim, {
         toValue: 0,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver,
       }),
     ]).start();
   }, [slideAnim, opacityAnim]);

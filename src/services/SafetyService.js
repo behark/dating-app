@@ -9,6 +9,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import logger from '../utils/logger';
 
 export class SafetyService {
   // Block/Unblock users
@@ -23,12 +24,12 @@ export class SafetyService {
           blockedUsers: [...blockedUsers, blockedUserId],
           updatedAt: new Date(),
         });
-        console.log(`User ${blockedUserId} blocked by ${userId}`);
+        logger.info('User blocked', { userId, blockedUserId });
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Error blocking user:', error);
+      logger.error('Error blocking user', error, { userId, blockedUserId });
       return false;
     }
   }
@@ -44,10 +45,10 @@ export class SafetyService {
         blockedUsers: filtered,
         updatedAt: new Date(),
       });
-      console.log(`User ${blockedUserId} unblocked by ${userId}`);
+      logger.info('User unblocked', { userId, blockedUserId });
       return true;
     } catch (error) {
-      console.error('Error unblocking user:', error);
+      logger.error('Error unblocking user', error, { userId, blockedUserId });
       return false;
     }
   }
@@ -57,7 +58,7 @@ export class SafetyService {
       const userDoc = await getDoc(doc(db, 'users', userId));
       return userDoc.data()?.blockedUsers || [];
     } catch (error) {
-      console.error('Error getting blocked users:', error);
+      logger.error('Error getting blocked users', error, { userId });
       return [];
     }
   }
@@ -67,7 +68,7 @@ export class SafetyService {
       const blockedUsers = await this.getBlockedUsers(userId);
       return blockedUsers.includes(otherUserId);
     } catch (error) {
-      console.error('Error checking if user is blocked:', error);
+      logger.error('Error checking if user is blocked', error, { userId, otherUserId });
       return false;
     }
   }
@@ -87,7 +88,7 @@ export class SafetyService {
       };
 
       const docRef = await addDoc(collection(db, 'reports'), report);
-      console.log('Report created:', docRef.id);
+      logger.info('Report created', { reportId: docRef.id, reporterId, reportedUserId, category });
 
       // Increment report count on user
       await updateDoc(doc(db, 'users', reportedUserId), {
@@ -96,7 +97,7 @@ export class SafetyService {
 
       return { success: true, reportId: docRef.id };
     } catch (error) {
-      console.error('Error creating report:', error);
+      logger.error('Error creating report', error, { reporterId, reportedUserId, category });
       return { success: false, error: error.message };
     }
   }
@@ -130,11 +131,11 @@ export class SafetyService {
       };
 
       const docRef = await addDoc(collection(db, 'verifications'), verification);
-      console.log('Verification submitted:', docRef.id);
+      logger.info('Verification submitted', { verificationId: docRef.id, userId, method });
 
       return { success: true, verificationId: docRef.id };
     } catch (error) {
-      console.error('Error submitting verification:', error);
+      logger.error('Error submitting verification', error, { userId, method });
       return { success: false, error: error.message };
     }
   }
@@ -148,9 +149,20 @@ export class SafetyService {
         return { verified: false, status: 'not_submitted' };
       }
 
-      const latest = docs.docs
-        .sort((a, b) => b.data().submittedAt - a.data().submittedAt)[0]
-        .data();
+      const sortedDocs = docs.docs.sort((a, b) => {
+        const aData = a.data();
+        const bData = b.data();
+        if (!aData || !bData) return 0;
+        return (bData.submittedAt?.getTime?.() || 0) - (aData.submittedAt?.getTime?.() || 0);
+      });
+      const latestDoc = sortedDocs[0];
+      if (!latestDoc) {
+        return { verified: false, status: 'not_submitted' };
+      }
+      const latest = latestDoc.data();
+      if (!latest) {
+        return { verified: false, status: 'not_submitted' };
+      }
 
       return {
         verified: latest.status === 'approved',
@@ -159,7 +171,7 @@ export class SafetyService {
         reviewedAt: latest.reviewedAt,
       };
     } catch (error) {
-      console.error('Error getting verification status:', error);
+      logger.error('Error getting verification status', error, { userId });
       return { verified: false, status: 'error' };
     }
   }
@@ -179,11 +191,11 @@ export class SafetyService {
       };
 
       const docRef = await addDoc(collection(db, 'flags'), flag);
-      console.log('Content flagged:', docRef.id);
+      logger.info('Content flagged', { flagId: docRef.id, userId, contentType, contentId, reason });
 
       return { success: true, flagId: docRef.id };
     } catch (error) {
-      console.error('Error flagging content:', error);
+      logger.error('Error flagging content', error, { userId, contentType, contentId, reason });
       return { success: false, error: error.message };
     }
   }
@@ -192,9 +204,12 @@ export class SafetyService {
     try {
       const q = query(collection(db, 'flags'), where('contentId', '==', contentId));
       const docs = await getDocs(q);
-      return docs.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      return docs.docs.map((doc) => {
+        const docData = doc.data();
+        return { id: doc.id, ...(docData || {}) };
+      });
     } catch (error) {
-      console.error('Error getting content flags:', error);
+      logger.error('Error getting content flags', error, { contentId });
       return [];
     }
   }
@@ -222,7 +237,7 @@ export class SafetyService {
 
       return { allowed: true };
     } catch (error) {
-      console.error('Error checking interaction:', error);
+      logger.error('Error checking interaction', error, { userId, targetUserId });
       return { allowed: false, reason: 'error' };
     }
   }
@@ -325,7 +340,13 @@ export class SafetyService {
   static async calculateSafetyScore(userId) {
     try {
       const userDoc = await getDoc(doc(db, 'users', userId));
+      if (!userDoc.exists()) {
+        return null;
+      }
       const user = userDoc.data();
+      if (!user) {
+        return null;
+      }
 
       let score = 100; // Start with perfect score
 
@@ -339,7 +360,7 @@ export class SafetyService {
 
       return Math.max(0, Math.min(100, score));
     } catch (error) {
-      console.error('Error calculating safety score:', error);
+      logger.error('Error calculating safety score', error, { userId });
       return null;
     }
   }
@@ -371,7 +392,7 @@ export class SafetyService {
       };
 
       const docRef = await addDoc(collection(db, 'datePlans'), datePlan);
-      console.log('Date plan shared:', docRef.id);
+      logger.info('Date plan shared', { datePlanId: docRef.id, userId, matchUserId: datePlanData.matchUserId });
 
       // Notify friends that plan was shared
       for (const friendId of friendIds) {
@@ -389,7 +410,7 @@ export class SafetyService {
 
       return { success: true, datePlanId: docRef.id };
     } catch (error) {
-      console.error('Error sharing date plan:', error);
+      logger.error('Error sharing date plan', error, { userId, matchUserId: datePlanData.matchUserId });
       return { success: false, error: error.message };
     }
   }
@@ -406,13 +427,19 @@ export class SafetyService {
       );
       const docs = await getDocs(q);
 
-      return docs.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        dateTime: doc.data().dateTime?.toDate?.() || new Date(doc.data().dateTime),
-      }));
+      return docs.docs.map((doc) => {
+        const docData = doc.data();
+        if (!docData) {
+          return null;
+        }
+        return {
+          id: doc.id,
+          ...docData,
+          dateTime: docData.dateTime?.toDate?.() || new Date(docData.dateTime),
+        };
+      }).filter(Boolean);
     } catch (error) {
-      console.error('Error getting date plans:', error);
+      logger.error('Error getting date plans', error, { userId });
       return [];
     }
   }
@@ -425,13 +452,19 @@ export class SafetyService {
       const q = query(collection(db, 'datePlans'), where('sharedWith', 'array-contains', userId));
       const docs = await getDocs(q);
 
-      return docs.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-        dateTime: doc.data().dateTime?.toDate?.() || new Date(doc.data().dateTime),
-      }));
+      return docs.docs.map((doc) => {
+        const docData = doc.data();
+        if (!docData) {
+          return null;
+        }
+        return {
+          id: doc.id,
+          ...docData,
+          dateTime: docData.dateTime?.toDate?.() || new Date(docData.dateTime),
+        };
+      }).filter(Boolean);
     } catch (error) {
-      console.error('Error getting shared date plans:', error);
+      logger.error('Error getting shared date plans', error, { userId });
       return [];
     }
   }
@@ -447,7 +480,7 @@ export class SafetyService {
       });
       return { success: true };
     } catch (error) {
-      console.error('Error updating date plan:', error);
+      logger.error('Error updating date plan', error, { datePlanId, status });
       return { success: false, error: error.message };
     }
   }
@@ -469,11 +502,11 @@ export class SafetyService {
       };
 
       const docRef = await addDoc(collection(db, 'checkIns'), checkIn);
-      console.log('Check-in timer started:', docRef.id);
+      logger.info('Check-in timer started', { checkInId: docRef.id, userId, datePlanId, duration });
 
       return { success: true, checkInId: docRef.id };
     } catch (error) {
-      console.error('Error starting check-in timer:', error);
+      logger.error('Error starting check-in timer', error, { userId, datePlanId });
       return { success: false, error: error.message };
     }
   }
@@ -490,11 +523,23 @@ export class SafetyService {
 
       // Get the check-in details to notify friends
       const checkInDoc = await getDoc(doc(db, 'checkIns', checkInId));
+      if (!checkInDoc.exists()) {
+        return { success: false, error: 'Check-in not found' };
+      }
       const checkInData = checkInDoc.data();
+      if (!checkInData) {
+        return { success: false, error: 'Check-in data not found' };
+      }
 
       // Get the date plan to find who to notify
       const datePlanDoc = await getDoc(doc(db, 'datePlans', checkInData.datePlanId));
+      if (!datePlanDoc.exists()) {
+        return { success: false, error: 'Date plan not found' };
+      }
       const datePlanData = datePlanDoc.data();
+      if (!datePlanData) {
+        return { success: false, error: 'Date plan data not found' };
+      }
 
       // Notify all friends that user checked in
       for (const friendId of datePlanData.sharedWith) {
@@ -508,7 +553,7 @@ export class SafetyService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error completing check-in:', error);
+      logger.error('Error completing check-in', error, { checkInId });
       return { success: false, error: error.message };
     }
   }
@@ -524,9 +569,12 @@ export class SafetyService {
         where('status', 'in', ['active', 'expired'])
       );
       const docs = await getDocs(q);
-      return docs.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      return docs.docs.map((doc) => {
+        const docData = doc.data();
+        return { id: doc.id, ...(docData || {}) };
+      });
     } catch (error) {
-      console.error('Error getting check-ins:', error);
+      logger.error('Error getting check-ins', error, { userId });
       return [];
     }
   }
@@ -556,7 +604,7 @@ export class SafetyService {
       };
 
       const docRef = await addDoc(collection(db, 'emergencyAlerts'), sosAlert);
-      console.log('SOS alert created:', docRef.id);
+      logger.info('SOS alert created', { sosAlertId: docRef.id, userId, location });
 
       // Get user's emergency contacts
       const userDoc = await getDoc(doc(db, 'users', userId));
@@ -593,7 +641,7 @@ export class SafetyService {
 
       return { success: true, sosAlertId: docRef.id };
     } catch (error) {
-      console.error('Error sending SOS:', error);
+      logger.error('Error sending SOS', error, { userId, location });
       return { success: false, error: error.message };
     }
   }
@@ -609,9 +657,12 @@ export class SafetyService {
         where('status', '==', 'active')
       );
       const docs = await getDocs(q);
-      return docs.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      return docs.docs.map((doc) => {
+        const docData = doc.data();
+        return { id: doc.id, ...(docData || {}) };
+      });
     } catch (error) {
-      console.error('Error getting SOS alerts:', error);
+      logger.error('Error getting SOS alerts', error, { userId });
       return [];
     }
   }
@@ -641,6 +692,9 @@ export class SafetyService {
 
       // Notify the user who sent SOS
       const sosData = sosDoc.data();
+      if (!sosData) {
+        return { success: false, error: 'SOS data not found' };
+      }
       await this.createNotification(sosData.userId, {
         type: 'sos_response',
         title: 'Emergency Response Received',
@@ -650,7 +704,7 @@ export class SafetyService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error responding to SOS:', error);
+      logger.error('Error responding to SOS', error, { sosAlertId, responderId });
       return { success: false, error: error.message };
     }
   }
@@ -666,7 +720,7 @@ export class SafetyService {
       });
       return { success: true };
     } catch (error) {
-      console.error('Error resolving SOS:', error);
+      logger.error('Error resolving SOS', error, { sosAlertId, status });
       return { success: false, error: error.message };
     }
   }
@@ -704,11 +758,11 @@ export class SafetyService {
       };
 
       const docRef = await addDoc(collection(db, 'backgroundChecks'), backgroundCheckRequest);
-      console.log('Background check requested:', docRef.id);
+      logger.info('Background check requested', { backgroundCheckId: docRef.id, userId });
 
       return { success: true, backgroundCheckId: docRef.id };
     } catch (error) {
-      console.error('Error initiating background check:', error);
+      logger.error('Error initiating background check', error, { userId });
       return { success: false, error: error.message };
     }
   }
@@ -725,9 +779,20 @@ export class SafetyService {
         return { completed: false, status: 'not_initiated' };
       }
 
-      const latest = docs.docs
-        .sort((a, b) => b.data().requestedAt - a.data().requestedAt)[0]
-        .data();
+      const sortedDocs = docs.docs.sort((a, b) => {
+        const aData = a.data();
+        const bData = b.data();
+        if (!aData || !bData) return 0;
+        return (bData.requestedAt?.getTime?.() || 0) - (aData.requestedAt?.getTime?.() || 0);
+      });
+      const latestDoc = sortedDocs[0];
+      if (!latestDoc) {
+        return { completed: false, status: 'not_initiated' };
+      }
+      const latest = latestDoc.data();
+      if (!latest) {
+        return { completed: false, status: 'not_initiated' };
+      }
 
       return {
         completed: latest.status === 'completed',
@@ -737,7 +802,7 @@ export class SafetyService {
         completedAt: latest.completedAt,
       };
     } catch (error) {
-      console.error('Error getting background check status:', error);
+      logger.error('Error getting background check status', error, { userId });
       return { completed: false, status: 'error' };
     }
   }
@@ -754,7 +819,7 @@ export class SafetyService {
       });
       return { success: true };
     } catch (error) {
-      console.error('Error updating background check:', error);
+      logger.error('Error updating background check', error, { backgroundCheckId });
       return { success: false, error: error.message };
     }
   }
@@ -789,11 +854,11 @@ export class SafetyService {
       };
 
       const docRef = await addDoc(collection(db, 'advancedVerifications'), verification);
-      console.log('Advanced verification submitted:', docRef.id);
+      logger.info('Advanced verification submitted', { verificationId: docRef.id, userId, type: verification.type });
 
       return { success: true, verificationId: docRef.id };
     } catch (error) {
-      console.error('Error submitting advanced verification:', error);
+      logger.error('Error submitting advanced verification', error, { userId });
       return { success: false, error: error.message };
     }
   }
@@ -806,7 +871,7 @@ export class SafetyService {
       const userDoc = await getDoc(doc(db, 'users', userId));
       return userDoc.data()?.emergencyContacts || [];
     } catch (error) {
-      console.error('Error getting emergency contacts:', error);
+      logger.error('Error getting emergency contacts', error, { userId });
       return [];
     }
   }
@@ -834,7 +899,7 @@ export class SafetyService {
 
       return { success: true, contact: newContact };
     } catch (error) {
-      console.error('Error adding emergency contact:', error);
+      logger.error('Error adding emergency contact', error, { userId, contactInfo });
       return { success: false, error: error.message };
     }
   }
@@ -857,7 +922,7 @@ export class SafetyService {
 
       await addDoc(collection(db, 'notifications'), notification);
     } catch (error) {
-      console.error('Error creating notification:', error);
+      logger.error('Error creating notification', error, { userId, type: notificationData.type });
     }
   }
 

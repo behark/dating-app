@@ -3,6 +3,7 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { doc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { storage, db } from '../config/firebase';
+import logger from '../utils/logger';
 
 export class ImageService {
   static async requestPermissions() {
@@ -37,7 +38,7 @@ export class ImageService {
         }
       );
     } catch (error) {
-      console.error('Error compressing image:', error);
+      logger.error('Error compressing image', error, { uri, options });
       // Return original if compression fails
       return { uri };
     }
@@ -61,7 +62,7 @@ export class ImageService {
         }
       );
     } catch (error) {
-      console.error('Error creating thumbnail:', error);
+      logger.error('Error creating thumbnail', error, { uri, size });
       return null;
     }
   }
@@ -147,7 +148,7 @@ export class ImageService {
 
       return { success: true, imageData };
     } catch (error) {
-      console.error('Error uploading profile image:', error);
+      logger.error('Error uploading profile image', error, { userId, isPrimary });
       return { success: false, error: error.message };
     }
   }
@@ -175,18 +176,26 @@ export class ImageService {
       // If this was the primary photo, set another photo as primary or clear photoURL
       if (imageData.isPrimary) {
         const userDoc = await getDoc(userRef);
+        if (!userDoc.exists()) {
+          throw new Error('User not found');
+        }
         const userData = userDoc.data();
+        if (!userData) {
+          throw new Error('User data not found');
+        }
         const remainingPhotos = userData.photos?.filter((p) => p.id !== imageId) || [];
 
         if (remainingPhotos.length > 0) {
           // Set first remaining photo as primary
           const newPrimary = remainingPhotos[0];
-          await updateDoc(userRef, {
-            photoURL: newPrimary.fullUrl,
-            photos: remainingPhotos.map((p) =>
-              p.id === newPrimary.id ? { ...p, isPrimary: true } : p
-            ),
-          });
+          if (newPrimary) {
+            await updateDoc(userRef, {
+              photoURL: newPrimary.fullUrl,
+              photos: remainingPhotos.map((p) =>
+                p.id === newPrimary.id ? { ...p, isPrimary: true } : p
+              ),
+            });
+          }
         } else {
           // No photos left
           await updateDoc(userRef, {
@@ -197,7 +206,7 @@ export class ImageService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error deleting profile image:', error);
+      logger.error('Error deleting profile image', error, { userId, imageId });
       return { success: false, error: error.message };
     }
   }
@@ -206,7 +215,13 @@ export class ImageService {
     try {
       const userRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userRef);
+      if (!userDoc.exists()) {
+        throw new Error('User not found');
+      }
       const userData = userDoc.data();
+      if (!userData) {
+        throw new Error('User data not found');
+      }
 
       const updatedPhotos =
         userData.photos?.map((photo) => ({
@@ -224,7 +239,7 @@ export class ImageService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error setting primary photo:', error);
+      logger.error('Error setting primary photo', error, { userId, imageId });
       return { success: false, error: error.message };
     }
   }
@@ -233,7 +248,13 @@ export class ImageService {
     try {
       const userRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userRef);
+      if (!userDoc.exists()) {
+        throw new Error('User not found');
+      }
       const userData = userDoc.data();
+      if (!userData) {
+        throw new Error('User data not found');
+      }
 
       // Reorder photos based on new order
       const reorderedPhotos = photoIds
@@ -247,7 +268,7 @@ export class ImageService {
 
       return { success: true };
     } catch (error) {
-      console.error('Error reordering photos:', error);
+      logger.error('Error reordering photos', error, { userId, photoIds });
       return { success: false, error: error.message };
     }
   }
@@ -281,7 +302,7 @@ export class ImageService {
         categories: [],
       };
     } catch (error) {
-      console.error('Error moderating image:', error);
+      logger.error('Error moderating image', error, { uri });
       return { approved: false, reason: 'Moderation failed' };
     }
   }
@@ -324,7 +345,7 @@ export class ImageService {
         maxHeight: 1200,
       });
     } catch (error) {
-      console.error('Error optimizing image:', error);
+      logger.error('Error optimizing image', error, { uri });
       return { uri }; // Return original on error
     }
   }

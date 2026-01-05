@@ -1,11 +1,19 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import logger from '../utils/logger';
 
-// Production API URL - your Render backend
-const PRODUCTION_API_URL = 'https://dating-app-backend-x4yq.onrender.com/api';
+// Get API URLs from environment variables
+// Production API URL - from environment variable or default
+const PRODUCTION_API_URL = 
+  process.env.EXPO_PUBLIC_API_URL_PRODUCTION || 
+  process.env.EXPO_PUBLIC_API_URL || 
+  'https://dating-app-backend-x4yq.onrender.com/api';
 
-// Development API URL - use deployed backend for testing
-const DEVELOPMENT_API_URL = 'https://dating-app-backend-x4yq.onrender.com/api';
+// Development API URL - use localhost for local testing
+const DEVELOPMENT_API_URL = 
+  process.env.EXPO_PUBLIC_API_URL_DEVELOPMENT || 
+  process.env.EXPO_PUBLIC_API_URL_DEV || 
+  'http://localhost:3000/api';
 
 // Mock API URL for UI testing without backend
 const MOCK_API_URL = null; // Set to a mock server if needed
@@ -36,15 +44,22 @@ const getApiUrl = () => {
 
   // Check process.env (works at build time)
   const envUrl = process.env.EXPO_PUBLIC_API_URL || process.env.EXPO_PUBLIC_BACKEND_URL;
-  if (envUrl && !envUrl.includes('localhost')) {
-    return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
+  if (envUrl) {
+    // Allow localhost in development
+    const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
+    if (isDev || !envUrl.includes('localhost')) {
+      return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
+    }
   }
 
-  // Default to production URL (for web builds, __DEV__ might not be reliable)
-  // Check if we're in a browser environment (web) - if so, always use production
+  // Default based on environment
+  // For web builds, check if we're in development mode
   if (Platform.OS === 'web') {
-    return PRODUCTION_API_URL;
+    const isDev = process.env.NODE_ENV === 'development' || 
+                  (typeof __DEV__ !== 'undefined' && __DEV__);
+    return isDev ? DEVELOPMENT_API_URL : PRODUCTION_API_URL;
   }
+  
   // For native platforms, use __DEV__ check
   return typeof __DEV__ !== 'undefined' && __DEV__ ? DEVELOPMENT_API_URL : PRODUCTION_API_URL;
 };
@@ -63,13 +78,14 @@ export const SOCKET_URL = getSocketUrl();
 
 // Debug logging for API URL (only in browser)
 if (typeof window !== 'undefined') {
-  console.log('🌐 API Configuration:');
-  console.log('  - Platform:', Platform.OS);
-  console.log('  - API_URL:', API_URL);
-  console.log('  - __DEV__:', typeof __DEV__ !== 'undefined' ? __DEV__ : 'undefined');
-  console.log('  - window.__ENV__:', window.__ENV__);
-  console.log('  - Constants.expoConfig?.extra?.backendUrl:', Constants.expoConfig?.extra?.backendUrl);
-  console.log('  - process.env.EXPO_PUBLIC_API_URL:', process.env.EXPO_PUBLIC_API_URL);
+  logger.debug('🌐 API Configuration:', {
+    platform: Platform.OS,
+    apiUrl: API_URL,
+    isDev: typeof __DEV__ !== 'undefined' ? __DEV__ : 'undefined',
+    windowEnv: window.__ENV__,
+    configUrl: Constants.expoConfig?.extra?.backendUrl,
+    envUrl: process.env.EXPO_PUBLIC_API_URL,
+  });
 }
 
 export default {

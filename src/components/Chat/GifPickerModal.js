@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import MediaMessagesService from '../../services/MediaMessagesService';
+import logger from '../../utils/logger';
 
 const { width } = Dimensions.get('window');
 const GRID_COLS = 2;
@@ -31,7 +32,7 @@ const GifPickerModal = ({ visible, onClose, onSelectGif, authToken }) => {
       const result = await mediaService.getPopularGifs(20);
       setGifs(result.gifs || []);
     } catch (error) {
-      console.error('Error loading GIFs:', error);
+      logger.error('Error loading GIFs', error);
     } finally {
       setLoading(false);
     }
@@ -54,7 +55,7 @@ const GifPickerModal = ({ visible, onClose, onSelectGif, authToken }) => {
       const result = await mediaService.searchGifs(searchQuery, 20);
       setGifs(result.gifs || []);
     } catch (error) {
-      console.error('Error searching GIFs:', error);
+      logger.error('Error searching GIFs', error, { searchQuery });
     } finally {
       setSearchLoading(false);
     }

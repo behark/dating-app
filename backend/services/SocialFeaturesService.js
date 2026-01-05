@@ -48,12 +48,13 @@ class SocialFeaturesService {
    */
   static async joinGroupDate(groupDateId, userId) {
     try {
+      /** @type {any} */
       const groupDate = await GroupDate.findById(groupDateId);
       if (!groupDate) throw new Error('Group date not found');
 
       // Check if already joined
       const isAlreadyParticipant = groupDate.currentParticipants.some(
-        (p) => p.userId.toString() === userId.toString()
+        (p) => p?.userId.toString() === userId.toString()
       );
 
       if (isAlreadyParticipant) {
@@ -90,11 +91,12 @@ class SocialFeaturesService {
    */
   static async leaveGroupDate(groupDateId, userId) {
     try {
+      /** @type {any} */
       const groupDate = await GroupDate.findById(groupDateId);
       if (!groupDate) throw new Error('Group date not found');
 
       groupDate.currentParticipants = groupDate.currentParticipants.filter(
-        (p) => p.userId.toString() !== userId.toString()
+        (p) => p?.userId.toString() !== userId.toString()
       );
 
       // Reset status if no longer full
@@ -145,6 +147,7 @@ class SocialFeaturesService {
   static async createFriendReview(data) {
     try {
       // Check for existing review
+      /** @type {any} */
       const existingReview = await FriendReview.findOne({
         reviewerId: data.reviewerId,
         revieweeId: data.revieweeId,
@@ -202,6 +205,7 @@ class SocialFeaturesService {
    */
   static async getUserReviewStats(userId) {
     try {
+      /** @type {any} */
       const reviews = await FriendReview.find({
         revieweeId: userId,
         isPublic: true,
@@ -229,8 +233,8 @@ class SocialFeaturesService {
       reviews.forEach((review) => {
         if (review.categories) {
           Object.keys(categoryStats).forEach((key) => {
-            if (review.categories[key]) {
-              categoryStats[key] += review.categories[key];
+            if (review?.categories[key]) {
+              categoryStats[key] += review?.categories[key];
               categoryCount++;
             }
           });
@@ -303,12 +307,13 @@ class SocialFeaturesService {
    */
   static async registerForEvent(eventId, userId) {
     try {
+      /** @type {any} */
       const event = await Event.findById(eventId);
       if (!event) throw new Error('Event not found');
 
       // Check if already registered
       const isAlreadyRegistered = event.attendees.some(
-        (a) => a.userId.toString() === userId.toString()
+        (a) => a?.userId.toString() === userId.toString()
       );
 
       if (isAlreadyRegistered) {
@@ -427,6 +432,7 @@ class SocialFeaturesService {
    */
   static async getSharedProfile(shareToken) {
     try {
+      /** @type {any} */
       const sharedProfile = await SharedProfile.findOne({
         shareToken,
         isActive: true,

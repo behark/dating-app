@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
 
 // @route   POST /api/activity/update-online-status
 // @desc    Update user's online status
@@ -9,10 +10,11 @@ exports.updateOnlineStatus = async (req, res) => {
     const { isOnline } = req.body;
 
     if (typeof isOnline !== 'boolean') {
-      return res.status(400).json({
-        success: false,
+      return sendValidationError(res, [{
+        field: 'isOnline',
         message: 'isOnline must be a boolean',
-      });
+        value: isOnline
+      }]);
     }
 
     const updateData = {
@@ -213,7 +215,8 @@ exports.getProfileViews = async (req, res) => {
         if (!view.userId) {
           return null;
         }
-        // @ts-ignore - view.userId is populated with user document, not just ObjectId
+        // view.userId is populated with user document after the populate() call above
+        /** @type {any} */
         const userDoc = view.userId;
         return {
           userId: userDoc._id || userDoc,
@@ -259,6 +262,8 @@ exports.getMultipleStatus = async (req, res) => {
 
     // SECURITY: Only return status for users who are matched with the requesting user
     const Match = require('../models/Match');
+
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
     const matches = await Match.find({
       users: requestingUserId,
       status: 'active',

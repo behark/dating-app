@@ -64,6 +64,7 @@ userActivitySchema.statics.getRecentlyActiveUsers = async function (
   const timeframe = new Date();
   timeframe.setHours(timeframe.getHours() - lookbackHours);
 
+  // @ts-ignore - Mongoose static method context
   return await this.aggregate([
     {
       $match: {
@@ -112,6 +113,7 @@ userActivitySchema.statics.getRecentlyActiveUsers = async function (
 
 // Static method to log activity
 userActivitySchema.statics.logActivity = async function (userId, activityType, metadata = {}) {
+  // @ts-ignore - Mongoose static method context
   try {
     await this.create({
       userId,
@@ -131,6 +133,7 @@ userActivitySchema.statics.getUserRecentActivity = function (
   hoursBack = 7 * 24
 ) {
   const timeframe = new Date();
+  // @ts-ignore - Mongoose static method context
   timeframe.setHours(timeframe.getHours() - hoursBack);
 
   return this.find({
@@ -151,6 +154,7 @@ userActivitySchema.statics.getActivitySummary = async function (userId, days = 7
   const userObjectId = mongoose.Types.ObjectId.isValid(userId)
     ? mongoose.Types.ObjectId.createFromHexString
       ? mongoose.Types.ObjectId.createFromHexString(userId)
+      // @ts-ignore - Mongoose static method context
       : new mongoose.Types.ObjectId(userId)
     : userId;
 
@@ -170,4 +174,12 @@ userActivitySchema.statics.getActivitySummary = async function (userId, days = 7
   ]);
 };
 
-module.exports = mongoose.model('UserActivity', userActivitySchema);
+/**
+ * @typedef {import('../types/index').UserActivityDocument} UserActivityDocument
+ * @typedef {import('../types/index').UserActivityModel} UserActivityModel
+ */
+
+/** @type {UserActivityModel} */
+const UserActivityModel = mongoose.model('UserActivity', userActivitySchema);
+
+module.exports = UserActivityModel;

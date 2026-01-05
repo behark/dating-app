@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useState } from 'react';
 import {
@@ -18,7 +18,8 @@ import { PremiumService } from '../services/PremiumService';
 import { SwipeController } from '../services/SwipeController';
 import logger from '../utils/logger';
 
-const MatchesScreen = ({ navigation }) => {
+const MatchesScreen = () => {
+  const navigation = useNavigation();
   const { currentUser, authToken } = useAuth();
   const { conversations, loadConversations, unreadCount } = useChat();
   const [loading, setLoading] = useState(true);
@@ -77,7 +78,7 @@ const MatchesScreen = ({ navigation }) => {
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: item.otherUser.photos?.[0]?.url || item.otherUser.photos?.[0] || 'https://via.placeholder.com/100' }}
+            source={{ uri: item.otherUser.photos?.[0]?.url || item.otherUser.photos?.[0] || process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL || 'https://via.placeholder.com/100' }}
             style={styles.matchImage}
           />
           <View style={styles.onlineIndicator} />
@@ -252,7 +253,7 @@ const MatchesScreen = ({ navigation }) => {
                 >
                   <View style={styles.imageContainer}>
                     <Image
-                      source={{ uri: item.user.photoURL || 'https://via.placeholder.com/100' }}
+                      source={{ uri: item.user.photoURL || process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL || 'https://via.placeholder.com/100' }}
                       style={styles.matchImage}
                     />
                     <View style={[styles.onlineIndicator, { backgroundColor: '#FFD700' }]} />

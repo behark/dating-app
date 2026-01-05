@@ -8,6 +8,7 @@
  * - Refund processing
  */
 
+/** @type {any} */
 const axios = require('axios');
 const paymentConfig = require('../config/payment');
 const Subscription = require('../models/Subscription');

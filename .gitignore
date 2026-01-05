@@ -46,3 +46,9 @@ yarn-error.*
 .vercel
 .vercel
 snyk
+
+# Production environment variable files (NEVER COMMIT)
+RENDER_ENV_VARS_FINAL.env
+VERCEL_ENV_VARS_FINAL.env
+*.firebase-adminsdk*.json
+client_secret_*.json

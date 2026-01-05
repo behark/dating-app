@@ -8,6 +8,13 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const User = require('../models/User');
 const { verifyGoogleToken, verifyFacebookToken, verifyAppleToken, checkOAuthConfig } = require('../utils/oauthVerifier');
+const { 
+  sendSuccess, 
+  sendError, 
+  sendValidationError, 
+  sendUnauthorized, 
+  asyncHandler 
+} = require('../utils/responseHelpers');
 
 /**
  * Email service for sending verification and password reset emails
@@ -81,6 +88,9 @@ const emailService = {
  * @param {string} req.body.name - User's display name
  * @param {number} [req.body.age] - User's age
  * @param {string} [req.body.gender] - User's gender
+ * @param {Object} [req.body.location] - User's location (GeoJSON)
+ * @param {string} [req.body.location.type] - Location type (Point)
+ * @param {number[]} [req.body.location.coordinates] - Location coordinates [lng, lat]
  * @param {Object} res - Express response object
  * @returns {Object} JSON response with user data and token
  */
@@ -90,26 +100,26 @@ exports.register = async (req, res) => {
 
     // Validate required fields
     if (!email || !password || !name) {
-      return res.status(400).json({
-        success: false,
+      return sendError(res, 400, {
         message: 'Email, password, and name are required',
+        error: 'VALIDATION_ERROR',
       });
     }
 
     // Validate password length
     if (password.length < 8) {
-      return res.status(400).json({
-        success: false,
+      return sendError(res, 400, {
         message: 'Password must be at least 8 characters long',
+        error: 'VALIDATION_ERROR',
       });
     }
 
     // Check if user already exists
     let user = await User.findOne({ email: email.toLowerCase() });
     if (user) {
-      return res.status(400).json({
-        success: false,
+      return sendError(res, 400, {
         message: 'User with this email already exists',
+        error: 'USER_EXISTS',
       });
     }
 
@@ -157,8 +167,7 @@ exports.register = async (req, res) => {
     const authToken = user.generateAuthToken();
     const refreshToken = user.generateRefreshToken();
 
-    res.status(201).json({
-      success: true,
+    return sendSuccess(res, 201, {
       message: 'User registered successfully. Please verify your email.',
       data: {
         user: {
@@ -174,10 +183,10 @@ exports.register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error during registration',
-      error: error.message,
+      error: 'REGISTRATION_ERROR',
+      details: process.env.NODE_ENV === 'production' ? null : error.message,
     });
   }
 };
@@ -191,36 +200,30 @@ exports.login = async (req, res) => {
 
     // Validate input
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email and password are required',
-      });
+      return sendValidationError(res, [
+        { field: 'email', message: 'Email is required' },
+        { field: 'password', message: 'Password is required' }
+      ]);
     }
 
     // Find user
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password',
-      });
+      return sendUnauthorized(res, 'Invalid email or password');
     }
 
     // Check if user has password (not OAuth only)
     if (!user.password) {
-      return res.status(401).json({
-        success: false,
+      return sendError(res, 401, {
         message: 'This account uses OAuth. Please login with your OAuth provider.',
+        error: 'OAUTH_ACCOUNT',
       });
     }
 
     // Check password
     const isPasswordMatch = await user.matchPassword(password);
     if (!isPasswordMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password',
-      });
+      return sendUnauthorized(res, 'Invalid email or password');
     }
 
     // Generate tokens
@@ -231,8 +234,7 @@ exports.login = async (req, res) => {
     user.lastActive = new Date();
     await user.save();
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Login successful',
       data: {
         user: {
@@ -252,7 +254,7 @@ exports.login = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error during login',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -301,7 +303,7 @@ exports.verifyEmail = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error verifying email',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -352,7 +354,7 @@ exports.forgotPassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error processing password reset',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -408,7 +410,7 @@ exports.resetPassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error resetting password',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -461,7 +463,7 @@ exports.deleteAccount = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error deleting account',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -490,6 +492,7 @@ exports.refreshToken = async (req, res) => {
     }
 
     const jwt = require('jsonwebtoken');
+    /** @type {{ userId: string }} */
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
     const user = await User.findById(decoded.userId);
@@ -513,7 +516,7 @@ exports.refreshToken = async (req, res) => {
     res.status(401).json({
       success: false,
       message: 'Invalid refresh token',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -539,24 +542,25 @@ exports.googleAuth = async (req, res) => {
           console.warn('Google ID mismatch: client provided different ID than token');
         }
       } catch (verifyError) {
-        console.error('Google token verification failed:', verifyError.message);
+        const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
+        console.error('Google token verification failed:', errorMessage);
         
         // Check for specific OAuth errors
-        if (verifyError.message.includes('redirect URI')) {
+        if (errorMessage.includes('redirect URI')) {
           return res.status(400).json({
             success: false,
             message: 'OAuth configuration error: redirect URI mismatch. Please contact support.',
             errorCode: 'REDIRECT_URI_MISMATCH',
           });
         }
-        if (verifyError.message.includes('expired')) {
+        if (errorMessage.includes('expired')) {
           return res.status(401).json({
             success: false,
             message: 'Google session has expired. Please sign in again.',
             errorCode: 'TOKEN_EXPIRED',
           });
         }
-        if (verifyError.message.includes('client configuration')) {
+        if (errorMessage.includes('client configuration')) {
           return res.status(500).json({
             success: false,
             message: 'Google Sign-In is temporarily unavailable. Please try again later.',
@@ -572,7 +576,7 @@ exports.googleAuth = async (req, res) => {
           return res.status(401).json({
             success: false,
             message: 'Google authentication failed. Please try again.',
-            error: verifyError.message,
+            error: verifyError instanceof Error ? verifyError.message : String(verifyError),
           });
         }
       }
@@ -598,7 +602,7 @@ exports.googleAuth = async (req, res) => {
       user = new User({
         googleId: finalGoogleId,
         email: finalEmail.toLowerCase(),
-        name: finalName || finalEmail.split('@')[0],
+        name: finalName || (finalEmail.includes('@') ? finalEmail.split('@')[0] : finalEmail),
         oauthProviders: ['google'],
         isEmailVerified: verifiedUser?.emailVerified || true,
         location: {
@@ -654,7 +658,7 @@ exports.googleAuth = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error with Google authentication',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -677,9 +681,10 @@ exports.facebookAuth = async (req, res) => {
           console.warn('Facebook token verification skipped:', verificationResult.warning);
         }
       } catch (verifyError) {
-        console.error('Facebook token verification failed:', verifyError.message);
+        const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
+        console.error('Facebook token verification failed:', errorMessage);
         
-        if (verifyError.message.includes('expired')) {
+        if (errorMessage.includes('expired')) {
           return res.status(401).json({
             success: false,
             message: 'Facebook session has expired. Please sign in again.',
@@ -690,7 +695,7 @@ exports.facebookAuth = async (req, res) => {
         return res.status(401).json({
           success: false,
           message: 'Facebook authentication failed. Please try again.',
-          error: verifyError.message,
+          error: verifyError instanceof Error ? verifyError.message : String(verifyError),
         });
       }
     }
@@ -709,7 +714,7 @@ exports.facebookAuth = async (req, res) => {
       user = new User({
         facebookId,
         email: email.toLowerCase(),
-        name: name || email.split('@')[0],
+        name: name || (email.includes('@') ? email.split('@')[0] : email),
         oauthProviders: ['facebook'],
         isEmailVerified: true,
         location: {
@@ -763,7 +768,7 @@ exports.facebookAuth = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error with Facebook authentication',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -791,9 +796,10 @@ exports.appleAuth = async (req, res) => {
           console.warn('Apple token verification skipped:', verifiedUser.warning);
         }
       } catch (verifyError) {
-        console.error('Apple token verification failed:', verifyError.message);
+        const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
+        console.error('Apple token verification failed:', errorMessage);
         
-        if (verifyError.message.includes('expired')) {
+        if (errorMessage.includes('expired')) {
           return res.status(401).json({
             success: false,
             message: 'Apple session has expired. Please sign in again.',
@@ -857,7 +863,7 @@ exports.appleAuth = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error with Apple authentication',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };

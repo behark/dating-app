@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { AnalyticsService } from '../services/AnalyticsService';
+import logger from '../utils/logger';
 
 // SCREEN_WIDTH removed - unused
 
@@ -197,7 +198,10 @@ class AppErrorBoundary extends React.Component {
 
     // In production, you might want to send this to an error reporting service
     if (__DEV__) {
-      console.error('Error Boundary caught an error:', error, errorInfo);
+      logger.error('Error Boundary caught an error', error, {
+        componentStack: errorInfo.componentStack,
+        errorCategory: category,
+      });
     }
   }
 

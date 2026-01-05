@@ -29,4 +29,12 @@ blockSchema.index({ blockerId: 1, blockedUserId: 1 }, { unique: true });
 blockSchema.index({ blockerId: 1 });
 blockSchema.index({ blockedUserId: 1 });
 
-module.exports = mongoose.model('Block', blockSchema);
+/**
+ * @typedef {import('../types/index').BlockDocument} BlockDocument
+ * @typedef {import('../types/index').BlockModel} BlockModel
+ */
+
+/** @type {BlockModel} */
+const BlockModel = mongoose.model('Block', blockSchema);
+
+module.exports = BlockModel;

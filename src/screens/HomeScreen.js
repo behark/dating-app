@@ -117,9 +117,9 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const loadPremiumStatus = async () => {
-    if (!userId) return;
+    if (!userId || !authToken) return;
     try {
-      const premiumStatus = await PremiumService.checkPremiumStatus(userId);
+      const premiumStatus = await PremiumService.checkPremiumStatus(userId, authToken);
       setIsPremium(premiumStatus.isPremium);
       setPremiumFeatures(premiumStatus.features);
 

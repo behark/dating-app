@@ -114,8 +114,10 @@ matchSchema.pre('save', function (next) {
       }
       return u;
     });
-    this.user1 = this.users[0];
-    this.user2 = this.users[1];
+    if (this.users.length >= 2) {
+      this.user1 = this.users[0];
+      this.user2 = this.users[1];
+    }
   }
   this.updatedAt = new Date();
   next();
@@ -124,6 +126,7 @@ matchSchema.pre('save', function (next) {
 // Static method to check if a match exists between two users
 matchSchema.statics.matchExists = async function (userId1, userId2) {
   const sortedIds = [userId1.toString(), userId2.toString()].sort();
+  // @ts-ignore - Mongoose static method context
   return this.findOne({
     user1: sortedIds[0],
     user2: sortedIds[1],
@@ -140,6 +143,7 @@ matchSchema.statics.createMatch = async function (
 ) {
   const sortedIds = [userId1.toString(), userId2.toString()].sort();
 
+  // @ts-ignore - Mongoose static method context
   // Check if match already exists
   const existingMatch = await this.findOne({
     user1: sortedIds[0],
@@ -180,6 +184,7 @@ matchSchema.statics.getUserMatches = async function (userId, options = {}) {
   };
 
   const sort = {};
+  // @ts-ignore - Mongoose static method context
   sort[sortBy] = sortOrder;
 
   return this.find(query)
@@ -188,6 +193,7 @@ matchSchema.statics.getUserMatches = async function (userId, options = {}) {
     .skip(skip)
     .limit(limit);
 };
+// @ts-ignore - Mongoose static method context
 
 // Static method to unmatch
 matchSchema.statics.unmatch = async function (matchId, userId) {
@@ -207,6 +213,7 @@ matchSchema.statics.unmatch = async function (matchId, userId) {
   await match.save();
 
   return match;
+// @ts-ignore - Mongoose static method context
 };
 
 // Static method to get match count for a user
@@ -234,4 +241,12 @@ matchSchema.methods.markConversationStarted = async function (messageBy) {
   await this.save();
 };
 
-module.exports = mongoose.model('Match', matchSchema);
+/**
+ * @typedef {import('../types/index').MatchDocument} MatchDocument
+ * @typedef {import('../types/index').MatchModel} MatchModel
+ */
+
+/** @type {MatchModel} */
+const MatchModel = mongoose.model('Match', matchSchema);
+
+module.exports = MatchModel;

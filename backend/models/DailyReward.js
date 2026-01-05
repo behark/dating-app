@@ -68,4 +68,12 @@ dailyRewardSchema.pre('save', function (next) {
   next();
 });
 
-module.exports = mongoose.model('DailyReward', dailyRewardSchema);
+/**
+ * @typedef {import('../types/index').DailyRewardDocument} DailyRewardDocument
+ * @typedef {import('../types/index').DailyRewardModel} DailyRewardModel
+ */
+
+/** @type {DailyRewardModel} */
+const DailyRewardModel = mongoose.model('DailyReward', dailyRewardSchema);
+
+module.exports = DailyRewardModel;

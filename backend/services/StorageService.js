@@ -263,7 +263,7 @@ const StorageService = {
         const result = await this.upload(file, userId, fileType);
         results.push({ success: true, ...result });
       } catch (error) {
-        results.push({ success: false, error: error.message, fileName: file.originalname });
+        results.push({ success: false, error: error instanceof Error ? error.message : String(error), fileName: file.originalname });
       }
     }
 
@@ -382,7 +382,7 @@ const StorageService = {
       return { safe, moderation };
     } catch (error) {
       console.error('Moderation error:', error);
-      return { safe: true, moderation: null, error: error.message };
+      return { safe: true, moderation: null, error: error instanceof Error ? error.message : String(error) };
     }
   },
 

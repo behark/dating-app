@@ -1,7 +1,12 @@
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
 const GamificationService = require('../services/GamificationService');
+
 const SwipeStreak = require('../models/SwipeStreak');
+
 const AchievementBadge = require('../models/AchievementBadge');
+
 const DailyReward = require('../models/DailyReward');
+
 
 class GamificationController {
   /**
@@ -25,7 +30,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to track swipe',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -53,7 +58,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get swipe streak',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -80,7 +85,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to award badge',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -102,7 +107,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get badges',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -124,7 +129,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get daily reward',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -145,7 +150,7 @@ class GamificationController {
     } catch (error) {
       res.status(400).json({
         error: 'Failed to claim reward',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -163,7 +168,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get gamification stats',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -184,7 +189,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get leaderboard',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -205,7 +210,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get longest streak leaderboard',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -231,7 +236,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to update badges',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -255,7 +260,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get user level',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -280,7 +285,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to add XP',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -300,7 +305,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get level rewards',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -324,7 +329,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get daily challenges',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -344,7 +349,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to update challenge progress',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -364,7 +369,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to track challenge action',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -384,7 +389,7 @@ class GamificationController {
     } catch (error) {
       res.status(400).json({
         error: 'Failed to claim challenge reward',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -404,7 +409,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get completion bonus',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -424,7 +429,7 @@ class GamificationController {
     } catch (error) {
       res.status(400).json({
         error: 'Failed to claim completion bonus',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -448,7 +453,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get user achievements',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -468,7 +473,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to check achievements',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -488,7 +493,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to unlock achievement',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -508,7 +513,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get achievement progress',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -529,7 +534,7 @@ class GamificationController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get recent achievements',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }

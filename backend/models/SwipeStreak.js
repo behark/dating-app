@@ -81,9 +81,17 @@ swipeStreakSchema.pre('save', function (next) {
 });
 
 // Index for efficient queries
-swipeStreakSchema.index({ userId: 1 });
+// Note: userId index is automatically created by unique: true, so we don't need to add it explicitly
 swipeStreakSchema.index({ currentStreak: -1 }); // For leaderboards
 swipeStreakSchema.index({ longestStreak: -1 }); // For leaderboards
 swipeStreakSchema.index({ lastSwipeDate: -1 });
 
-module.exports = mongoose.model('SwipeStreak', swipeStreakSchema);
+/**
+ * @typedef {import('../types/index').SwipeStreakDocument} SwipeStreakDocument
+ * @typedef {import('../types/index').SwipeStreakModel} SwipeStreakModel
+ */
+
+/** @type {SwipeStreakModel} */
+const SwipeStreakModel = mongoose.model('SwipeStreak', swipeStreakSchema);
+
+module.exports = SwipeStreakModel;

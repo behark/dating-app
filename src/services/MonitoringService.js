@@ -1,4 +1,6 @@
 // Monitoring service for performance tracking and error reporting
+import logger from '../utils/logger';
+
 export class MonitoringService {
   static performanceMarks = new Map();
 
@@ -19,7 +21,7 @@ export class MonitoringService {
         const startTime = this.performanceMarks.get(name);
         if (startTime) {
           const duration = Date.now() - startTime;
-          console.log(`Performance: ${name} took ${duration}ms`);
+          logger.debug(`Performance: ${name} took ${duration}ms`, { name, duration });
 
           // Log to analytics
           if (window.gtag) {
@@ -31,7 +33,7 @@ export class MonitoringService {
           }
         }
       } catch (error) {
-        console.warn('Performance measurement failed:', error);
+        logger.warn('Performance measurement failed', error, { name });
       } finally {
         this.performanceMarks.delete(name);
       }
@@ -40,7 +42,7 @@ export class MonitoringService {
 
   // Error monitoring
   static captureException(error, context = {}) {
-    console.error('Exception captured:', error, context);
+    logger.error('Exception captured', error, context);
 
     // In production, send to error reporting service
     if (!__DEV__) {
@@ -70,14 +72,14 @@ export class MonitoringService {
       },
       body: JSON.stringify(errorReport),
     }).catch((err) => {
-      console.warn('Failed to send error report:', err);
+      logger.warn('Failed to send error report', err);
     });
   }
 
   // User interaction tracking
   static trackUserInteraction(action, details = {}) {
     if (__DEV__) {
-      console.log('User interaction:', action, details);
+      logger.debug('User interaction', { action, ...details });
     }
 
     // Track in analytics
@@ -94,12 +96,12 @@ export class MonitoringService {
     const duration = Date.now() - startTime;
 
     if (__DEV__) {
-      console.log(`Network: ${method} ${url} - ${duration}ms`);
+      logger.debug(`Network: ${method} ${url} - ${duration}ms`, { method, url, duration });
     }
 
     // Log slow requests
     if (duration > 3000) {
-      console.warn(`Slow network request: ${method} ${url} took ${duration}ms`);
+      logger.warn(`Slow network request: ${method} ${url} took ${duration}ms`, { method, url, duration });
     }
 
     // Track in analytics
@@ -124,11 +126,11 @@ export class MonitoringService {
         percentage: Math.round((usedJSHeapSize / jsHeapSizeLimit) * 100),
       };
 
-      console.log('Memory usage:', memoryUsage);
+      logger.debug('Memory usage', memoryUsage);
 
       // Warn if memory usage is high
       if (memoryUsage.percentage > 80) {
-        console.warn('High memory usage detected:', `${memoryUsage.percentage}%`);
+        logger.warn('High memory usage detected', null, { percentage: memoryUsage.percentage });
       }
 
       return memoryUsage;
@@ -139,7 +141,7 @@ export class MonitoringService {
 
   // App lifecycle monitoring
   static trackAppLifecycle(event, details = {}) {
-    console.log('App lifecycle:', event, details);
+    logger.info('App lifecycle', { event, ...details });
 
     if (window.gtag) {
       window.gtag('event', 'app_lifecycle', {
@@ -152,7 +154,7 @@ export class MonitoringService {
   // Feature usage tracking
   static trackFeatureUsage(feature, details = {}) {
     if (__DEV__) {
-      console.log('Feature used:', feature, details);
+      logger.debug('Feature used', { feature, ...details });
     }
 
     if (window.gtag) {
@@ -190,10 +192,10 @@ export class MonitoringService {
         checks.checks.storage = 'failed';
       }
 
-      console.log('Health check results:', checks);
+      logger.info('Health check results', checks);
       return checks;
     } catch (error) {
-      console.error('Health check failed:', error);
+      logger.error('Health check failed', error);
       return { ...checks, error: error.message };
     }
   }
@@ -227,6 +229,6 @@ export class MonitoringService {
       );
     }
 
-    console.log('Monitoring service initialized');
+    logger.info('Monitoring service initialized');
   }
 }

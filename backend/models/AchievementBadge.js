@@ -96,4 +96,12 @@ achievementBadgeSchema.pre('save', function (next) {
   next();
 });
 
-module.exports = mongoose.model('AchievementBadge', achievementBadgeSchema);
+/**
+ * @typedef {import('../types/index').AchievementBadgeDocument} AchievementBadgeDocument
+ * @typedef {import('../types/index').AchievementBadgeModel} AchievementBadgeModel
+ */
+
+/** @type {AchievementBadgeModel} */
+const AchievementBadgeModel = mongoose.model('AchievementBadge', achievementBadgeSchema);
+
+module.exports = AchievementBadgeModel;

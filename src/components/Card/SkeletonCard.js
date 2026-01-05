@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
-import { View, StyleSheet, Dimensions, Animated } from 'react-native';
+import { Animated, Dimensions, Platform, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
+
+// useNativeDriver is not supported on web
+const useNativeDriver = Platform.OS !== 'web';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_HEIGHT = SCREEN_HEIGHT * 0.75;
@@ -16,12 +19,12 @@ const SkeletonCard = ({ style }) => {
           Animated.timing(shimmerAnimation, {
             toValue: 1,
             duration: 1000,
-            useNativeDriver: true,
+            useNativeDriver,
           }),
           Animated.timing(shimmerAnimation, {
             toValue: 0,
             duration: 1000,
-            useNativeDriver: true,
+            useNativeDriver,
           }),
         ])
       ).start();

@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { AnalyticsService } from '../services/AnalyticsService';
 import { Colors } from '../constants/colors';
+import logger from '../utils/logger';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -30,7 +31,9 @@ class ErrorBoundary extends React.Component {
     });
 
     // In production, you might want to send this to an error reporting service
-    console.error('Error Boundary caught an error:', error, errorInfo);
+    logger.error('Error Boundary caught an error', error, {
+      componentStack: errorInfo.componentStack,
+    });
   }
 
   handleRetry = () => {

@@ -127,6 +127,11 @@ async function createIndexes() {
     for (const collectionDef of INDEXES_TO_CREATE) {
       console.log(`📁 Processing collection: ${collectionDef.collection}`);
 
+      if (!db) {
+        console.error('Database connection is undefined');
+        continue;
+      }
+
       // Check if collection exists
       const collections = await db.listCollections({ name: collectionDef.collection }).toArray();
       if (collections.length === 0) {
@@ -158,7 +163,7 @@ async function createIndexes() {
           console.log(`   ✅ Index '${indexDef.name}' created successfully`);
           totalCreated++;
         } catch (error) {
-          console.error(`   ❌ Failed to create index '${indexDef.name}': ${error.message}`);
+          console.error(`   ❌ Failed to create index '${indexDef.name}': ${(error instanceof Error ? error.message : String(error))}`);
           totalFailed++;
         }
       }
@@ -193,7 +198,7 @@ async function createIndexes() {
 
     console.log('✅ Migration completed successfully!\n');
   } catch (error) {
-    console.error('❌ Migration failed:', error.message);
+    console.error('❌ Migration failed:', (error instanceof Error ? error.message : String(error)));
     process.exit(1);
   } finally {
     await mongoose.disconnect();
