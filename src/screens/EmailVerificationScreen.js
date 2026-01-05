@@ -35,7 +35,7 @@ export const EmailVerificationScreen = ({ navigation, route }) => {
       Alert.alert('Success', 'Your email has been verified!', [
         {
           text: 'OK',
-          onPress: () => navigation.navigate('Home'),
+          onPress: () => navigation.navigate('Main'),
         },
       ]);
     } catch (error) {

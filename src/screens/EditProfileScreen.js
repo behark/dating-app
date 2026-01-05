@@ -16,7 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import { ProfileService } from '../services/ProfileService';
 import logger from '../utils/logger';
 
-export const EditProfileScreen = ({ navigation, route }) => {
+const EditProfileScreen = ({ navigation, route }) => {
   const { currentUser, authToken } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -555,3 +555,5 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
 });
+
+export default EditProfileScreen;
