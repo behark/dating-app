@@ -17,6 +17,7 @@ import { LocationService } from '../services/LocationService';
 import { validateEmail } from '../utils/validators';
 import { showStandardError, STANDARD_ERROR_MESSAGES } from '../utils/errorHandler';
 import { useThrottle } from '../hooks/useDebounce';
+import { sanitizeEmail, sanitizeString } from '../utils/sanitize';
 import logger from '../utils/logger';
 
 export const RegisterScreen = ({ navigation }) => {
@@ -62,33 +63,39 @@ export const RegisterScreen = ({ navigation }) => {
     if (loading || isRegisterPending) return;
 
     try {
+      // Sanitize inputs
+      const sanitizedEmail = sanitizeEmail(email);
+      const sanitizedPassword = sanitizeString(password, { escapeHtml: false }); // Don't escape password
+      const sanitizedConfirmPassword = sanitizeString(confirmPassword, { escapeHtml: false });
+      const sanitizedName = sanitizeString(name);
+
       // Validation
-      if (!email.trim()) {
+      if (!sanitizedEmail) {
         showStandardError('Email is required', 'validation');
         return;
       }
 
-      if (!validateEmail(email)) {
+      if (!validateEmail(sanitizedEmail)) {
         showStandardError('Please enter a valid email address', 'validation');
         return;
       }
 
-      if (!password) {
+      if (!sanitizedPassword) {
         showStandardError('Password is required', 'validation');
         return;
       }
 
-      if (password.length < 8) {
+      if (sanitizedPassword.length < 8) {
         showStandardError('Password must be at least 8 characters long', 'validation');
         return;
       }
 
-      if (password !== confirmPassword) {
+      if (sanitizedPassword !== sanitizedConfirmPassword) {
         showStandardError('Passwords do not match. Please try again.', 'validation');
         return;
       }
 
-      if (!name.trim()) {
+      if (!sanitizedName) {
         showStandardError('Name is required', 'validation');
         return;
       }
@@ -110,7 +117,7 @@ export const RegisterScreen = ({ navigation }) => {
                 // Continue with signup - location will be null, backend will use default
                 try {
                   setLoading(true);
-                  await signup(email, password, name, parseInt(age), gender, null);
+                  await signup(sanitizedEmail, sanitizedPassword, sanitizedName, parseInt(age), gender, null);
                 } catch (error) {
                   logger.error('Signup error:', error);
                   showStandardError(error, 'signup', 'Sign Up Failed');
@@ -151,9 +158,9 @@ export const RegisterScreen = ({ navigation }) => {
       };
 
       const result = await signup(
-        email,
-        password,
-        name,
+        sanitizedEmail,
+        sanitizedPassword,
+        sanitizedName,
         age ? parseInt(age) : null,
         gender,
         locationData

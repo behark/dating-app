@@ -21,6 +21,8 @@ export const EditProfileScreen = ({ navigation, route }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [deletingPhoto, setDeletingPhoto] = useState(false);
 
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
@@ -82,11 +84,14 @@ export const EditProfileScreen = ({ navigation, route }) => {
         }
 
         try {
+          setUploadingPhoto(true);
           const uploadedPhotos = await ProfileService.uploadPhotos([newPhoto]);
           setPhotos(uploadedPhotos);
           Alert.alert('Success', 'Photo uploaded successfully');
         } catch (error) {
           Alert.alert('Error', error.message || 'Failed to upload photo');
+        } finally {
+          setUploadingPhoto(false);
         }
       }
     } catch (error) {
@@ -97,11 +102,14 @@ export const EditProfileScreen = ({ navigation, route }) => {
 
   const removePhoto = async (photoId) => {
     try {
+      setDeletingPhoto(photoId);
       const updatedPhotos = await ProfileService.deletePhoto(photoId);
       setPhotos(updatedPhotos);
       Alert.alert('Success', 'Photo deleted');
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to delete photo');
+    } finally {
+      setDeletingPhoto(false);
     }
   };
 
@@ -166,10 +174,15 @@ export const EditProfileScreen = ({ navigation, route }) => {
             <View key={photo._id || index} style={styles.photoContainer}>
               <Image source={{ uri: photo.url }} style={styles.photo} />
               <TouchableOpacity
-                style={styles.photoDeleteBtn}
+                style={[styles.photoDeleteBtn, deletingPhoto === photo._id && styles.photoDeleteBtnDisabled]}
                 onPress={() => removePhoto(photo._id)}
+                disabled={deletingPhoto === photo._id}
               >
-                <Text style={styles.photoDeletBtnText}>×</Text>
+                {deletingPhoto === photo._id ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text style={styles.photoDeletBtnText}>×</Text>
+                )}
               </TouchableOpacity>
               {photo.moderationStatus === 'pending' && (
                 <View style={styles.moderationBadge}>
@@ -180,8 +193,16 @@ export const EditProfileScreen = ({ navigation, route }) => {
           ))}
 
           {photos.length < 6 && (
-            <TouchableOpacity style={styles.photoAddBtn} onPress={pickImage}>
-              <Text style={styles.photoAddBtnText}>+ Add Photo</Text>
+            <TouchableOpacity
+              style={[styles.photoAddBtn, uploadingPhoto && styles.photoAddBtnDisabled]}
+              onPress={pickImage}
+              disabled={uploadingPhoto}
+            >
+              {uploadingPhoto ? (
+                <ActivityIndicator size="small" color={Colors.accent.red} />
+              ) : (
+                <Text style={styles.photoAddBtnText}>+ Add Photo</Text>
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -357,6 +378,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  photoDeleteBtnDisabled: {
+    opacity: 0.6,
+  },
   photoDeletBtnText: {
     color: 'white',
     fontSize: 20,
@@ -372,6 +396,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f9f9f9',
+  },
+  photoAddBtnDisabled: {
+    opacity: 0.6,
   },
   photoAddBtnText: {
     color: Colors.text.tertiary,

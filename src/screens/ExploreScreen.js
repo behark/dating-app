@@ -26,6 +26,9 @@ const CARD_WIDTH = (width - 24) / 2;
 const ExploreScreen = ({ navigation }) => {
   const { user, authToken } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
   const [users, setUsers] = useState([]);
   const [sortBy, setSortBy] = useState('recentActivity');
   const [filters, setFilters] = useState({
@@ -453,6 +456,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text.light,
     marginTop: 6,
+  },
+  loadMoreContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
   },
 });
 

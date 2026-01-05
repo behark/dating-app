@@ -4,6 +4,7 @@ import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 import api from './api';
 import { validateNotEmpty, validateUserId } from '../utils/validators';
+import { sanitizeString, sanitizeArray } from '../utils/sanitize';
 import OfflineService from './OfflineService';
 
 export class ProfileService {
@@ -106,7 +107,22 @@ export class ProfileService {
 
   static async updateProfile(profileData) {
     try {
-      const data = await api.put('/profile/update', profileData);
+      // Sanitize profile data before sending to backend
+      const sanitizedData = {
+        ...profileData,
+      };
+
+      if (sanitizedData.name) {
+        sanitizedData.name = sanitizeString(sanitizedData.name);
+      }
+      if (sanitizedData.bio) {
+        sanitizedData.bio = sanitizeString(sanitizedData.bio, { maxLength: 500 });
+      }
+      if (sanitizedData.interests && Array.isArray(sanitizedData.interests)) {
+        sanitizedData.interests = sanitizeArray(sanitizedData.interests);
+      }
+
+      const data = await api.put('/profile/update', sanitizedData);
 
       if (!data.success) {
         throw new Error(getUserFriendlyMessage(data.message || 'Failed to update profile'));
