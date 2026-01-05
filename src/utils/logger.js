@@ -2,7 +2,10 @@
  * Logger Utility
  * Centralized logging service to replace console.log/error/warn
  * Supports different log levels and environment-based filtering
+ * Integrates with Sentry for error tracking in production
  */
+
+import { captureException, captureMessage } from './sentry';
 
 const LOG_LEVELS = {
   DEBUG: 0,
@@ -51,6 +54,16 @@ class Logger {
   warn(message, ...args) {
     if (this.shouldLog(LOG_LEVELS.WARN)) {
       console.warn(`[WARN] ${message}`, ...args);
+      // Send warnings to Sentry in production for monitoring
+      if (process.env.NODE_ENV === 'production') {
+        try {
+          captureMessage(message, 'warning', {
+            context: args.length > 0 ? args : undefined,
+          });
+        } catch (sentryError) {
+          // Don't let Sentry errors break logging
+        }
+      }
     }
   }
 
@@ -58,8 +71,27 @@ class Logger {
     if (this.shouldLog(LOG_LEVELS.ERROR)) {
       if (error) {
         console.error(`[ERROR] ${message}`, error, ...args);
+        // CRITICAL FIX: Send errors to Sentry for monitoring
+        try {
+          const errorObj = error instanceof Error ? error : new Error(String(error));
+          captureException(errorObj, {
+            message,
+            context: args.length > 0 ? args : undefined,
+          });
+        } catch (sentryError) {
+          // Don't let Sentry errors break logging
+          console.warn('Failed to send error to Sentry:', sentryError);
+        }
       } else {
         console.error(`[ERROR] ${message}`, ...args);
+        // Send error message to Sentry
+        try {
+          captureMessage(message, 'error', {
+            context: args.length > 0 ? args : undefined,
+          });
+        } catch (sentryError) {
+          console.warn('Failed to send error message to Sentry:', sentryError);
+        }
       }
     }
   }

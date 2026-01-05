@@ -18,6 +18,7 @@ import { useAuth } from '../context/AuthContext';
 import { validateEmail, validatePassword } from '../utils/validators';
 import { showStandardError, STANDARD_ERROR_MESSAGES } from '../utils/errorHandler';
 import { useThrottle } from '../hooks/useDebounce';
+import { sanitizeEmail, sanitizeString } from '../utils/sanitize';
 import logger from '../utils/logger';
 
 const LoginScreen = ({ navigation, onAuthSuccess }) => {
@@ -35,32 +36,38 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
   const { execute: executeAuth, isPending: isAuthPending } = useThrottle(async () => {
     if (loading || isAuthPending) return;
 
+    // Sanitize inputs
+    const sanitizedEmail = sanitizeEmail(email);
+    const sanitizedPassword = sanitizeString(password, { escapeHtml: false }); // Don't escape password
+    const sanitizedName = isLogin ? null : sanitizeString(name);
+    const sanitizedAge = isLogin ? null : age;
+
     // Input validation
-    if (!email || !password) {
+    if (!sanitizedEmail || !sanitizedPassword) {
       showStandardError(STANDARD_ERROR_MESSAGES.REQUIRED_FIELD, 'validation');
       return;
     }
 
     // Additional validation for signup
     if (!isLogin) {
-      if (!name || !age || !gender) {
+      if (!sanitizedName || !sanitizedAge || !gender) {
         showStandardError('Please fill in all required fields (name, age, gender)', 'validation');
         return;
       }
 
-      const ageNum = parseInt(age);
+      const ageNum = parseInt(sanitizedAge);
       if (isNaN(ageNum) || ageNum < 18 || ageNum > 100) {
         showStandardError('Please enter a valid age between 18 and 100', 'validation');
         return;
       }
     }
 
-    if (!validateEmail(email)) {
+    if (!validateEmail(sanitizedEmail)) {
       showStandardError('Please enter a valid email address', 'validation');
       return;
     }
 
-    if (!isLogin && !validatePassword(password, { minLength: 8 })) {
+    if (!isLogin && !validatePassword(sanitizedPassword, { minLength: 8 })) {
       showStandardError('Password must be at least 8 characters long', 'validation');
       return;
     }
@@ -68,9 +75,9 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
     setLoading(true);
     try {
       if (isLogin) {
-        await login(email, password);
+        await login(sanitizedEmail, sanitizedPassword);
       } else {
-        await signup(email, password, name, parseInt(age), gender);
+        await signup(sanitizedEmail, sanitizedPassword, sanitizedName, parseInt(sanitizedAge), gender);
       }
       // Call success callback if provided
       if (onAuthSuccess) {

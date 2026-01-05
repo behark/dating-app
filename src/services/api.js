@@ -2,6 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
 import { getUserFriendlyMessage, STANDARD_ERROR_MESSAGES } from '../utils/errorMessages';
 import rateLimiter from '../utils/rateLimiter';
+import requestDeduplicator from '../utils/requestDeduplication';
+import { retryWithBackoff } from '../utils/retryUtils';
 import logger from '../utils/logger';
 
 // Token storage keys
@@ -159,14 +161,52 @@ const api = {
   },
 
   /**
+   * Normalize API response to consistent format
+   * Handles both { success, data } and flat object responses
+   * @param {object} response - Raw API response
+   * @returns {object} Normalized response: { success: boolean, data: any, message?: string, pagination?: object }
+   */
+  normalizeResponse(response) {
+    // Already in standard format
+    if (response && typeof response === 'object' && 'success' in response) {
+      return {
+        success: response.success,
+        data: response.data !== undefined ? response.data : response,
+        message: response.message,
+        pagination: response.pagination,
+        error: response.error,
+        errors: response.errors,
+      };
+    }
+
+    // Flat object - wrap in standard format
+    return {
+      success: true,
+      data: response,
+      message: response.message,
+    };
+  },
+
+  /**
    * Make an API request with authentication and automatic token refresh
    * @param {string} method - HTTP method
    * @param {string} endpoint - API endpoint
    * @param {object} data - Request body data
    * @param {object} options - Additional options
    * @param {boolean} _isRetry - Internal flag to prevent infinite retry loops
+   * @param {boolean} _isDeduplicated - Internal flag to prevent double deduplication
    */
-  async request(method, endpoint, data = null, options = {}, _isRetry = false) {
+  async request(method, endpoint, data = null, options = {}, _isRetry = false, _isDeduplicated = false) {
+    // Request deduplication (unless explicitly bypassed or already deduplicated)
+    if (!options.bypassDeduplication && !_isDeduplicated && !_isRetry) {
+      return requestDeduplicator.deduplicate(
+        method,
+        endpoint,
+        () => this.request(method, endpoint, data, options, false, true),
+        data
+      );
+    }
+
     // Client-side rate limiting (unless explicitly bypassed)
     if (!options.bypassRateLimit && !_isRetry) {
       const rateLimitKey = `${method}:${endpoint}`;
@@ -180,6 +220,20 @@ const api = {
         error.retryAfter = Math.ceil(timeRemaining / 1000);
         throw error;
       }
+    }
+
+    // Wrap request in retry logic (unless explicitly disabled)
+    if (options.retry !== false && !_isRetry) {
+      const retryOptions = {
+        maxRetries: options.maxRetries || 3,
+        initialDelay: options.retryDelay || 1000,
+        shouldRetry: options.shouldRetry,
+      };
+
+      return retryWithBackoff(
+        () => this.request(method, endpoint, data, { ...options, retry: false }, false, _isDeduplicated),
+        retryOptions
+      );
     }
 
     const url = `${API_URL}${endpoint}`;
@@ -245,9 +299,11 @@ const api = {
         throw error;
       }
 
-      // All responses now follow standardized format: { success: true, message: '...', data: {...}, pagination?: {...} }
-      // Return the entire response to maintain access to success, message, pagination, etc.
-      return await response.json();
+      // Parse response
+      const rawResponse = await response.json();
+      
+      // Normalize response format to ensure consistency
+      return this.normalizeResponse(rawResponse);
     } catch (error) {
       // Don't double-wrap errors we already threw (they already have user-friendly messages)
       if (error.message && error.code) {

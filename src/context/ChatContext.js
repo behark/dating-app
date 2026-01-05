@@ -6,6 +6,7 @@ import { SOCKET_URL } from '../config/api';
 import api from '../services/api';
 import logger from '../utils/logger';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { sanitizeString } from '../utils/sanitize';
 import { useAuth } from './AuthContext';
 import OfflineService from '../services/OfflineService';
 
@@ -446,9 +447,12 @@ export const ChatProvider = ({ children }) => {
     async (matchId, content, type = 'text') => {
       if (!content.trim()) return;
 
+      // Sanitize message content to prevent XSS
+      const sanitizedContent = sanitizeString(content.trim(), { maxLength: 1000 });
+
       const messageData = {
         matchId,
-        content: content.trim(),
+        content: sanitizedContent,
         type,
       };
 
@@ -458,7 +462,7 @@ export const ChatProvider = ({ children }) => {
         matchId,
         senderId: user?.uid,
         receiverId: null, // Will be set by server
-        content: content.trim(),
+        content: sanitizedContent,
         type,
         createdAt: new Date().toISOString(),
         pending: true,

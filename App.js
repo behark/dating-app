@@ -12,6 +12,8 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { AnalyticsService } from './src/services/AnalyticsService';
 import { PWAService } from './src/services/PWAService';
 import { UserBehaviorAnalytics } from './src/services/UserBehaviorAnalytics';
+import { initSentry } from './src/utils/sentry';
+import Constants from 'expo-constants';
 
 // Vercel Analytics and Speed Insights (web only)
 // Using dynamic imports for web platform to avoid breaking native builds
@@ -100,6 +102,19 @@ function AppWithErrorHandling() {
 
 export default function App() {
   useEffect(() => {
+    // CRITICAL FIX: Initialize Sentry error tracking
+    const sentryDsn = Constants.expoConfig?.extra?.sentryDsn || process.env.EXPO_PUBLIC_SENTRY_DSN;
+    if (sentryDsn) {
+      initSentry({
+        dsn: sentryDsn,
+        environment: __DEV__ ? 'development' : 'production',
+        release: Constants.expoConfig?.version || '1.0.0',
+      });
+      console.log('✅ Sentry error tracking initialized');
+    } else {
+      console.warn('⚠️  Sentry DSN not configured - error tracking disabled');
+    }
+
     // Suppress Radix UI Dialog accessibility warning from Vercel Analytics
     // This is a third-party library issue, not our code
     if (Platform.OS === 'web' && typeof console !== 'undefined') {

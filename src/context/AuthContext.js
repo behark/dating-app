@@ -12,6 +12,16 @@ import { LocationService } from '../services/LocationService';
 import { NotificationService } from '../services/NotificationService';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import { extractGoogleUserInfo, decodeJWT } from '../utils/jwt';
+import {
+  storeAuthToken,
+  storeRefreshToken,
+  getAuthToken,
+  getRefreshToken,
+  removeAuthToken,
+  removeRefreshToken,
+  clearAllTokens,
+} from '../utils/secureStorage';
+import { setUser as setSentryUser, clearUser as clearSentryUser } from '../utils/sentry';
 import logger from '../utils/logger';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -68,8 +78,9 @@ export const AuthProvider = ({ children }) => {
     const loadUser = async () => {
       try {
         const storedUser = await AsyncStorage.getItem('currentUser');
-        const storedAuthToken = await AsyncStorage.getItem('authToken');
-        const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
+        // CRITICAL FIX: Use secure storage for tokens
+        const storedAuthToken = await getAuthToken();
+        const storedRefreshToken = await getRefreshToken();
 
         if (storedUser && storedAuthToken) {
           // Set tokens in api service temporarily for validation
@@ -127,7 +138,8 @@ export const AuthProvider = ({ children }) => {
                     
                     // Update stored tokens and user data
                     await AsyncStorage.setItem('currentUser', JSON.stringify(normalizedUser));
-                    await AsyncStorage.setItem('authToken', newToken);
+                    // CRITICAL FIX: Store token in secure storage
+                    await storeAuthToken(newToken);
                     
                     logger.info('Token refreshed and user session restored');
                   } else {
@@ -174,7 +186,7 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, []);
 
-  // Session timeout warning - Check token expiry and warn user 5 minutes before
+  // Handle Google OAuth response
   useEffect(() => {
     if (!authToken) {
       // Clear interval if no token
@@ -291,10 +303,8 @@ export const AuthProvider = ({ children }) => {
         sessionCheckIntervalRef.current = null;
       }
     };
-  }, [authToken, sessionWarningShown]);
-
-  // Handle Google OAuth response
-  useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authToken, sessionWarningShown]); // refreshSession and logout are stable functions
     if (response?.type === 'success') {
       const { id_token } = response.params;
       if (id_token) {
@@ -590,8 +600,11 @@ export const AuthProvider = ({ children }) => {
       api.clearAuthToken();
 
       await AsyncStorage.removeItem('currentUser');
-      await AsyncStorage.removeItem('authToken');
-      await AsyncStorage.removeItem('refreshToken');
+      // CRITICAL FIX: Remove tokens from secure storage
+      await clearAllTokens();
+      
+      // CRITICAL FIX: Clear user from Sentry
+      clearSentryUser();
       
       logger.info('User logged out successfully');
     } catch (error) {
@@ -639,6 +652,127 @@ export const AuthProvider = ({ children }) => {
     logger.debug('Session expired, clearing local data...');
     await logout();
   };
+
+  // Session timeout warning - Check token expiry and warn user 5 minutes before
+  // Must be after logout and refreshSession are defined
+  useEffect(() => {
+    if (!authToken) {
+      // Clear interval if no token
+      if (sessionCheckIntervalRef.current) {
+        clearInterval(sessionCheckIntervalRef.current);
+        sessionCheckIntervalRef.current = null;
+      }
+      setSessionWarningShown(false);
+      return;
+    }
+
+    const checkTokenExpiry = async () => {
+      try {
+        const decoded = decodeJWT(authToken);
+        if (!decoded || !decoded.exp) {
+          return;
+        }
+
+        const expiryTime = decoded.exp * 1000; // Convert to milliseconds
+        const currentTime = Date.now();
+        const timeUntilExpiry = expiryTime - currentTime;
+        const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+        // Warn user 5 minutes before expiry
+        if (timeUntilExpiry > 0 && timeUntilExpiry <= fiveMinutes && !sessionWarningShown) {
+          setSessionWarningShown(true);
+          
+          const minutesRemaining = Math.round(timeUntilExpiry / 60000);
+          
+          // Show alert with option to refresh
+          Alert.alert(
+            'Session Expiring Soon',
+            `Your session will expire in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}. Would you like to stay logged in?`,
+            [
+              {
+                text: 'Stay Logged In',
+                onPress: async () => {
+                  try {
+                    const newToken = await refreshSession();
+                    if (newToken) {
+                      Alert.alert('Success', 'Your session has been extended.');
+                    } else {
+                      Alert.alert('Error', 'Failed to refresh session. Please login again.');
+                      await logout();
+                    }
+                  } catch (error) {
+                    logger.error('Error refreshing session from warning', error);
+                    Alert.alert('Error', 'Failed to refresh session. Please login again.');
+                    await logout();
+                  }
+                },
+              },
+              {
+                text: 'Later',
+                style: 'cancel',
+                onPress: () => {
+                  // Reset warning after 1 minute to show again if still close to expiry
+                  setTimeout(() => {
+                    setSessionWarningShown(false);
+                  }, 60000);
+                },
+              },
+            ],
+            { cancelable: false }
+          );
+        }
+
+        // Auto-refresh if less than 1 minute remaining
+        if (timeUntilExpiry > 0 && timeUntilExpiry <= 60000 && !sessionWarningShown) {
+          logger.info('Auto-refreshing token - less than 1 minute remaining');
+          try {
+            const newToken = await refreshSession();
+            if (!newToken) {
+              // Auto-refresh failed, show warning
+              Alert.alert(
+                'Session Expired',
+                'Your session has expired. Please login again.',
+                [{ text: 'OK', onPress: () => logout() }]
+              );
+            }
+          } catch (error) {
+            logger.error('Error auto-refreshing token', error);
+            Alert.alert(
+              'Session Expired',
+              'Your session has expired. Please login again.',
+              [{ text: 'OK', onPress: () => logout() }]
+            );
+          }
+        }
+
+        // If token already expired, logout
+        if (timeUntilExpiry <= 0) {
+          logger.warn('Token expired, logging out');
+          Alert.alert(
+            'Session Expired',
+            'Your session has expired. Please login again.',
+            [{ text: 'OK', onPress: () => logout() }]
+          );
+        }
+      } catch (error) {
+        logger.error('Error checking token expiry', error);
+      }
+    };
+
+    // Check immediately
+    checkTokenExpiry();
+
+    // Check every 30 seconds
+    sessionCheckIntervalRef.current = setInterval(checkTokenExpiry, 30000);
+
+    return () => {
+      if (sessionCheckIntervalRef.current) {
+        clearInterval(sessionCheckIntervalRef.current);
+        sessionCheckIntervalRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authToken, sessionWarningShown]); // refreshSession and logout are stable functions
 
   const signInWithGoogle = async (idToken) => {
     try {
@@ -712,10 +846,14 @@ export const AuthProvider = ({ children }) => {
     }
 
     await AsyncStorage.setItem('currentUser', JSON.stringify(normalizedUser));
-    await AsyncStorage.setItem('authToken', token);
+    // CRITICAL FIX: Store tokens in secure storage (encrypted)
+    await storeAuthToken(token);
     if (refToken) {
-      await AsyncStorage.setItem('refreshToken', refToken);
+      await storeRefreshToken(refToken);
     }
+
+    // CRITICAL FIX: Set user in Sentry for error tracking
+    setSentryUser(normalizedUser);
 
     // Register for notifications and update location
     if (normalizedUser.uid) {
