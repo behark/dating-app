@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -24,6 +27,9 @@ export default function SocialMediaConnectionScreen() {
     spotify: false,
     instagram: false,
   });
+  const [showInputModal, setShowInputModal] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [inputType, setInputType] = useState(null); // 'spotify' or 'instagram'
 
   useEffect(() => {
     // Load connected accounts on screen mount
@@ -40,83 +46,117 @@ export default function SocialMediaConnectionScreen() {
   };
 
   const connectSpotify = async () => {
+    // Use native Alert.prompt on iOS/Android, modal on web
+    if (Platform.OS !== 'web' && Alert.prompt) {
+      try {
+        setLoadingConnection({ ...loadingConnection, spotify: true });
+        Alert.prompt('Connect Spotify', 'Enter your Spotify username', [
+          {
+            text: 'Cancel',
+            onPress: () => setLoadingConnection({ ...loadingConnection, spotify: false }),
+            style: 'cancel',
+          },
+          {
+            text: 'Connect',
+            onPress: async (username) => {
+              await handleSpotifyConnect(username);
+            },
+          },
+        ]);
+      } catch (error) {
+        Alert.alert('Error', error.message);
+        setLoadingConnection({ ...loadingConnection, spotify: false });
+      }
+    } else {
+      // Web: show modal
+      setInputType('spotify');
+      setInputValue('');
+      setShowInputModal(true);
+    }
+  };
+
+  const handleSpotifyConnect = async (username) => {
+    if (!username || !username.trim()) {
+      Alert.alert('Error', 'Please enter a valid username');
+      setLoadingConnection({ ...loadingConnection, spotify: false });
+      return;
+    }
+
     try {
       setLoadingConnection({ ...loadingConnection, spotify: true });
+      await SocialMediaService.connectSpotify({
+        username: username.trim(),
+        profileUrl: `https://open.spotify.com/user/${username.trim()}`,
+      });
 
-      // In a real app, you'd use Spotify OAuth flow
-      // This is a simplified version
-      Alert.prompt('Connect Spotify', 'Enter your Spotify username', [
-        {
-          text: 'Cancel',
-          onPress: () => setLoadingConnection({ ...loadingConnection, spotify: false }),
-          style: 'cancel',
-        },
-        {
-          text: 'Connect',
-          onPress: async (username) => {
-            try {
-              await SocialMediaService.connectSpotify({
-                username,
-                profileUrl: `https://open.spotify.com/user/${username}`,
-              });
+      setConnectedAccounts({
+        ...connectedAccounts,
+        spotify: { username: username.trim(), isVerified: false },
+      });
 
-              setConnectedAccounts({
-                ...connectedAccounts,
-                spotify: { username, isVerified: false },
-              });
-
-              Alert.alert('Success', 'Spotify account connected');
-            } catch (error) {
-              Alert.alert('Error', error.message);
-            } finally {
-              setLoadingConnection({ ...loadingConnection, spotify: false });
-            }
-          },
-        },
-      ]);
+      Alert.alert('Success', 'Spotify account connected');
+      setShowInputModal(false);
     } catch (error) {
       Alert.alert('Error', error.message);
+    } finally {
       setLoadingConnection({ ...loadingConnection, spotify: false });
     }
   };
 
   const connectInstagram = async () => {
+    // Use native Alert.prompt on iOS/Android, modal on web
+    if (Platform.OS !== 'web' && Alert.prompt) {
+      try {
+        setLoadingConnection({ ...loadingConnection, instagram: true });
+        Alert.prompt('Connect Instagram', 'Enter your Instagram username', [
+          {
+            text: 'Cancel',
+            onPress: () => setLoadingConnection({ ...loadingConnection, instagram: false }),
+            style: 'cancel',
+          },
+          {
+            text: 'Connect',
+            onPress: async (username) => {
+              await handleInstagramConnect(username);
+            },
+          },
+        ]);
+      } catch (error) {
+        Alert.alert('Error', error.message);
+        setLoadingConnection({ ...loadingConnection, instagram: false });
+      }
+    } else {
+      // Web: show modal
+      setInputType('instagram');
+      setInputValue('');
+      setShowInputModal(true);
+    }
+  };
+
+  const handleInstagramConnect = async (username) => {
+    if (!username || !username.trim()) {
+      Alert.alert('Error', 'Please enter a valid username');
+      setLoadingConnection({ ...loadingConnection, instagram: false });
+      return;
+    }
+
     try {
       setLoadingConnection({ ...loadingConnection, instagram: true });
+      await SocialMediaService.connectInstagram({
+        username: username.trim(),
+        profileUrl: `https://instagram.com/${username.trim()}`,
+      });
 
-      // In a real app, you'd use Instagram OAuth flow
-      // This is a simplified version
-      Alert.prompt('Connect Instagram', 'Enter your Instagram username', [
-        {
-          text: 'Cancel',
-          onPress: () => setLoadingConnection({ ...loadingConnection, instagram: false }),
-          style: 'cancel',
-        },
-        {
-          text: 'Connect',
-          onPress: async (username) => {
-            try {
-              await SocialMediaService.connectInstagram({
-                username,
-                profileUrl: `https://instagram.com/${username}`,
-              });
+      setConnectedAccounts({
+        ...connectedAccounts,
+        instagram: { username: username.trim(), isVerified: false },
+      });
 
-              setConnectedAccounts({
-                ...connectedAccounts,
-                instagram: { username, isVerified: false },
-              });
-
-              Alert.alert('Success', 'Instagram account connected');
-            } catch (error) {
-              Alert.alert('Error', error.message);
-            } finally {
-              setLoadingConnection({ ...loadingConnection, instagram: false });
-            }
-          },
-        },
-      ]);
+      Alert.alert('Success', 'Instagram account connected');
+      setShowInputModal(false);
     } catch (error) {
       Alert.alert('Error', error.message);
+    } finally {
       setLoadingConnection({ ...loadingConnection, instagram: false });
     }
   };
@@ -307,6 +347,70 @@ export default function SocialMediaConnectionScreen() {
           Only verified social accounts are visible on your profile. We never post on your behalf.
         </Text>
       </View>
+
+      {/* Input Modal for Web */}
+      <Modal
+        visible={showInputModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowInputModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              Connect {inputType === 'spotify' ? 'Spotify' : 'Instagram'}
+            </Text>
+            <Text style={styles.modalSubtitle}>
+              Enter your {inputType === 'spotify' ? 'Spotify' : 'Instagram'} username
+            </Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder={`${inputType === 'spotify' ? 'Spotify' : 'Instagram'} username`}
+              placeholderTextColor={Colors.text.tertiary}
+              value={inputValue}
+              onChangeText={setInputValue}
+              autoFocus
+              onSubmitEditing={() => {
+                if (inputType === 'spotify') {
+                  handleSpotifyConnect(inputValue);
+                } else {
+                  handleInstagramConnect(inputValue);
+                }
+              }}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  setShowInputModal(false);
+                  setInputValue('');
+                }}
+              >
+                <Text style={styles.modalButtonCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonConnect]}
+                onPress={() => {
+                  if (inputType === 'spotify') {
+                    handleSpotifyConnect(inputValue);
+                  } else {
+                    handleInstagramConnect(inputValue);
+                  }
+                }}
+                disabled={
+                  loadingConnection[inputType || 'spotify'] || !inputValue.trim()
+                }
+              >
+                {loadingConnection[inputType || 'spotify'] ? (
+                  <ActivityIndicator size="small" color={Colors.background.white} />
+                ) : (
+                  <Text style={styles.modalButtonConnectText}>Connect</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -456,5 +560,64 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.status.infoBlue,
     lineHeight: 18,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: Colors.background.white,
+    borderRadius: 12,
+    padding: 24,
+    width: '90%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.text.primary,
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    marginBottom: 16,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: Colors.border.gray,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    color: Colors.text.primary,
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: Colors.background.lighter,
+    borderWidth: 1,
+    borderColor: Colors.border.gray,
+  },
+  modalButtonCancelText: {
+    color: Colors.text.primary,
+    fontWeight: '600',
+  },
+  modalButtonConnect: {
+    backgroundColor: '#007AFF',
+  },
+  modalButtonConnectText: {
+    color: Colors.background.white,
+    fontWeight: '600',
   },
 });
