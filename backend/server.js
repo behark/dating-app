@@ -311,7 +311,29 @@ if (process.env.NODE_ENV === 'production' && process.env.API_KEY) {
     next();
   });
 }
-app.use(cors(corsOptions));
+
+// Apply CORS conditionally - allow health checks and root path without origin
+app.use((req, res, next) => {
+  // Allow health check endpoints and root path without origin in production
+  const isHealthCheck = req.path === '/health' || req.path === '/health/detailed' || req.path === '/';
+  
+  if (isHealthCheck && !req.headers.origin && process.env.NODE_ENV === 'production') {
+    // Set CORS headers manually for health checks
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-ID, X-Request-ID, X-API-Key');
+    
+    // Handle OPTIONS preflight
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+    
+    return next();
+  }
+  
+  // Apply CORS for all other requests
+  cors(corsOptions)(req, res, next);
+});
 
 // Global rate limiting - Apply to all API routes
 const { dynamicRateLimiter } = require('./middleware/rateLimiter');
