@@ -23,12 +23,23 @@ services:
         generateValue: true
       - key: ENCRYPTION_KEY
         generateValue: true
+      # Firebase Configuration
       - key: FIREBASE_PROJECT_ID
         value: my-project-de65d
+      # Note: FIREBASE_PRIVATE_KEY and FIREBASE_CLIENT_EMAIL must be added manually in Render dashboard
+      # Get these from Firebase Console → Project Settings → Service Accounts → Generate New Private Key
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false  # Set manually in dashboard for security
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false  # Set manually in dashboard for security
       - key: CORS_ORIGIN
         value: https://dating-app-beharks-projects.vercel.app
       - key: FRONTEND_URL
         value: https://dating-app-beharks-projects.vercel.app
+      - key: GOOGLE_CLIENT_ID
+        value: 489822402223-ijgd0vvfbma9s22944go4e2gnqk92ipd.apps.googleusercontent.com
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false  # Set manually in dashboard for security
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: JWT_EXPIRES_IN

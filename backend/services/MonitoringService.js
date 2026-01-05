@@ -34,40 +34,63 @@ class MonitoringService {
 
   /**
    * Get Sentry request handler middleware
+   * Note: In Sentry v8+, expressIntegration handles this automatically
    */
   getRequestHandler() {
-    return Sentry.Handlers.requestHandler({
-      // Include request body in events (be careful with sensitive data)
-      request: ['method', 'url', 'query_string', 'headers'],
-      serverName: true,
-      user: ['id', 'email'],
-    });
+    // Check if Sentry.Handlers exists (older API < v8)
+    if (Sentry.Handlers && Sentry.Handlers.requestHandler) {
+      return Sentry.Handlers.requestHandler({
+        // Include request body in events (be careful with sensitive data)
+        request: ['method', 'url', 'query_string', 'headers'],
+        serverName: true,
+        user: ['id', 'email'],
+      });
+    }
+    // For Sentry v8+, expressIntegration in instrument.js handles this
+    // Return a no-op middleware since expressIntegration does the work
+    return (req, res, next) => next();
   }
 
   /**
    * Get Sentry tracing middleware
    */
   getTracingHandler() {
-    return Sentry.Handlers.tracingHandler();
+    // Check if Sentry.Handlers exists (older API < v8)
+    if (Sentry.Handlers && Sentry.Handlers.tracingHandler) {
+      return Sentry.Handlers.tracingHandler();
+    }
+    // For Sentry v8+, tracing is handled by expressIntegration
+    return (req, res, next) => next();
   }
 
   /**
    * Get Sentry error handler middleware (must be first error handler)
    */
   getErrorHandler() {
-    return Sentry.Handlers.errorHandler({
-      shouldHandleError(error) {
-        // Capture all 400+ errors except 401/403
-        if (error.status >= 500 || !error.status) {
-          return true;
-        }
-        // Also capture 400 errors that aren't validation issues
-        if (error.status === 400 && !error.isValidationError) {
-          return true;
-        }
-        return false;
-      },
-    });
+    // Check if Sentry.Handlers exists (older API < v8)
+    if (Sentry.Handlers && Sentry.Handlers.errorHandler) {
+      return Sentry.Handlers.errorHandler({
+        shouldHandleError(error) {
+          // Capture all 400+ errors except 401/403
+          if (error.status >= 500 || !error.status) {
+            return true;
+          }
+          // Also capture 400 errors that aren't validation issues
+          if (error.status === 400 && !error.isValidationError) {
+            return true;
+          }
+          return false;
+        },
+      });
+    }
+    // For Sentry v8+, use setupExpressErrorHandler or handle manually
+    // Return an error handler that captures exceptions
+    return (err, req, res, next) => {
+      if (this.initialized) {
+        Sentry.captureException(err);
+      }
+      next(err);
+    };
   }
 
   /**
