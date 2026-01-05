@@ -31,8 +31,10 @@ export default function ProfileViewsScreen() {
       setError(null);
     } catch (err) {
       logger.error('Error fetching profile views:', err);
-      setError(err.message);
-      Alert.alert('Error', err.message);
+      // Ensure error is always a string, not an object
+      const errorMessage = err?.message || err?.toString() || 'Failed to load profile views';
+      setError(errorMessage);
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
       setRefreshing(false);

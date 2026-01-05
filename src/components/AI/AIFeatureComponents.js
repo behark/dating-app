@@ -30,7 +30,9 @@ export const SmartPhotoSelector = ({ userId, onPhotoSelected }) => {
         const data = await aiService.getSmartPhotoSelection(userId);
         setRecommendations(data);
       } catch (err) {
-        setError(err.message);
+        // Ensure error is always a string, not an object
+        const errorMessage = err?.message || err?.toString() || 'An error occurred';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
