@@ -312,13 +312,26 @@ if (process.env.NODE_ENV === 'production' && process.env.API_KEY) {
   });
 }
 
-// Apply CORS conditionally - allow health checks and root path without origin
+// Safe paths that don't require origin header in production (for health checks, monitoring, etc.)
+const SAFE_NO_ORIGIN_PATHS = [
+  '/',
+  '/health',
+  '/health/detailed',
+  '/favicon.ico',
+  '/metrics',
+  '/api/metrics/health', // Metrics health endpoint
+];
+
+// Apply CORS conditionally - allow safe paths without origin
 app.use((req, res, next) => {
-  // Allow health check endpoints and root path without origin in production
-  const isHealthCheck = req.path === '/health' || req.path === '/health/detailed' || req.path === '/';
+  // Check if this is a safe path that doesn't require origin
+  const isSafePath = SAFE_NO_ORIGIN_PATHS.some(path => {
+    // Exact match or path starts with the safe path followed by /
+    return req.path === path || req.path.startsWith(path + '/');
+  });
   
-  if (isHealthCheck && !req.headers.origin && process.env.NODE_ENV === 'production') {
-    // Set CORS headers manually for health checks
+  if (isSafePath && !req.headers.origin && process.env.NODE_ENV === 'production') {
+    // Set CORS headers manually for safe paths
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-ID, X-Request-ID, X-API-Key');
