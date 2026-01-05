@@ -132,6 +132,8 @@ healthCheckService.registerCheck('redis', async () => {
 });
 
 // Sentry request handler (must be first)
+// Note: In Sentry v8+, expressIntegration handles this automatically
+// These handlers are kept for backward compatibility but may be no-ops
 if (process.env.SENTRY_DSN) {
   app.use(monitoringService.getRequestHandler());
   app.use(monitoringService.getTracingHandler());
@@ -765,7 +767,9 @@ const startServer = async () => {
     // Configure keep-alive for better HTTP/1.1 connection reuse
     configureKeepAlive(server);
 
-    server.listen(PORT, () => {
+    // Listen on 0.0.0.0 to allow Render's load balancer to connect
+    // Using 0.0.0.0 instead of default (localhost) makes the server accessible from outside the container
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`Socket.io enabled`);

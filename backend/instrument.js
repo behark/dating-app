@@ -18,7 +18,8 @@ if (process.env.SENTRY_DSN) {
       nodeProfilingIntegration(),
       // HTTP calls tracing
       Sentry.httpIntegration({ tracing: true }),
-      // Express tracing will be added in server.js after app is created
+      // Express integration for request/error handling
+      Sentry.expressIntegration(),
       // Mongo tracing
       Sentry.mongoIntegration(),
     ],
