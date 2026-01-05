@@ -9,6 +9,7 @@ const {
   asyncHandler,
 } = require('../utils/responseHelpers');
 const SuperLike = require('../models/SuperLike');
+const { logger } = require('../services/LoggingService');
 
 const Rewind = require('../models/Rewind');
 
@@ -153,7 +154,7 @@ const sendSuperLike = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error sending super like:', error);
+    logger.error('Error sending super like:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -200,7 +201,7 @@ const getSuperLikeQuota = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting super like quota:', error);
+    logger.error('Error getting super like quota:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -289,7 +290,7 @@ const rewindLastSwipe = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error rewinding swipe:', error);
+    logger.error('Error rewinding swipe:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -336,7 +337,7 @@ const getRewindQuota = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting rewind quota:', error);
+    logger.error('Error getting rewind quota:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -427,7 +428,7 @@ const boostProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error boosting profile:', error);
+    logger.error('Error boosting profile:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -492,7 +493,7 @@ const getBoostQuota = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting boost quota:', error);
+    logger.error('Error getting boost quota:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',

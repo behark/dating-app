@@ -1,4 +1,5 @@
 const FeatureFlag = require('../models/FeatureFlag');
+const { logger } = require('../services/LoggingService');
 const FeatureFlagOverride = require('../models/FeatureFlagOverride');
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
@@ -128,7 +129,7 @@ exports.getUserFlags = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get user flags error:', error);
+    logger.error('Get user flags error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching feature flags',
@@ -173,7 +174,7 @@ exports.getFlag = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get flag error:', error);
+    logger.error('Get flag error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching feature flag',
@@ -210,7 +211,7 @@ exports.getAllFlags = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get all flags error:', error);
+    logger.error('Get all flags error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching feature flags',
@@ -271,7 +272,7 @@ exports.createOrUpdateFlag = async (req, res) => {
       data: { flag },
     });
   } catch (error) {
-    console.error('Create/update flag error:', error);
+    logger.error('Create/update flag error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error saving feature flag',
@@ -315,7 +316,7 @@ exports.updateRollout = async (req, res) => {
       data: { flag },
     });
   } catch (error) {
-    console.error('Update rollout error:', error);
+    logger.error('Update rollout error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating rollout percentage',
@@ -376,7 +377,7 @@ exports.setUserOverride = async (req, res) => {
       data: { override },
     });
   } catch (error) {
-    console.error('Set user override error:', error);
+    logger.error('Set user override error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error setting user override',
@@ -410,7 +411,7 @@ exports.removeUserOverride = async (req, res) => {
       message: 'User override removed successfully',
     });
   } catch (error) {
-    console.error('Remove user override error:', error);
+    logger.error('Remove user override error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error removing user override',

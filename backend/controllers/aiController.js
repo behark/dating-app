@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { logger } = require('../services/LoggingService');
 
 const {
   sendSuccess,
@@ -67,7 +68,7 @@ const generateIcebreakersOpenAI = async (interests, bio) => {
   try {
     OpenAI = require('openai').OpenAI;
   } catch (error) {
-    console.warn('OpenAI package not installed, falling back to mock');
+    logger.warn('OpenAI package not installed, falling back to mock');
     return generateIcebreakersMock(interests, bio);
   }
 
@@ -149,7 +150,7 @@ Return ONLY a JSON array of exactly 3 strings, no other text. Example format:
     // Fallback to mock if parsing fails
     return generateIcebreakersMock(interests, bio);
   } catch (error) {
-    console.error('OpenAI API error:', error);
+    logger.error('OpenAI API error:', { error: error.message, stack: error.stack });
     // Fallback to mock on error
     return generateIcebreakersMock(interests, bio);
   }
@@ -201,7 +202,7 @@ const generateIcebreakers = async (req, res) => {
       try {
         icebreakers = await generateIcebreakersOpenAI(interests, bio);
       } catch (error) {
-        console.error('OpenAI generation failed, falling back to mock:', error);
+        logger.error('OpenAI generation failed, falling back to mock:', { error: error.message, stack: error.stack });
         icebreakers = generateIcebreakersMock(interests, bio);
       }
     } else {
@@ -222,7 +223,7 @@ const generateIcebreakers = async (req, res) => {
       icebreakers: icebreakers.slice(0, 3),
     });
   } catch (error) {
-    console.error('Error generating icebreakers:', error);
+    logger.error('Error generating icebreakers:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to generate icebreakers',
@@ -291,7 +292,7 @@ const getSmartPhotoSelection = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error analyzing photos:', error);
+    logger.error('Error analyzing photos:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to analyze photos',
@@ -386,7 +387,7 @@ const generateBioSuggestions = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error generating bio suggestions:', error);
+    logger.error('Error generating bio suggestions:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to generate bio suggestions',
@@ -489,7 +490,7 @@ const calculateCompatibilityScore = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error calculating compatibility:', error);
+    logger.error('Error calculating compatibility:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to calculate compatibility',
@@ -578,7 +579,7 @@ const getConversationStarters = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting conversation starters:', error);
+    logger.error('Error getting conversation starters:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to get conversation starters',
@@ -649,7 +650,7 @@ const analyzePhotoQuality = async (req, res) => {
       data: analysis,
     });
   } catch (error) {
-    console.error('Error analyzing photo:', error);
+    logger.error('Error analyzing photo:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to analyze photo',
@@ -718,7 +719,7 @@ const getPersonalizedMatches = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting personalized matches:', error);
+    logger.error('Error getting personalized matches:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to get personalized matches',
@@ -805,7 +806,7 @@ const getProfileImprovementSuggestions = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting suggestions:', error);
+    logger.error('Error getting suggestions:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to get profile suggestions',
@@ -881,7 +882,7 @@ const getConversationInsights = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting insights:', error);
+    logger.error('Error getting insights:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to get conversation insights',
@@ -995,7 +996,7 @@ const generateMatchIcebreakersOpenAI = async (currentUser, matchUser) => {
   try {
     OpenAI = require('openai').OpenAI;
   } catch (error) {
-    console.warn('OpenAI package not installed, falling back to mock');
+    logger.warn('OpenAI package not installed, falling back to mock');
     return generateMatchIcebreakersMock(currentUser, matchUser);
   }
 
@@ -1095,7 +1096,7 @@ Example format: {"icebreakers": ["First icebreaker...", "Second icebreaker...", 
 
     return generateMatchIcebreakersMock(currentUser, matchUser);
   } catch (error) {
-    console.error('OpenAI API error for match icebreakers:', error);
+    logger.error('OpenAI API error for match icebreakers:', { error: error.message, stack: error.stack });
     return generateMatchIcebreakersMock(currentUser, matchUser);
   }
 };
@@ -1176,7 +1177,7 @@ const generateMatchIcebreakers = async (req, res) => {
           );
         }
       } catch (error) {
-        console.error('OpenAI generation failed, falling back to mock:', error);
+        logger.error('OpenAI generation failed, falling back to mock:', { error: error.message, stack: error.stack });
         if (currentUser) {
           icebreakers = generateMatchIcebreakersMock(currentUser, matchUser);
         } else {
@@ -1216,7 +1217,7 @@ const generateMatchIcebreakers = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error generating match icebreakers:', error);
+    logger.error('Error generating match icebreakers:', { error: error.message, stack: error.stack });
     return res.status(500).json({
       success: false,
       message: 'Failed to generate icebreakers',

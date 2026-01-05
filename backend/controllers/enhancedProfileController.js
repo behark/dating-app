@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { logger } = require('../services/LoggingService');
 
 const {
   sendSuccess,
@@ -39,7 +40,7 @@ exports.getAllPrompts = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get prompts error:', error);
+    logger.error('Get prompts error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching prompts',
@@ -112,7 +113,7 @@ exports.updatePrompts = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Update prompts error:', error);
+    logger.error('Update prompts error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating prompts',
@@ -156,7 +157,7 @@ exports.updateEducation = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Update education error:', error);
+    logger.error('Update education error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating education',
@@ -199,7 +200,7 @@ exports.updateOccupation = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Update occupation error:', error);
+    logger.error('Update occupation error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating occupation',
@@ -247,7 +248,7 @@ exports.updateHeight = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Update height error:', error);
+    logger.error('Update height error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating height',
@@ -299,7 +300,7 @@ exports.updateEthnicity = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Update ethnicity error:', error);
+    logger.error('Update ethnicity error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating ethnicity',

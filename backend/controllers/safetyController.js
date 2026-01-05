@@ -9,6 +9,7 @@ const {
   asyncHandler,
 } = require('../utils/responseHelpers');
 const User = require('../models/User');
+const { logger } = require('../services/LoggingService');
 
 const Report = require('../models/Report');
 
@@ -116,7 +117,7 @@ exports.reportUser = async (req, res) => {
       reportId: report._id,
     });
   } catch (error) {
-    console.error('Error reporting user:', error);
+    logger.error('Error reporting user:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error submitting report',
@@ -146,7 +147,7 @@ exports.getReports = async (req, res) => {
       data: reports,
     });
   } catch (error) {
-    console.error('Error getting reports:', error);
+    logger.error('Error getting reports:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error retrieving reports',
@@ -203,7 +204,7 @@ exports.reviewReport = async (req, res) => {
       report,
     });
   } catch (error) {
-    console.error('Error reviewing report:', error);
+    logger.error('Error reviewing report:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error reviewing report',
@@ -242,7 +243,7 @@ exports.blockUser = async (req, res) => {
       message: 'User blocked successfully',
     });
   } catch (error) {
-    console.error('Error blocking user:', error);
+    logger.error('Error blocking user:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error blocking user',
@@ -273,7 +274,7 @@ exports.unblockUser = async (req, res) => {
       message: 'User unblocked successfully',
     });
   } catch (error) {
-    console.error('Error unblocking user:', error);
+    logger.error('Error unblocking user:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error unblocking user',
@@ -301,7 +302,7 @@ exports.getBlockedUsers = async (req, res) => {
       count: user.blockedUsers?.length || 0,
     });
   } catch (error) {
-    console.error('Error getting blocked users:', error);
+    logger.error('Error getting blocked users:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error retrieving blocked users',
@@ -335,7 +336,7 @@ exports.checkIfBlocked = async (req, res) => {
       canInteract: !isBlocked && !blockedByOther,
     });
   } catch (error) {
-    console.error('Error checking block status:', error);
+    logger.error('Error checking block status:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error checking block status',
@@ -386,7 +387,7 @@ exports.flagContent = async (req, res) => {
       flag,
     });
   } catch (error) {
-    console.error('Error flagging content:', error);
+    logger.error('Error flagging content:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error flagging content',
@@ -434,7 +435,7 @@ exports.getSafetyScore = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error calculating safety score:', error);
+    logger.error('Error calculating safety score:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error calculating safety score',
@@ -524,7 +525,7 @@ exports.getSafetyTips = async (req, res) => {
       data: tips,
     });
   } catch (error) {
-    console.error('Error getting safety tips:', error);
+    logger.error('Error getting safety tips:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error retrieving safety tips',
@@ -575,7 +576,7 @@ exports.suspendUser = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error('Error suspending user:', error);
+    logger.error('Error suspending user:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error suspending user',
@@ -618,7 +619,7 @@ exports.unsuspendUser = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error('Error unsuspending user:', error);
+    logger.error('Error unsuspending user:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error unsuspending user',
@@ -680,7 +681,7 @@ exports.getAccountStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting account status:', error);
+    logger.error('Error getting account status:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error checking account status',
@@ -745,7 +746,7 @@ exports.appealSuspension = async (req, res) => {
       message: 'Your appeal has been submitted. Our team will review it within 24-48 hours.',
     });
   } catch (error) {
-    console.error('Error submitting appeal:', error);
+    logger.error('Error submitting appeal:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error submitting appeal',

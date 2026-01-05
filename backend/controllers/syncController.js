@@ -1,4 +1,5 @@
 const OfflineAction = require('../models/OfflineAction');
+const { logger } = require('../services/LoggingService');
 const Message = require('../models/Message');
 const Swipe = require('../models/Swipe');
 const User = require('../models/User');
@@ -179,7 +180,7 @@ exports.executeSync = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Execute sync error:', error);
+    logger.error('Execute sync error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error executing sync',
@@ -481,7 +482,7 @@ exports.getConflicts = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get conflicts error:', error);
+    logger.error('Get conflicts error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching conflicts',
@@ -569,7 +570,7 @@ exports.resolveConflict = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Resolve conflict error:', error);
+    logger.error('Resolve conflict error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error resolving conflict',
@@ -631,7 +632,7 @@ exports.getSyncStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get sync status error:', error);
+    logger.error('Get sync status error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching sync status',

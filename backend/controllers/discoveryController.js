@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { logger } = require('../services/LoggingService');
 const Swipe = require('../models/Swipe');
 const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require('../constants/messages');
 const {
@@ -87,7 +88,7 @@ const discoverUsers = async (req, res) => {
 
     // Check elapsed time before expensive swipe lookup
     if (Date.now() - startTime > 10000) {
-      console.warn(`[SLOW] Discovery user lookup took ${Date.now() - startTime}ms`);
+      logger.warn('[SLOW] Discovery user lookup', { duration: Date.now() - startTime });
     }
 
     // Get IDs of users the current user has already swiped on (with timeout)
@@ -104,7 +105,7 @@ const discoverUsers = async (req, res) => {
         excludedUserIds.push(currentUserId);
       } catch (swipeError) {
         // If swipe lookup times out, continue without exclusions but log
-        console.warn('[TIMEOUT] Swipe lookup timed out, continuing with partial exclusions');
+        logger.warn('[TIMEOUT] Swipe lookup timed out, continuing with partial exclusions');
         excludedUserIds = [currentUserId];
       }
     }
@@ -196,9 +197,10 @@ const discoverUsers = async (req, res) => {
 
     // Log slow queries for monitoring
     if (queryTime > 5000) {
-      console.warn(
-        `[SLOW] Discovery query took ${queryTime}ms for ${usersWithDistance.length} results`
-      );
+      logger.warn('[SLOW] Discovery query', { 
+        duration: queryTime, 
+        resultCount: usersWithDistance.length 
+      });
     }
 
     res.json({
@@ -224,7 +226,7 @@ const discoverUsers = async (req, res) => {
     });
   } catch (error) {
     const queryTime = Date.now() - startTime;
-    console.error(`Discovery error after ${queryTime}ms:`, error);
+    logger.error('Discovery error', { duration: queryTime, error: error.message, stack: error.stack });
 
     // Check if this was a timeout error
     if (
@@ -299,7 +301,7 @@ const getDiscoverySettings = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get discovery settings error:', error);
+    logger.error('Get discovery settings error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -342,7 +344,7 @@ const updateLocation = async (req, res) => {
       message: SUCCESS_MESSAGES.LOCATION_UPDATED,
     });
   } catch (error) {
-    console.error('Update location error:', error);
+    logger.error('Update location error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -392,7 +394,7 @@ const updateLocationPrivacy = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Update location privacy error:', error);
+    logger.error('Update location privacy error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -431,7 +433,7 @@ const getLocationPrivacy = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get location privacy error:', error);
+    logger.error('Get location privacy error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,
@@ -481,7 +483,7 @@ const updatePreferredDistance = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Update preferred distance error:', error);
+    logger.error('Update preferred distance error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: ERROR_MESSAGES.INTERNAL_SERVER_ERROR,

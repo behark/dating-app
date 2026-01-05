@@ -14,6 +14,7 @@ const {
  */
 
 const User = require('../models/User');
+const { logger } = require('../services/LoggingService');
 
 const Message = require('../models/Message');
 
@@ -103,7 +104,7 @@ exports.exportUserData = async (req, res) => {
       data: exportData,
     });
   } catch (error) {
-    console.error('Data export error:', error);
+    logger.error('Data export error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to export user data',
@@ -141,7 +142,7 @@ exports.getPrivacySettings = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get privacy settings error:', error);
+    logger.error('Get privacy settings error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to get privacy settings',
@@ -204,7 +205,7 @@ exports.updatePrivacySettings = async (req, res) => {
       data: user.privacySettings,
     });
   } catch (error) {
-    console.error('Update privacy settings error:', error);
+    logger.error('Update privacy settings error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to update privacy settings',
@@ -244,7 +245,7 @@ exports.doNotSell = async (req, res) => {
           : 'Do Not Sell preference has been disabled',
     });
   } catch (error) {
-    console.error('Do Not Sell error:', error);
+    logger.error('Do Not Sell error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to update Do Not Sell preference',
@@ -306,7 +307,7 @@ exports.deleteAccount = async (req, res) => {
       message: 'Your account and all associated data have been permanently deleted',
     });
   } catch (error) {
-    console.error('Account deletion error:', error);
+    logger.error('Account deletion error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to delete account',
@@ -354,7 +355,7 @@ exports.rectifyData = async (req, res) => {
       data: user,
     });
   } catch (error) {
-    console.error('Data rectification error:', error);
+    logger.error('Data rectification error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to update personal data',
@@ -392,7 +393,7 @@ exports.getConsentStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get consent status error:', error);
+    logger.error('Get consent status error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to get consent status',
@@ -434,7 +435,7 @@ exports.recordConsent = async (req, res) => {
       message: 'Consent recorded successfully',
     });
   } catch (error) {
-    console.error('Record consent error:', error);
+    logger.error('Record consent error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to record consent',
@@ -482,7 +483,7 @@ exports.withdrawConsent = async (req, res) => {
       message: 'Consent preferences updated',
     });
   } catch (error) {
-    console.error('Withdraw consent error:', error);
+    logger.error('Withdraw consent error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Failed to update consent preferences',

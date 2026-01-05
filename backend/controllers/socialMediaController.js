@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { logger } = require('../services/LoggingService');
 
 const {
   sendSuccess,
@@ -54,7 +55,7 @@ exports.connectSpotify = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Connect Spotify error:', error);
+    logger.error('Connect Spotify error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error connecting Spotify',
@@ -106,7 +107,7 @@ exports.connectInstagram = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Connect Instagram error:', error);
+    logger.error('Connect Instagram error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error connecting Instagram',
@@ -147,7 +148,7 @@ exports.disconnectSpotify = async (req, res) => {
       message: 'Spotify disconnected successfully',
     });
   } catch (error) {
-    console.error('Disconnect Spotify error:', error);
+    logger.error('Disconnect Spotify error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error disconnecting Spotify',
@@ -188,7 +189,7 @@ exports.disconnectInstagram = async (req, res) => {
       message: 'Instagram disconnected successfully',
     });
   } catch (error) {
-    console.error('Disconnect Instagram error:', error);
+    logger.error('Disconnect Instagram error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error disconnecting Instagram',
@@ -236,7 +237,7 @@ exports.getSocialMedia = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get social media error:', error);
+    logger.error('Get social media error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching social media',

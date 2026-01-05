@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { logger } = require('../services/LoggingService');
 const Subscription = require('../models/Subscription');
 const Swipe = require('../models/Swipe');
 const { ERROR_MESSAGES, PREMIUM_MESSAGES } = require('../constants/messages');
@@ -56,7 +57,7 @@ const getSubscriptionStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting subscription status:', error);
+    logger.error('Error getting subscription status:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error retrieving subscription status',
@@ -85,7 +86,7 @@ const startTrial = async (req, res) => {
       data: result.subscription,
     });
   } catch (error) {
-    console.error('Error starting trial:', error);
+    logger.error('Error starting trial:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error starting trial',
@@ -123,7 +124,7 @@ const upgradeToPremium = async (req, res) => {
       data: result.subscription,
     });
   } catch (error) {
-    console.error('Error upgrading to premium:', error);
+    logger.error('Error upgrading to premium:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error upgrading to premium',
@@ -152,7 +153,7 @@ const cancelSubscription = async (req, res) => {
       data: result.subscription,
     });
   } catch (error) {
-    console.error('Error cancelling subscription:', error);
+    logger.error('Error cancelling subscription:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error cancelling subscription',
@@ -230,7 +231,7 @@ const getReceivedLikes = async (req, res) => {
           }
         }
       } catch (error) {
-        console.error('Error fetching liker details:', error);
+        logger.error('Error fetching liker details:', { error: error.message, stack: error.stack });
       }
     }
 
@@ -256,7 +257,7 @@ const getReceivedLikes = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting received likes:', error);
+    logger.error('Error getting received likes:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error retrieving received likes',
@@ -355,7 +356,7 @@ const setPassportLocation = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error setting passport location:', error);
+    logger.error('Error setting passport location:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating passport location',
@@ -395,7 +396,7 @@ const getPassportStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting passport status:', error);
+    logger.error('Error getting passport status:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error retrieving passport status',
@@ -430,7 +431,7 @@ const disablePassport = async (req, res) => {
       data: { enabled: false },
     });
   } catch (error) {
-    console.error('Error disabling passport:', error);
+    logger.error('Error disabling passport:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error disabling passport',
@@ -510,7 +511,7 @@ const getAdvancedFilterOptions = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting advanced filter options:', error);
+    logger.error('Error getting advanced filter options:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error retrieving filter options',
@@ -553,7 +554,7 @@ const updateAdvancedFilters = async (req, res) => {
       data: user.advancedFilters,
     });
   } catch (error) {
-    console.error('Error updating advanced filters:', error);
+    logger.error('Error updating advanced filters:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating advanced filters',
@@ -606,7 +607,7 @@ const sendPriorityLike = async (req, res) => {
       data: { swipeId: swipe._id },
     });
   } catch (error) {
-    console.error('Error sending priority like:', error);
+    logger.error('Error sending priority like:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error sending priority like',
@@ -655,7 +656,7 @@ const updateAdsPreferences = async (req, res) => {
       data: user.adsPreferences,
     });
   } catch (error) {
-    console.error('Error updating ads preferences:', error);
+    logger.error('Error updating ads preferences:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error updating ads preferences',
@@ -699,7 +700,7 @@ const getBoostAnalytics = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error getting boost analytics:', error);
+    logger.error('Error getting boost analytics:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error retrieving boost analytics',
@@ -775,7 +776,7 @@ const recordBoostSession = async (req, res) => {
       data: user.boostAnalytics,
     });
   } catch (error) {
-    console.error('Error recording boost session:', error);
+    logger.error('Error recording boost session:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error recording boost session',

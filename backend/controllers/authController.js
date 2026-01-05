@@ -37,7 +37,7 @@ const emailService = {
     if (!this.transporter) {
       // Check if email credentials are configured
       if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-        console.warn('⚠️  Email credentials not configured - email features disabled');
+        logger.warn('⚠️  Email credentials not configured - email features disabled');
         this.transporter = null;
         return;
       }
@@ -64,7 +64,7 @@ const emailService = {
     this.init();
 
     if (!this.transporter) {
-      console.warn('Email service not configured - cannot send email');
+      logger.warn('Email service not configured - cannot send email');
       return false;
     }
 
@@ -77,7 +77,7 @@ const emailService = {
       });
       return true;
     } catch (error) {
-      console.error('Email sending failed:', error);
+      logger.error('Email sending failed:', { error: error.message, stack: error.stack });
       return false;
     }
   },
@@ -187,7 +187,7 @@ exports.register = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    logger.error('Registration error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Error during registration',
       error: 'REGISTRATION_ERROR',
@@ -255,7 +255,7 @@ exports.login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error during login',
@@ -304,7 +304,7 @@ exports.verifyEmail = async (req, res) => {
       message: 'Email verified successfully',
     });
   } catch (error) {
-    console.error('Email verification error:', error);
+    logger.error('Email verification error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error verifying email',
@@ -355,7 +355,7 @@ exports.forgotPassword = async (req, res) => {
       message: 'If email exists, a password reset link has been sent',
     });
   } catch (error) {
-    console.error('Forgot password error:', error);
+    logger.error('Forgot password error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error processing password reset',
@@ -412,7 +412,7 @@ exports.resetPassword = async (req, res) => {
       message: 'Password reset successfully',
     });
   } catch (error) {
-    console.error('Reset password error:', error);
+    logger.error('Reset password error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error resetting password',
@@ -502,7 +502,7 @@ exports.logout = async (req, res) => {
       message: 'Logged out successfully',
     });
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error('Logout error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error during logout',
@@ -555,7 +555,7 @@ exports.deleteAccount = async (req, res) => {
       message: 'Account deleted successfully',
     });
   } catch (error) {
-    console.error('Delete account error:', error);
+    logger.error('Delete account error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error deleting account',
@@ -612,7 +612,7 @@ exports.refreshToken = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Refresh token error:', error);
+    logger.error('Refresh token error:', { error: error.message, stack: error.stack });
     res.status(401).json({
       success: false,
       message: 'Invalid refresh token',
@@ -639,7 +639,7 @@ exports.googleAuth = async (req, res) => {
         verifiedUser = await verifyGoogleToken(idToken);
         // Use verified data instead of client-provided data
         if (verifiedUser.googleId !== googleId) {
-          console.warn('Google ID mismatch: client provided different ID than token');
+          logger.warn('Google ID mismatch: client provided different ID than token');
         }
       } catch (verifyError) {
         const errorMessage =
@@ -672,7 +672,7 @@ exports.googleAuth = async (req, res) => {
         // If verification fails but we have client data, log warning and continue
         // This allows graceful degradation during development
         if (!googleConfig.configured) {
-          console.warn('⚠️  Google OAuth not fully configured - proceeding with unverified token');
+          logger.warn('⚠️  Google OAuth not fully configured - proceeding with unverified token');
         } else {
           return res.status(401).json({
             success: false,
@@ -755,7 +755,7 @@ exports.googleAuth = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Google auth error:', error);
+    logger.error('Google auth error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error with Google authentication',
@@ -866,7 +866,7 @@ exports.facebookAuth = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Facebook auth error:', error);
+    logger.error('Facebook auth error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error with Facebook authentication',
@@ -911,7 +911,7 @@ exports.appleAuth = async (req, res) => {
         }
 
         // Apple Sign-In can work without full verification in some cases
-        console.warn('⚠️  Proceeding with Apple auth despite token verification failure');
+        logger.warn('⚠️  Proceeding with Apple auth despite token verification failure');
       }
     }
 
@@ -962,7 +962,7 @@ exports.appleAuth = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Apple auth error:', error);
+    logger.error('Apple auth error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error with Apple authentication',
