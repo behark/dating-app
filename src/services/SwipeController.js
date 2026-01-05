@@ -1,18 +1,7 @@
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  serverTimestamp,
-  setDoc,
-  where,
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { Swipe } from '../models/Swipe';
 import logger from '../utils/logger';
 import { NotificationService } from './NotificationService';
+import api from './api';
 
 /**
  * SwipeController
@@ -39,7 +28,7 @@ export class SwipeController {
         };
       }
 
-      // Check swipe limit for free users
+      // Check swipe limit for free users (backend will also enforce this)
       const limitCheck = await this.checkSwipeLimit(swiperId, isPremium);
       if (!limitCheck.canSwipe) {
         return {
@@ -50,48 +39,27 @@ export class SwipeController {
         };
       }
 
-      // Check if swipe already exists
-      const existingSwipe = await this.getSwipe(swiperId, targetId);
-      if (existingSwipe) {
+      // Use backend API to create swipe
+      const response = await api.post('/swipes', {
+        targetId,
+        type, // 'like' or 'dislike'
+      });
+
+      if (!response.success) {
         return {
           success: false,
-          error: 'Swipe already exists',
+          error: response.message || 'Failed to save swipe',
+          limitExceeded: response.error === 'SWIPE_LIMIT_EXCEEDED',
+          remaining: response.data?.remaining || 0,
         };
       }
 
-      // Create and save swipe
-      const swipe = new Swipe(swiperId, targetId, type);
-      const swipeData = {
-        ...swipe.toFirestore(),
-        createdAt: serverTimestamp(),
-      };
-
-      const swipeRef = await addDoc(collection(db, 'swipes'), swipeData);
-
-      // Increment swipe counter
-      await this.incrementSwipeCounter(swiperId);
-
-      // Update user's swipedUsers array for backward compatibility
-      await this.updateUserSwipedList(swiperId, targetId);
-
-      // If it's a like, check for mutual like
-      if (type === 'like') {
-        const matchResult = await this.checkAndCreateMatch(swiperId, targetId);
-
-        return {
-          success: true,
-          swipeId: swipeRef.id,
-          match: matchResult.isMatch,
-          matchId: matchResult.matchId || null,
-        };
-      }
-
-      // For dislikes, just return success
+      // Backend handles match creation automatically
       return {
         success: true,
-        swipeId: swipeRef.id,
-        match: false,
-        matchId: null,
+        swipeId: response.data?.swipeId || null,
+        match: response.data?.isMatch || false,
+        matchId: response.data?.matchId || null,
       };
     } catch (error) {
       logger.error('Error saving swipe', error, { swiperId, targetId, type });
@@ -104,87 +72,35 @@ export class SwipeController {
 
   /**
    * Checks if target user has also liked the swiper, and creates a match if so
+   * NOTE: This is now handled by the backend API automatically when saving a swipe
    * @param {string} swiperId - User ID who just swiped
    * @param {string} targetId - User ID who was swiped on
    * @returns {Promise<Object>} Object with isMatch boolean and matchId if matched
+   * @deprecated Match creation is now handled by the backend API
    */
   static async checkAndCreateMatch(swiperId, targetId) {
-    try {
-      // Check if target has liked the swiper
-      const targetSwipe = await this.getSwipe(targetId, swiperId);
-
-      if (targetSwipe && targetSwipe.type === 'like') {
-        // Mutual like detected - create a match
-        const matchId = await this.createMatch(swiperId, targetId);
-
-        // Update both users' matches arrays for backward compatibility
-        await this.updateUserMatches(swiperId, targetId);
-
-        // Send notification to the target user
-        try {
-          const swiperDoc = await getDoc(doc(db, 'users', swiperId));
-          const swiperName = swiperDoc.data()?.name || 'Someone';
-          await NotificationService.sendMatchNotification(targetId, swiperName);
-        } catch (notifError) {
-          logger.error('Error sending match notification', notifError, { targetId, swiperId });
-          // Don't fail the match creation if notification fails
-        }
-
-        return {
-          isMatch: true,
-          matchId: matchId,
-        };
-      }
-
-      return {
-        isMatch: false,
-        matchId: null,
-      };
-    } catch (error) {
-      logger.error('Error checking for match', error, { swiperId, targetId });
-      return {
-        isMatch: false,
-        matchId: null,
-      };
-    }
+    // This method is deprecated - match creation is handled by the backend
+    // Keeping for backward compatibility but it's no longer needed
+    logger.warn('checkAndCreateMatch is deprecated - backend handles match creation automatically');
+    return {
+      isMatch: false,
+      matchId: null,
+    };
   }
 
   /**
    * Creates a match record in the matches collection
+   * NOTE: This is now handled by the backend API automatically
    * @param {string} userId1 - First user ID
    * @param {string} userId2 - Second user ID
    * @returns {Promise<string>} Match document ID
+   * @deprecated Match creation is now handled by the backend API
    */
   static async createMatch(userId1, userId2) {
-    try {
-      // Create a consistent match ID (sorted user IDs to avoid duplicates)
-      const sortedIds = [userId1, userId2].sort();
-      const matchId = `${sortedIds[0]}_${sortedIds[1]}`;
-
-      // Check if match already exists
-      const matchRef = doc(db, 'matches', matchId);
-      const matchDoc = await getDoc(matchRef);
-
-      if (matchDoc.exists()) {
-        return matchId;
-      }
-
-      // Create new match
-      const matchData = {
-        user1: sortedIds[0],
-        user2: sortedIds[1],
-        createdAt: serverTimestamp(),
-        lastMessageAt: null,
-        lastMessage: null,
-      };
-
-      await setDoc(matchRef, matchData);
-
-      return matchId;
-    } catch (error) {
-      logger.error('Error creating match', error, { userId1, userId2 });
-      throw error;
-    }
+    // This method is deprecated - match creation is handled by the backend
+    logger.warn('createMatch is deprecated - backend handles match creation automatically');
+    const sortedIds = [userId1, userId2].sort();
+    return `${sortedIds[0]}_${sortedIds[1]}`;
   }
 
   /**
@@ -192,78 +108,56 @@ export class SwipeController {
    * @param {string} swiperId - User ID of the swiper
    * @param {string} targetId - User ID of the target
    * @returns {Promise<Swipe|null>} Swipe object or null if not found
+   * @deprecated Use backend API if needed, but this is typically not needed on frontend
    */
   static async getSwipe(swiperId, targetId) {
-    try {
-      const q = query(
-        collection(db, 'swipes'),
-        where('swiper', '==', swiperId),
-        where('target', '==', targetId)
-      );
-
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) {
-        return null;
-      }
-
-      const doc = querySnapshot.docs[0];
-      if (!doc) {
-        return null;
-      }
-      return Swipe.fromFirestore(doc.id, doc.data());
-    } catch (error) {
-      logger.error('Error getting swipe', error, { swiperId, targetId });
-      return null;
-    }
+    // This method is deprecated - backend handles swipe queries
+    // Keeping for backward compatibility but consider removing if not used
+    logger.warn('getSwipe is deprecated - use backend API if needed');
+    return null;
   }
 
   /**
    * Gets all swipes by a user
    * @param {string} userId - User ID
    * @returns {Promise<Array<Swipe>>} Array of Swipe objects
+   * @deprecated Consider using backend API if this functionality is needed
    */
   static async getUserSwipes(userId) {
-    try {
-      const q = query(collection(db, 'swipes'), where('swiper', '==', userId));
-
-      const querySnapshot = await getDocs(q);
-      const swipes = [];
-
-      querySnapshot.forEach((doc) => {
-        const docData = doc.data();
-        if (docData) {
-          swipes.push(Swipe.fromFirestore(doc.id, docData));
-        }
-      });
-
-      return swipes;
-    } catch (error) {
-      logger.error('Error getting user swipes', error, { userId });
-      return [];
-    }
+    // This method is deprecated - backend handles swipe queries
+    // If needed, add a backend endpoint for this
+    logger.warn('getUserSwipes is deprecated - use backend API if needed');
+    return [];
   }
 
   /**
-   * Gets all swipes received by a user
+   * Gets all swipes received by a user (who liked you)
    * @param {string} userId - User ID
    * @returns {Promise<Array<Swipe>>} Array of Swipe objects
    */
   static async getReceivedSwipes(userId) {
     try {
-      const q = query(collection(db, 'swipes'), where('target', '==', userId));
+      const response = await api.get('/swipes/pending-likes');
 
-      const querySnapshot = await getDocs(q);
-      const swipes = [];
+      if (!response.success) {
+        logger.error('Error getting received swipes', new Error(response.message), { userId });
+        return [];
+      }
 
-      querySnapshot.forEach((doc) => {
-        const docData = doc.data();
-        if (docData) {
-          swipes.push(Swipe.fromFirestore(doc.id, docData));
+      // Transform backend response to Swipe objects if needed
+      const swipes = response.data?.pendingLikes || response.data || [];
+      return swipes.map((swipeData) => {
+        if (swipeData instanceof Swipe) {
+          return swipeData;
         }
+        // Convert backend format to Swipe object if needed
+        return Swipe.fromFirestore(swipeData.id || swipeData.swipeId, {
+          swiper: swipeData.swiperId || swipeData.userId,
+          target: swipeData.targetId || userId,
+          type: swipeData.type || 'like',
+          createdAt: swipeData.createdAt,
+        });
       });
-
-      return swipes;
     } catch (error) {
       logger.error('Error getting received swipes', error, { userId });
       return [];
@@ -272,76 +166,22 @@ export class SwipeController {
 
   /**
    * Updates user's swipedUsers array for backward compatibility
-   * @param {string} userId - User ID
-   * @param {string} swipedUserId - ID of user that was swiped on
+   * @deprecated Backend now handles this automatically
    * @private
    */
   static async updateUserSwipedList(userId, swipedUserId) {
-    try {
-      const userRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userRef);
-      const swipedUsers = userDoc.data()?.swipedUsers || [];
-
-      if (!swipedUsers.includes(swipedUserId)) {
-        await setDoc(
-          userRef,
-          {
-            swipedUsers: [...swipedUsers, swipedUserId],
-          },
-          { merge: true }
-        );
-      }
-    } catch (error) {
-      logger.error('Error updating user swiped list', error, { userId, swipedUserId });
-    }
+    // This method is deprecated - backend handles swipe tracking
+    logger.warn('updateUserSwipedList is deprecated - backend handles this automatically');
   }
 
   /**
    * Updates both users' matches arrays for backward compatibility
-   * @param {string} userId1 - First user ID
-   * @param {string} userId2 - Second user ID
+   * @deprecated Backend now handles this automatically
    * @private
    */
   static async updateUserMatches(userId1, userId2) {
-    try {
-      const user1Ref = doc(db, 'users', userId1);
-      const user2Ref = doc(db, 'users', userId2);
-
-      const [user1Doc, user2Doc] = await Promise.all([getDoc(user1Ref), getDoc(user2Ref)]);
-
-      const user1Matches = user1Doc.data()?.matches || [];
-      const user2Matches = user2Doc.data()?.matches || [];
-
-      const updates = [];
-
-      if (!user1Matches.includes(userId2)) {
-        updates.push(
-          setDoc(
-            user1Ref,
-            {
-              matches: [...user1Matches, userId2],
-            },
-            { merge: true }
-          )
-        );
-      }
-
-      if (!user2Matches.includes(userId1)) {
-        updates.push(
-          setDoc(
-            user2Ref,
-            {
-              matches: [...user2Matches, userId1],
-            },
-            { merge: true }
-          )
-        );
-      }
-
-      await Promise.all(updates);
-    } catch (error) {
-      logger.error('Error updating user matches', error, { userId1, userId2 });
-    }
+    // This method is deprecated - backend handles match tracking
+    logger.warn('updateUserMatches is deprecated - backend handles this automatically');
   }
 
   /**
@@ -418,55 +258,36 @@ export class SwipeController {
 
   /**
    * Increments swipe counter for the day
-   * @param {string} userId - User ID
+   * @deprecated Backend now handles this automatically
    * @private
    */
   static async incrementSwipeCounter(userId) {
-    try {
-      const swipesCount = await this.getSwipesCountToday(userId);
-      const today = new Date().toDateString();
-
-      await setDoc(
-        doc(db, 'users', userId),
-        {
-          swipesToday: swipesCount + 1,
-          lastSwipeDate: today,
-        },
-        { merge: true }
-      );
-    } catch (error) {
-      logger.error('Error incrementing swipe counter', error, { userId });
-    }
+    // This method is deprecated - backend handles swipe counting
+    logger.warn('incrementSwipeCounter is deprecated - backend handles this automatically');
   }
 
   /**
    * Undoes the last swipe for a user
    * @param {string} userId - User ID
-   * @param {string} swipeId - ID of the swipe document to undo
+   * @param {string} swipeId - ID of the swipe document to undo (optional, backend can find last swipe)
    * @returns {Promise<Object>} Result object with success status
    */
-  static async undoSwipe(userId, swipeId) {
+  static async undoSwipe(userId, swipeId = null) {
     try {
-      const { deleteDoc } = await import('firebase/firestore');
-      await deleteDoc(doc(db, 'swipes', swipeId));
+      const response = await api.post('/swipes/undo', {
+        swipeId, // Optional - backend can find the last swipe if not provided
+      });
 
-      // Decrement swipe counter
-      const swipesCount = await this.getSwipesCountToday(userId);
-      if (swipesCount > 0) {
-        const today = new Date().toDateString();
-        await setDoc(
-          doc(db, 'users', userId),
-          {
-            swipesToday: swipesCount - 1,
-            lastSwipeDate: today,
-          },
-          { merge: true }
-        );
+      if (!response.success) {
+        return {
+          success: false,
+          error: response.message || 'Failed to undo swipe',
+        };
       }
 
       return {
         success: true,
-        message: 'Swipe undone successfully',
+        message: response.message || 'Swipe undone successfully',
       };
     } catch (error) {
       logger.error('Error undoing swipe', error, { userId, swipeId });
@@ -481,31 +302,12 @@ export class SwipeController {
    * Gets the most recent swipe by a user (for undo functionality)
    * @param {string} userId - User ID
    * @returns {Promise<Object|null>} Most recent swipe or null
+   * @deprecated Backend handles undo functionality automatically
    */
   static async getLastSwipe(userId) {
-    try {
-      const q = query(collection(db, 'swipes'), where('swiper', '==', userId));
-
-      const querySnapshot = await getDocs(q);
-      let lastSwipe = null;
-      let lastTimestamp = null;
-
-      querySnapshot.forEach((doc) => {
-        const swipe = doc.data();
-        if (swipe) {
-          const timestamp = swipe.createdAt?.toMillis?.() || 0;
-          if (timestamp > (lastTimestamp || 0)) {
-            lastSwipe = { id: doc.id, ...swipe };
-            lastTimestamp = timestamp;
-          }
-        }
-      });
-
-      return lastSwipe;
-    } catch (error) {
-      logger.error('Error getting last swipe', error, { userId });
-      return null;
-    }
+    // This method is deprecated - backend handles undo without needing to fetch last swipe
+    logger.warn('getLastSwipe is deprecated - backend handles undo automatically');
+    return null;
   }
   /**
    * Unmatch with another user
@@ -515,54 +317,22 @@ export class SwipeController {
    */
   static async unmatch(userId1, userId2) {
     try {
-      const { deleteDoc } = await import('firebase/firestore');
-
-      // Delete the match document
+      // Create matchId in the same format as backend expects (sorted user IDs)
       const sortedIds = [userId1, userId2].sort();
       const matchId = `${sortedIds[0]}_${sortedIds[1]}`;
 
-      await deleteDoc(doc(db, 'matches', matchId));
+      const response = await api.delete(`/swipes/matches/${matchId}`);
 
-      // Remove from both users' matches arrays
-      const updates = [];
-
-      const [user1Doc, user2Doc] = await Promise.all([
-        getDoc(doc(db, 'users', userId1)),
-        getDoc(doc(db, 'users', userId2)),
-      ]);
-
-      const user1Matches = user1Doc.data()?.matches || [];
-      const user2Matches = user2Doc.data()?.matches || [];
-
-      if (user1Matches.includes(userId2)) {
-        updates.push(
-          setDoc(
-            doc(db, 'users', userId1),
-            {
-              matches: user1Matches.filter((id) => id !== userId2),
-            },
-            { merge: true }
-          )
-        );
+      if (!response.success) {
+        return {
+          success: false,
+          error: response.message || 'Failed to unmatch',
+        };
       }
-
-      if (user2Matches.includes(userId1)) {
-        updates.push(
-          setDoc(
-            doc(db, 'users', userId2),
-            {
-              matches: user2Matches.filter((id) => id !== userId1),
-            },
-            { merge: true }
-          )
-        );
-      }
-
-      await Promise.all(updates);
 
       return {
         success: true,
-        message: 'Match deleted successfully',
+        message: response.message || 'Match deleted successfully',
       };
     } catch (error) {
       logger.error('Error unmatching', error, { userId1, userId2 });
@@ -580,48 +350,33 @@ export class SwipeController {
    */
   static async getUserMatches(userId) {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      if (!userDoc.exists()) {
+      const response = await api.get('/swipes/matches');
+
+      if (!response.success) {
+        logger.error('Error getting user matches', new Error(response.message), { userId });
         return [];
       }
-      const userData = userDoc.data();
-      if (!userData) {
-        return [];
-      }
-      const matchIds = userData.matches || [];
 
-      const matches = [];
+      // Transform backend response to match expected format
+      const matches = response.data?.matches || response.data || [];
+      return matches.map((match) => {
+        // Handle different response formats
+        const matchData = match.match || match;
+        const userData = match.user || matchData.user || {};
 
-      for (const matchedUserId of matchIds) {
-        try {
-          const matchedUserDoc = await getDoc(doc(db, 'users', matchedUserId));
-          if (matchedUserDoc.exists()) {
-            const sortedIds = [userId, matchedUserId].sort();
-            const matchId = `${sortedIds[0]}_${sortedIds[1]}`;
-            const matchDoc = await getDoc(doc(db, 'matches', matchId));
-            const matchData = matchDoc.data() || {};
-            const matchedUserData = matchedUserDoc.data();
-            if (matchedUserData) {
-              matches.push({
-                id: matchId,
-                userId: matchedUserId,
-                user: {
-                  id: matchedUserId,
-                  name: matchedUserData.name,
-                  photoURL: matchedUserData.photoURL,
-                  age: matchedUserData.age,
-                },
-                createdAt: matchData.createdAt,
-                isExpired: this.isMatchExpired(matchData),
-              });
-            }
-          }
-        } catch (error) {
-          logger.error('Error getting match details', error, { userId, matchedUserId });
-        }
-      }
-
-      return matches;
+        return {
+          id: match.id || matchData.id || match.matchId,
+          userId: userData.id || userData.userId,
+          user: {
+            id: userData.id || userData.userId,
+            name: userData.name,
+            photoURL: userData.photoURL || userData.photo,
+            age: userData.age,
+          },
+          createdAt: matchData.createdAt || match.createdAt,
+          isExpired: this.isMatchExpired(matchData || match),
+        };
+      });
     } catch (error) {
       logger.error('Error getting user matches', error, { userId });
       return [];

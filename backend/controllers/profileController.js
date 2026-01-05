@@ -18,7 +18,7 @@ const {
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { name, age, gender, bio, interests } = req.body;
+    const { name, age, gender, bio, interests, pushToken, notificationsEnabled } = req.body;
 
     // Validate bio length
     if (bio && bio.length > 500) {
@@ -36,6 +36,20 @@ exports.updateProfile = async (req, res) => {
     if (bio) updateData.bio = bio.trim();
     if (interests && Array.isArray(interests)) {
       updateData.interests = interests.filter((i) => i.trim()).slice(0, 20); // Max 20 interests
+    }
+    // Handle push token registration (for notifications)
+    if (pushToken !== undefined) {
+      updateData.pushToken = pushToken;
+    }
+    if (notificationsEnabled !== undefined) {
+      // Update notification preferences to enable/disable all
+      updateData.notificationPreferences = {
+        matchNotifications: notificationsEnabled,
+        messageNotifications: notificationsEnabled,
+        likeNotifications: notificationsEnabled,
+        systemNotifications: notificationsEnabled,
+        updatedAt: new Date(),
+      };
     }
 
     const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
