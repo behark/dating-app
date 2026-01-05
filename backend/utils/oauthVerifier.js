@@ -82,7 +82,9 @@ const verifyGoogleToken = async (idToken, clientId = undefined) => {
       );
     }
 
-    console.error('Google token verification error:', error);
+    // Log error without sensitive data (error object may contain tokens)
+    const safeError = error instanceof Error ? error.message : String(error);
+    console.error('Google token verification error:', safeError);
     throw new Error(`Google token verification failed: ${errorMessage}`);
   }
 };

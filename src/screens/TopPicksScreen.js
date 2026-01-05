@@ -36,11 +36,20 @@ const TopPicksScreen = ({ navigation }) => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          timeout: 10000,
+        });
         setLocation(loc.coords);
+      } else {
+        // Permission denied - log but don't block the user
+        logger.warn('Location permission denied for Top Picks');
+        // User can still view top picks, just without distance info
       }
     } catch (error) {
       logger.error('Error getting location:', error);
+      // Non-critical error - user can still use the feature
+      // Just won't see distance information
     }
   };
 

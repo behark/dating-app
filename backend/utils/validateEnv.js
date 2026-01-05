@@ -210,8 +210,16 @@ function generateSecrets() {
 
 /**
  * Print example .env configuration
+ * SECURITY: Only generates example secrets, never logs existing ones
+ * Only safe to call in development mode
  */
 function printExampleEnv() {
+  // Safety check: Never run in production
+  if (process.env.NODE_ENV === 'production') {
+    console.error('⚠️  Cannot print example .env in production mode');
+    return;
+  }
+
   const secrets = generateSecrets();
 
   console.log('\n📝 Example .env configuration with generated secrets:\n');

@@ -44,11 +44,54 @@ const ExploreScreen = ({ navigation }) => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === 'granted') {
-        const loc = await Location.getCurrentPositionAsync({});
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          timeout: 10000,
+        });
         setLocation(loc.coords);
+      } else {
+        // Permission denied
+        Alert.alert(
+          'Location Permission Required',
+          'We need your location to show you nearby matches. Please enable location permissions in your device settings.',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Open Settings',
+              onPress: () => {
+                // On some platforms, you might want to open settings
+                // For now, just show the alert
+                logger.info('User needs to enable location permissions manually');
+              },
+            },
+          ]
+        );
+        // Still allow user to use the app, but show a message
+        setLoading(false);
       }
     } catch (error) {
       logger.error('Error getting location:', error);
+      Alert.alert(
+        'Location Error',
+        error.message || 'Failed to get your location. Some features may not work correctly.',
+        [
+          {
+            text: 'Retry',
+            onPress: getLocation,
+          },
+          {
+            text: 'Continue Without Location',
+            style: 'cancel',
+            onPress: () => {
+              // Allow user to continue, but they won't see location-based results
+              setLoading(false);
+            },
+          },
+        ]
+      );
     }
   }, []);
 

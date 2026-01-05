@@ -193,6 +193,30 @@ const PremiumScreen = ({ navigation }) => {
             </View>
           )}
 
+          {/* AI Insights Link (if premium) */}
+          {premiumStatus?.isPremium && (
+            <TouchableOpacity
+              style={styles.aiInsightsCard}
+              onPress={() => navigation.navigate('AIInsights')}
+            >
+              <LinearGradient
+                colors={Colors.gradient.primary}
+                style={styles.aiInsightsGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Ionicons name="sparkles" size={24} color={Colors.background.white} />
+                <View style={styles.aiInsightsContent}>
+                  <Text style={styles.aiInsightsTitle}>AI Insights</Text>
+                  <Text style={styles.aiInsightsSubtitle}>
+                    Get personalized profile tips and conversation analytics
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.background.white} />
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
           {/* Features List */}
           <View style={styles.featuresSection}>
             <Text style={styles.sectionTitle}>Premium Features</Text>
@@ -342,6 +366,35 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  aiInsightsCard: {
+    marginBottom: 20,
+    borderRadius: 15,
+    overflow: 'hidden',
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  aiInsightsGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+  },
+  aiInsightsContent: {
+    flex: 1,
+    marginLeft: 15,
+  },
+  aiInsightsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.background.white,
+    marginBottom: 4,
+  },
+  aiInsightsSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   content: {
     padding: 20,

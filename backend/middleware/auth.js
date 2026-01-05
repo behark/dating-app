@@ -16,7 +16,11 @@ exports.authenticate = async (req, res, next) => {
 
     // Ensure JWT_SECRET is set
     if (!process.env.JWT_SECRET) {
-      console.error('JWT_SECRET is not configured');
+      const logger = require('../services/LoggingService').logger;
+      logger.error('JWT_SECRET is not configured', {
+        ip: req.ip,
+        path: req.path,
+      });
       return res.status(500).json({
         success: false,
         message: 'Authentication system is not properly configured',
@@ -50,10 +54,21 @@ exports.authenticate = async (req, res, next) => {
         message: 'Token expired',
       });
     }
+    // Don't expose error details in production
+    const logger = require('../services/LoggingService').logger;
+    logger.warn('Invalid token', {
+      error: error instanceof Error ? error.message : String(error),
+      ip: req.ip,
+      path: req.path,
+    });
+    
     return res.status(401).json({
       success: false,
       message: ERROR_MESSAGES.INVALID_TOKEN,
-      error: error instanceof Error ? error.message : String(error),
+      // Only expose error details in development
+      ...(process.env.NODE_ENV !== 'production' && {
+        error: error instanceof Error ? error.message : String(error),
+      }),
     });
   }
 };
@@ -135,9 +150,14 @@ exports.authorizeOwner = (options = { allowAdmin: false, paramName: 'userId' }) 
 
     if (!isOwner && !isAdmin) {
       // Log potential IDOR attempt for security monitoring
-      console.warn(
-        `[SECURITY] IDOR attempt blocked: User ${requestingUserId} tried to access data for user ${targetUserId}`
-      );
+      const logger = require('../services/LoggingService').logger;
+      logger.warn('IDOR attempt blocked', {
+        requestingUserId,
+        targetUserId,
+        ip: req.ip,
+        path: req.path,
+        method: req.method,
+      });
       return res.status(403).json({
         success: false,
         message: ERROR_MESSAGES.ACCESS_DENIED_OWN_DATA,
@@ -185,7 +205,9 @@ exports.authorizeMatchedUsers = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('[SECURITY] Error checking match authorization:', error);
+    // Log error without sensitive data
+    const safeError = error instanceof Error ? error.message : String(error);
+    console.error('[SECURITY] Error checking match authorization:', safeError);
     return res.status(500).json({
       success: false,
       message: 'Error verifying access permissions',

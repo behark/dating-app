@@ -11,26 +11,23 @@ import {
 import { db } from '../config/firebase';
 import { Colors } from '../constants/colors';
 import logger from '../utils/logger';
+import api from './api';
 
 export class SafetyService {
   // Block/Unblock users
-  static async blockUser(userId, blockedUserId) {
+  static async blockUser(blockedUserId) {
     try {
-      const userRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userRef);
-      const blockedUsers = userDoc.data()?.blockedUsers || [];
-
-      if (!blockedUsers.includes(blockedUserId)) {
-        await updateDoc(userRef, {
-          blockedUsers: [...blockedUsers, blockedUserId],
-          updatedAt: new Date(),
-        });
-        logger.info('User blocked', { userId, blockedUserId });
-        return true;
+      const response = await api.post('/safety/block', { blockedUserId });
+      
+      if (!response.success) {
+        logger.error('Error blocking user', new Error(response.message), { blockedUserId });
+        return false;
       }
-      return false;
+      
+      logger.info('User blocked', { blockedUserId });
+      return response.data || false;
     } catch (error) {
-      logger.error('Error blocking user', error, { userId, blockedUserId });
+      logger.error('Error blocking user', error, { blockedUserId });
       return false;
     }
   }
@@ -54,19 +51,25 @@ export class SafetyService {
     }
   }
 
-  static async getBlockedUsers(userId) {
+  static async getBlockedUsers() {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      return userDoc.data()?.blockedUsers || [];
+      const response = await api.get('/safety/blocked');
+      
+      if (!response.success) {
+        logger.error('Error getting blocked users', new Error(response.message));
+        return [];
+      }
+      
+      return response.data?.blockedUsers || [];
     } catch (error) {
-      logger.error('Error getting blocked users', error, { userId });
+      logger.error('Error getting blocked users', error);
       return [];
     }
   }
 
   static async isUserBlocked(userId, otherUserId) {
     try {
-      const blockedUsers = await this.getBlockedUsers(userId);
+      const blockedUsers = await this.getBlockedUsers();
       return blockedUsers.includes(otherUserId);
     } catch (error) {
       logger.error('Error checking if user is blocked', error, { userId, otherUserId });
@@ -75,30 +78,29 @@ export class SafetyService {
   }
 
   // Report users for abuse
-  static async reportUser(reporterId, reportedUserId, category, description, evidence = []) {
+  static async reportUser(reportedUserId, category, description, evidence = []) {
     try {
-      const report = {
-        reporterId,
+      const response = await api.post('/safety/report', {
         reportedUserId,
         category, // 'inappropriate_photos', 'fake_profile', 'harassment', 'scam', 'offensive_behavior', 'other'
         description,
         evidence, // array of evidence object IDs or descriptions
-        status: 'pending', // 'pending', 'reviewed', 'action_taken', 'dismissed'
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const docRef = await addDoc(collection(db, 'reports'), report);
-      logger.info('Report created', { reportId: docRef.id, reporterId, reportedUserId, category });
-
-      // Increment report count on user
-      await updateDoc(doc(db, 'users', reportedUserId), {
-        reportCount: (await getDoc(doc(db, 'users', reportedUserId))).data()?.reportCount + 1 || 1,
       });
 
-      return { success: true, reportId: docRef.id };
+      if (!response.success) {
+        logger.error('Error creating report', new Error(response.message), { reportedUserId, category });
+        return { success: false, error: response.message || 'Failed to create report' };
+      }
+
+      logger.info('Report created', { 
+        reportId: response.data?.reportId, 
+        reportedUserId, 
+        category 
+      });
+
+      return response.data || { success: true, reportId: response.data?.reportId };
     } catch (error) {
-      logger.error('Error creating report', error, { reporterId, reportedUserId, category });
+      logger.error('Error creating report', error, { reportedUserId, category });
       return { success: false, error: error.message };
     }
   }

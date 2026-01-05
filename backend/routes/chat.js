@@ -1,4 +1,5 @@
 const express = require('express');
+const { body, param, validationResult } = require('express-validator');
 const {
   getMessages,
   getConversations,
@@ -9,22 +10,30 @@ const {
   getReadReceipts,
   sendEncryptedMessage,
 } = require('../controllers/chatController');
+const { authenticate } = require('../middleware/auth');
 
-// Mock authentication middleware (replace with actual auth in production)
-const mockAuth = (req, res, next) => {
-  // In production, this should verify JWT tokens, etc.
-  // For now, we'll accept a userId in headers for testing
-  const userId = req.headers['x-user-id'] || req.query.userId;
-  if (userId) {
-    req.user = { id: userId };
+// Helper middleware to handle validation errors
+const handleValidationErrors = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: errors.array().map((err) => {
+        if ('path' in err) {
+          return { field: err.path, message: err.msg };
+        }
+        return { field: 'unknown', message: err.msg };
+      }),
+    });
   }
   next();
 };
 
 const router = express.Router();
 
-// Apply mock authentication to all routes
-router.use(mockAuth);
+// Apply authentication to all routes (CRITICAL: Remove mock auth in production)
+router.use(authenticate);
 
 // GET /api/chat/conversations - Get all conversations for user
 router.get('/conversations', getConversations);
@@ -33,7 +42,17 @@ router.get('/conversations', getConversations);
 router.get('/unread', getUnreadCount);
 
 // GET /api/chat/messages/:matchId - Get messages for a specific match
-router.get('/messages/:matchId', getMessages);
+router.get(
+  '/messages/:matchId',
+  [
+    param('matchId').isMongoId().withMessage('Invalid match ID format'),
+    // Optional query params validation
+    body('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
+    body('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+  ],
+  handleValidationErrors,
+  getMessages
+);
 
 // PUT /api/chat/messages/:matchId/read - Mark messages as read for a match
 router.put('/messages/:matchId/read', markAsRead);
@@ -45,7 +64,24 @@ router.put('/messages/:messageId/read-single', markMessageAsRead);
 router.get('/receipts/:matchId', getReadReceipts);
 
 // POST /api/chat/messages/encrypted - Send an encrypted message
-router.post('/messages/encrypted', sendEncryptedMessage);
+router.post(
+  '/messages/encrypted',
+  [
+    body('matchId').isMongoId().withMessage('Invalid match ID format'),
+    body('content')
+      .trim()
+      .notEmpty()
+      .withMessage('Message content is required')
+      .isLength({ min: 1, max: 1000 })
+      .withMessage('Message content must be between 1 and 1000 characters'),
+    body('type')
+      .optional()
+      .isIn(['text', 'image', 'video', 'audio'])
+      .withMessage('Invalid message type'),
+  ],
+  handleValidationErrors,
+  sendEncryptedMessage
+);
 
 // DELETE /api/chat/messages/:messageId - Delete a message
 router.delete('/messages/:messageId', deleteMessage);

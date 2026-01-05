@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { EnhancedProfileService } from '../services/EnhancedProfileService';
+import logger from '../utils/logger';
 
 const ETHNICITIES = [
   'Asian',
@@ -287,17 +289,75 @@ export default function EnhancedProfileEditScreen() {
   const [promptAnswers, setPromptAnswers] = useState({});
   const [activeTab, setActiveTab] = useState('prompts');
 
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
-    fetchPrompts();
+    loadInitialData();
   }, []);
+
+  const loadInitialData = async () => {
+    try {
+      setInitialLoading(true);
+      setError(null);
+      
+      // Load prompts
+      const allPrompts = await EnhancedProfileService.getAllPrompts();
+      setAvailablePrompts(allPrompts || []);
+      
+      // Load existing profile data for each tab
+      // Note: These would ideally be loaded from a single endpoint
+      // For now, we'll handle errors gracefully
+      try {
+        // Could load existing education, occupation, height, ethnicity here
+        // if there's a getProfile endpoint
+      } catch (profileError) {
+        logger.warn('Could not load existing profile data:', profileError);
+        // Non-critical, continue
+      }
+    } catch (error) {
+      logger.error('Error loading initial data:', error);
+      setError(error.message || 'Failed to load profile data');
+      Alert.alert(
+        'Error Loading Data',
+        error.message || 'Failed to load profile information. Please check your connection and try again.',
+        [
+          {
+            text: 'Retry',
+            onPress: loadInitialData,
+          },
+          {
+            text: 'OK',
+            style: 'cancel',
+          },
+        ]
+      );
+    } finally {
+      setInitialLoading(false);
+    }
+  };
 
   const fetchPrompts = async () => {
     try {
       setLoading(true);
       const allPrompts = await EnhancedProfileService.getAllPrompts();
-      setAvailablePrompts(allPrompts);
+      setAvailablePrompts(allPrompts || []);
     } catch (error) {
-      Alert.alert('Error', error.message);
+      logger.error('Error fetching prompts:', error);
+      Alert.alert(
+        'Error',
+        error.message || 'Failed to load prompts. Please try again.',
+        [
+          {
+            text: 'Retry',
+            onPress: fetchPrompts,
+          },
+          {
+            text: 'OK',
+            style: 'cancel',
+          },
+        ]
+      );
     } finally {
       setLoading(false);
     }
@@ -421,10 +481,23 @@ export default function EnhancedProfileEditScreen() {
     }
   };
 
-  if (loading && activeTab === 'initial') {
+  if (initialLoading) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Loading profile data...</Text>
+      </View>
+    );
+  }
+
+  if (error && availablePrompts.length === 0) {
+    return (
+      <View style={styles.centerContainer}>
+        <Ionicons name="alert-circle" size={64} color={Colors.status.error} />
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={loadInitialData}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -706,6 +779,30 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   saveButtonText: {
+    color: Colors.background.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: Colors.text.secondary,
+  },
+  errorText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: Colors.status.error,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+  },
+  retryButton: {
+    marginTop: 20,
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  retryButtonText: {
     color: Colors.background.white,
     fontSize: 16,
     fontWeight: '600',

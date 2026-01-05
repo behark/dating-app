@@ -134,8 +134,40 @@ healthCheckService.registerCheck('mongodb', async () => {
 });
 
 healthCheckService.registerCheck('redis', async () => {
-  // Add Redis health check if redis client is available
-  return { status: 'ok' };
+  try {
+    const { getRedis } = require('./config/redis');
+    
+    // Get Redis client
+    const redisClient = await getRedis();
+    
+    if (!redisClient) {
+      // Redis not configured - return info status
+      if (!process.env.REDIS_HOST && !process.env.REDIS_URL) {
+        return { status: 'not_configured', connected: false };
+      }
+      // Redis is configured but connection failed
+      throw new Error('Redis is configured but connection failed');
+    }
+    
+    // Test Redis connection with PING
+    const result = await Promise.race([
+      redisClient.ping(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Redis ping timeout')), 5000)
+      ),
+    ]);
+    
+    if (result === 'PONG' || result === true) {
+      return { status: 'ok', connected: true };
+    }
+    
+    throw new Error('Redis ping did not return PONG');
+  } catch (error) {
+    logger.warn('Redis health check failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new Error(`Redis not available: ${error instanceof Error ? error.message : String(error)}`);
+  }
 });
 
 // Sentry request handler (must be first)
@@ -220,27 +252,60 @@ const isOriginAllowed = (origin) => {
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, curl, etc.) - but validate them differently
+    // Handle requests with no origin
     if (!origin) {
-      // For requests without origin (mobile apps, server-to-server), require API key or auth
+      // In production, require origin or API key for server-to-server requests
+      if (process.env.NODE_ENV === 'production') {
+        // Note: We can't access req here, so we'll check API key in a middleware
+        // For now, reject no-origin requests in production
+        logger.warn('CORS: Request with no origin rejected in production', {
+          // Note: Can't log IP here as req is not available in CORS callback
+        });
+        callback(new Error('Origin required in production. Use API key for server-to-server requests.'));
+        return;
+      }
+      // Development: allow requests with no origin (for mobile apps, curl, etc.)
       callback(null, true);
       return;
     }
 
+    // Validate origin
     if (isOriginAllowed(origin)) {
       callback(null, true);
     } else {
-      // Block unauthorized origins - even in development
-      console.warn('CORS: Blocked unauthorized origin:', origin);
+      // Block unauthorized origins
+      logger.warn('CORS: Blocked unauthorized origin', { origin });
       callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID', 'X-Request-ID'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-User-ID', 'X-Request-ID', 'X-API-Key'],
   credentials: true,
   maxAge: 86400, // Cache preflight response for 24 hours
 };
+
+// Middleware to allow server-to-server requests with API key (for production)
+if (process.env.NODE_ENV === 'production' && process.env.API_KEY) {
+  app.use((req, res, next) => {
+    // If request has no origin but has valid API key, allow it
+    if (!req.headers.origin && req.headers['x-api-key'] === process.env.API_KEY) {
+      // Set CORS headers manually for server-to-server requests
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-ID, X-Request-ID, X-API-Key');
+      logger.debug('Server-to-server request authenticated with API key', {
+        ip: req.ip,
+        path: req.path,
+      });
+    }
+    next();
+  });
+}
 app.use(cors(corsOptions));
+
+// Global rate limiting - Apply to all API routes
+const { dynamicRateLimiter } = require('./middleware/rateLimiter');
+app.use('/api', dynamicRateLimiter());
 
 // Body parsing middleware
 // Note: Multer handles multipart/form-data (file uploads) with its own limits
@@ -301,8 +366,8 @@ app.get('/api/test-sentry', (req, res) => {
           op: 'test.span',
         },
         () => {
-          // Log info message (using console.log since Sentry.logger may not be available in all versions)
-          console.log('User triggered test error', {
+          // Log info message
+          logger.info('User triggered test error', {
             action: 'test_error_span',
             userId: 'test-user',
           });
@@ -401,7 +466,12 @@ app.use((error, req, res, next) => {
       error.message?.includes('ECONNREFUSED') ||
       error.code === 'ECONNRESET'
     ) {
-      console.error('[DB CONNECTION ERROR]', error.message);
+      logger.error('Database connection error', {
+        error: error.message,
+        errorName: error.name,
+        requestId: req.requestId,
+        userId: req.user?.id,
+      });
       if (!res.headersSent) {
         return res.status(503).json({
           success: false,
@@ -415,7 +485,11 @@ app.use((error, req, res, next) => {
 
     // MongoDB wait queue timeout - connection pool exhausted
     if (error.message?.includes('waitQueueTimeoutMS') || error.message?.includes('wait queue')) {
-      console.error('[DB POOL EXHAUSTED]', error.message);
+      logger.error('Database pool exhausted', {
+        error: error.message,
+        requestId: req.requestId,
+        userId: req.user?.id,
+      });
       if (!res.headersSent) {
         return res.status(503).json({
           success: false,
@@ -480,10 +554,10 @@ const connectDB = async () => {
     // connectDatabase returns the connection object or null
     return connection !== null;
   } catch (error) {
-    console.error(
-      'MongoDB connection failed:',
-      error instanceof Error ? error.message : String(error)
-    );
+    logger.error('MongoDB connection failed', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return false;
   }
 };
@@ -528,24 +602,94 @@ io.use(async (socket, next) => {
     const token = socket.handshake.auth.token || socket.handshake.query.token;
     const userId = socket.handshake.auth.userId || socket.handshake.query.userId;
 
-    if (token) {
-      // JWT authentication
+    // In production, require JWT token - no direct userId allowed
+    if (process.env.NODE_ENV === 'production') {
+      if (!token) {
+        logger.warn('Socket.io connection rejected: No token in production', {
+          ip: socket.handshake.address,
+          userAgent: socket.handshake.headers['user-agent'],
+        });
+        return next(new Error('Authentication required - JWT token must be provided in production'));
+      }
+
+      // JWT authentication (required in production)
       const jwt = require('jsonwebtoken');
       const jwtSecret = process.env.JWT_SECRET || '';
       if (!jwtSecret) {
+        logger.error('JWT_SECRET not configured for Socket.io authentication');
         return next(new Error('JWT_SECRET not configured'));
       }
-      const decoded = /** @type {any} */ (jwt.verify(token, jwtSecret));
-      /** @type {any} */ (socket).userId = decoded.userId || decoded.id;
-    } else if (userId) {
-      // Direct userId (for development/testing)
-      /** @type {any} */ (socket).userId = userId;
+      
+      try {
+        const decoded = /** @type {any} */ (jwt.verify(token, jwtSecret));
+        /** @type {any} */ (socket).userId = decoded.userId || decoded.id;
+      } catch (jwtError) {
+        logger.warn('Socket.io JWT verification failed', {
+          error: jwtError instanceof Error ? jwtError.message : String(jwtError),
+          ip: socket.handshake.address,
+        });
+        return next(new Error('Invalid or expired token'));
+      }
     } else {
-      return next(new Error('Authentication required'));
+      // Development mode: Allow JWT or direct userId (with warning)
+      if (token) {
+        // JWT authentication (preferred)
+        const jwt = require('jsonwebtoken');
+        const jwtSecret = process.env.JWT_SECRET || '';
+        if (!jwtSecret) {
+          return next(new Error('JWT_SECRET not configured'));
+        }
+        try {
+          const decoded = /** @type {any} */ (jwt.verify(token, jwtSecret));
+          /** @type {any} */ (socket).userId = decoded.userId || decoded.id;
+        } catch (jwtError) {
+          // Fall through to userId check if JWT fails in dev
+          logger.debug('JWT verification failed in dev mode, falling back to userId');
+        }
+      }
+      
+      // Development fallback: direct userId (with strict validation)
+      if (!/** @type {any} */ (socket).userId && userId) {
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+          return next(new Error('Invalid user ID format'));
+        }
+        logger.warn('[DEV ONLY] Using userId from query - NOT ALLOWED IN PRODUCTION', {
+          userId,
+          ip: socket.handshake.address,
+        });
+        /** @type {any} */ (socket).userId = userId;
+      }
+      
+      if (!/** @type {any} */ (socket).userId) {
+        return next(new Error('Authentication required - provide token or userId (dev only)'));
+      }
+    }
+
+    // Verify user exists and is active
+    const user = await User.findById(/** @type {any} */ (socket).userId).select('_id name isActive');
+    if (!user) {
+      logger.warn('Socket.io connection rejected: User not found', {
+        userId: /** @type {any} */ (socket).userId,
+        ip: socket.handshake.address,
+      });
+      return next(new Error('User not found'));
+    }
+    
+    if (!user.isActive) {
+      logger.warn('Socket.io connection rejected: User inactive', {
+        userId: /** @type {any} */ (socket).userId,
+        ip: socket.handshake.address,
+      });
+      return next(new Error('User account is inactive'));
     }
 
     next();
   } catch (error) {
+    logger.error('Socket.io authentication error', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      ip: socket.handshake.address,
+    });
     next(
       new Error(`Authentication failed: ${error instanceof Error ? error.message : String(error)}`)
     );
@@ -557,7 +701,11 @@ io.on('connection', (socket) => {
   /** @type {any} */
   const extSocket = socket;
   const userId = extSocket.userId;
-  console.log(`[WS] User ${userId} connected (socket: ${socket.id})`);
+  logger.info('WebSocket user connected', {
+    userId,
+    socketId: socket.id,
+    ip: socket.handshake.address,
+  });
 
   // Track connection
   if (!connectedUsers.has(userId)) {
@@ -595,11 +743,20 @@ io.on('connection', (socket) => {
 
       // Join new room
       socket.join(matchId);
-      console.log(`[WS] User ${userId} joined room ${matchId}`);
+      logger.debug('WebSocket user joined room', {
+        userId,
+        matchId,
+        socketId: socket.id,
+      });
 
       socket.emit('joined_room', { matchId });
     } catch (error) {
-      console.error('[WS] Error joining room:', error);
+      logger.error('WebSocket error joining room', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId,
+        matchId,
+      });
       socket.emit('error', { message: 'Failed to join room' });
     }
   });
@@ -610,14 +767,69 @@ io.on('connection', (socket) => {
       const { matchId, content, type = 'text' } = data;
       const senderId = extSocket.userId;
 
-      // Validate input
+      // Validate input - comprehensive validation
       if (!matchId || !content || !senderId) {
+        logger.warn('Socket.io send_message: Missing required fields', {
+          userId: senderId,
+          hasMatchId: !!matchId,
+          hasContent: !!content,
+        });
         socket.emit('error', { message: 'Missing required fields' });
         return;
       }
 
-      if (!mongoose.Types.ObjectId.isValid(matchId) || !mongoose.Types.ObjectId.isValid(senderId)) {
-        socket.emit('error', { message: 'Invalid ID format' });
+      // Validate matchId format
+      if (!mongoose.Types.ObjectId.isValid(matchId)) {
+        logger.warn('Socket.io send_message: Invalid matchId format', {
+          userId: senderId,
+          matchId,
+        });
+        socket.emit('error', { message: 'Invalid match ID format' });
+        return;
+      }
+
+      // Validate senderId format
+      if (!mongoose.Types.ObjectId.isValid(senderId)) {
+        logger.warn('Socket.io send_message: Invalid senderId format', {
+          userId: senderId,
+        });
+        socket.emit('error', { message: 'Invalid user ID format' });
+        return;
+      }
+
+      // Validate content type and length
+      if (typeof content !== 'string') {
+        logger.warn('Socket.io send_message: Invalid content type', {
+          userId: senderId,
+          contentType: typeof content,
+        });
+        socket.emit('error', { message: 'Content must be a string' });
+        return;
+      }
+
+      // Validate content length (max 1000 characters)
+      if (content.length === 0) {
+        socket.emit('error', { message: 'Message content cannot be empty' });
+        return;
+      }
+
+      if (content.length > 1000) {
+        logger.warn('Socket.io send_message: Content too long', {
+          userId: senderId,
+          length: content.length,
+        });
+        socket.emit('error', { message: 'Message content too long (max 1000 characters)' });
+        return;
+      }
+
+      // Validate message type
+      const allowedTypes = ['text', 'image', 'video', 'audio'];
+      if (!allowedTypes.includes(type)) {
+        logger.warn('Socket.io send_message: Invalid message type', {
+          userId: senderId,
+          type,
+        });
+        socket.emit('error', { message: `Invalid message type. Allowed: ${allowedTypes.join(', ')}` });
         return;
       }
 
@@ -657,13 +869,23 @@ io.on('connection', (socket) => {
         if (receiverUser?.notificationPreferences?.messageNotifications !== false) {
           const senderName = /** @type {any} */ (message.senderId)?.name || 'Someone';
           const messagePreview = content.length > 50 ? `${content.substring(0, 50)}...` : content;
-          console.log(
-            `[NOTIFICATION] Message from ${senderName} to ${receiverId}: ${messagePreview}`
-          );
+          logger.debug('Message notification sent', {
+            senderId,
+            senderName,
+            receiverId,
+            messagePreview,
+            matchId,
+          });
           // In production, send via Expo push notification service
         }
       } catch (notifError) {
-        console.error('Error sending message notification:', notifError);
+        logger.error('Error sending message notification', {
+          error: notifError instanceof Error ? notifError.message : String(notifError),
+          stack: notifError instanceof Error ? notifError.stack : undefined,
+          receiverId,
+          senderId,
+          matchId,
+        });
       }
 
       // Emit to all users in the room (both sender and receiver)
@@ -686,7 +908,12 @@ io.on('connection', (socket) => {
         timestamp: message.createdAt,
       });
     } catch (error) {
-      console.error('Error sending message:', error);
+      logger.error('WebSocket error sending message', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: senderId,
+        matchId,
+      });
       socket.emit('error', { message: 'Failed to send message' });
     }
   });
@@ -734,7 +961,13 @@ io.on('connection', (socket) => {
         });
       }
     } catch (error) {
-      console.error('Error handling message_read:', error);
+      logger.error('WebSocket error handling message_read', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId,
+        messageId,
+        matchId,
+      });
       socket.emit('error', { message: 'Failed to mark message as read' });
     }
   });
@@ -754,7 +987,11 @@ io.on('connection', (socket) => {
 
   // ===== DISCONNECT HANDLER =====
   socket.on('disconnect', (reason) => {
-    console.log(`[WS] User ${userId} disconnected (reason: ${reason}, socket: ${socket.id})`);
+    logger.info('WebSocket user disconnected', {
+      userId,
+      reason,
+      socketId: socket.id,
+    });
 
     // Remove from connected users
     if (connectedUsers.has(userId)) {
@@ -762,14 +999,21 @@ io.on('connection', (socket) => {
       if (connectedUsers.get(userId).size === 0) {
         connectedUsers.delete(userId);
         // User has no more connections - they're fully offline
-        console.log(`[WS] User ${userId} is now offline (no active connections)`);
+        logger.debug('WebSocket user fully offline', {
+          userId,
+        });
       }
     }
   });
 
   // ===== ERROR HANDLER =====
   socket.on('error', (error) => {
-    console.error(`[WS] Socket error for user ${userId}:`, error);
+    logger.error('WebSocket socket error', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      userId,
+      socketId: socket.id,
+    });
   });
 });
 
@@ -779,13 +1023,23 @@ const startServer = async () => {
     const dbConnected = await connectDB();
 
     if (!dbConnected) {
-      console.warn('⚠️  MongoDB connection failed - server starting without database');
-      console.warn('⚠️  Some features may not work until MongoDB is connected');
+      logger.warn('MongoDB connection failed - server starting without database', {
+        note: 'Some features may not work until MongoDB is connected',
+      });
+      
+      // In production, exit if database connection fails
+      if (process.env.NODE_ENV === 'production') {
+        logger.error('CRITICAL: Cannot start server without database in production');
+        process.exit(1);
+      }
     } else {
-      console.log('✅ MongoDB connection established successfully');
+      logger.info('MongoDB connection established successfully');
       // Create indexes asynchronously without blocking server startup
       createIndexes().catch((err) => {
-        console.error('Warning: Failed to create database indexes:', err.message);
+        logger.error('Failed to create database indexes', {
+          error: err instanceof Error ? err.message : String(err),
+          stack: err instanceof Error ? err.stack : undefined,
+        });
       });
     }
 
@@ -795,28 +1049,65 @@ const startServer = async () => {
     // Listen on 0.0.0.0 to allow Render's load balancer to connect
     // Using 0.0.0.0 instead of default (localhost) makes the server accessible from outside the container
     server.listen(Number(PORT), '0.0.0.0', () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`Socket.io enabled`);
-      console.log(`Performance optimizations: enabled`);
+      logger.info('Server started successfully', {
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development',
+        socketIoEnabled: true,
+        performanceOptimizations: true,
+      });
     });
 
     // Setup graceful shutdown
     gracefulShutdown(server, async () => {
-      console.log('Closing database connections...');
+      logger.info('Closing database connections...');
       await dbGracefulShutdown('SIGTERM');
-      console.log('Database connections closed');
+      logger.info('Database connections closed');
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    logger.error('Failed to start server', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     process.exit(1);
   }
 };
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
-  console.error('Unhandled Promise Rejection:', err instanceof Error ? err.message : String(err));
-  if (process.env.NODE_ENV !== 'production') {
+  const error = err instanceof Error ? err : new Error(String(err));
+  
+  // Log with structured logger
+  logger.error('Unhandled Promise Rejection', {
+    error: error.message,
+    stack: error.stack,
+    promise: promise?.toString?.() || String(promise),
+    name: error.name,
+  });
+  
+  // Send to Sentry if configured
+  if (process.env.SENTRY_DSN) {
+    Sentry.captureException(error, {
+      contexts: {
+        promise: {
+          toString: promise?.toString?.() || String(promise),
+        },
+      },
+      level: 'fatal',
+      tags: {
+        error_type: 'unhandled_rejection',
+      },
+    });
+  }
+  
+  // In production, gracefully shutdown after logging
+  if (process.env.NODE_ENV === 'production') {
+    logger.error('Shutting down server due to unhandled rejection');
+    gracefulShutdown(server, async () => {
+      await dbGracefulShutdown('UNHANDLED_REJECTION');
+      process.exit(1);
+    });
+  } else {
+    // Development: exit immediately
     server.close(() => {
       process.exit(1);
     });
@@ -825,8 +1116,33 @@ process.on('unhandledRejection', (err, promise) => {
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err.message);
-  if (process.env.NODE_ENV !== 'production') {
+  const error = err instanceof Error ? err : new Error(String(err));
+  
+  // Log with structured logger
+  logger.error('Uncaught Exception', {
+    error: error.message,
+    stack: error.stack,
+    name: error.name,
+  });
+  
+  // Send to Sentry if configured
+  if (process.env.SENTRY_DSN) {
+    Sentry.captureException(error, {
+      level: 'fatal',
+      tags: {
+        error_type: 'uncaught_exception',
+      },
+    });
+  }
+  
+  // Always exit on uncaught exceptions (they indicate programming errors)
+  logger.error('Shutting down server due to uncaught exception');
+  if (process.env.NODE_ENV === 'production') {
+    gracefulShutdown(server, async () => {
+      await dbGracefulShutdown('UNCAUGHT_EXCEPTION');
+      process.exit(1);
+    });
+  } else {
     process.exit(1);
   }
 });

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,7 +13,9 @@ import {
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
+import { LocationService } from '../services/LocationService';
 import { validateEmail } from '../utils/validators';
+import logger from '../utils/logger';
 
 export const RegisterScreen = ({ navigation }) => {
   const { signup } = useAuth();
@@ -26,6 +28,32 @@ export const RegisterScreen = ({ navigation }) => {
   const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [location, setLocation] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState(null);
+
+  // Request location permission and get current location on mount
+  useEffect(() => {
+    const getLocation = async () => {
+      try {
+        setLocationLoading(true);
+        setLocationError(null);
+        const currentLocation = await LocationService.getCurrentLocation();
+        if (currentLocation) {
+          setLocation(currentLocation);
+        } else {
+          setLocationError('Location permission denied or unavailable');
+        }
+      } catch (error) {
+        logger.error('Error getting location during registration:', error);
+        setLocationError('Failed to get location. Please enable location services.');
+      } finally {
+        setLocationLoading(false);
+      }
+    };
+
+    getLocation();
+  }, []);
 
   const handleRegister = async () => {
     try {
@@ -60,9 +88,60 @@ export const RegisterScreen = ({ navigation }) => {
         return;
       }
 
+      // Validate location is available
+      if (!location) {
+        Alert.alert(
+          'Location Required',
+          'We need your location to help you find matches nearby. Please enable location services and try again.',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+            },
+            {
+              text: 'Retry',
+              onPress: async () => {
+                try {
+                  setLocationLoading(true);
+                  setLocationError(null);
+                  const currentLocation = await LocationService.getCurrentLocation();
+                  if (currentLocation) {
+                    setLocation(currentLocation);
+                  } else {
+                    Alert.alert(
+                      'Location Required',
+                      'Location is required to create an account. Please enable location permissions in your device settings.'
+                    );
+                  }
+                } catch (error) {
+                  logger.error('Error retrying location:', error);
+                  Alert.alert('Error', 'Failed to get location. Please check your device settings.');
+                } finally {
+                  setLocationLoading(false);
+                }
+              },
+            },
+          ]
+        );
+        return;
+      }
+
       setLoading(true);
 
-      const result = await signup(email, password, name, age ? parseInt(age) : null, gender);
+      // Format location as required by backend: { type: 'Point', coordinates: [longitude, latitude] }
+      const locationData = {
+        type: 'Point',
+        coordinates: [location.longitude, location.latitude],
+      };
+
+      const result = await signup(
+        email,
+        password,
+        name,
+        age ? parseInt(age) : null,
+        gender,
+        locationData
+      );
 
       if (result) {
         Alert.alert('Success', 'Account created! Please verify your email address.', [
@@ -197,11 +276,54 @@ export const RegisterScreen = ({ navigation }) => {
             </View>
           </View>
 
+          {/* Location Status */}
+          {locationLoading && (
+            <View style={styles.locationStatus}>
+              <ActivityIndicator size="small" color={Colors.accent.red} />
+              <Text style={styles.locationStatusText}>Getting your location...</Text>
+            </View>
+          )}
+          {locationError && !locationLoading && (
+            <View style={styles.locationError}>
+              <Text style={styles.locationErrorText}>⚠️ {locationError}</Text>
+              <TouchableOpacity
+                onPress={async () => {
+                  try {
+                    setLocationLoading(true);
+                    setLocationError(null);
+                    const currentLocation = await LocationService.getCurrentLocation();
+                    if (currentLocation) {
+                      setLocation(currentLocation);
+                    } else {
+                      setLocationError('Location permission denied or unavailable');
+                    }
+                  } catch (error) {
+                    logger.error('Error retrying location:', error);
+                    setLocationError('Failed to get location. Please enable location services.');
+                  } finally {
+                    setLocationLoading(false);
+                  }
+                }}
+                style={styles.retryButton}
+              >
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          {location && !locationLoading && (
+            <View style={styles.locationSuccess}>
+              <Text style={styles.locationSuccessText}>✓ Location ready</Text>
+            </View>
+          )}
+
           {/* Register Button */}
           <TouchableOpacity
-            style={[styles.registerBtn, loading && styles.registerBtnDisabled]}
+            style={[
+              styles.registerBtn,
+              (loading || locationLoading || !location) && styles.registerBtnDisabled,
+            ]}
             onPress={handleRegister}
-            disabled={loading}
+            disabled={loading || locationLoading || !location}
           >
             {loading ? (
               <ActivityIndicator color="white" />
@@ -350,5 +472,56 @@ const styles = StyleSheet.create({
     color: Colors.accent.red,
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  locationStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  locationStatusText: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+  },
+  locationError: {
+    backgroundColor: '#FFF3CD',
+    borderWidth: 1,
+    borderColor: '#FFC107',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  locationErrorText: {
+    fontSize: 13,
+    color: '#856404',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  retryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    backgroundColor: Colors.accent.red,
+    borderRadius: 6,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  locationSuccess: {
+    backgroundColor: '#D4EDDA',
+    borderWidth: 1,
+    borderColor: '#28A745',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  locationSuccessText: {
+    fontSize: 13,
+    color: '#155724',
+    fontWeight: '600',
   },
 });

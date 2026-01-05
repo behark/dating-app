@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import {
+  Alert,
   Dimensions,
   Image,
   ScrollView,
@@ -29,13 +30,41 @@ const ViewProfileScreen = ({ route, navigation }) => {
 
   const loadProfile = async () => {
     try {
+      setLoading(true);
       const userDoc = await getDoc(doc(db, 'users', userId));
       if (userDoc.exists()) {
         setProfile({ id: userDoc.id, ...userDoc.data() });
+      } else {
+        // Profile doesn't exist
+        Alert.alert(
+          'Profile Not Found',
+          'This profile could not be found. It may have been deleted.',
+          [
+            {
+              text: 'Go Back',
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
       }
-      setLoading(false);
     } catch (error) {
       logger.error('Error loading profile:', error);
+      Alert.alert(
+        'Error Loading Profile',
+        error.message || 'Failed to load profile. Please check your connection and try again.',
+        [
+          {
+            text: 'Retry',
+            onPress: loadProfile,
+          },
+          {
+            text: 'Go Back',
+            style: 'cancel',
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
+    } finally {
       setLoading(false);
     }
   };

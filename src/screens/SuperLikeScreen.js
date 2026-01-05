@@ -30,6 +30,7 @@ const SuperLikeScreen = ({ route, navigation }) => {
 
   const fetchQuota = async () => {
     try {
+      setLoading(true);
       const response = await fetch(`${API_BASE_URL}/interactions/super-like-quota`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });
@@ -40,9 +41,32 @@ const SuperLikeScreen = ({ route, navigation }) => {
       const data = await response.json();
       if (data.success) {
         setQuota(data.data);
+      } else {
+        throw new Error(data.message || 'Failed to load super like quota');
       }
     } catch (error) {
       logger.error('Error fetching quota:', error);
+      Alert.alert(
+        'Error Loading Quota',
+        error.message || 'Failed to load your super like quota. You can still try to send a super like.',
+        [
+          {
+            text: 'Retry',
+            onPress: fetchQuota,
+          },
+          {
+            text: 'Continue',
+            style: 'cancel',
+            // Continue anyway - user can still try to send
+          },
+        ]
+      );
+      // Set default quota if fetch fails
+      if (!user?.isPremium) {
+        setQuota({ remaining: 0, total: 5 });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
