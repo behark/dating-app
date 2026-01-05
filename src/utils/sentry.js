@@ -1,14 +1,26 @@
 /**
  * Sentry Error Tracking Setup
- * Initialize Sentry for React Native/Expo
+ * Initialize Sentry for React Native/Expo (native) and React (web)
  */
 
-let Sentry = null;
+import { Platform } from 'react-native';
 
-// Try to import Sentry (may not be available in all environments)
+let Sentry = null;
+let isWeb = false;
+
+// Try to import Sentry based on platform
 try {
   if (typeof require !== 'undefined') {
-    Sentry = require('@sentry/react-native');
+    // Check if we're on web platform
+    isWeb = Platform.OS === 'web';
+    
+    if (isWeb) {
+      // Use @sentry/react for web
+      Sentry = require('@sentry/react');
+    } else {
+      // Use @sentry/react-native for native platforms
+      Sentry = require('@sentry/react-native');
+    }
   }
 } catch (error) {
   // Sentry not available - will use fallback logging
@@ -37,7 +49,28 @@ export const initSentry = (options = {}) => {
   }
 
   try {
-    Sentry.init({
+    // Build integrations array based on platform
+    const integrations = [];
+    
+    // Only use reactNativeTracing on native platforms
+    if (!isWeb && Sentry.reactNativeTracing) {
+      try {
+        integrations.push(Sentry.reactNativeTracing());
+      } catch (e) {
+        console.warn('Failed to add reactNativeTracing:', e);
+      }
+    }
+    
+    // For web, use browser tracing if available
+    if (isWeb && Sentry.browserTracingIntegration) {
+      try {
+        integrations.push(Sentry.browserTracingIntegration());
+      } catch (e) {
+        console.warn('Failed to add browserTracingIntegration:', e);
+      }
+    }
+
+    const initConfig = {
       dsn,
       environment,
       release,
@@ -50,11 +83,6 @@ export const initSentry = (options = {}) => {
       attachStacktrace: true,
       // Send default PII (personally identifiable information) - adjust based on privacy requirements
       sendDefaultPii: false,
-      // Integrations
-      integrations: [
-        // Automatically instrument React Native
-        Sentry.reactNativeTracing(),
-      ],
       // Before send hook - filter sensitive data
       beforeSend(event, hint) {
         // Remove sensitive data from error events
@@ -79,7 +107,14 @@ export const initSentry = (options = {}) => {
         }
         return event;
       },
-    });
+    };
+
+    // Only add integrations if we have any
+    if (integrations.length > 0) {
+      initConfig.integrations = integrations;
+    }
+
+    Sentry.init(initConfig);
 
     // Set user context if provided
     if (user) {
@@ -114,7 +149,7 @@ export const captureException = (error, context = {}) => {
     Sentry.captureException(error, {
       extra: context,
       tags: {
-        platform: 'react-native',
+        platform: isWeb ? 'web' : 'react-native',
       },
     });
   } catch (e) {
@@ -139,7 +174,7 @@ export const captureMessage = (message, level = 'info', context = {}) => {
       level,
       extra: context,
       tags: {
-        platform: 'react-native',
+        platform: isWeb ? 'web' : 'react-native',
       },
     });
   } catch (e) {
