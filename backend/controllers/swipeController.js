@@ -73,9 +73,28 @@ const createSwipe = async (req, res) => {
     }
 
     // Use SwipeService to process the swipe and check for matches
+    // SwipeService uses atomic operations to prevent race conditions
     const result = await SwipeService.processSwipe(swiperId, targetId, action, {
       isPriority: req.body.isPriority || false,
     });
+
+    // If this swipe was already processed (rapid double-click), return early
+    // This prevents duplicate notifications and duplicate match processing
+    if (result.alreadyProcessed) {
+      return res.json({
+        success: true,
+        data: {
+          swipeId: result.swipe.id,
+          action: result.swipe.action,
+          isMatch: false,
+          match: false,
+          matchData: null,
+          remaining: limitCheck.remaining,
+          alreadyProcessed: true,
+        },
+        message: 'Swipe already recorded',
+      });
+    }
 
     // Get user info for notifications
     const swiperUser = await User.findById(swiperId).select('name').lean();
@@ -288,23 +307,57 @@ const getReceivedSwipes = async (req, res) => {
   }
 };
 
+// Query timeout constant - MUST be less than Nginx proxy_read_timeout (90s)
+const MATCH_QUERY_TIMEOUT_MS = 30000;
+const DEFAULT_MATCH_LIMIT = 25;
+const MAX_MATCH_LIMIT = 50;
+
 /**
  * Get all matches for the current user
+ * Optimized with query timeouts and pagination
  */
 const getMatches = async (req, res) => {
+  const startTime = Date.now();
+  
   try {
     const userId = req.user.id;
-    const { status = 'active', limit = 50, skip = 0, sortBy = 'createdAt' } = req.query;
+    const { 
+      status = 'active', 
+      limit = DEFAULT_MATCH_LIMIT, 
+      skip = 0, 
+      page = 1,
+      sortBy = 'createdAt' 
+    } = req.query;
 
-    const matches = await Match.getUserMatches(userId, {
-      status,
-      limit: parseInt(limit),
-      skip: parseInt(skip),
-      sortBy,
-    });
+    const resultLimit = Math.min(parseInt(limit), MAX_MATCH_LIMIT);
+    const pageNum = parseInt(page) || 1;
+    const skipCount = parseInt(skip) || (pageNum - 1) * resultLimit;
+
+    // Run matches query and count in parallel for better performance
+    const [matches, totalCount] = await Promise.all([
+      Match.find({
+        users: userId,
+        status: status,
+      })
+        .populate('users', 'name photos age bio lastActive isOnline')
+        .sort({ [sortBy]: -1 })
+        .skip(skipCount)
+        .limit(resultLimit + 1) // Fetch one extra to check for more
+        .maxTimeMS(MATCH_QUERY_TIMEOUT_MS)
+        .lean(),
+      
+      Match.countDocuments({
+        users: userId,
+        status: status,
+      }).maxTimeMS(MATCH_QUERY_TIMEOUT_MS),
+    ]);
+
+    // Check if there are more results
+    const hasMore = matches.length > resultLimit;
+    const resultMatches = hasMore ? matches.slice(0, resultLimit) : matches;
 
     // Transform matches to include the other user's info prominently
-    const transformedMatches = matches.map((match) => {
+    const transformedMatches = resultMatches.map((match) => {
       const otherUser = match.users.find((u) => u._id.toString() !== userId);
       return {
         matchId: match._id,
@@ -317,7 +370,12 @@ const getMatches = async (req, res) => {
       };
     });
 
-    const totalCount = await Match.getMatchCount(userId, status);
+    const queryTime = Date.now() - startTime;
+    
+    // Log slow queries
+    if (queryTime > 3000) {
+      console.warn(`[SLOW] getMatches query took ${queryTime}ms for user ${userId}`);
+    }
 
     res.json({
       success: true,
@@ -325,10 +383,30 @@ const getMatches = async (req, res) => {
         matches: transformedMatches,
         count: transformedMatches.length,
         total: totalCount,
+        pagination: {
+          page: pageNum,
+          limit: resultLimit,
+          hasMore,
+          nextPage: hasMore ? pageNum + 1 : null,
+        },
+        meta: {
+          queryTimeMs: queryTime,
+        },
       },
     });
   } catch (error) {
-    console.error('Error getting matches:', error);
+    const queryTime = Date.now() - startTime;
+    console.error(`Error getting matches after ${queryTime}ms:`, error);
+    
+    // Check for timeout error
+    if (error.name === 'MongooseError' && error.message.includes('maxTimeMS')) {
+      return res.status(503).json({
+        success: false,
+        message: 'Match query timed out. Please try again.',
+        error: 'QUERY_TIMEOUT',
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Internal server error while retrieving matches',

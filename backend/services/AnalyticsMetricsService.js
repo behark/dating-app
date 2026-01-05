@@ -22,8 +22,8 @@ const Swipe = require('../models/Swipe');
 const Message = require('../models/Message');
 const UserActivity = require('../models/UserActivity');
 const Subscription = require('../models/Subscription');
-const { datadogService } = require('./MonitoringService');
 const { cache, CACHE_TTL } = require('../config/redis');
+const { datadogService } = require('./MonitoringService');
 
 // Cache key prefix for analytics metrics
 const METRICS_CACHE_PREFIX = 'analytics:';

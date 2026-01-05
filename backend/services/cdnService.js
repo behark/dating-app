@@ -186,14 +186,12 @@ const getSignedUrl = async (path, expiresInSeconds = 3600) => {
     const url = getCdnUrl(path);
     const dateLessThan = new Date(Date.now() + expiresInSeconds * 1000).toISOString();
 
-    const signedUrl = getSignedUrl({
+    return getSignedUrl({
       url,
       dateLessThan,
       keyPairId: process.env.CLOUDFRONT_KEY_PAIR_ID,
       privateKey: process.env.CLOUDFRONT_PRIVATE_KEY,
     });
-
-    return signedUrl;
   } catch (error) {
     console.error('Error generating signed URL:', error);
     return getCdnUrl(path);

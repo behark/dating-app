@@ -13,6 +13,8 @@ class MonitoringService {
 
   /**
    * Initialize Sentry for error tracking
+   * Note: Sentry is now initialized in instrument.js at the very top of server.js
+   * This method just marks Sentry as initialized since it's already set up
    */
   initSentry(app) {
     if (!process.env.SENTRY_DSN) {
@@ -20,48 +22,14 @@ class MonitoringService {
       return;
     }
 
-    Sentry.init({
-      dsn: process.env.SENTRY_DSN,
-      environment: this.environment,
-      release: process.env.RELEASE_VERSION || 'unknown',
-
-      // Performance Monitoring
-      tracesSampleRate: this.environment === 'production' ? 0.1 : 1.0,
-      profilesSampleRate: this.environment === 'production' ? 0.1 : 1.0,
-
-      integrations: [
-        // Enable HTTP calls tracing
-        Sentry.httpIntegration({ tracing: true }),
-        // Enable Express tracing
-        Sentry.expressIntegration({ app }),
-        // Enable Mongo tracing
-        Sentry.mongoIntegration(),
-      ],
-
-      // Filter sensitive data
-      beforeSend(event, hint) {
-        // Remove sensitive data
-        if (event.request) {
-          delete event.request.cookies;
-          if (event.request.headers) {
-            delete event.request.headers.authorization;
-            delete event.request.headers.cookie;
-          }
-        }
-        return event;
-      },
-
-      // Ignore common non-critical errors
-      ignoreErrors: [
-        'ResizeObserver loop limit exceeded',
-        'Network request failed',
-        'Load failed',
-        'ChunkLoadError',
-      ],
-    });
-
-    this.initialized = true;
-    console.log('✅ Sentry initialized for environment:', this.environment);
+    // Sentry is already initialized in instrument.js
+    // Express integration is handled via middleware in server.js
+    if (Sentry.getCurrentHub().getClient()) {
+      this.initialized = true;
+      console.log('✅ Sentry already initialized (from instrument.js), ready for Express middleware');
+    } else {
+      console.log('⚠️  Sentry not initialized yet');
+    }
   }
 
   /**
@@ -201,21 +169,23 @@ class DatadogService {
    * Initialize Datadog APM
    */
   init() {
-    if (!process.env.DATADOG_API_KEY) {
+    if (!process.env.DATADOG_API_KEY && !process.env.DD_API_KEY) {
       console.log('⚠️  Datadog API key not configured, skipping Datadog initialization');
       return;
     }
 
     try {
-      // Initialize tracer
+      // Initialize tracer with site configuration
       this.tracer = require('dd-trace').init({
         service: 'dating-app-api',
-        env: process.env.NODE_ENV || 'development',
+        env: process.env.DD_ENV || process.env.NODE_ENV || 'development',
         version: process.env.RELEASE_VERSION || '1.0.0',
         logInjection: true,
         runtimeMetrics: true,
         profiling: true,
         appsec: true,
+        // Use DD_SITE for EU or other regional endpoints
+        site: process.env.DD_SITE || 'datadoghq.com',
       });
 
       // Initialize StatsD for custom metrics
@@ -225,8 +195,9 @@ class DatadogService {
         port: 8125,
         prefix: 'dating_app.',
         globalTags: {
-          env: process.env.NODE_ENV || 'development',
+          env: process.env.DD_ENV || process.env.NODE_ENV || 'development',
           service: 'dating-app-api',
+          site: process.env.DD_SITE || 'datadoghq.com',
         },
       });
 

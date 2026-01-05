@@ -61,13 +61,11 @@ rewindSchema.statics.getRemainingForToday = async function (userId) {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const count = await this.countDocuments({
+  return await this.countDocuments({
     userId: userId,
     success: true,
     createdAt: { $gte: today, $lt: tomorrow },
   });
-
-  return count;
 };
 
 // Static method to get total rewind count for user (all time)

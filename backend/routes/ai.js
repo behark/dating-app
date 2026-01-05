@@ -11,20 +11,12 @@ const {
   getProfileImprovementSuggestions,
   getConversationInsights,
 } = require('../controllers/aiController');
-
-// Mock authentication middleware (replace with actual auth in production)
-const mockAuth = (req, res, next) => {
-  const userId = req.headers['x-user-id'] || req.query.userId;
-  if (userId) {
-    req.user = { id: userId };
-  }
-  next();
-};
+const { authenticate, authorizeOwner, authorizeMatchedUsers } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Apply mock authentication to all routes
-router.use(mockAuth);
+// Apply real authentication to all routes (SECURITY FIX: removed mock auth)
+router.use(authenticate);
 
 // ============================================================
 // AI/ML ENDPOINTS
@@ -43,13 +35,15 @@ router.post('/icebreaker', (req, res, next) => {
 });
 
 // GET /api/ai/smart-photos/:userId - Get smart photo selection recommendations
-router.get('/smart-photos/:userId', getSmartPhotoSelection);
+// SECURITY: Only owner can access their own photo analysis
+router.get('/smart-photos/:userId', authorizeOwner(), getSmartPhotoSelection);
 
 // POST /api/ai/bio-suggestions - Generate bio suggestions
 router.post('/bio-suggestions', generateBioSuggestions);
 
 // GET /api/ai/compatibility/:userId/:targetUserId - Calculate compatibility score
-router.get('/compatibility/:userId/:targetUserId', calculateCompatibilityScore);
+// SECURITY: Users can only check compatibility with their matches
+router.get('/compatibility/:userId/:targetUserId', authorizeOwner(), calculateCompatibilityScore);
 
 // POST /api/ai/conversation-starters - Get conversation starter suggestions
 router.post('/conversation-starters', getConversationStarters);
@@ -58,12 +52,15 @@ router.post('/conversation-starters', getConversationStarters);
 router.post('/analyze-photo', analyzePhotoQuality);
 
 // GET /api/ai/personalized-matches/:userId - Get personalized match recommendations
-router.get('/personalized-matches/:userId', getPersonalizedMatches);
+// SECURITY: Only owner can access their own match recommendations
+router.get('/personalized-matches/:userId', authorizeOwner(), getPersonalizedMatches);
 
 // GET /api/ai/profile-suggestions/:userId - Get profile improvement suggestions
-router.get('/profile-suggestions/:userId', getProfileImprovementSuggestions);
+// SECURITY: Only owner can access their own profile suggestions
+router.get('/profile-suggestions/:userId', authorizeOwner(), getProfileImprovementSuggestions);
 
 // GET /api/ai/conversation-insights/:userId - Get conversation insights
-router.get('/conversation-insights/:userId', getConversationInsights);
+// SECURITY: Only owner can access their own conversation insights
+router.get('/conversation-insights/:userId', authorizeOwner(), getConversationInsights);
 
 module.exports = router;

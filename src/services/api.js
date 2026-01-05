@@ -3,12 +3,19 @@ import { API_URL } from '../config/api';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 
-// Token storage key
+// Token storage keys
 const AUTH_TOKEN_KEY = 'authToken';
+const REFRESH_TOKEN_KEY = 'refreshToken';
 
 const api = {
   // Auth token (cached in memory for performance)
   _authToken: null,
+  // Refresh token (cached in memory)
+  _refreshToken: null,
+  // Flag to prevent multiple simultaneous refresh attempts
+  _isRefreshing: false,
+  // Queue of requests waiting for token refresh
+  _refreshQueue: [],
 
   /**
    * Set the auth token for API requests
@@ -16,6 +23,14 @@ const api = {
    */
   setAuthToken(token) {
     this._authToken = token;
+  },
+
+  /**
+   * Set the refresh token
+   * @param {string} token - JWT refresh token
+   */
+  setRefreshToken(token) {
+    this._refreshToken = token;
   },
 
   /**
@@ -39,16 +54,109 @@ const api = {
   },
 
   /**
-   * Clear the auth token (on logout)
+   * Get the refresh token (from memory or storage)
+   * @returns {Promise<string|null>} The refresh token
    */
-  clearAuthToken() {
-    this._authToken = null;
+  async getRefreshToken() {
+    if (this._refreshToken) {
+      return this._refreshToken;
+    }
+    try {
+      const token = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+      if (token) {
+        this._refreshToken = token;
+      }
+      return token;
+    } catch (error) {
+      logger.error('Error getting refresh token:', error);
+      return null;
+    }
   },
 
   /**
-   * Make an API request with authentication
+   * Clear all auth tokens (on logout)
    */
-  async request(method, endpoint, data = null, options = {}) {
+  clearAuthToken() {
+    this._authToken = null;
+    this._refreshToken = null;
+  },
+
+  /**
+   * Attempt to refresh the auth token using the refresh token
+   * @returns {Promise<string|null>} New auth token or null if refresh failed
+   */
+  async refreshAuthToken() {
+    // Prevent multiple simultaneous refresh attempts
+    if (this._isRefreshing) {
+      // Wait for the ongoing refresh to complete
+      return new Promise((resolve, reject) => {
+        this._refreshQueue.push({ resolve, reject });
+      });
+    }
+
+    this._isRefreshing = true;
+
+    try {
+      const refreshToken = await this.getRefreshToken();
+      
+      if (!refreshToken) {
+        logger.debug('No refresh token available for token refresh');
+        return null;
+      }
+
+      logger.debug('Attempting to refresh auth token...');
+
+      const response = await fetch(`${API_URL}/auth/refresh-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        logger.debug('Token refresh failed:', errorData.message || response.status);
+        return null;
+      }
+
+      const data = await response.json();
+      const newAuthToken = data.data?.authToken;
+
+      if (newAuthToken) {
+        // Update tokens in memory and storage
+        this._authToken = newAuthToken;
+        await AsyncStorage.setItem(AUTH_TOKEN_KEY, newAuthToken);
+        logger.debug('Auth token refreshed successfully');
+
+        // Resolve all queued requests with the new token
+        this._refreshQueue.forEach(({ resolve }) => resolve(newAuthToken));
+        this._refreshQueue = [];
+
+        return newAuthToken;
+      }
+
+      return null;
+    } catch (error) {
+      logger.error('Error refreshing auth token:', error);
+      // Reject all queued requests
+      this._refreshQueue.forEach(({ reject }) => reject(error));
+      this._refreshQueue = [];
+      return null;
+    } finally {
+      this._isRefreshing = false;
+    }
+  },
+
+  /**
+   * Make an API request with authentication and automatic token refresh
+   * @param {string} method - HTTP method
+   * @param {string} endpoint - API endpoint
+   * @param {object} data - Request body data
+   * @param {object} options - Additional options
+   * @param {boolean} _isRetry - Internal flag to prevent infinite retry loops
+   */
+  async request(method, endpoint, data = null, options = {}, _isRetry = false) {
     const url = `${API_URL}${endpoint}`;
     
     // Get auth token
@@ -70,8 +178,25 @@ const api = {
     try {
       const response = await fetch(url, requestOptions);
       
-      // Handle 401 Unauthorized - token may be expired
+      // Handle 401 Unauthorized - token may be expired, attempt refresh
       if (response.status === 401) {
+        // Don't retry if this is already a retry or if hitting auth endpoints
+        const isAuthEndpoint = endpoint.includes('/auth/');
+        
+        if (!_isRetry && !isAuthEndpoint) {
+          logger.debug('Received 401, attempting token refresh...');
+          
+          // Try to refresh the token
+          const newToken = await this.refreshAuthToken();
+          
+          if (newToken) {
+            // Retry the original request with the new token
+            logger.debug('Token refreshed, retrying original request...');
+            return this.request(method, endpoint, data, options, true);
+          }
+        }
+        
+        // Token refresh failed or not applicable - clear tokens and throw
         this.clearAuthToken();
         const errorData = await response.json().catch(() => ({}));
         logger.apiError(endpoint, method, 401, 'Unauthorized - token expired or invalid');

@@ -1,5 +1,5 @@
-const authController = require('../controllers/authController');
 const crypto = require('crypto');
+const authController = require('../controllers/authController');
 
 // Mock nodemailer
 jest.mock('nodemailer', () => ({

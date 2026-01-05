@@ -8,7 +8,7 @@ const {
   getMultipleStatus,
   heartbeat,
 } = require('../controllers/activityController');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, authorizeMatchedUsers } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -34,8 +34,8 @@ router.post(
   updateOnlineStatus
 );
 
-// Get online status of a user
-router.get('/online-status/:userId', getOnlineStatus);
+// Get online status of a user - SECURITY: Requires auth and can only view matched users' status
+router.get('/online-status/:userId', authenticate, authorizeMatchedUsers, getOnlineStatus);
 
 // View a profile
 router.post('/view-profile/:userId', authenticate, viewProfile);
@@ -43,9 +43,11 @@ router.post('/view-profile/:userId', authenticate, viewProfile);
 // Get profile views (own profile)
 router.get('/profile-views', authenticate, getProfileViews);
 
-// Get status for multiple users
+// Get status for multiple users - SECURITY: Requires authentication
+// Note: The controller should filter to only return status for matched users
 router.post(
   '/status',
+  authenticate,
   [body('userIds').isArray().withMessage('userIds must be an array')],
   handleValidationErrors,
   getMultipleStatus

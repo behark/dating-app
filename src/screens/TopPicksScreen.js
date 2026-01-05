@@ -3,19 +3,19 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { API_BASE_URL } from '../config/api';
-import logger from '../utils/logger';
 import { useAuth } from '../context/AuthContext';
 import { calculateDistance } from '../utils/distanceCalculator';
+import logger from '../utils/logger';
 
 const { width } = Dimensions.get('window');
 
@@ -138,7 +138,7 @@ const TopPicksScreen = ({ navigation }) => {
       {/* Main Card */}
       <View style={styles.cardContainer}>
         {user?.photos?.[0] && (
-          <Image source={{ uri: user.photos[0].url }} style={styles.profileImage} />
+          <Image source={{ uri: user.photos[0]?.url || user.photos[0] }} style={styles.profileImage} />
         )}
 
         {user?.isProfileVerified && (

@@ -244,10 +244,11 @@ exports.getProfileViews = async (req, res) => {
 
 // @route   GET /api/activity/status
 // @desc    Get activity status for multiple users
-// @access  Public
+// @access  Private - SECURITY: Only returns status for matched users
 exports.getMultipleStatus = async (req, res) => {
   try {
     const { userIds } = req.body;
+    const requestingUserId = req.user._id;
 
     if (!Array.isArray(userIds) || userIds.length === 0) {
       return res.status(400).json({
@@ -256,7 +257,36 @@ exports.getMultipleStatus = async (req, res) => {
       });
     }
 
-    const users = await User.find({ _id: { $in: userIds } }).select('isOnline lastActive');
+    // SECURITY: Only return status for users who are matched with the requesting user
+    const Match = require('../models/Match');
+    const matches = await Match.find({
+      users: requestingUserId,
+      status: 'active',
+    }).select('users');
+
+    // Get the IDs of users this person is matched with
+    const matchedUserIds = new Set();
+    matches.forEach((match) => {
+      match.users.forEach((userId) => {
+        if (userId.toString() !== requestingUserId.toString()) {
+          matchedUserIds.add(userId.toString());
+        }
+      });
+    });
+
+    // Filter requested userIds to only include matched users
+    const allowedUserIds = userIds.filter((id) => matchedUserIds.has(id.toString()));
+
+    if (allowedUserIds.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          statusMap: {},
+        },
+      });
+    }
+
+    const users = await User.find({ _id: { $in: allowedUserIds } }).select('isOnline lastActive');
 
     const statusMap = {};
     users.forEach((user) => {

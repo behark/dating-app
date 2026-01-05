@@ -138,11 +138,17 @@ export class ApiUserRepository extends UserRepository {
 
       // Normalize user objects and cache them
       return users.map((user) => {
+        // Handle photos being either objects with url property or direct URL strings
+        const firstPhoto = user.photos?.[0];
+        const photoURL = user.photoURL || 
+          (typeof firstPhoto === 'string' ? firstPhoto : firstPhoto?.url) || 
+          null;
+        
         const normalizedUser = {
           ...user,
           id: user._id || user.id,
           uid: user._id || user.id,
-          photoURL: user.photoURL || user.photos?.[0] || null,
+          photoURL,
         };
 
         // Cache the user

@@ -14,19 +14,39 @@ let isConnected = false;
 let connectionRetries = 0;
 const MAX_RETRIES = 5;
 
-// MongoDB connection options
+// Pool monitoring stats
+let poolStats = {
+  totalConnections: 0,
+  availableConnections: 0,
+  waitQueueSize: 0,
+  lastChecked: null,
+};
+
+// MongoDB connection options - optimized for high concurrency (swiping traffic)
+// These settings prevent connection pool exhaustion under load
 // @ts-ignore - Mongoose ConnectOptions type doesn't include all valid options
 const mongoOptions = {
-  maxPoolSize: 10,
-  minPoolSize: 2,
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-  family: 4, // Use IPv4
-  retryWrites: true,
+  // Connection pool settings - sized for concurrent swipe operations
+  maxPoolSize: 50,              // Max connections for high traffic (swiping)
+  minPoolSize: 10,              // Keep minimum connections warm
+  
+  // Timeout settings - prevent hanging requests
+  serverSelectionTimeoutMS: 10000,  // Time to find a server
+  socketTimeoutMS: 45000,           // Socket idle timeout
+  maxIdleTimeMS: 30000,             // Close idle connections after 30s
+  waitQueueTimeoutMS: 10000,        // Max wait for connection from pool
+  connectTimeoutMS: 10000,          // Initial connection timeout
+  
+  // Connection behavior
+  family: 4,                    // Use IPv4, skip trying IPv6
+  retryWrites: true,            // Retry failed writes
+  retryReads: true,             // Retry failed reads
   // @ts-ignore - 'majority' is valid for w option
-  w: 'majority',
-  bufferCommands: true, // Allow commands before connection is established
-  // Note: bufferMaxEntries is set via mongoose.set(), not in connection options
+  w: 'majority',                // Write concern
+  bufferCommands: false,        // Fail fast if not connected (serverless)
+  
+  // Heartbeat and monitoring
+  heartbeatFrequencyMS: 10000,  // Check server health every 10s
 };
 
 /**
@@ -134,7 +154,64 @@ const getConnectionStatus = () => ({
     2: 'connecting',
     3: 'disconnecting',
   }[mongoose.connection.readyState],
+  pool: poolStats,
 });
+
+/**
+ * Monitor connection pool health
+ * Detects pool exhaustion before it causes 500 errors
+ */
+const monitorPoolHealth = () => {
+  if (!mongoose.connection || mongoose.connection.readyState !== 1) {
+    return;
+  }
+
+  // Get pool stats from the MongoDB driver
+  try {
+    const client = mongoose.connection.getClient();
+    if (client && client.topology) {
+      const serverDescription = client.topology.description;
+      if (serverDescription && serverDescription.servers) {
+        let totalConnections = 0;
+        serverDescription.servers.forEach((server) => {
+          if (server.pool) {
+            totalConnections += server.pool.totalConnectionCount || 0;
+          }
+        });
+        
+        poolStats = {
+          totalConnections,
+          maxPoolSize: mongoOptions.maxPoolSize,
+          utilizationPercent: Math.round((totalConnections / mongoOptions.maxPoolSize) * 100),
+          lastChecked: new Date().toISOString(),
+        };
+
+        // Warn if pool utilization is high (>80%)
+        if (poolStats.utilizationPercent > 80) {
+          console.warn(
+            `[DB POOL WARNING] High pool utilization: ${poolStats.utilizationPercent}% ` +
+            `(${totalConnections}/${mongoOptions.maxPoolSize} connections)`
+          );
+        }
+
+        // Critical warning if pool is nearly exhausted (>95%)
+        if (poolStats.utilizationPercent > 95) {
+          console.error(
+            `[DB POOL CRITICAL] Pool near exhaustion: ${poolStats.utilizationPercent}% ` +
+            `- requests may start failing with 500 errors!`
+          );
+        }
+      }
+    }
+  } catch (error) {
+    // Silently handle monitoring errors
+  }
+};
+
+// Start pool monitoring in non-test environments
+if (process.env.NODE_ENV !== 'test') {
+  setInterval(monitorPoolHealth, 30000); // Check every 30 seconds
+}
 
 /**
  * Enable MongoDB slow query profiling
@@ -278,5 +355,7 @@ module.exports = {
   getConnectionStatus,
   createIndexes,
   enableSlowQueryProfiling,
+  monitorPoolHealth,
+  mongoOptions,
   mongoose,
 };

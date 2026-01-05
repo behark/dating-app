@@ -242,6 +242,46 @@ const userSchema = new mongoose.Schema(
     emailVerificationToken: String,
     emailVerificationTokenExpiry: Date,
 
+    // Account safety & moderation
+    suspended: {
+      type: Boolean,
+      default: false,
+      index: true, // Index for efficient filtering in discovery queries
+    },
+    suspendedAt: {
+      type: Date,
+    },
+    suspendReason: {
+      type: String,
+    },
+    suspensionType: {
+      type: String,
+      enum: ['manual', 'auto', null],
+      default: null,
+    },
+    needsReview: {
+      type: Boolean,
+      default: false,
+    },
+    appealReason: {
+      type: String,
+    },
+    appealedAt: {
+      type: Date,
+    },
+    reportCount: {
+      type: Number,
+      default: 0,
+    },
+    blockedUsers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    }],
+    blockedCount: {
+      type: Number,
+      default: 0,
+    },
+
     // Activity & Engagement (Tier 2)
     isOnline: {
       type: Boolean,
@@ -583,8 +623,8 @@ userSchema.pre('save', async function (next) {
 });
 
 // Method to compare passwords
-userSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+userSchema.methods.matchPassword = function (enteredPassword) {
+  return bcrypt.compare(enteredPassword, this.password);
 };
 
 // Method to generate JWT token
@@ -598,10 +638,9 @@ userSchema.methods.generateAuthToken = function () {
     );
   }
 
-  const token = jwt.sign({ userId: this._id, email: this.email }, process.env.JWT_SECRET, {
+  return jwt.sign({ userId: this._id, email: this.email }, process.env.JWT_SECRET, {
     expiresIn: '7d',
   });
-  return token;
 };
 
 // Method to generate refresh token
@@ -615,10 +654,9 @@ userSchema.methods.generateRefreshToken = function () {
     );
   }
 
-  const token = jwt.sign({ userId: this._id }, process.env.JWT_REFRESH_SECRET, {
+  return jwt.sign({ userId: this._id }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: '30d',
   });
-  return token;
 };
 
 // Create 2dsphere index on location for geospatial queries
@@ -642,15 +680,17 @@ userSchema.index({ createdAt: 1, _id: 1 }, { name: 'createdAt_id_retention' });
 // Virtual for profile completeness score
 userSchema.virtual('profileCompleteness').get(function () {
   let score = 0;
-  const fields = ['name', 'age', 'gender', 'bio', 'photos', 'interests', 'location'];
+  // Check each field explicitly to avoid object injection warnings
+  // Safe: All field names are hardcoded, not user input
+  if (this.name) score += 1;
+  if (this.age) score += 1;
+  if (this.gender) score += 1;
+  if (this.bio) score += 1;
+  if (this.photos && Array.isArray(this.photos) && this.photos.length > 0) score += 1;
+  if (this.interests && Array.isArray(this.interests) && this.interests.length > 0) score += 1;
+  if (this.location) score += 1;
 
-  fields.forEach((field) => {
-    if (this[field] && (Array.isArray(this[field]) ? this[field].length > 0 : true)) {
-      score += 1;
-    }
-  });
-
-  return Math.round((score / fields.length) * 100);
+  return Math.round((score / 7) * 100);
 });
 
 // Method to update location
@@ -676,6 +716,8 @@ userSchema.statics.findNearby = function (longitude, latitude, maxDistance, opti
       },
     },
     isActive: true,
+    // Exclude suspended users - prevents shadow-locking from hiding profiles
+    suspended: { $ne: true },
   };
 
   // Add additional filters

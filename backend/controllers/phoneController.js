@@ -1,5 +1,5 @@
-const User = require('../models/User');
 const crypto = require('crypto');
+const User = require('../models/User');
 
 // Initialize SMS service (using Twilio as an example)
 const smsService = {

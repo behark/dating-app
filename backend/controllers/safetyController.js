@@ -32,6 +32,21 @@ exports.reportUser = async (req, res) => {
       });
     }
 
+    // Check for existing pending report from the same reporter
+    // This prevents spam-reporting and gaming the auto-suspension system
+    const existingReport = await Report.findOne({
+      reporterId,
+      reportedUserId,
+      status: { $in: ['pending', 'reviewing'] },
+    });
+
+    if (existingReport) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have already submitted a report for this user that is pending review',
+      });
+    }
+
     // Create report
     const report = new Report({
       reporterId,
@@ -44,19 +59,35 @@ exports.reportUser = async (req, res) => {
 
     await report.save();
 
-    // Increment report count
+    // Count unique reporters (not total reports) to prevent abuse
+    // This prevents one person from spam-reporting to get someone banned
+    const uniqueReporterCount = await Report.distinct('reporterId', {
+      reportedUserId,
+      status: { $in: ['pending', 'reviewing'] }, // Only count unresolved reports
+    }).then((reporters) => reporters.length);
+
+    // Update report count with unique reporter count
     await User.findByIdAndUpdate(reportedUserId, {
-      $inc: { reportCount: 1 },
+      reportCount: uniqueReporterCount,
     });
 
-    // Check if user should be auto-suspended (3+ reports)
+    // Auto-suspend threshold: 5+ unique reporters with pending reports
+    // This is more conservative to prevent false positives
+    const AUTO_SUSPEND_THRESHOLD = 5;
     const updatedUser = await User.findById(reportedUserId);
-    if (updatedUser.reportCount >= 3 && !updatedUser.suspended) {
+    
+    if (uniqueReporterCount >= AUTO_SUSPEND_THRESHOLD && !updatedUser.suspended) {
       await User.findByIdAndUpdate(reportedUserId, {
         suspended: true,
         suspendedAt: new Date(),
-        suspendReason: 'Multiple user reports',
+        suspendReason: `Auto-suspended: ${uniqueReporterCount} unique user reports pending review`,
+        // Flag for priority review - user should be notified
+        suspensionType: 'auto',
+        needsReview: true,
       });
+      
+      // Log for admin review - these auto-suspensions should be reviewed quickly
+      console.warn(`[SAFETY] Auto-suspended user ${reportedUserId} - ${uniqueReporterCount} unique reporters. Needs manual review.`);
     }
 
     res.status(201).json({
@@ -545,6 +576,129 @@ exports.unsuspendUser = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error unsuspending user',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Check current user's account status
+ * This allows users to know if their account has been flagged or suspended
+ * preventing "shadow-locking" where users don't know they've been restricted
+ */
+exports.getAccountStatus = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId).select(
+      'suspended suspendedAt suspendReason suspensionType reportCount isActive needsReview'
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    // Determine visibility status
+    let visibilityStatus = 'visible';
+    let visibilityMessage = 'Your profile is visible to other users';
+
+    if (user.suspended) {
+      visibilityStatus = 'suspended';
+      visibilityMessage = user.suspensionType === 'auto'
+        ? 'Your account has been temporarily restricted due to user reports. Our team will review this shortly. If you believe this is a mistake, please contact support.'
+        : 'Your account has been suspended. Please contact support for more information.';
+    } else if (!user.isActive) {
+      visibilityStatus = 'inactive';
+      visibilityMessage = 'Your profile is currently hidden because your account is inactive';
+    } else if (user.reportCount > 0) {
+      visibilityStatus = 'under_review';
+      visibilityMessage = `Your profile is visible, but you have ${user.reportCount} pending report(s) that are being reviewed`;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        visibilityStatus,
+        visibilityMessage,
+        suspended: user.suspended || false,
+        suspendedAt: user.suspendedAt,
+        suspensionType: user.suspensionType,
+        reportCount: user.reportCount || 0,
+        isActive: user.isActive,
+        // Don't expose the full suspend reason for security, just a status
+        canAppeal: user.suspended && user.suspensionType === 'auto',
+      },
+    });
+  } catch (error) {
+    console.error('Error getting account status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error checking account status',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Appeal a suspension (for auto-suspended users)
+ */
+exports.appealSuspension = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { reason } = req.body;
+
+    if (!reason || reason.length < 20) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a detailed explanation (at least 20 characters)',
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    if (!user.suspended) {
+      return res.status(400).json({
+        success: false,
+        message: 'Your account is not suspended',
+      });
+    }
+
+    if (user.suspensionType !== 'auto') {
+      return res.status(400).json({
+        success: false,
+        message: 'Manual suspensions cannot be appealed through this system. Please contact support.',
+      });
+    }
+
+    // Mark for priority review
+    await User.findByIdAndUpdate(userId, {
+      needsReview: true,
+      appealReason: reason,
+      appealedAt: new Date(),
+    });
+
+    // Log for admin review
+    console.log(`[SAFETY] Suspension appeal submitted by user ${userId}: ${reason.substring(0, 100)}...`);
+
+    res.json({
+      success: true,
+      message: 'Your appeal has been submitted. Our team will review it within 24-48 hours.',
+    });
+  } catch (error) {
+    console.error('Error submitting appeal:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error submitting appeal',
       error: error.message,
     });
   }

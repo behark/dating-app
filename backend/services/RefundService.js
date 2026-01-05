@@ -6,10 +6,10 @@
  */
 
 const paymentConfig = require('../config/payment');
-const StripeService = require('./StripeService');
-const PayPalService = require('./PayPalService');
 const PaymentTransaction = require('../models/PaymentTransaction');
 const Subscription = require('../models/Subscription');
+const StripeService = require('./StripeService');
+const PayPalService = require('./PayPalService');
 
 class RefundService {
   /**

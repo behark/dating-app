@@ -3,11 +3,11 @@
  * Handles image compression, optimization, and CDN delivery
  */
 
+const crypto = require('crypto');
+const path = require('path');
 const sharp = require('sharp');
 const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
-const crypto = require('crypto');
-const path = require('path');
 
 // S3 Configuration
 const s3Client = new S3Client({

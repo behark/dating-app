@@ -3,8 +3,8 @@
  * Handles multipart form data using multer
  */
 
-const multer = require('multer');
 const path = require('path');
+const multer = require('multer');
 
 // File type validation
 const fileFilter = (allowedTypes) => (req, file, cb) => {
@@ -100,27 +100,55 @@ const uploadChatMedia = multer({
   ]),
 }).array('media', 5);
 
+// Size limit constants for better error messages
+const SIZE_LIMITS = {
+  image: '10MB',
+  video: '50MB',
+  document: '5MB',
+  chatMedia: '25MB',
+  generic: '25MB',
+};
+
 // Error handler middleware
 const handleUploadError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({
+      // Determine the type based on the route or field
+      const isVideo = req.path?.includes('video') || err.field === 'video' || err.field === 'videos';
+      const isChat = req.path?.includes('chat') || err.field === 'media';
+      const isDocument = req.path?.includes('verification') || err.field === 'document';
+      
+      let maxSize = SIZE_LIMITS.image;
+      if (isVideo) maxSize = SIZE_LIMITS.video;
+      else if (isChat) maxSize = SIZE_LIMITS.chatMedia;
+      else if (isDocument) maxSize = SIZE_LIMITS.document;
+      
+      return res.status(413).json({
         success: false,
-        message: 'File too large',
+        message: `File too large. Maximum size is ${maxSize}`,
         error: err.code,
+        maxSize,
       });
     }
     if (err.code === 'LIMIT_FILE_COUNT') {
       return res.status(400).json({
         success: false,
-        message: 'Too many files',
+        message: 'Too many files uploaded',
         error: err.code,
       });
     }
     if (err.code === 'LIMIT_UNEXPECTED_FILE') {
       return res.status(400).json({
         success: false,
-        message: 'Unexpected field name',
+        message: `Unexpected field name: "${err.field}". Check your form field names.`,
+        error: err.code,
+        field: err.field,
+      });
+    }
+    if (err.code === 'LIMIT_PART_COUNT') {
+      return res.status(400).json({
+        success: false,
+        message: 'Too many parts in the request',
         error: err.code,
       });
     }
@@ -132,9 +160,19 @@ const handleUploadError = (err, req, res, next) => {
   }
 
   if (err.message && err.message.includes('File type')) {
-    return res.status(400).json({
+    return res.status(415).json({
       success: false,
       message: err.message,
+      error: 'UNSUPPORTED_MEDIA_TYPE',
+    });
+  }
+  
+  // Handle payload too large from body-parser
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({
+      success: false,
+      message: 'Request payload too large. Maximum size is 50MB.',
+      error: 'PAYLOAD_TOO_LARGE',
     });
   }
 
@@ -154,4 +192,5 @@ module.exports = {
   uploadVerificationDoc,
   uploadChatMedia,
   handleUploadError,
+  SIZE_LIMITS,
 };

@@ -3,14 +3,14 @@
  * Job handlers for queue processing
  */
 
-const QueueService = require('./QueueService');
 const { cache, CACHE_KEYS, CACHE_TTL } = require('../config/redis');
-const StorageService = require('./StorageService');
 
 // Models
 const User = require('../models/User');
 const Message = require('../models/Message');
 const Swipe = require('../models/Swipe');
+const StorageService = require('./StorageService');
+const QueueService = require('./QueueService');
 
 // Constants
 const { QUEUES, JOB_TYPES } = QueueService;

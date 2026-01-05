@@ -5,11 +5,11 @@
 
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const { cache, onlineStatus, CACHE_KEYS, CACHE_TTL } = require('../config/redis');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const Swipe = require('../models/Swipe');
-const mongoose = require('mongoose');
 
 // Connected users map (in-memory for single server, use Redis for multiple servers)
 const connectedUsers = new Map();
@@ -21,9 +21,45 @@ const userRooms = new Map();
  * Initialize WebSocket server
  */
 const initializeWebSocket = (httpServer) => {
+  // Parse CORS_ORIGIN if provided (comma-separated list of origins)
+  const corsOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+    : [];
+
+  // Allowed origins for CORS (same as main server.js)
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    ...corsOrigins,
+    'http://localhost:3000',
+    'http://localhost:8081',
+    'http://localhost:19006',
+    /\.vercel\.app$/,
+    /\.onrender\.com$/,  // Support Render.com deployments
+  ].filter(Boolean);
+
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.FRONTEND_URL || '*',
+      origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, Postman, etc.)
+        if (!origin) return callback(null, true);
+
+        // Check against allowed origins
+        const isAllowed = allowedOrigins.some((allowed) => {
+          if (allowed instanceof RegExp) {
+            return allowed.test(origin);
+          }
+          return allowed === origin;
+        });
+
+        if (isAllowed) {
+          callback(null, true);
+        } else if (process.env.NODE_ENV !== 'production') {
+          // In development, allow all origins
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       methods: ['GET', 'POST'],
       credentials: true,
     },

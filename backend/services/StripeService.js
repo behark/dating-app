@@ -49,7 +49,7 @@ class StripeService {
       }
 
       // Create new customer
-      const customer = await stripe.customers.create({
+      return await stripe.customers.create({
         email: user.email,
         name: user.name,
         metadata: {
@@ -57,8 +57,6 @@ class StripeService {
           platform: 'dating-app',
         },
       });
-
-      return customer;
     } catch (error) {
       console.error('Error creating Stripe customer:', error);
       throw error;
@@ -77,7 +75,7 @@ class StripeService {
         throw new Error(`Invalid plan type: ${planType}`);
       }
 
-      const session = await stripe.checkout.sessions.create({
+      return await stripe.checkout.sessions.create({
         customer: customer.id,
         payment_method_types: ['card'],
         mode: 'subscription',
@@ -104,8 +102,6 @@ class StripeService {
         allow_promotion_codes: true,
         billing_address_collection: 'required',
       });
-
-      return session;
     } catch (error) {
       console.error('Error creating checkout session:', error);
       throw error;
@@ -281,14 +277,12 @@ class StripeService {
   static async cancelSubscription(subscriptionId, immediately = false) {
     try {
       if (immediately) {
-        const subscription = await stripe.subscriptions.cancel(subscriptionId);
-        return subscription;
+        return await stripe.subscriptions.cancel(subscriptionId);
       } else {
         // Cancel at period end
-        const subscription = await stripe.subscriptions.update(subscriptionId, {
+        return await stripe.subscriptions.update(subscriptionId, {
           cancel_at_period_end: true,
         });
-        return subscription;
       }
     } catch (error) {
       console.error('Error cancelling subscription:', error);
@@ -301,10 +295,9 @@ class StripeService {
    */
   static async resumeSubscription(subscriptionId) {
     try {
-      const subscription = await stripe.subscriptions.update(subscriptionId, {
+      return await stripe.subscriptions.update(subscriptionId, {
         cancel_at_period_end: false,
       });
-      return subscription;
     } catch (error) {
       console.error('Error resuming subscription:', error);
       throw error;
@@ -322,7 +315,7 @@ class StripeService {
     try {
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
-      const updatedSubscription = await stripe.subscriptions.update(subscriptionId, {
+      return await stripe.subscriptions.update(subscriptionId, {
         items: [
           {
             id: subscription.items.data[0].id,
@@ -331,8 +324,6 @@ class StripeService {
         ],
         proration_behavior: prorationBehavior,
       });
-
-      return updatedSubscription;
     } catch (error) {
       console.error('Error changing subscription plan:', error);
       throw error;
@@ -453,12 +444,11 @@ class StripeService {
    */
   static verifyWebhookSignature(payload, signature) {
     try {
-      const event = stripe.webhooks.constructEvent(
+      return stripe.webhooks.constructEvent(
         payload,
         signature,
         paymentConfig.stripe.webhookSecret
       );
-      return event;
     } catch (error) {
       console.error('Webhook signature verification failed:', error);
       throw error;

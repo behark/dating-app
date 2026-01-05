@@ -90,6 +90,7 @@ export default {
       firebaseMessagingSenderId:
         process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || 'your_sender_id',
       firebaseAppId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || 'your_app_id',
+      firebaseMeasurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID || '',
       // Google OAuth Client IDs (required for Google Sign-In)
       // - Web must be an OAuth Client ID ending with `.apps.googleusercontent.com`
       // - iOS/Android are optional unless you ship native builds
