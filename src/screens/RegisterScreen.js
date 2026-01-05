@@ -179,7 +179,7 @@ export const RegisterScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   return (
     <KeyboardAvoidingView

@@ -90,7 +90,8 @@ async function getUserGroups(userId) {
   }
 
   // Check if user is admin
-  const user = await User.findById(userId).select('role');
+  const user = await User.findById(userId).select('role').lean();
+  // @ts-ignore - role may not be in TypeScript types but exists in schema
   if (user && user.role === 'admin') {
     groups.push('admin');
   }

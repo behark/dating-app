@@ -448,6 +448,7 @@ exports.getNotifications = async (req, res) => {
     const total = await Notification.countDocuments(query);
 
     // Get unread count
+    // @ts-ignore - Static method exists on schema but TypeScript doesn't recognize it
     const unreadCount = await Notification.getUnreadCount(userId);
 
     res.json({
@@ -521,6 +522,7 @@ exports.markAllAsRead = async (req, res) => {
   try {
     const userId = req.user._id;
 
+    // @ts-ignore - Static method exists on schema but TypeScript doesn't recognize it
     const result = await Notification.markAllAsRead(userId);
 
     res.json({

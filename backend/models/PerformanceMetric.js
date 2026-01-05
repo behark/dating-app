@@ -81,6 +81,7 @@ performanceMetricSchema.index({ timestamp: 1 }, { expireAfterSeconds: 2592000 })
 
 // Static method to get slow requests
 performanceMetricSchema.statics.getSlowRequests = function (startDate, endDate, limit = 100) {
+  // @ts-ignore - Mongoose static method typing
   return this.find({
     type: 'api_request',
     isSlow: true,
@@ -93,6 +94,7 @@ performanceMetricSchema.statics.getSlowRequests = function (startDate, endDate, 
 
 // Static method to get slow queries
 performanceMetricSchema.statics.getSlowQueries = function (startDate, endDate, limit = 100) {
+  // @ts-ignore - Mongoose static method typing
   return this.find({
     type: 'database_query',
     isSlow: true,
@@ -134,11 +136,13 @@ performanceMetricSchema.statics.getPerformanceSummary = async function (
     },
   ];
 
+  // @ts-ignore - Mongoose static method typing
   return this.aggregate(pipeline);
 };
 
 // Static method to get average response times by endpoint
 performanceMetricSchema.statics.getAverageResponseTimes = function (startDate, endDate) {
+  // @ts-ignore - Mongoose static method typing
   return this.aggregate([
     {
       $match: {

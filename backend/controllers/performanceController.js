@@ -18,7 +18,7 @@ exports.getMetrics = async (req, res) => {
       data: metrics,
     });
   } catch (error) {
-    logger.error('Error getting performance metrics', error);
+    logger.error('Error getting performance metrics', error instanceof Error ? error : new Error(String(error)));
     res.status(500).json({
       success: false,
       message: 'Failed to get performance metrics',
@@ -36,6 +36,7 @@ exports.getSlowRequests = async (req, res) => {
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 24 * 60 * 60 * 1000); // Default: last 24 hours
     const end = endDate ? new Date(endDate) : new Date();
 
+    // @ts-ignore - Static method exists on schema but TypeScript doesn't recognize it
     const slowRequests = await PerformanceMetric.getSlowRequests(start, end, parseInt(limit, 10));
 
     res.json({
@@ -50,7 +51,7 @@ exports.getSlowRequests = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error getting slow requests', error);
+    logger.error('Error getting slow requests', error instanceof Error ? error : new Error(String(error)));
     res.status(500).json({
       success: false,
       message: 'Failed to get slow requests',
@@ -68,6 +69,7 @@ exports.getSlowQueries = async (req, res) => {
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 24 * 60 * 60 * 1000); // Default: last 24 hours
     const end = endDate ? new Date(endDate) : new Date();
 
+    // @ts-ignore - Static method exists on schema but TypeScript doesn't recognize it
     const slowQueries = await PerformanceMetric.getSlowQueries(start, end, parseInt(limit, 10));
 
     res.json({
@@ -82,7 +84,7 @@ exports.getSlowQueries = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error getting slow queries', error);
+    logger.error('Error getting slow queries', error instanceof Error ? error : new Error(String(error)));
     res.status(500).json({
       success: false,
       message: 'Failed to get slow queries',
@@ -100,6 +102,7 @@ exports.getPerformanceSummary = async (req, res) => {
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 24 * 60 * 60 * 1000); // Default: last 24 hours
     const end = endDate ? new Date(endDate) : new Date();
 
+    // @ts-ignore - Static method exists on schema but TypeScript doesn't recognize it
     const summary = await PerformanceMetric.getPerformanceSummary(start, end, groupBy);
 
     res.json({
@@ -114,7 +117,7 @@ exports.getPerformanceSummary = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error getting performance summary', error);
+    logger.error('Error getting performance summary', error instanceof Error ? error : new Error(String(error)));
     res.status(500).json({
       success: false,
       message: 'Failed to get performance summary',
@@ -132,6 +135,7 @@ exports.getAverageResponseTimes = async (req, res) => {
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 24 * 60 * 60 * 1000); // Default: last 24 hours
     const end = endDate ? new Date(endDate) : new Date();
 
+    // @ts-ignore - Static method exists on schema but TypeScript doesn't recognize it
     const averages = await PerformanceMetric.getAverageResponseTimes(start, end);
 
     res.json({
@@ -145,7 +149,7 @@ exports.getAverageResponseTimes = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error getting average response times', error);
+    logger.error('Error getting average response times', error instanceof Error ? error : new Error(String(error)));
     res.status(500).json({
       success: false,
       message: 'Failed to get average response times',

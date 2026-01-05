@@ -16,16 +16,20 @@ function performancePlugin(schema) {
 
   // Track find operations
   schema.post(['find', 'findOne', 'findOneAndUpdate', 'findOneAndDelete'], function (docs) {
+    // @ts-ignore - Mongoose query context typing
     const startTime = this._startTime || Date.now();
     const duration = Date.now() - startTime;
+    // @ts-ignore - Mongoose query context typing
     const collectionName = this.model?.collection?.name || schema.options.collection || 'unknown';
 
     trackDatabaseQuery(
+      // @ts-ignore - Mongoose query context typing
       this.op || 'find',
       collectionName,
       duration,
       true,
       {
+        // @ts-ignore - Mongoose query context typing
         query: this.getQuery ? this.getQuery() : {},
         resultCount: Array.isArray(docs) ? docs.length : docs ? 1 : 0,
       }
