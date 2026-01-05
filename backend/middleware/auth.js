@@ -88,3 +88,95 @@ exports.isAdmin = (req, res, next) => {
 
 // Alias for backwards compatibility
 exports.authenticateToken = exports.authenticate;
+
+/**
+ * Middleware to ensure user can only access their own data (IDOR protection)
+ * Must be used AFTER authenticate middleware
+ * Checks if req.params.userId matches the authenticated user's ID
+ * @param {Object} options - Configuration options
+ * @param {boolean} options.allowAdmin - Allow admins to bypass the check (default: true)
+ * @param {string} options.paramName - The name of the URL param containing user ID (default: 'userId')
+ */
+exports.authorizeOwner = (options = {}) => {
+  const { allowAdmin = true, paramName = 'userId' } = options;
+
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+      });
+    }
+
+    const targetUserId = req.params[paramName];
+
+    if (!targetUserId) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing ${paramName} parameter`,
+      });
+    }
+
+    const requestingUserId = req.user._id?.toString() || req.user.id?.toString();
+    const isOwner = requestingUserId === targetUserId;
+    const isAdmin = allowAdmin && req.user.role === 'admin';
+
+    if (!isOwner && !isAdmin) {
+      // Log potential IDOR attempt for security monitoring
+      console.warn(
+        `[SECURITY] IDOR attempt blocked: User ${requestingUserId} tried to access data for user ${targetUserId}`
+      );
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only access your own data.',
+      });
+    }
+
+    next();
+  };
+};
+
+/**
+ * Middleware to check if two users are matched (for accessing each other's data)
+ * Must be used AFTER authenticate middleware
+ */
+exports.authorizeMatchedUsers = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+      });
+    }
+
+    const targetUserId = req.params.userId || req.params.targetUserId;
+    const requestingUserId = req.user._id?.toString() || req.user.id?.toString();
+
+    // Allow access to own data
+    if (requestingUserId === targetUserId) {
+      return next();
+    }
+
+    // Check if users are matched
+    const Match = require('../models/Match');
+    const isMatched = await Match.findOne({
+      users: { $all: [requestingUserId, targetUserId] },
+      status: 'active',
+    });
+
+    if (!isMatched && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only view profiles of your matches.',
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('[SECURITY] Error checking match authorization:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error verifying access permissions',
+    });
+  }
+};

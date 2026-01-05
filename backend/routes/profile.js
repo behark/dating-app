@@ -11,7 +11,7 @@ const {
   rejectPhoto,
   getPendingPhotos,
 } = require('../controllers/profileController');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, authorizeMatchedUsers } = require('../middleware/auth');
 const { apiCache, invalidateUserCache } = require('../middleware/apiCache');
 
 const router = express.Router();
@@ -44,11 +44,13 @@ const invalidateCacheAfterUpdate = async (req, res, next) => {
   next();
 };
 
-// Get user profile (public) - cached for 5 minutes
-router.get('/:userId', apiCache('profile', 300), getProfile);
-
 // Get my profile (private) - cached for 5 minutes
+// NOTE: This must come BEFORE /:userId to avoid matching 'me' as a userId
 router.get('/me', authenticate, apiCache('profile', 300), getMyProfile);
+
+// Get user profile - SECURITY: Requires authentication and can only view matched users' profiles
+// (or own profile). This prevents IDOR attacks where attackers enumerate user IDs.
+router.get('/:userId', authenticate, authorizeMatchedUsers, apiCache('profile', 300), getProfile);
 
 // Update profile - invalidates cache
 router.put(

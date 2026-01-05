@@ -1,23 +1,23 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  FlatList,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    FlatList,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { API_BASE_URL } from '../config/api';
-import logger from '../utils/logger';
 import { useAuth } from '../context/AuthContext';
 import { calculateDistance } from '../utils/distanceCalculator';
+import logger from '../utils/logger';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 24) / 2;
@@ -115,7 +115,7 @@ const ExploreScreen = ({ navigation }) => {
         onPress={() => navigation.navigate('ViewProfile', { userId: item._id })}
       >
         {item.photos?.[0] && (
-          <Image source={{ uri: item.photos[0].url }} style={styles.userImage} />
+          <Image source={{ uri: item.photos[0]?.url || item.photos[0] }} style={styles.userImage} />
         )}
 
         {item.isBoosted && (

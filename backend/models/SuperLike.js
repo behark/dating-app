@@ -77,12 +77,10 @@ superLikeSchema.statics.getRemainingForToday = async function (userId) {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const count = await this.countDocuments({
+  return await this.countDocuments({
     senderId: userId,
     createdAt: { $gte: today, $lt: tomorrow },
   });
-
-  return count;
 };
 
 module.exports = mongoose.model('SuperLike', superLikeSchema);

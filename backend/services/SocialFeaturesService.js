@@ -1,9 +1,9 @@
+const crypto = require('crypto');
 const GroupDate = require('../models/GroupDate');
 const FriendReview = require('../models/FriendReview');
 const Event = require('../models/Event');
 const SharedProfile = require('../models/SharedProfile');
 const User = require('../models/User');
-const crypto = require('crypto');
 
 class SocialFeaturesService {
   /**
@@ -118,7 +118,7 @@ class SocialFeaturesService {
    */
   static async getNearbyGroupDates(longitude, latitude, maxDistance = 5000) {
     try {
-      const groupDates = await GroupDate.find({
+      return await GroupDate.find({
         status: { $in: ['open', 'planning'] },
         isPublic: true,
         location: {
@@ -133,8 +133,6 @@ class SocialFeaturesService {
       })
         .populate('hostId', 'name photos')
         .sort({ startTime: 1 });
-
-      return groupDates;
     } catch (error) {
       console.error('Error getting nearby group dates:', error);
       throw error;
@@ -190,11 +188,9 @@ class SocialFeaturesService {
         query.isPublic = true;
       }
 
-      const reviews = await FriendReview.find(query)
+      return await FriendReview.find(query)
         .populate('reviewerId', 'name photos', { isAnonymous: false })
         .sort({ createdAt: -1 });
-
-      return reviews;
     } catch (error) {
       console.error('Error getting user reviews:', error);
       throw error;
@@ -362,12 +358,10 @@ class SocialFeaturesService {
         query.category = category;
       }
 
-      const events = await Event.find(query)
+      return await Event.find(query)
         .populate('organizerId', 'name photos')
         .sort({ startTime: 1 })
         .limit(20);
-
-      return events;
     } catch (error) {
       console.error('Error getting nearby events:', error);
       throw error;
@@ -471,12 +465,10 @@ class SocialFeaturesService {
    */
   static async getUserSharedProfiles(userId) {
     try {
-      const sharedProfiles = await SharedProfile.find({
+      return await SharedProfile.find({
         userId,
         isActive: true,
       }).sort({ createdAt: -1 });
-
-      return sharedProfiles;
     } catch (error) {
       console.error('Error getting user shared profiles:', error);
       throw error;
@@ -488,13 +480,11 @@ class SocialFeaturesService {
    */
   static async deactivateShareLink(shareToken) {
     try {
-      const sharedProfile = await SharedProfile.findOneAndUpdate(
+      return await SharedProfile.findOneAndUpdate(
         { shareToken },
         { isActive: false },
         { new: true }
       );
-
-      return sharedProfile;
     } catch (error) {
       console.error('Error deactivating share link:', error);
       throw error;

@@ -56,7 +56,8 @@ router.delete('/disconnect-spotify', authenticate, disconnectSpotify);
 // Disconnect Instagram
 router.delete('/disconnect-instagram', authenticate, disconnectInstagram);
 
-// Get social media (public)
-router.get('/:userId/social-media', getSocialMedia);
+// Get social media - SECURITY: Requires auth and can only view matched users' social media
+const { authorizeMatchedUsers } = require('../middleware/auth');
+router.get('/:userId/social-media', authenticate, authorizeMatchedUsers, getSocialMedia);
 
 module.exports = router;

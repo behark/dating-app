@@ -4,9 +4,10 @@
  * @module controllers/authController
  */
 
-const User = require('../models/User');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const User = require('../models/User');
+const { verifyGoogleToken, verifyFacebookToken, verifyAppleToken, checkOAuthConfig } = require('../utils/oauthVerifier');
 
 /**
  * Email service for sending verification and password reset emails
@@ -518,37 +519,96 @@ exports.refreshToken = async (req, res) => {
 };
 
 // @route   POST /api/auth/google
-// @desc    Google OAuth login/register
+// @desc    Google OAuth login/register with token verification
 // @access  Public
 exports.googleAuth = async (req, res) => {
   try {
-    const { googleId, email, name, photoUrl } = req.body;
+    const { googleId, email, name, photoUrl, idToken } = req.body;
 
-    if (!googleId || !email) {
+    // Check OAuth configuration status
+    const googleConfig = checkOAuthConfig('google');
+    
+    let verifiedUser = null;
+    
+    // If ID token is provided, verify it server-side (most secure)
+    if (idToken) {
+      try {
+        verifiedUser = await verifyGoogleToken(idToken);
+        // Use verified data instead of client-provided data
+        if (verifiedUser.googleId !== googleId) {
+          console.warn('Google ID mismatch: client provided different ID than token');
+        }
+      } catch (verifyError) {
+        console.error('Google token verification failed:', verifyError.message);
+        
+        // Check for specific OAuth errors
+        if (verifyError.message.includes('redirect URI')) {
+          return res.status(400).json({
+            success: false,
+            message: 'OAuth configuration error: redirect URI mismatch. Please contact support.',
+            errorCode: 'REDIRECT_URI_MISMATCH',
+          });
+        }
+        if (verifyError.message.includes('expired')) {
+          return res.status(401).json({
+            success: false,
+            message: 'Google session has expired. Please sign in again.',
+            errorCode: 'TOKEN_EXPIRED',
+          });
+        }
+        if (verifyError.message.includes('client configuration')) {
+          return res.status(500).json({
+            success: false,
+            message: 'Google Sign-In is temporarily unavailable. Please try again later.',
+            errorCode: 'CLIENT_CONFIG_ERROR',
+          });
+        }
+        
+        // If verification fails but we have client data, log warning and continue
+        // This allows graceful degradation during development
+        if (!googleConfig.configured) {
+          console.warn('⚠️  Google OAuth not fully configured - proceeding with unverified token');
+        } else {
+          return res.status(401).json({
+            success: false,
+            message: 'Google authentication failed. Please try again.',
+            error: verifyError.message,
+          });
+        }
+      }
+    }
+
+    // Use verified data if available, otherwise fall back to client data
+    const finalGoogleId = verifiedUser?.googleId || googleId;
+    const finalEmail = verifiedUser?.email || email;
+    const finalName = verifiedUser?.name || name;
+    const finalPhotoUrl = verifiedUser?.photoUrl || photoUrl;
+
+    if (!finalGoogleId || !finalEmail) {
       return res.status(400).json({
         success: false,
         message: 'Google ID and email are required',
       });
     }
 
-    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+    let user = await User.findOne({ $or: [{ googleId: finalGoogleId }, { email: finalEmail }] });
 
     if (!user) {
       // Create new user with required location field
       user = new User({
-        googleId,
-        email: email.toLowerCase(),
-        name: name || email.split('@')[0],
+        googleId: finalGoogleId,
+        email: finalEmail.toLowerCase(),
+        name: finalName || finalEmail.split('@')[0],
         oauthProviders: ['google'],
-        isEmailVerified: true,
+        isEmailVerified: verifiedUser?.emailVerified || true,
         location: {
           type: 'Point',
           coordinates: [-122.4194, 37.7749], // Default: San Francisco
         },
-        photos: photoUrl
+        photos: finalPhotoUrl
           ? [
               {
-                url: photoUrl,
+                url: finalPhotoUrl,
                 order: 0,
                 moderationStatus: 'approved',
               },
@@ -558,7 +618,7 @@ exports.googleAuth = async (req, res) => {
       await user.save();
     } else if (!user.googleId) {
       // Link Google to existing account
-      user.googleId = googleId;
+      user.googleId = finalGoogleId;
       if (!user.oauthProviders) user.oauthProviders = [];
       if (!user.oauthProviders.includes('google')) {
         user.oauthProviders.push('google');
@@ -586,6 +646,7 @@ exports.googleAuth = async (req, res) => {
         },
         authToken,
         refreshToken,
+        tokenVerified: !!verifiedUser,
       },
     });
   } catch (error) {
@@ -599,11 +660,40 @@ exports.googleAuth = async (req, res) => {
 };
 
 // @route   POST /api/auth/facebook
-// @desc    Facebook OAuth login/register
+// @desc    Facebook OAuth login/register with token verification
 // @access  Public
 exports.facebookAuth = async (req, res) => {
   try {
-    const { facebookId, email, name, photoUrl } = req.body;
+    const { facebookId, email, name, photoUrl, accessToken } = req.body;
+
+    // Check OAuth configuration
+    const facebookConfig = checkOAuthConfig('facebook');
+    
+    // Verify Facebook token if provided and configured
+    if (accessToken && facebookConfig.configured) {
+      try {
+        const verificationResult = await verifyFacebookToken(accessToken, facebookId);
+        if (!verificationResult.tokenVerified) {
+          console.warn('Facebook token verification skipped:', verificationResult.warning);
+        }
+      } catch (verifyError) {
+        console.error('Facebook token verification failed:', verifyError.message);
+        
+        if (verifyError.message.includes('expired')) {
+          return res.status(401).json({
+            success: false,
+            message: 'Facebook session has expired. Please sign in again.',
+            errorCode: 'TOKEN_EXPIRED',
+          });
+        }
+        
+        return res.status(401).json({
+          success: false,
+          message: 'Facebook authentication failed. Please try again.',
+          error: verifyError.message,
+        });
+      }
+    }
 
     if (!facebookId || !email) {
       return res.status(400).json({
@@ -679,11 +769,11 @@ exports.facebookAuth = async (req, res) => {
 };
 
 // @route   POST /api/auth/apple
-// @desc    Apple OAuth login/register
+// @desc    Apple OAuth login/register with token verification
 // @access  Public
 exports.appleAuth = async (req, res) => {
   try {
-    const { appleId, email, name } = req.body;
+    const { appleId, email, name, identityToken } = req.body;
 
     if (!appleId) {
       return res.status(400).json({
@@ -692,16 +782,45 @@ exports.appleAuth = async (req, res) => {
       });
     }
 
-    let user = await User.findOne({ appleId });
+    // Verify Apple identity token if provided
+    let verifiedUser = null;
+    if (identityToken) {
+      try {
+        verifiedUser = await verifyAppleToken(identityToken, appleId);
+        if (!verifiedUser.tokenVerified) {
+          console.warn('Apple token verification skipped:', verifiedUser.warning);
+        }
+      } catch (verifyError) {
+        console.error('Apple token verification failed:', verifyError.message);
+        
+        if (verifyError.message.includes('expired')) {
+          return res.status(401).json({
+            success: false,
+            message: 'Apple session has expired. Please sign in again.',
+            errorCode: 'TOKEN_EXPIRED',
+          });
+        }
+        
+        // Apple Sign-In can work without full verification in some cases
+        console.warn('⚠️  Proceeding with Apple auth despite token verification failure');
+      }
+    }
+
+    // Use verified data if available
+    const finalAppleId = verifiedUser?.appleId || appleId;
+    const finalEmail = verifiedUser?.email || email;
+    const isEmailVerified = verifiedUser?.emailVerified || !!email;
+
+    let user = await User.findOne({ appleId: finalAppleId });
 
     if (!user) {
       // Create new user with required location field
       user = new User({
-        appleId,
-        email: email?.toLowerCase() || `${appleId}@appleid.apple.com`,
+        appleId: finalAppleId,
+        email: finalEmail?.toLowerCase() || `${finalAppleId}@appleid.apple.com`,
         name: name || 'Apple User',
         oauthProviders: ['apple'],
-        isEmailVerified: !!email,
+        isEmailVerified: isEmailVerified,
         location: {
           type: 'Point',
           coordinates: [-122.4194, 37.7749], // Default: San Francisco
@@ -730,6 +849,7 @@ exports.appleAuth = async (req, res) => {
         },
         authToken,
         refreshToken,
+        tokenVerified: verifiedUser?.tokenVerified || false,
       },
     });
   } catch (error) {

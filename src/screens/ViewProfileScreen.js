@@ -3,13 +3,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import {
-  Dimensions,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { db } from '../config/firebase';
 import logger from '../utils/logger';
@@ -83,7 +83,7 @@ const ViewProfileScreen = ({ route, navigation }) => {
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: profile.photoURL || 'https://via.placeholder.com/400' }}
+            source={{ uri: profile.photoURL || profile.photos?.[0]?.url || profile.photos?.[0] || 'https://via.placeholder.com/400' }}
             style={styles.profileImage}
           />
         </View>

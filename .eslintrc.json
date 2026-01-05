@@ -102,6 +102,14 @@
     "import/namespace": "off", // Disable due to false positives with react-native
     "no-secrets/no-secrets": ["error", { "tolerance": 4.2 }]
   },
+  "ignorePatterns": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    "web-build/**",
+    "*.config.js",
+    "coverage/**"
+  ],
   "settings": {
     "react": {
       "version": "detect"

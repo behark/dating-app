@@ -10,10 +10,16 @@ const User = require('../models/User');
  * 2. When a LIKE is sent, checks if the target user has already liked the current user
  * 3. If mutual interest exists, creates a Match entry
  * 4. Returns isMatch flag to frontend for instant gratification
+ * 
+ * RACE CONDITION PROTECTION:
+ * - Uses atomic MongoDB operations (findOneAndUpdate with upsert)
+ * - Handles duplicate key errors gracefully
+ * - Returns existing swipe if user double-clicks rapidly
  */
 class SwipeService {
   /**
    * Process a swipe action and check for matches
+   * Uses atomic operations to prevent race conditions from rapid swipes
    *
    * @param {string} swiperId - The user performing the swipe
    * @param {string} targetId - The user being swiped on
@@ -30,26 +36,53 @@ class SwipeService {
       throw new Error('Cannot swipe on yourself');
     }
 
-    // Check if swipe already exists
-    const existingSwipe = await Swipe.findOne({
-      swiperId: swiperId,
-      swipedId: targetId,
-    }).lean();
-
-    if (existingSwipe) {
-      throw new Error('You have already swiped on this profile');
+    // RACE CONDITION FIX: Use atomic createSwipeAtomic instead of find-then-save
+    // This prevents duplicate swipes even with rapid clicks
+    let swipeResult;
+    try {
+      swipeResult = await Swipe.createSwipeAtomic({
+        swiperId,
+        swipedId: targetId,
+        action,
+        isPriority,
+      });
+    } catch (error) {
+      // Handle MongoDB duplicate key error (E11000) gracefully
+      // This can still happen in edge cases with high concurrency
+      if (error.code === 11000 || error.message?.includes('duplicate key')) {
+        const existingSwipe = await Swipe.findOne({ swiperId, swipedId: targetId }).lean();
+        if (existingSwipe) {
+          // Return the existing swipe - user already swiped
+          return {
+            swipe: {
+              id: existingSwipe._id,
+              action: existingSwipe.action,
+              createdAt: existingSwipe.createdAt,
+            },
+            isMatch: false,
+            matchData: null,
+            alreadyProcessed: true,
+          };
+        }
+      }
+      throw error;
     }
 
-    // Create the swipe record
-    const swipe = new Swipe({
-      swiperId: swiperId,
-      swipedId: targetId,
-      action: action,
-      isPriority: isPriority,
-      prioritySentAt: isPriority ? new Date() : undefined,
-    });
+    // If swipe already existed, return early without reprocessing
+    if (swipeResult.alreadyExists) {
+      return {
+        swipe: {
+          id: swipeResult.swipe._id,
+          action: swipeResult.swipe.action,
+          createdAt: swipeResult.swipe.createdAt,
+        },
+        isMatch: false,
+        matchData: null,
+        alreadyProcessed: true,
+      };
+    }
 
-    await swipe.save();
+    const swipe = swipeResult.swipe;
 
     // Track received like for "See Who Liked You" feature
     if (action === 'like' || action === 'superlike') {
@@ -87,6 +120,7 @@ class SwipeService {
       },
       isMatch: isMatch,
       matchData: matchData,
+      alreadyProcessed: false,
     };
   }
 

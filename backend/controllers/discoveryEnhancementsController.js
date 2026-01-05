@@ -3,7 +3,7 @@ const TopPicks = require('../models/TopPicks');
 const UserActivity = require('../models/UserActivity');
 const Swipe = require('../models/Swipe');
 const BoostProfile = require('../models/BoostProfile');
-const { calculateDistance } = require('../utils/geoUtils');
+const { calculateDistance, stripPreciseLocation, getDistanceCategory } = require('../utils/geoUtils');
 
 /**
  * Explore/Browse mode - flexible discovery with filters
@@ -60,6 +60,8 @@ const exploreUsers = async (req, res) => {
     const query = {
       _id: { $nin: swipedUserIds },
       isActive: true,
+      // Exclude suspended users - prevents shadow-locking from hiding profiles
+      suspended: { $ne: true },
       age: { $gte: minAge, $lte: maxAge },
     };
 
@@ -108,14 +110,14 @@ const exploreUsers = async (req, res) => {
     // Execute query
     const results = await User.find(query)
       .select(
-        'name age gender bio photos interests location profileCompleteness lastActivityAt isProfileVerified activityScore'
+        'name age gender bio photos interests location locationPrivacy profileCompleteness lastActivityAt isProfileVerified activityScore'
       )
       .sort(sortQuery)
       .skip(parseInt(skip))
       .limit(parseInt(limit))
       .lean();
 
-    // Enhance results with additional data
+    // Enhance results with additional data and SANITIZE LOCATION
     const enhancedResults = await Promise.all(
       results.map(async (user) => {
         // Check for active boost
@@ -125,9 +127,10 @@ const exploreUsers = async (req, res) => {
           endsAt: { $gt: new Date() },
         }).select('visibilityMultiplier endsAt');
 
-        // Calculate distance if coordinates provided
+        // Calculate distance if coordinates provided (for internal use only)
         let distance = null;
-        if (lat && lng) {
+        let distanceCategory = null;
+        if (lat && lng && user.location?.coordinates) {
           const latitude = parseFloat(lat);
           const longitude = parseFloat(lng);
           distance = calculateDistance(
@@ -136,11 +139,22 @@ const exploreUsers = async (req, res) => {
             user.location.coordinates[1],
             user.location.coordinates[0]
           );
+          distanceCategory = getDistanceCategory(distance);
         }
 
+        // PRIVACY: Strip precise location data before returning
+        // Only include: city, distance (rounded), NEVER coordinates
+        const sanitizedUser = stripPreciseLocation(user, {
+          viewerLat: lat ? parseFloat(lat) : null,
+          viewerLng: lng ? parseFloat(lng) : null,
+          includeDistance: true,
+          includeCity: true,
+        });
+
         return {
-          ...user,
-          distance,
+          ...sanitizedUser,
+          distance: distance ? Math.round(distance * 10) / 10 : null,
+          distanceCategory,
           isBoosted: !!activeBoost,
           boostEndsAt: activeBoost?.endsAt,
           visibilityMultiplier: activeBoost?.visibilityMultiplier || 1,
@@ -311,6 +325,8 @@ const getVerifiedProfiles = async (req, res) => {
     const query = {
       _id: { $nin: swipedUserIds },
       isActive: true,
+      // Exclude suspended users - prevents shadow-locking
+      suspended: { $ne: true },
       isProfileVerified: true,
       age: { $gte: minAge, $lte: maxAge },
     };

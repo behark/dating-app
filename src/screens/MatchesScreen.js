@@ -3,14 +3,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useState } from 'react';
 import {
-  Alert,
-  FlatList,
-  Image,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    FlatList,
+    Image,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
@@ -77,7 +77,7 @@ const MatchesScreen = ({ navigation }) => {
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: item.otherUser.photos?.[0] || 'https://via.placeholder.com/100' }}
+            source={{ uri: item.otherUser.photos?.[0]?.url || item.otherUser.photos?.[0] || 'https://via.placeholder.com/100' }}
             style={styles.matchImage}
           />
           <View style={styles.onlineIndicator} />
@@ -85,7 +85,7 @@ const MatchesScreen = ({ navigation }) => {
       </TouchableOpacity>
       <View style={styles.matchInfo}>
         <View style={styles.nameRow}>
-          <Text style={styles.matchName}>{item.otherUser.name}</Text>
+          <Text style={styles.matchName}>{item.otherUser?.name || 'Unknown'}</Text>
           {item.unreadCount > 0 && (
             <View style={styles.unreadBadge}>
               <Text style={styles.unreadText}>{item.unreadCount}</Text>
@@ -104,7 +104,7 @@ const MatchesScreen = ({ navigation }) => {
       </View>
       <View style={styles.actionButtons}>
         <TouchableOpacity
-          onPress={() => handleUnmatch(item.otherUser._id, item.otherUser.name)}
+          onPress={() => handleUnmatch(item.otherUser?._id, item.otherUser?.name)}
           activeOpacity={0.8}
           style={styles.unmatchButton}
         >
@@ -260,8 +260,8 @@ const MatchesScreen = ({ navigation }) => {
                 </TouchableOpacity>
                 <View style={styles.matchInfo}>
                   <View style={styles.nameRow}>
-                    <Text style={styles.matchName}>{item.user.name}</Text>
-                    {item.user.age && <Text style={styles.matchAge}>, {item.user.age}</Text>}
+                    <Text style={styles.matchName}>{item.user?.name || 'Unknown'}</Text>
+                    {item.user?.age && <Text style={styles.matchAge}>, {item.user.age}</Text>}
                     <View style={[styles.superLikeBadge]}>
                       <Ionicons name="star" size={12} color="#FFD700" />
                     </View>
@@ -274,7 +274,7 @@ const MatchesScreen = ({ navigation }) => {
                 </View>
                 <TouchableOpacity
                   onPress={() =>
-                    navigation.navigate('Chat', { userId: item.user.id, userName: item.user.name })
+                    navigation.navigate('Chat', { userId: item.user?.id, userName: item.user?.name })
                   }
                   activeOpacity={0.8}
                 >
@@ -284,7 +284,7 @@ const MatchesScreen = ({ navigation }) => {
                 </TouchableOpacity>
               </TouchableOpacity>
             )}
-            keyExtractor={(item) => item.user.id}
+            keyExtractor={(item) => item.user?.id || item._id}
             contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

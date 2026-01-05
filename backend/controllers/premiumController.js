@@ -272,12 +272,17 @@ const setPassportLocation = async (req, res) => {
 
     await user.save();
 
+    // PRIVACY: Only return city/country, not coordinates
     res.json({
       success: true,
       message: 'Passport location updated successfully',
       data: {
         enabled: true,
-        location: newLocation,
+        location: {
+          city: newLocation.city,
+          country: newLocation.country,
+          // NEVER expose coordinates
+        },
       },
     });
   } catch (error) {
@@ -297,11 +302,18 @@ const getPassportStatus = async (req, res) => {
     const userId = req.user.id;
     const user = await User.findById(userId).select('passportMode');
 
+    // PRIVACY: Sanitize passport location response
+    const currentLocation = user?.passportMode?.currentLocation ? {
+      city: user.passportMode.currentLocation.city || null,
+      country: user.passportMode.currentLocation.country || null,
+      // NEVER include coordinates
+    } : null;
+
     res.json({
       success: true,
       data: {
         enabled: user?.passportMode?.enabled || false,
-        currentLocation: user?.passportMode?.currentLocation,
+        currentLocation,
         lastChanged: user?.passportMode?.lastChanged,
       },
     });

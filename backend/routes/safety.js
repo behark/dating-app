@@ -44,6 +44,12 @@ router.put('/suspend/:userId', authenticateToken, safetyController.suspendUser);
 // Unsuspend user (admin)
 router.put('/unsuspend/:userId', authenticateToken, safetyController.unsuspendUser);
 
+// Get current user's account status (for shadow-lock transparency)
+router.get('/account-status', authenticateToken, safetyController.getAccountStatus);
+
+// Appeal a suspension (for auto-suspended users)
+router.post('/appeal', authenticateToken, safetyController.appealSuspension);
+
 // ============================================================
 // ADVANCED SAFETY FEATURES (Tier 2 Features)
 // ============================================================

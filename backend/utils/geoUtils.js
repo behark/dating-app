@@ -94,6 +94,174 @@ const isWithinRange = (distance, maxDistance) => {
   return distance <= maxDistance;
 };
 
+// =============================================
+// PRIVACY: Location Sanitization Utilities
+// =============================================
+
+/**
+ * Default blur radius in kilometers for location privacy
+ * This prevents precise location tracking while still allowing distance-based matching
+ */
+const DEFAULT_BLUR_RADIUS_KM = 1.5;
+
+/**
+ * Blur/fuzz a coordinate by adding random noise within a radius
+ * This prevents exact location tracking while maintaining approximate area
+ * @param {number} lat - Latitude
+ * @param {number} lng - Longitude
+ * @param {number} blurRadiusKm - Blur radius in kilometers (default: 1.5km)
+ * @returns {{ lat: number, lng: number }} Blurred coordinates
+ */
+const blurCoordinates = (lat, lng, blurRadiusKm = DEFAULT_BLUR_RADIUS_KM) => {
+  // Convert blur radius to degrees (approximate)
+  // 1 degree latitude ≈ 111 km
+  // 1 degree longitude varies by latitude, use cos(lat) factor
+  const latBlur = blurRadiusKm / 111;
+  const lngBlur = blurRadiusKm / (111 * Math.cos(toRadians(lat)));
+
+  // Add random offset within the blur radius
+  const latOffset = (Math.random() - 0.5) * 2 * latBlur;
+  const lngOffset = (Math.random() - 0.5) * 2 * lngBlur;
+
+  return {
+    lat: lat + latOffset,
+    lng: lng + lngOffset,
+  };
+};
+
+/**
+ * Sanitize location data for API responses
+ * NEVER returns raw coordinates - only distance and general area
+ * @param {Object} userLocation - User's location object with coordinates
+ * @param {number} viewerLat - Viewer's latitude
+ * @param {number} viewerLng - Viewer's longitude
+ * @param {string} privacyLevel - User's location privacy setting
+ * @returns {Object} Sanitized location data safe for API response
+ */
+const sanitizeLocationForResponse = (userLocation, viewerLat, viewerLng, privacyLevel = 'visible_to_matches') => {
+  // If location is hidden, return minimal info
+  if (privacyLevel === 'hidden' || !userLocation || !userLocation.coordinates) {
+    return {
+      available: false,
+      distance: null,
+      distanceText: 'Distance hidden',
+      area: null,
+    };
+  }
+
+  // Extract coordinates (MongoDB format: [longitude, latitude])
+  const userLng = userLocation.coordinates[0];
+  const userLat = userLocation.coordinates[1];
+
+  // Calculate actual distance
+  const distance = calculateDistance(viewerLat, viewerLng, userLat, userLng);
+  const roundedDistance = Math.round(distance * 10) / 10;
+
+  // Get distance category for UI
+  const category = getDistanceCategory(distance);
+
+  // Generate user-friendly distance text (rounded/fuzzy)
+  let distanceText;
+  if (distance < 1) {
+    distanceText = 'Less than 1 km away';
+  } else if (distance < 5) {
+    distanceText = `About ${Math.round(distance)} km away`;
+  } else if (distance < 20) {
+    distanceText = `${Math.round(distance / 5) * 5} km away`; // Round to nearest 5
+  } else if (distance < 100) {
+    distanceText = `${Math.round(distance / 10) * 10} km away`; // Round to nearest 10
+  } else {
+    distanceText = `${Math.round(distance / 50) * 50}+ km away`; // Round to nearest 50
+  }
+
+  // Get general area (city) if available, NEVER exact address
+  const area = userLocation.city || null;
+
+  return {
+    available: true,
+    distance: roundedDistance,
+    distanceText,
+    category,
+    area, // City name only, never street/neighborhood
+    // NEVER include: coordinates, street, neighborhood, exact address
+  };
+};
+
+/**
+ * Remove sensitive location fields from a user object
+ * Use this before sending user data in API responses
+ * @param {Object} user - User object (can be mongoose doc or plain object)
+ * @param {Object} options - Options for what to include
+ * @returns {Object} User object with location data sanitized
+ */
+const stripPreciseLocation = (user, options = {}) => {
+  if (!user) return user;
+
+  const {
+    viewerLat = null,
+    viewerLng = null,
+    includeDistance = true,
+    includeCity = true,
+  } = options;
+
+  // Convert mongoose document to plain object if needed
+  const userObj = user.toObject ? user.toObject() : { ...user };
+
+  // Store original location for distance calculation
+  const originalLocation = userObj.location;
+
+  // Calculate distance if viewer location provided
+  let distance = null;
+  if (includeDistance && viewerLat && viewerLng && originalLocation?.coordinates) {
+    distance = calculateDistance(
+      viewerLat,
+      viewerLng,
+      originalLocation.coordinates[1], // latitude
+      originalLocation.coordinates[0]  // longitude
+    );
+  }
+
+  // Replace location with sanitized version
+  userObj.location = {
+    // Include city if allowed and available
+    city: includeCity ? (originalLocation?.city || null) : null,
+    // Include country if available
+    country: originalLocation?.country || null,
+    // NEVER include coordinates array
+  };
+
+  // Add distance if calculated
+  if (distance !== null) {
+    userObj.distance = Math.round(distance * 10) / 10;
+    userObj.distanceCategory = getDistanceCategory(distance);
+  }
+
+  // Remove any other location-related fields that might leak data
+  delete userObj.passportMode?.currentLocation?.coordinates;
+  delete userObj.locationHistory;
+  delete userObj.lastKnownLocation;
+
+  return userObj;
+};
+
+/**
+ * Sanitize an array of users for API response
+ * @param {Array} users - Array of user objects
+ * @param {number} viewerLat - Viewer's latitude
+ * @param {number} viewerLng - Viewer's longitude
+ * @returns {Array} Array of users with sanitized location data
+ */
+const sanitizeUsersForResponse = (users, viewerLat, viewerLng) => {
+  if (!Array.isArray(users)) return users;
+
+  return users.map(user => stripPreciseLocation(user, {
+    viewerLat,
+    viewerLng,
+    includeDistance: true,
+    includeCity: true,
+  }));
+};
+
 module.exports = {
   EARTH_RADIUS_KM,
   toRadians,
@@ -102,4 +270,10 @@ module.exports = {
   formatDistance,
   getDistanceCategory,
   isWithinRange,
+  // Privacy utilities
+  DEFAULT_BLUR_RADIUS_KM,
+  blurCoordinates,
+  sanitizeLocationForResponse,
+  stripPreciseLocation,
+  sanitizeUsersForResponse,
 };

@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
 import * as WebBrowser from 'expo-web-browser';
+import PropTypes from 'prop-types';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { API_URL } from '../config/api';
@@ -30,11 +31,16 @@ export const AuthProvider = ({ children }) => {
   const googleIosClientId = Constants.expoConfig?.extra?.googleIosClientId;
   const googleAndroidClientId = Constants.expoConfig?.extra?.googleAndroidClientId;
 
-  // Google Sign-In
-  const [request, response, promptAsync] = Google.useAuthRequest({
+  // Google Sign-In with explicit redirect URI configuration
+  // This prevents OAuth redirect_uri_mismatch errors
+  const [_request, response, promptAsync] = Google.useAuthRequest({
     iosClientId: googleIosClientId,
     androidClientId: googleAndroidClientId,
     webClientId: googleWebClientId,
+    // Request ID token for secure server-side verification
+    responseType: 'id_token',
+    // Scopes needed for user info
+    scopes: ['openid', 'profile', 'email'],
   });
 
   // Load user data from async storage on app start
@@ -50,8 +56,11 @@ export const AuthProvider = ({ children }) => {
           setAuthToken(storedAuthToken);
           setRefreshToken(storedRefreshToken);
           
-          // Set token in api service for authenticated requests
+          // Set tokens in api service for authenticated requests
           api.setAuthToken(storedAuthToken);
+          if (storedRefreshToken) {
+            api.setRefreshToken(storedRefreshToken);
+          }
         }
       } catch (error) {
         logger.error('Error loading user from storage:', error);
@@ -78,6 +87,7 @@ export const AuthProvider = ({ children }) => {
     } else if (response?.type === 'cancel') {
       logger.debug('Google sign-in cancelled by user');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
 
   const signup = async (email, password, name, age, gender) => {
@@ -147,16 +157,47 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Manually refresh the authentication token
+   * This is called automatically by the api service on 401 errors,
+   * but can also be called proactively to prevent token expiration
+   * @returns {Promise<boolean>} True if refresh succeeded, false otherwise
+   */
+  const refreshSession = async () => {
+    try {
+      const newToken = await api.refreshAuthToken();
+      if (newToken) {
+        setAuthToken(newToken);
+        logger.debug('Session refreshed successfully');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      logger.error('Session refresh error:', error);
+      return false;
+    }
+  };
+
+  /**
+   * Handle session expiration - called when token refresh fails
+   * This clears the local session and forces re-login
+   */
+  const handleSessionExpired = async () => {
+    logger.debug('Session expired, clearing local data...');
+    await logout();
+  };
+
   const signInWithGoogle = async (idToken) => {
     try {
-      // Extract user info from Google ID token
+      // Extract user info from Google ID token for client-side use
       const userInfo = extractGoogleUserInfo(idToken);
 
       if (!userInfo || !userInfo.googleId || !userInfo.email) {
         throw new Error('Failed to extract user information from Google token');
       }
 
-      // Send to backend for authentication
+      // Send to backend for authentication with ID token for server-side verification
+      // This prevents OAuth handshake failures by letting the server verify the token
       const response = await fetch(`${API_URL}/auth/google`, {
         method: 'POST',
         headers: {
@@ -167,12 +208,25 @@ export const AuthProvider = ({ children }) => {
           email: userInfo.email,
           name: userInfo.name,
           photoUrl: userInfo.photoUrl,
+          // Pass the raw ID token for server-side verification
+          // This prevents redirect URI mismatches and expired token issues
+          idToken: idToken,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle specific OAuth error codes
+        if (data.errorCode === 'REDIRECT_URI_MISMATCH') {
+          throw new Error('Google Sign-In configuration error. Please contact support.');
+        }
+        if (data.errorCode === 'TOKEN_EXPIRED') {
+          throw new Error('Your session has expired. Please try signing in again.');
+        }
+        if (data.errorCode === 'CLIENT_CONFIG_ERROR') {
+          throw new Error('Google Sign-In is temporarily unavailable. Please try again later.');
+        }
         throw new Error(getUserFriendlyMessage(data.message || 'Google sign in failed'));
       }
 
@@ -198,8 +252,11 @@ export const AuthProvider = ({ children }) => {
     setAuthToken(token);
     setRefreshToken(refToken);
 
-    // Set token in api service for authenticated requests
+    // Set tokens in api service for authenticated requests
     api.setAuthToken(token);
+    if (refToken) {
+      api.setRefreshToken(refToken);
+    }
 
     await AsyncStorage.setItem('currentUser', JSON.stringify(normalizedUser));
     await AsyncStorage.setItem('authToken', token);
@@ -352,6 +409,8 @@ export const AuthProvider = ({ children }) => {
     signup,
     login,
     logout,
+    refreshSession,
+    handleSessionExpired,
     verifyEmail,
     sendPhoneVerification,
     verifyPhone,
@@ -363,4 +422,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+AuthProvider.propTypes = {
+  children: PropTypes.node.isRequired,
 };

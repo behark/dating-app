@@ -1,5 +1,5 @@
-const User = require('../models/User');
 const mongoose = require('mongoose');
+const User = require('../models/User');
 
 // @route   PUT /api/profile/update
 // @desc    Update user profile information
@@ -65,10 +65,12 @@ exports.updateProfile = async (req, res) => {
 
 // @route   GET /api/profile/:userId
 // @desc    Get user profile
-// @access  Public
+// @access  Private - Can only view own profile or matched users' profiles
 exports.getProfile = async (req, res) => {
   try {
     const { userId } = req.params;
+    const requestingUserId = req.user._id?.toString() || req.user.id?.toString();
+    const isOwnProfile = requestingUserId === userId;
 
     const user = await User.findById(userId).select(
       '-password -passwordResetToken -emailVerificationToken -phoneVerificationCode'
@@ -81,12 +83,37 @@ exports.getProfile = async (req, res) => {
       });
     }
 
+    // If viewing own profile, return full details
+    if (isOwnProfile) {
+      return res.json({
+        success: true,
+        data: {
+          user: {
+            _id: user._id,
+            email: user.email,
+            name: user.name,
+            age: user.age,
+            gender: user.gender,
+            bio: user.bio,
+            interests: user.interests,
+            photos: user.photos,
+            phoneNumber: user.phoneNumber,
+            isPhoneVerified: user.isPhoneVerified,
+            isEmailVerified: user.isEmailVerified,
+            profileCompleteness: user.profileCompleteness,
+            createdAt: user.createdAt,
+          },
+        },
+      });
+    }
+
+    // For matched users, return limited profile info (no email, phone, verification status)
+    // SECURITY: Email and phone should never be exposed to other users
     res.json({
       success: true,
       data: {
         user: {
           _id: user._id,
-          email: user.email,
           name: user.name,
           age: user.age,
           gender: user.gender,

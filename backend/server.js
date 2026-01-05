@@ -1,4 +1,8 @@
+// IMPORTANT: Import Sentry instrumentation at the very top, before everything else
+require('./instrument.js');
+
 require('dotenv').config();
+const { createServer } = require('http');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -6,7 +10,6 @@ const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
-const { createServer } = require('http');
 const { Server } = require('socket.io');
 
 // Validate environment variables before starting
@@ -26,6 +29,9 @@ const {
   preflightCache,
 } = require('./middleware/loadTimeOptimization');
 const { cdnCacheMiddleware } = require('./services/cdnService');
+
+// Request timeout middleware - prevents 504 Gateway Timeout
+const { requestTimeout } = require('./middleware/requestTimeout');
 
 // Monitoring and Logging
 const {
@@ -84,7 +90,33 @@ datadogService.init();
 healthCheckService.registerCheck('mongodb', async () => {
   const state = mongoose.connection.readyState;
   if (state !== 1) throw new Error('MongoDB not connected');
-  return { connected: true };
+  
+  // Get pool stats if available
+  let poolInfo = { maxPoolSize: 50, status: 'ok' };
+  try {
+    const client = mongoose.connection.getClient();
+    if (client && client.topology && client.topology.description) {
+      const serverDescription = client.topology.description;
+      let totalConnections = 0;
+      if (serverDescription.servers) {
+        serverDescription.servers.forEach((server) => {
+          if (server.pool) {
+            totalConnections += server.pool.totalConnectionCount || 0;
+          }
+        });
+      }
+      poolInfo = {
+        maxPoolSize: 50,
+        currentConnections: totalConnections,
+        utilizationPercent: Math.round((totalConnections / 50) * 100),
+        status: totalConnections > 45 ? 'warning' : 'ok',
+      };
+    }
+  } catch (e) {
+    // Ignore pool stat errors
+  }
+  
+  return { connected: true, pool: poolInfo };
 });
 
 healthCheckService.registerCheck('redis', async () => {
@@ -109,6 +141,7 @@ app.use(photoUploadMetricsMiddleware);
 
 // Performance & Security Middleware (order matters!)
 app.use(requestIdMiddleware); // Add request ID for tracing
+app.use(requestTimeout({ logTimeouts: true })); // Request timeout handler - must be early
 // Note: responseTimeMiddleware removed - using metricsResponseTimeMiddleware instead to avoid conflicts
 app.use(performanceHeaders); // Performance headers
 app.use(helmet()); // Security headers
@@ -134,13 +167,20 @@ app.use(preflightCache(86400)); // Cache CORS preflight for 24h
 app.use(morgan(morganFormat, { stream: logger.getStream() })); // Structured logging
 
 // CORS configuration
+// Parse CORS_ORIGIN if provided (comma-separated list of origins)
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
+  : [];
+
 const allowedOrigins = [
   process.env.FRONTEND_URL,
+  ...corsOrigins,
   'http://localhost:3000',
   'http://localhost:8081',
   'http://localhost:19006',
   /\.vercel\.app$/,
-];
+  /\.onrender\.com$/,  // Support Render.com deployments
+].filter(Boolean);
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -176,8 +216,11 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Note: Multer handles multipart/form-data (file uploads) with its own limits
+// These limits apply to JSON and URL-encoded bodies only
+// For large file uploads, Multer bypasses these limits
+app.use(express.json({ limit: '50mb' }));  // Support large base64-encoded images
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Cookie parser for CSRF tokens
 app.use(cookieParser());
@@ -269,6 +312,44 @@ app.use((error, req, res, next) => {
       method: req.method,
       url: req.originalUrl,
     });
+
+    // MongoDB connection pool exhaustion / timeout errors
+    // These occur when too many concurrent requests exceed the pool capacity
+    if (
+      error.name === 'MongoServerSelectionError' ||
+      error.name === 'MongoNetworkError' ||
+      error.name === 'MongoTimeoutError' ||
+      error.message?.includes('pool') ||
+      error.message?.includes('connection') ||
+      error.message?.includes('timed out') ||
+      error.message?.includes('ECONNREFUSED') ||
+      error.code === 'ECONNRESET'
+    ) {
+      console.error('[DB CONNECTION ERROR]', error.message);
+      if (!res.headersSent) {
+        return res.status(503).json({
+          success: false,
+          message: 'Service temporarily unavailable. Please try again in a moment.',
+          retryAfter: 5,
+          errorCode: 'DB_CONNECTION_ERROR',
+        });
+      }
+      return;
+    }
+
+    // MongoDB wait queue timeout - connection pool exhausted
+    if (error.message?.includes('waitQueueTimeoutMS') || error.message?.includes('wait queue')) {
+      console.error('[DB POOL EXHAUSTED]', error.message);
+      if (!res.headersSent) {
+        return res.status(503).json({
+          success: false,
+          message: 'Server is busy. Please try again in a few seconds.',
+          retryAfter: 3,
+          errorCode: 'DB_POOL_EXHAUSTED',
+        });
+      }
+      return;
+    }
 
     // Mongoose validation error
     if (error.name === 'ValidationError') {
@@ -396,28 +477,83 @@ const connectDB = async () => {
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+
+      // Check against same allowed origins as Express CORS
+      const isAllowed = allowedOrigins.some((allowed) => {
+        if (allowed instanceof RegExp) {
+          return allowed.test(origin);
+        }
+        return allowed === origin;
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else if (process.env.NODE_ENV !== 'production') {
+        // In development, allow all origins
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST'],
     credentials: true,
   },
+  // ===== HEARTBEAT/PING CONFIG =====
+  pingTimeout: 60000,          // Wait 60s for pong response before considering connection dead
+  pingInterval: 25000,         // Send ping every 25s to keep connection alive
+  // ===== CONNECTION CONFIG =====
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,             // Enable compatibility with Socket.io v3 clients
+  maxHttpBufferSize: 1e6,      // 1MB max message size
+  connectTimeout: 45000,       // 45s timeout for initial connection
 });
 
-// Socket.io middleware for authentication
-io.use((socket, next) => {
-  // For now, accept userId from handshake auth or query
-  const userId = socket.handshake.auth.userId || socket.handshake.query.userId;
+// Track connected users for presence
+const connectedUsers = new Map();
 
-  if (userId) {
-    socket.userId = userId;
+// Socket.io middleware for authentication
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth.token || socket.handshake.query.token;
+    const userId = socket.handshake.auth.userId || socket.handshake.query.userId;
+
+    if (token) {
+      // JWT authentication
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      socket.userId = decoded.userId || decoded.id;
+    } else if (userId) {
+      // Direct userId (for development/testing)
+      socket.userId = userId;
+    } else {
+      return next(new Error('Authentication required'));
+    }
+
     next();
-  } else {
-    next(new Error('Authentication error'));
+  } catch (error) {
+    next(new Error(`Authentication failed: ${error.message}`));
   }
 });
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
-  console.log(`User ${socket.userId} connected with socket ${socket.id}`);
+  const userId = socket.userId;
+  console.log(`[WS] User ${userId} connected (socket: ${socket.id})`);
+  
+  // Track connection
+  if (!connectedUsers.has(userId)) {
+    connectedUsers.set(userId, new Set());
+  }
+  connectedUsers.get(userId).add(socket.id);
+
+  // ===== HEARTBEAT HANDLER =====
+  socket.on('heartbeat', () => {
+    // Client is alive, update last seen
+    socket.lastHeartbeat = Date.now();
+  });
 
   // Join room based on matchId
   socket.on('join_room', (matchId) => {
@@ -429,7 +565,6 @@ io.on('connection', (socket) => {
       }
 
       // Verify user is part of this match
-      const userId = socket.userId;
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         socket.emit('error', { message: 'Invalid user ID' });
         return;
@@ -444,12 +579,12 @@ io.on('connection', (socket) => {
 
       // Join new room
       socket.join(matchId);
-      console.log(`User ${userId} joined room ${matchId}`);
+      console.log(`[WS] User ${userId} joined room ${matchId}`);
 
       socket.emit('joined_room', { matchId });
     } catch (error) {
-      console.error('Error joining room:', error);
-      socket.emit('error', { message: 'Failed to join room' });
+      console.error('[WS] Error joining room:', error);
+      socket.emit('error', { message: 'Failed to join room' }););
     }
   });
 
@@ -588,9 +723,37 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Handle disconnect
-  socket.on('disconnect', () => {
-    console.log(`User ${socket.userId} disconnected`);
+  // ===== TYPING INDICATORS =====
+  socket.on('typing_start', (matchId) => {
+    if (matchId && mongoose.Types.ObjectId.isValid(matchId)) {
+      socket.to(matchId).emit('user_typing', { userId, isTyping: true });
+    }
+  });
+
+  socket.on('typing_stop', (matchId) => {
+    if (matchId && mongoose.Types.ObjectId.isValid(matchId)) {
+      socket.to(matchId).emit('user_typing', { userId, isTyping: false });
+    }
+  });
+
+  // ===== DISCONNECT HANDLER =====
+  socket.on('disconnect', (reason) => {
+    console.log(`[WS] User ${userId} disconnected (reason: ${reason}, socket: ${socket.id})`);
+    
+    // Remove from connected users
+    if (connectedUsers.has(userId)) {
+      connectedUsers.get(userId).delete(socket.id);
+      if (connectedUsers.get(userId).size === 0) {
+        connectedUsers.delete(userId);
+        // User has no more connections - they're fully offline
+        console.log(`[WS] User ${userId} is now offline (no active connections)`);
+      }
+    }
+  });
+
+  // ===== ERROR HANDLER =====
+  socket.on('error', (error) => {
+    console.error(`[WS] Socket error for user ${userId}:`, error);
   });
 });
 

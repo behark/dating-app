@@ -37,7 +37,7 @@ const swipeSchema = new mongoose.Schema({
   },
 });
 
-// Compound index for efficient queries
+// Compound index for efficient queries - UNIQUE constraint prevents duplicates
 swipeSchema.index({ swiperId: 1, swipedId: 1 }, { unique: true });
 
 // Index for finding all swipes by a user
@@ -58,22 +58,53 @@ swipeSchema.index({ swipedId: 1, swiperId: 1, action: 1 }, { name: 'reverse_matc
 // Index for "who liked me" queries with action filter
 swipeSchema.index({ swipedId: 1, action: 1, createdAt: -1 }, { name: 'who_liked_me' });
 
-// Prevent duplicate swipes between same users
-swipeSchema.pre('save', async function (next) {
-  if (this.isNew) {
-    const existingSwipe = await this.constructor.findOne({
-      swiperId: this.swiperId,
-      swipedId: this.swipedId,
-    });
-
-    if (existingSwipe) {
-      const error = new Error('User has already swiped on this profile');
-      error.statusCode = 400;
-      return next(error);
+/**
+ * RACE CONDITION FIX: Atomic swipe creation using findOneAndUpdate
+ * This prevents duplicate swipes when user clicks rapidly
+ * 
+ * Uses MongoDB's atomic upsert with $setOnInsert to ensure only one swipe is created
+ * even if multiple requests arrive simultaneously
+ * 
+ * @param {Object} swipeData - { swiperId, swipedId, action, isPriority }
+ * @returns {Object} { swipe, isNew } - The swipe document and whether it was newly created
+ */
+swipeSchema.statics.createSwipeAtomic = async function(swipeData) {
+  const { swiperId, swipedId, action, isPriority = false } = swipeData;
+  
+  // Use findOneAndUpdate with upsert to atomically create or find existing swipe
+  // $setOnInsert only sets fields if this is a new document (insert)
+  const result = await this.findOneAndUpdate(
+    { 
+      swiperId: swiperId, 
+      swipedId: swipedId 
+    },
+    { 
+      $setOnInsert: {
+        swiperId: swiperId,
+        swipedId: swipedId,
+        action: action,
+        isPriority: isPriority,
+        prioritySentAt: isPriority ? new Date() : undefined,
+        createdAt: new Date(),
+      }
+    },
+    { 
+      upsert: true,
+      new: true,
+      rawResult: true,  // Get the raw MongoDB result to check if upserted
+      runValidators: true,
     }
-  }
-  next();
-});
+  );
+  
+  // Check if this was a new insert or existing document
+  const isNew = result.lastErrorObject?.upserted != null;
+  
+  return {
+    swipe: result.value,
+    isNew: isNew,
+    alreadyExists: !isNew,
+  };
+};
 
 // Static method to get swiped user IDs for a swiper
 swipeSchema.statics.getSwipedUserIds = function (swiperId) {

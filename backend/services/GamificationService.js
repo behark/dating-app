@@ -313,13 +313,11 @@ class GamificationService {
   static async getUnclaimedRewards(userId) {
     try {
       const now = new Date();
-      const rewards = await DailyReward.find({
+      return await DailyReward.find({
         userId,
         isClaimed: false,
         expiresAt: { $gt: now },
       }).sort({ createdAt: -1 });
-
-      return rewards;
     } catch (error) {
       console.error('Error getting unclaimed rewards:', error);
       throw error;
@@ -357,8 +355,7 @@ class GamificationService {
    */
   static async getUserBadges(userId) {
     try {
-      const badges = await AchievementBadge.find({ userId }).sort({ unlockedAt: -1 });
-      return badges;
+      return await AchievementBadge.find({ userId }).sort({ unlockedAt: -1 });
     } catch (error) {
       console.error('Error getting user badges:', error);
       throw error;
@@ -370,14 +367,12 @@ class GamificationService {
    */
   static async getStreakLeaderboard(limit = 10) {
     try {
-      const leaderboard = await SwipeStreak.find({
+      return await SwipeStreak.find({
         currentStreak: { $gt: 0 },
       })
         .sort({ currentStreak: -1 })
         .limit(limit)
         .populate('userId', 'name photos');
-
-      return leaderboard;
     } catch (error) {
       console.error('Error getting streak leaderboard:', error);
       throw error;
@@ -389,14 +384,12 @@ class GamificationService {
    */
   static async getLongestStreakLeaderboard(limit = 10) {
     try {
-      const leaderboard = await SwipeStreak.find({
+      return await SwipeStreak.find({
         longestStreak: { $gt: 0 },
       })
         .sort({ longestStreak: -1 })
         .limit(limit)
         .populate('userId', 'name photos');
-
-      return leaderboard;
     } catch (error) {
       console.error('Error getting longest streak leaderboard:', error);
       throw error;
@@ -524,7 +517,7 @@ class GamificationService {
    */
   static async getUserLevel(userId) {
     try {
-      let user = await User.findById(userId);
+      const user = await User.findById(userId);
       if (!user) {
         return { currentXP: 0, level: 1, totalXPEarned: 0 };
       }
@@ -632,7 +625,7 @@ class GamificationService {
       const todayStr = today.toDateString();
 
       // Check if user has challenges for today
-      let user = await User.findById(userId);
+      const user = await User.findById(userId);
       if (!user) throw new Error('User not found');
 
       const challenges = user.gamification?.dailyChallenges || [];

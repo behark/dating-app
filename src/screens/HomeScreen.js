@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Dimensions,
@@ -13,21 +13,24 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import SwipeCard from '../components/Card/SwipeCard';
 import SkeletonCard from '../components/Card/SkeletonCard';
+import SwipeCard from '../components/Card/SwipeCard';
 import MicroAnimations from '../components/Common/MicroAnimations';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import logger from '../utils/logger';
 import { getUserRepository } from '../repositories';
+import AdvancedInteractionsService from '../services/AdvancedInteractionsService';
 import { GamificationService } from '../services/GamificationService';
 import { LocationService } from '../services/LocationService';
 import { PreferencesService } from '../services/PreferencesService';
 import { PremiumService } from '../services/PremiumService';
 import { SwipeController } from '../services/SwipeController';
-import AdvancedInteractionsService from '../services/AdvancedInteractionsService';
+import logger from '../utils/logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// Minimum time between swipes on the same card (ms) - prevents race conditions
+const SWIPE_DEBOUNCE_MS = 500;
 
 const HomeScreen = ({ navigation }) => {
   const { currentUser, authToken } = useAuth();
@@ -53,6 +56,10 @@ const HomeScreen = ({ navigation }) => {
   const [locationUpdating, setLocationUpdating] = useState(false);
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  
+  // RACE CONDITION FIX: Track swipe timestamps to prevent rapid double-swipes
+  const swipeTimestampsRef = useRef(new Map());
+  const isSwipingRef = useRef(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showRewardNotification, setShowRewardNotification] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
@@ -204,6 +211,26 @@ const HomeScreen = ({ navigation }) => {
 
   const handleSwipeRight = useCallback(
     async (card) => {
+      // RACE CONDITION FIX: Prevent rapid double-swipes on the same card
+      const cardId = card.id || card._id;
+      const now = Date.now();
+      const lastSwipeTime = swipeTimestampsRef.current.get(cardId) || 0;
+      
+      if (now - lastSwipeTime < SWIPE_DEBOUNCE_MS) {
+        logger.info('Swipe debounced - too rapid');
+        return; // Ignore rapid duplicate swipe
+      }
+      
+      // Also check if any swipe is in progress
+      if (isSwipingRef.current) {
+        logger.info('Swipe ignored - another swipe in progress');
+        return;
+      }
+      
+      // Mark this card as being swiped
+      swipeTimestampsRef.current.set(cardId, now);
+      isSwipingRef.current = true;
+      
       // Immediately update UI (non-blocking)
       startTransition(() => {
         setLastSwipedCard({ card, direction: 'right', swipeId: null });
@@ -224,6 +251,7 @@ const HomeScreen = ({ navigation }) => {
           // Check swipe limit
           const limitCheck = await SwipeController.checkSwipeLimit(userId, isPremium);
           if (!limitCheck.canSwipe) {
+            isSwipingRef.current = false;
             setTimeout(() => {
               Alert.alert(
                 'Daily Limit Reached',
@@ -239,6 +267,9 @@ const HomeScreen = ({ navigation }) => {
 
           // Use SwipeController to save the swipe and check for matches
           const result = await SwipeController.saveSwipe(userId, card.id, 'like', isPremium);
+          
+          // Reset swiping flag
+          isSwipingRef.current = false;
 
           if (!result.success) {
             if (result.limitExceeded) {
@@ -248,7 +279,8 @@ const HomeScreen = ({ navigation }) => {
                   `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
                 );
               }, 0);
-            } else {
+            } else if (!result.alreadyProcessed) {
+              // Only show error if it's not a duplicate (already processed is OK)
               setTimeout(() => {
                 Alert.alert('Error', result.error || 'Failed to save swipe');
               }, 0);
@@ -299,6 +331,24 @@ const HomeScreen = ({ navigation }) => {
 
   const handleSwipeLeft = useCallback(
     async (card) => {
+      // RACE CONDITION FIX: Prevent rapid double-swipes on the same card
+      const cardId = card.id || card._id;
+      const now = Date.now();
+      const lastSwipeTime = swipeTimestampsRef.current.get(cardId) || 0;
+      
+      if (now - lastSwipeTime < SWIPE_DEBOUNCE_MS) {
+        logger.info('Swipe debounced - too rapid');
+        return;
+      }
+      
+      if (isSwipingRef.current) {
+        logger.info('Swipe ignored - another swipe in progress');
+        return;
+      }
+      
+      swipeTimestampsRef.current.set(cardId, now);
+      isSwipingRef.current = true;
+      
       // Immediately update UI (non-blocking)
       startTransition(() => {
         setLastSwipedCard({ card, direction: 'left', swipeId: null });
@@ -316,6 +366,7 @@ const HomeScreen = ({ navigation }) => {
           // Check swipe limit
           const limitCheck = await SwipeController.checkSwipeLimit(userId, isPremium);
           if (!limitCheck.canSwipe) {
+            isSwipingRef.current = false;
             setTimeout(() => {
               Alert.alert(
                 'Daily Limit Reached',
@@ -331,6 +382,9 @@ const HomeScreen = ({ navigation }) => {
 
           // Use SwipeController to save the dislike
           const result = await SwipeController.saveSwipe(userId, card.id, 'dislike', isPremium);
+          
+          // Reset swiping flag
+          isSwipingRef.current = false;
 
           if (!result.success) {
             if (result.limitExceeded) {
@@ -340,7 +394,7 @@ const HomeScreen = ({ navigation }) => {
                   `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
                 );
               }, 0);
-            } else {
+            } else if (!result.alreadyProcessed) {
               logger.error('Error saving swipe:', result.error);
             }
             // Continue anyway to update UI
@@ -351,6 +405,7 @@ const HomeScreen = ({ navigation }) => {
             setLastSwipedCard({ card, direction: 'left', swipeId: result.swipeId });
           });
         } catch (error) {
+          isSwipingRef.current = false;
           logger.error('Error handling swipe:', error);
         }
       });

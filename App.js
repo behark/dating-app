@@ -11,6 +11,16 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { AnalyticsService } from './src/services/AnalyticsService';
 import { PWAService } from './src/services/PWAService';
 import { UserBehaviorAnalytics } from './src/services/UserBehaviorAnalytics';
+// Vercel Speed Insights (web only)
+let SpeedInsights;
+if (Platform.OS === 'web') {
+  try {
+    // eslint-disable-next-line import/no-unresolved
+    SpeedInsights = require('@vercel/speed-insights/react').SpeedInsights;
+  } catch (error) {
+    console.warn('Speed Insights not available:', error);
+  }
+}
 // Only import gesture handler on native platforms
 if (Platform.OS !== 'web') {
   require('react-native-gesture-handler');
@@ -24,6 +34,7 @@ function AppContent() {
       <AppNavigator />
       <NetworkStatusBanner />
       <StatusBar style={isDark ? 'light' : 'dark'} />
+      {Platform.OS === 'web' && SpeedInsights && <SpeedInsights />}
     </>
   );
 }
