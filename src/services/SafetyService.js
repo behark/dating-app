@@ -1,14 +1,3 @@
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  updateDoc,
-  where,
-} from 'firebase/firestore';
-import { db } from '../config/firebase';
 import { Colors } from '../constants/colors';
 import logger from '../utils/logger';
 import api from './api';
@@ -32,21 +21,19 @@ export class SafetyService {
     }
   }
 
-  static async unblockUser(userId, blockedUserId) {
+  static async unblockUser(blockedUserId) {
     try {
-      const userRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userRef);
-      const blockedUsers = userDoc.data()?.blockedUsers || [];
-
-      const filtered = blockedUsers.filter((id) => id !== blockedUserId);
-      await updateDoc(userRef, {
-        blockedUsers: filtered,
-        updatedAt: new Date(),
-      });
-      logger.info('User unblocked', { userId, blockedUserId });
+      const response = await api.delete(`/safety/block/${blockedUserId}`);
+      
+      if (!response.success) {
+        logger.error('Error unblocking user', new Error(response.message), { blockedUserId });
+        return false;
+      }
+      
+      logger.info('User unblocked', { blockedUserId });
       return true;
     } catch (error) {
-      logger.error('Error unblocking user', error, { userId, blockedUserId });
+      logger.error('Error unblocking user', error, { blockedUserId });
       return false;
     }
   }
@@ -60,19 +47,27 @@ export class SafetyService {
         return [];
       }
       
-      return response.data?.blockedUsers || [];
+      // Backend returns { success: true, blockedUsers: [...], count: number }
+      return response.blockedUsers || response.data?.blockedUsers || [];
     } catch (error) {
       logger.error('Error getting blocked users', error);
       return [];
     }
   }
 
-  static async isUserBlocked(userId, otherUserId) {
+  static async isUserBlocked(otherUserId) {
     try {
-      const blockedUsers = await this.getBlockedUsers();
-      return blockedUsers.includes(otherUserId);
+      const response = await api.get(`/safety/blocked/${otherUserId}`);
+      
+      if (!response.success) {
+        logger.error('Error checking if user is blocked', new Error(response.message));
+        return false;
+      }
+      
+      // Backend returns { success: true, userHasBlocked: boolean, blockedByOther: boolean, canInteract: boolean }
+      return response.userHasBlocked || response.data?.userHasBlocked || false;
     } catch (error) {
-      logger.error('Error checking if user is blocked', error, { userId, otherUserId });
+      logger.error('Error checking if user is blocked', error, { otherUserId });
       return false;
     }
   }
@@ -117,107 +112,80 @@ export class SafetyService {
   }
 
   // Photo verification
-  static async submitPhotoVerification(userId, photoUri, livenessCheck = {}) {
+  // Note: Basic photo verification should use the advanced endpoint or profile verification endpoint
+  // For now, redirecting to advanced verification
+  static async submitPhotoVerification(photoUri, livenessCheck = {}) {
     try {
-      const verification = {
-        userId,
-        photoUri,
-        livenessCheck: {
-          timestamp: new Date(),
-          detectionMethod: livenessCheck.method || 'basic', // 'basic', 'advanced'
-          passed: livenessCheck.passed || false,
-          ...livenessCheck,
-        },
-        status: 'pending', // 'pending', 'approved', 'rejected'
-        submittedAt: new Date(),
-        reviewedAt: null,
-      };
-
-      const docRef = await addDoc(collection(db, 'verifications'), verification);
-      logger.info('Verification submitted', {
-        verificationId: docRef.id,
-        userId,
+      // Use advanced photo verification endpoint for all verification types
+      return await this.submitAdvancedPhotoVerification(photoUri, {
         method: livenessCheck.method || 'basic',
+        faceDetected: livenessCheck.passed || false,
+        livenessPassed: livenessCheck.passed || false,
+        confidence: livenessCheck.confidence || 0,
+        ...livenessCheck,
       });
-
-      return { success: true, verificationId: docRef.id };
     } catch (error) {
-      logger.error('Error submitting verification', error, {
-        userId,
-        method: livenessCheck.method || 'basic',
-      });
-      return { success: false, error: error.message };
+      logger.error('Error submitting photo verification', error);
+      return { success: false, error: error.message || 'Failed to submit verification' };
     }
   }
 
-  static async getPhotoVerificationStatus(userId) {
+  static async getPhotoVerificationStatus() {
     try {
-      const q = query(collection(db, 'verifications'), where('userId', '==', userId));
-      const docs = await getDocs(q);
-
-      if (docs.empty) {
-        return { verified: false, status: 'not_submitted' };
-      }
-
-      const sortedDocs = docs.docs.sort((a, b) => {
-        const aData = a.data();
-        const bData = b.data();
-        if (!aData || !bData) return 0;
-        return (bData.submittedAt?.getTime?.() || 0) - (aData.submittedAt?.getTime?.() || 0);
-      });
-      const latestDoc = sortedDocs[0];
-      if (!latestDoc) {
-        return { verified: false, status: 'not_submitted' };
-      }
-      const latest = latestDoc.data();
-      if (!latest) {
-        return { verified: false, status: 'not_submitted' };
-      }
-
-      return {
-        verified: latest.status === 'approved',
-        status: latest.status,
-        submittedAt: latest.submittedAt,
-        reviewedAt: latest.reviewedAt,
-      };
+      // TODO: Add backend endpoint GET /api/safety/photo-verification/status
+      // For now, return not_submitted since we can't query without backend endpoint
+      logger.warn('getPhotoVerificationStatus: Backend endpoint not available');
+      return { verified: false, status: 'not_submitted' };
     } catch (error) {
-      logger.error('Error getting verification status', error, { userId });
+      logger.error('Error getting verification status', error);
       return { verified: false, status: 'error' };
     }
   }
 
   // Content moderation flagging
-  static async flagContent(userId, contentType, contentId, reason, description = '') {
+  static async flagContent(contentType, contentId, reason, description = '') {
     try {
       // contentType: 'message', 'profile_photo', 'bio', 'profile'
-      const flag = {
-        userId, // user flagging
+      // reason: 'explicit', 'hateful', 'violent', 'misleading', 'spam'
+      const response = await api.post('/safety/flag', {
         contentType,
         contentId,
-        reason, // 'explicit', 'hateful', 'violent', 'misleading', 'spam'
+        reason,
         description,
-        status: 'pending', // 'pending', 'reviewed', 'action_taken'
-        createdAt: new Date(),
+      });
+
+      if (!response.success) {
+        logger.error('Error flagging content', new Error(response.message), {
+          contentType,
+          contentId,
+          reason,
+        });
+        return { success: false, error: response.message || 'Failed to flag content' };
+      }
+
+      logger.info('Content flagged', {
+        flagId: response.data?.flagId || response.flag?.id,
+        contentType,
+        contentId,
+        reason,
+      });
+
+      return {
+        success: true,
+        flagId: response.data?.flagId || response.flag?.id,
       };
-
-      const docRef = await addDoc(collection(db, 'flags'), flag);
-      logger.info('Content flagged', { flagId: docRef.id, userId, contentType, contentId, reason });
-
-      return { success: true, flagId: docRef.id };
     } catch (error) {
-      logger.error('Error flagging content', error, { userId, contentType, contentId, reason });
-      return { success: false, error: error.message };
+      logger.error('Error flagging content', error, { contentType, contentId, reason });
+      return { success: false, error: error.message || 'Failed to flag content' };
     }
   }
 
   static async getContentFlags(contentId) {
     try {
-      const q = query(collection(db, 'flags'), where('contentId', '==', contentId));
-      const docs = await getDocs(q);
-      return docs.docs.map((doc) => {
-        const docData = doc.data();
-        return { id: doc.id, ...(docData || {}) };
-      });
+      // Note: Backend doesn't have a GET endpoint for content flags yet
+      // This would need to be added to the backend or handled differently
+      logger.warn('getContentFlags: Backend endpoint not available, returning empty array');
+      return [];
     } catch (error) {
       logger.error('Error getting content flags', error, { contentId });
       return [];
@@ -225,35 +193,58 @@ export class SafetyService {
   }
 
   // Safety check before allowing interaction
-  static async canInteractWith(userId, targetUserId) {
+  static async canInteractWith(targetUserId) {
     try {
-      // Check if target has blocked user
-      const targetBlockedUsers = await this.getBlockedUsers(targetUserId);
-      if (targetBlockedUsers.includes(userId)) {
-        return { allowed: false, reason: 'blocked_by_user' };
+      // Use the backend endpoint to check block status
+      const response = await api.get(`/safety/blocked/${targetUserId}`);
+      
+      if (!response.success) {
+        logger.error('Error checking interaction', new Error(response.message), { targetUserId });
+        return { allowed: false, reason: 'error' };
       }
 
-      // Check if user has blocked target
-      const userBlockedUsers = await this.getBlockedUsers(userId);
-      if (userBlockedUsers.includes(targetUserId)) {
-        return { allowed: false, reason: 'user_blocked_target' };
-      }
-
-      // Check if target is reported/suspended
-      const targetDoc = await getDoc(doc(db, 'users', targetUserId));
-      if (targetDoc.data()?.suspended) {
-        return { allowed: false, reason: 'user_suspended' };
+      // Backend returns: { success: true, userHasBlocked: boolean, blockedByOther: boolean, canInteract: boolean }
+      const canInteract = response.canInteract || response.data?.canInteract || false;
+      
+      if (!canInteract) {
+        let reason = 'unknown';
+        if (response.userHasBlocked || response.data?.userHasBlocked) {
+          reason = 'user_blocked_target';
+        } else if (response.blockedByOther || response.data?.blockedByOther) {
+          reason = 'blocked_by_user';
+        }
+        return { allowed: false, reason };
       }
 
       return { allowed: true };
     } catch (error) {
-      logger.error('Error checking interaction', error, { userId, targetUserId });
+      logger.error('Error checking interaction', error, { targetUserId });
       return { allowed: false, reason: 'error' };
     }
   }
 
   // Get safety tips
-  static getSafetyTips() {
+  static async getSafetyTips() {
+    try {
+      const response = await api.get('/safety/tips');
+      
+      if (!response.success) {
+        logger.error('Error getting safety tips', new Error(response.message));
+        // Return fallback tips if API fails
+        return this.getFallbackSafetyTips();
+      }
+      
+      // Backend returns: { success: true, count: number, data: [...] }
+      return response.data || response.tips || [];
+    } catch (error) {
+      logger.error('Error getting safety tips', error);
+      // Return fallback tips on error
+      return this.getFallbackSafetyTips();
+    }
+  }
+
+  // Fallback safety tips (used if API fails)
+  static getFallbackSafetyTips() {
     return [
       {
         id: 1,
@@ -341,34 +332,28 @@ export class SafetyService {
     ];
   }
 
-  static getSafetyTipsByCategory(category) {
-    const allTips = this.getSafetyTips();
-    return allTips.filter((tip) => tip.category === category);
+  static async getSafetyTipsByCategory(category) {
+    try {
+      const allTips = await this.getSafetyTips();
+      return allTips.filter((tip) => tip.category === category);
+    } catch (error) {
+      logger.error('Error getting safety tips by category', error, { category });
+      return [];
+    }
   }
 
-  // User safety score (for moderation team)
+  // User safety score (for moderation team - admin only)
   static async calculateSafetyScore(userId) {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      if (!userDoc.exists()) {
+      const response = await api.get(`/safety/safety-score/${userId}`);
+      
+      if (!response.success) {
+        logger.error('Error getting safety score', new Error(response.message), { userId });
         return null;
       }
-      const user = userDoc.data();
-      if (!user) {
-        return null;
-      }
-
-      let score = 100; // Start with perfect score
-
-      // Deduct points for various risk factors
-      if (user?.suspended) score -= 100; // Suspended users
-      if (user?.reportCount && user.reportCount > 0) score -= Math.min(10 * user.reportCount, 50);
-      if (!user?.emailVerified) score -= 10;
-      if (!user?.phoneVerified) score -= 5;
-      if (!user?.photoVerified) score -= 15;
-      if (user?.blockedCount && user.blockedCount > 0) score -= Math.min(5 * user.blockedCount, 20);
-
-      return Math.max(0, Math.min(100, score));
+      
+      // Backend returns: { success: true, userId, safetyScore, riskFactors }
+      return response.safetyScore || response.data?.safetyScore || null;
     } catch (error) {
       logger.error('Error calculating safety score', error, { userId });
       return null;
@@ -383,10 +368,9 @@ export class SafetyService {
    * Share date plans with friends
    * User can share their date plans with selected friends for safety
    */
-  static async shareDatePlan(userId, datePlanData, friendIds = []) {
+  static async shareDatePlan(datePlanData, friendIds = []) {
     try {
-      const datePlan = {
-        userId,
+      const response = await api.post('/safety/date-plan', {
         matchUserId: datePlanData.matchUserId,
         matchName: datePlanData.matchName,
         matchPhotoUrl: datePlanData.matchPhotoUrl,
@@ -395,111 +379,75 @@ export class SafetyService {
         coordinates: datePlanData.coordinates, // { latitude, longitude }
         dateTime: datePlanData.dateTime, // ISO string
         notes: datePlanData.notes || '',
-        sharedWith: friendIds,
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-        status: 'active', // 'active', 'completed', 'cancelled'
-      };
-
-      const docRef = await addDoc(collection(db, 'datePlans'), datePlan);
-      logger.info('Date plan shared', {
-        datePlanId: docRef.id,
-        userId,
-        matchUserId: datePlanData.matchUserId,
+        friendIds,
       });
 
-      // Notify friends that plan was shared
-      for (const friendId of friendIds) {
-        await this.createNotification(friendId, {
-          type: 'date_plan_shared',
-          title: 'Date Plan Shared',
-          message: `${datePlan.matchName} shared their date plan at ${datePlan.location}`,
-          data: {
-            datePlanId: docRef.id,
-            userId,
-            matchUserId: datePlanData.matchUserId,
-          },
+      if (!response.success) {
+        logger.error('Error sharing date plan', new Error(response.message), {
+          matchUserId: datePlanData.matchUserId,
         });
+        return { success: false, error: response.message || 'Failed to share date plan' };
       }
 
-      return { success: true, datePlanId: docRef.id };
-    } catch (error) {
-      logger.error('Error sharing date plan', error, {
-        userId,
+      const datePlanId = response.data?.datePlanId || response.data?.datePlan?.id;
+      logger.info('Date plan shared', {
+        datePlanId,
         matchUserId: datePlanData.matchUserId,
       });
-      return { success: false, error: error.message };
+
+      return { success: true, datePlanId };
+    } catch (error) {
+      logger.error('Error sharing date plan', error, {
+        matchUserId: datePlanData.matchUserId,
+      });
+      return { success: false, error: error.message || 'Failed to share date plan' };
     }
   }
 
   /**
    * Get user's active date plans
    */
-  static async getActiveDatePlans(userId) {
+  static async getActiveDatePlans() {
     try {
-      const q = query(
-        collection(db, 'datePlans'),
-        where('userId', '==', userId),
-        where('status', '==', 'active')
-      );
-      const docs = await getDocs(q);
-
-      return docs.docs
-        .map((doc) => {
-          const docData = doc.data();
-          if (!docData) {
-            return null;
-          }
-          return {
-            id: doc.id,
-            ...docData,
-            dateTime: docData.dateTime?.toDate?.() || new Date(docData.dateTime),
-          };
-        })
-        .filter(Boolean);
+      const response = await api.get('/safety/date-plans/active');
+      
+      if (!response.success) {
+        logger.error('Error getting active date plans', new Error(response.message));
+        return [];
+      }
+      
+      // Backend returns: { success: true, data: [...] }
+      return response.data || [];
     } catch (error) {
-      logger.error('Error getting date plans', error, { userId });
+      logger.error('Error getting date plans', error);
       return [];
     }
   }
 
   /**
    * Get date plans shared with user
+   * Note: Backend doesn't have this endpoint yet - would need to be added
    */
-  static async getSharedDatePlans(userId) {
+  static async getSharedDatePlans() {
     try {
-      const q = query(collection(db, 'datePlans'), where('sharedWith', 'array-contains', userId));
-      const docs = await getDocs(q);
-
-      return docs.docs
-        .map((doc) => {
-          const docData = doc.data();
-          if (!docData) {
-            return null;
-          }
-          return {
-            id: doc.id,
-            ...docData,
-            dateTime: docData.dateTime?.toDate?.() || new Date(docData.dateTime),
-          };
-        })
-        .filter(Boolean);
+      // TODO: Add backend endpoint GET /api/safety/date-plans/shared
+      logger.warn('getSharedDatePlans: Backend endpoint not available, returning empty array');
+      return [];
     } catch (error) {
-      logger.error('Error getting shared date plans', error, { userId });
+      logger.error('Error getting shared date plans', error);
       return [];
     }
   }
 
   /**
    * Update date plan status
+   * Note: Backend doesn't have this endpoint yet - would need to be added
    */
   static async updateDatePlanStatus(datePlanId, status) {
     try {
-      await updateDoc(doc(db, 'datePlans', datePlanId), {
-        status, // 'active', 'completed', 'cancelled'
-        updatedAt: new Date(),
-      });
-      return { success: true };
+      // TODO: Add backend endpoint PUT /api/safety/date-plan/:datePlanId
+      logger.warn('updateDatePlanStatus: Backend endpoint not available');
+      return { success: false, error: 'Backend endpoint not implemented' };
     } catch (error) {
       logger.error('Error updating date plan', error, { datePlanId, status });
       return { success: false, error: error.message };
@@ -510,25 +458,26 @@ export class SafetyService {
    * Check-in Timer & Notifications
    * User checks in when they arrive/leave, friends are notified
    */
-  static async startCheckInTimer(userId, datePlanId, duration = 300000) {
-    // Default 5 minutes
+  static async startCheckInTimer(datePlanId, duration = 300) {
+    // Duration in minutes (default 5 minutes = 300)
     try {
-      const checkIn = {
-        userId,
+      const response = await api.post('/safety/checkin/start', {
         datePlanId,
-        status: 'active', // 'active', 'checked_in', 'expired'
-        startedAt: new Date(),
-        expiresAt: new Date(Date.now() + duration),
-        alertSent: false,
-      };
+        duration, // Duration in minutes
+      });
 
-      const docRef = await addDoc(collection(db, 'checkIns'), checkIn);
-      logger.info('Check-in timer started', { checkInId: docRef.id, userId, datePlanId, duration });
+      if (!response.success) {
+        logger.error('Error starting check-in timer', new Error(response.message), { datePlanId });
+        return { success: false, error: response.message || 'Failed to start check-in' };
+      }
 
-      return { success: true, checkInId: docRef.id };
+      const checkInId = response.data?.checkInId || response.data?.checkIn?.id;
+      logger.info('Check-in timer started', { checkInId, datePlanId, duration });
+
+      return { success: true, checkInId };
     } catch (error) {
-      logger.error('Error starting check-in timer', error, { userId, datePlanId });
-      return { success: false, error: error.message };
+      logger.error('Error starting check-in timer', error, { datePlanId });
+      return { success: false, error: error.message || 'Failed to start check-in' };
     }
   }
 
@@ -537,65 +486,32 @@ export class SafetyService {
    */
   static async completeCheckIn(checkInId) {
     try {
-      await updateDoc(doc(db, 'checkIns', checkInId), {
-        status: 'checked_in',
-        checkedInAt: new Date(),
-      });
+      const response = await api.post(`/safety/checkin/${checkInId}/complete`);
 
-      // Get the check-in details to notify friends
-      const checkInDoc = await getDoc(doc(db, 'checkIns', checkInId));
-      if (!checkInDoc.exists()) {
-        return { success: false, error: 'Check-in not found' };
-      }
-      const checkInData = checkInDoc.data();
-      if (!checkInData) {
-        return { success: false, error: 'Check-in data not found' };
+      if (!response.success) {
+        logger.error('Error completing check-in', new Error(response.message), { checkInId });
+        return { success: false, error: response.message || 'Failed to complete check-in' };
       }
 
-      // Get the date plan to find who to notify
-      const datePlanDoc = await getDoc(doc(db, 'datePlans', checkInData.datePlanId));
-      if (!datePlanDoc.exists()) {
-        return { success: false, error: 'Date plan not found' };
-      }
-      const datePlanData = datePlanDoc.data();
-      if (!datePlanData) {
-        return { success: false, error: 'Date plan data not found' };
-      }
-
-      // Notify all friends that user checked in
-      for (const friendId of datePlanData.sharedWith) {
-        await this.createNotification(friendId, {
-          type: 'check_in_complete',
-          title: 'Safe Check-in Received',
-          message: 'Your friend checked in and is safe',
-          data: { userId: checkInData.userId },
-        });
-      }
-
+      logger.info('Check-in completed', { checkInId });
       return { success: true };
     } catch (error) {
       logger.error('Error completing check-in', error, { checkInId });
-      return { success: false, error: error.message };
+      return { success: false, error: error.message || 'Failed to complete check-in' };
     }
   }
 
   /**
    * Get active check-ins for user
+   * Note: Backend doesn't have this endpoint yet - would need to be added
    */
-  static async getActiveCheckIns(userId) {
+  static async getActiveCheckIns() {
     try {
-      const q = query(
-        collection(db, 'checkIns'),
-        where('userId', '==', userId),
-        where('status', 'in', ['active', 'expired'])
-      );
-      const docs = await getDocs(q);
-      return docs.docs.map((doc) => {
-        const docData = doc.data();
-        return { id: doc.id, ...(docData || {}) };
-      });
+      // TODO: Add backend endpoint GET /api/safety/checkin/active
+      logger.warn('getActiveCheckIns: Backend endpoint not available, returning empty array');
+      return [];
     } catch (error) {
-      logger.error('Error getting check-ins', error, { userId });
+      logger.error('Error getting check-ins', error);
       return [];
     }
   }
@@ -604,86 +520,48 @@ export class SafetyService {
    * Emergency SOS Button
    * User can send emergency alert to friends and emergency contacts
    */
-  static async sendEmergencySOS(userId, location = {}, emergencyMessage = '') {
+  static async sendEmergencySOS(location = {}, emergencyMessage = '') {
     try {
-      const sosAlert = {
-        userId,
-        type: 'sos',
+      const response = await api.post('/safety/sos', {
         location: {
           latitude: location.latitude,
           longitude: location.longitude,
           address: location.address || '',
-          timestamp: new Date(),
         },
         message: emergencyMessage,
-        severity: 'critical',
-        status: 'active', // 'active', 'resolved', 'false_alarm'
-        respondedBy: [],
-        responses: [],
-        createdAt: new Date(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      };
-
-      const docRef = await addDoc(collection(db, 'emergencyAlerts'), sosAlert);
-      logger.info('SOS alert created', { sosAlertId: docRef.id, userId, location });
-
-      // Get user's emergency contacts
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      const emergencyContacts = userDoc.data()?.emergencyContacts || [];
-      const trustedFriends = userDoc.data()?.trustedFriends || [];
-
-      // Combine all recipients
-      const allRecipients = [...new Set([...emergencyContacts, ...trustedFriends])];
-
-      // Send immediate notifications
-      for (const recipientId of allRecipients) {
-        await this.createNotification(recipientId, {
-          type: 'emergency_sos',
-          title: '🚨 EMERGENCY SOS',
-          message: 'Your friend sent an emergency SOS',
-          data: {
-            sosAlertId: docRef.id,
-            userId,
-            location: sosAlert.location,
-            message: sosAlert.message,
-          },
-          priority: 'high',
-        });
-      }
-
-      // Log the emergency event
-      await addDoc(collection(db, 'securityEvents'), {
-        userId,
-        type: 'sos_triggered',
-        timestamp: new Date(),
-        location: sosAlert.location,
-        details: { sosAlertId: docRef.id },
       });
 
-      return { success: true, sosAlertId: docRef.id };
+      if (!response.success) {
+        logger.error('Error sending SOS', new Error(response.message), { location });
+        return { success: false, error: response.message || 'Failed to send SOS' };
+      }
+
+      const sosAlertId = response.data?.sosAlertId || response.data?.sosAlert?.id;
+      logger.info('SOS alert created', { sosAlertId, location });
+
+      return { success: true, sosAlertId };
     } catch (error) {
-      logger.error('Error sending SOS', error, { userId, location });
-      return { success: false, error: error.message };
+      logger.error('Error sending SOS', error, { location });
+      return { success: false, error: error.message || 'Failed to send SOS' };
     }
   }
 
   /**
    * Get active SOS alerts
    */
-  static async getActiveSOS(userId) {
+  static async getActiveSOS() {
     try {
-      const q = query(
-        collection(db, 'emergencyAlerts'),
-        where('userId', '==', userId),
-        where('status', '==', 'active')
-      );
-      const docs = await getDocs(q);
-      return docs.docs.map((doc) => {
-        const docData = doc.data();
-        return { id: doc.id, ...(docData || {}) };
-      });
+      const response = await api.get('/safety/sos/active');
+      
+      if (!response.success) {
+        logger.error('Error getting active SOS', new Error(response.message));
+        return [];
+      }
+      
+      // Backend returns: { success: true, data: [...] }
+      return response.data || [];
     } catch (error) {
-      logger.error('Error getting SOS alerts', error, { userId });
+      logger.error('Error getting SOS alerts', error);
       return [];
     }
   }
@@ -691,42 +569,24 @@ export class SafetyService {
   /**
    * Respond to SOS alert
    */
-  static async respondToSOS(sosAlertId, responderId, response = {}) {
+  static async respondToSOS(sosAlertId, response = {}) {
     try {
-      const sosRef = doc(db, 'emergencyAlerts', sosAlertId);
-      const sosDoc = await getDoc(sosRef);
-      const currentResponses = sosDoc.data()?.responses || [];
-      const respondedBy = sosDoc.data()?.respondedBy || [];
-
-      const newResponse = {
-        responderId,
+      const apiResponse = await api.post(`/safety/sos/${sosAlertId}/respond`, {
         message: response.message || '',
         confirmedSafe: response.confirmedSafe || false,
-        timestamp: new Date(),
         contactInfo: response.contactInfo || '',
-      };
-
-      await updateDoc(sosRef, {
-        responses: [...currentResponses, newResponse],
-        respondedBy: [...respondedBy, responderId],
       });
 
-      // Notify the user who sent SOS
-      const sosData = sosDoc.data();
-      if (!sosData) {
-        return { success: false, error: 'SOS data not found' };
+      if (!apiResponse.success) {
+        logger.error('Error responding to SOS', new Error(apiResponse.message), { sosAlertId });
+        return { success: false, error: apiResponse.message || 'Failed to respond to SOS' };
       }
-      await this.createNotification(sosData.userId, {
-        type: 'sos_response',
-        title: 'Emergency Response Received',
-        message: `${responderId} has responded to your SOS`,
-        data: { sosAlertId },
-      });
 
+      logger.info('SOS response recorded', { sosAlertId });
       return { success: true };
     } catch (error) {
-      logger.error('Error responding to SOS', error, { sosAlertId, responderId });
-      return { success: false, error: error.message };
+      logger.error('Error responding to SOS', error, { sosAlertId });
+      return { success: false, error: error.message || 'Failed to respond to SOS' };
     }
   }
 
@@ -735,14 +595,20 @@ export class SafetyService {
    */
   static async resolveSOS(sosAlertId, status = 'resolved') {
     try {
-      await updateDoc(doc(db, 'emergencyAlerts', sosAlertId), {
+      const response = await api.put(`/safety/sos/${sosAlertId}/resolve`, {
         status, // 'resolved' or 'false_alarm'
-        resolvedAt: new Date(),
       });
+
+      if (!response.success) {
+        logger.error('Error resolving SOS', new Error(response.message), { sosAlertId, status });
+        return { success: false, error: response.message || 'Failed to resolve SOS' };
+      }
+
+      logger.info('SOS alert resolved', { sosAlertId, status });
       return { success: true };
     } catch (error) {
       logger.error('Error resolving SOS', error, { sosAlertId, status });
-      return { success: false, error: error.message };
+      return { success: false, error: error.message || 'Failed to resolve SOS' };
     }
   }
 
@@ -751,11 +617,9 @@ export class SafetyService {
    * Initiate background check for user (premium feature)
    * This would integrate with third-party service like Checkr or Instamotor
    */
-  static async initiateBackgroundCheck(userId, userInfo = {}) {
+  static async initiateBackgroundCheck(userInfo = {}) {
     try {
-      const backgroundCheckRequest = {
-        userId,
-        status: 'pending', // 'pending', 'in_progress', 'completed', 'failed'
+      const response = await api.post('/safety/background-check', {
         userInfo: {
           firstName: userInfo.firstName || '',
           lastName: userInfo.lastName || '',
@@ -765,80 +629,63 @@ export class SafetyService {
           address: userInfo.address || '',
           ...userInfo,
         },
-        checks: {
-          criminalRecord: false,
-          sexOffenderRegistry: false,
-          addressHistory: false,
-          identityVerification: false,
-        },
-        results: {},
-        requestedAt: new Date(),
-        completedAt: null,
-        externalServiceId: null,
-        externalStatus: null,
-      };
+      });
 
-      const docRef = await addDoc(collection(db, 'backgroundChecks'), backgroundCheckRequest);
-      logger.info('Background check requested', { backgroundCheckId: docRef.id, userId });
+      if (!response.success) {
+        logger.error('Error initiating background check', new Error(response.message), { userInfo });
+        return { success: false, error: response.message || 'Failed to initiate background check' };
+      }
 
-      return { success: true, backgroundCheckId: docRef.id };
+      const backgroundCheckId = response.data?.backgroundCheckId || response.data?.backgroundCheck?.id;
+      logger.info('Background check requested', { backgroundCheckId });
+
+      return { success: true, backgroundCheckId };
     } catch (error) {
-      logger.error('Error initiating background check', error, { userId });
-      return { success: false, error: error.message };
+      logger.error('Error initiating background check', error, { userInfo });
+      return { success: false, error: error.message || 'Failed to initiate background check' };
     }
   }
 
   /**
    * Get background check status
    */
-  static async getBackgroundCheckStatus(userId) {
+  static async getBackgroundCheckStatus(backgroundCheckId) {
     try {
-      const q = query(collection(db, 'backgroundChecks'), where('userId', '==', userId));
-      const docs = await getDocs(q);
-
-      if (docs.empty) {
-        return { completed: false, status: 'not_initiated' };
+      const response = await api.get(`/safety/background-check/${backgroundCheckId}`);
+      
+      if (!response.success) {
+        logger.error('Error getting background check status', new Error(response.message), {
+          backgroundCheckId,
+        });
+        return { completed: false, status: 'error' };
       }
 
-      const sortedDocs = docs.docs.sort((a, b) => {
-        const aData = a.data();
-        const bData = b.data();
-        if (!aData || !bData) return 0;
-        return (bData.requestedAt?.getTime?.() || 0) - (aData.requestedAt?.getTime?.() || 0);
-      });
-      const latestDoc = sortedDocs[0];
-      if (!latestDoc) {
-        return { completed: false, status: 'not_initiated' };
-      }
-      const latest = latestDoc.data();
-      if (!latest) {
-        return { completed: false, status: 'not_initiated' };
-      }
-
+      const statusData = response.data || response;
       return {
-        completed: latest.status === 'completed',
-        status: latest.status,
-        results: latest.results,
-        requestedAt: latest.requestedAt,
-        completedAt: latest.completedAt,
+        completed: statusData.status === 'completed',
+        status: statusData.status || 'not_initiated',
+        results: statusData.results || {},
+        checks: statusData.checks || {},
+        requestedAt: statusData.requestedAt,
+        completedAt: statusData.completedAt,
+        estimatedCompletion: statusData.estimatedCompletion,
       };
     } catch (error) {
-      logger.error('Error getting background check status', error, { userId });
+      logger.error('Error getting background check status', error, { backgroundCheckId });
       return { completed: false, status: 'error' };
     }
   }
 
   /**
    * Update background check with external service results
+   * Note: This is typically an admin/internal operation, backend may not expose this endpoint
    */
   static async updateBackgroundCheckResults(backgroundCheckId, results = {}) {
     try {
-      await updateDoc(doc(db, 'backgroundChecks', backgroundCheckId), {
-        status: 'completed',
-        results,
-        completedAt: new Date(),
-      });
-      return { success: true };
+      // TODO: Add backend endpoint PUT /api/safety/background-check/:backgroundCheckId
+      // This is typically an admin operation, may not be exposed to frontend
+      logger.warn('updateBackgroundCheckResults: Backend endpoint not available for frontend');
+      return { success: false, error: 'This operation is not available from the frontend' };
     } catch (error) {
       logger.error('Error updating background check', error, { backgroundCheckId });
       return { success: false, error: error.message };
@@ -848,55 +695,58 @@ export class SafetyService {
   /**
    * Advanced Photo Verification with Liveness Detection
    */
-  static async submitAdvancedPhotoVerification(userId, photoUri, livenessData = {}) {
+  static async submitAdvancedPhotoVerification(photoUri, livenessData = {}) {
     try {
-      const verification = {
-        userId,
-        type: 'liveness_detection',
+      const response = await api.post('/safety/photo-verification/advanced', {
         photoUri,
-        livenessChecks: {
+        livenessData: {
           method: livenessData.method || 'advanced', // 'basic', 'advanced', 'ai_powered'
-          timestamp: new Date(),
           faceDetected: livenessData.faceDetected || false,
           livenessPassed: livenessData.livenessPassed || false,
           confidence: livenessData.confidence || 0,
           challenges: livenessData.challenges || [], // e.g., ['blink', 'smile', 'turn_head']
           completedChallenges: livenessData.completedChallenges || [],
-        },
-        status: 'pending', // 'pending', 'approved', 'rejected'
-        submittedAt: new Date(),
-        reviewedAt: null,
-        aiAnalysis: {
           faceQuality: livenessData.faceQuality || 0,
           imageQuality: livenessData.imageQuality || 0,
           spoofingRisk: livenessData.spoofingRisk || 'low', // 'low', 'medium', 'high'
           matchWithProfilePhoto: livenessData.matchWithProfilePhoto || 0,
         },
-      };
-
-      const docRef = await addDoc(collection(db, 'advancedVerifications'), verification);
-      logger.info('Advanced verification submitted', {
-        verificationId: docRef.id,
-        userId,
-        type: verification.type,
       });
 
-      return { success: true, verificationId: docRef.id };
+      if (!response.success) {
+        logger.error('Error submitting advanced verification', new Error(response.message));
+        return { success: false, error: response.message || 'Failed to submit verification' };
+      }
+
+      const verificationId = response.data?.verificationId || response.data?.verification?.id;
+      logger.info('Advanced verification submitted', {
+        verificationId,
+        type: 'liveness_detection',
+      });
+
+      return { success: true, verificationId };
     } catch (error) {
-      logger.error('Error submitting advanced verification', error, { userId });
-      return { success: false, error: error.message };
+      logger.error('Error submitting advanced verification', error);
+      return { success: false, error: error.message || 'Failed to submit verification' };
     }
   }
 
   /**
    * Get emergency contacts list
    */
-  static async getEmergencyContacts(userId) {
+  static async getEmergencyContacts() {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      return userDoc.data()?.emergencyContacts || [];
+      const response = await api.get('/safety/emergency-contacts');
+      
+      if (!response.success) {
+        logger.error('Error getting emergency contacts', new Error(response.message));
+        return [];
+      }
+      
+      // Backend returns: { success: true, data: [...] }
+      return response.data || [];
     } catch (error) {
-      logger.error('Error getting emergency contacts', error, { userId });
+      logger.error('Error getting emergency contacts', error);
       return [];
     }
   }
@@ -904,48 +754,61 @@ export class SafetyService {
   /**
    * Add emergency contact
    */
-  static async addEmergencyContact(userId, contactInfo) {
+  static async addEmergencyContact(contactInfo) {
     try {
-      const userRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userRef);
-      const emergencyContacts = userDoc.data()?.emergencyContacts || [];
-
-      const newContact = {
-        id: Date.now(),
+      const response = await api.post('/safety/emergency-contact', {
         name: contactInfo.name,
         phone: contactInfo.phone,
         relationship: contactInfo.relationship,
-        addedAt: new Date(),
-      };
-
-      await updateDoc(userRef, {
-        emergencyContacts: [...emergencyContacts, newContact],
       });
 
-      return { success: true, contact: newContact };
+      if (!response.success) {
+        logger.error('Error adding emergency contact', new Error(response.message), { contactInfo });
+        return { success: false, error: response.message || 'Failed to add emergency contact' };
+      }
+
+      const contact = response.data || response.data?.contact;
+      logger.info('Emergency contact added', { contactId: contact?.id });
+
+      return { success: true, contact };
     } catch (error) {
-      logger.error('Error adding emergency contact', error, { userId, contactInfo });
-      return { success: false, error: error.message };
+      logger.error('Error adding emergency contact', error, { contactInfo });
+      return { success: false, error: error.message || 'Failed to add emergency contact' };
+    }
+  }
+
+  /**
+   * Delete emergency contact
+   */
+  static async deleteEmergencyContact(contactId) {
+    try {
+      const response = await api.delete(`/safety/emergency-contact/${contactId}`);
+
+      if (!response.success) {
+        logger.error('Error deleting emergency contact', new Error(response.message), { contactId });
+        return { success: false, error: response.message || 'Failed to delete emergency contact' };
+      }
+
+      logger.info('Emergency contact deleted', { contactId });
+      return { success: true };
+    } catch (error) {
+      logger.error('Error deleting emergency contact', error, { contactId });
+      return { success: false, error: error.message || 'Failed to delete emergency contact' };
     }
   }
 
   /**
    * Helper function to create notifications
+   * Note: Notifications should be created through the backend notification service
+   * This method is kept for backward compatibility but should be removed
+   * Use NotificationService instead
    */
   static async createNotification(userId, notificationData) {
     try {
-      const notification = {
-        userId,
-        type: notificationData.type,
-        title: notificationData.title,
-        message: notificationData.message,
-        data: notificationData.data || {},
-        priority: notificationData.priority || 'normal',
-        read: false,
-        createdAt: new Date(),
-      };
-
-      await addDoc(collection(db, 'notifications'), notification);
+      // TODO: Use NotificationService instead of direct Firestore access
+      logger.warn('createNotification: Should use NotificationService instead of direct Firestore');
+      // For now, this is a no-op - notifications should be sent via backend
+      // The backend handles notifications when date plans, SOS, etc. are created
     } catch (error) {
       logger.error('Error creating notification', error, { userId, type: notificationData.type });
     }

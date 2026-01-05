@@ -6,22 +6,12 @@ const {
   updateLocation,
 } = require('../controllers/discoveryController');
 const { apiCache, staleWhileRevalidate } = require('../middleware/apiCache');
-
-// Mock authentication middleware (replace with actual auth in production)
-const mockAuth = (req, res, next) => {
-  // In production, this should verify JWT tokens, etc.
-  // For now, we'll accept a userId in headers for testing
-  const userId = req.headers['x-user-id'] || req.query.userId;
-  if (userId) {
-    req.user = { id: userId };
-  }
-  next();
-};
+const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Apply mock authentication to all routes
-router.use(mockAuth);
+// Apply real authentication to all routes (SECURITY FIX: removed mock auth)
+router.use(authenticate);
 
 // GET /api/discover - Discover users within radius
 router.get(

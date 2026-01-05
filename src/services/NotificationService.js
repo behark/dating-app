@@ -1,8 +1,7 @@
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import api from './api';
 import logger from '../utils/logger';
 
 // Only set notification handler on native platforms (not web)
@@ -18,6 +17,11 @@ if (Platform.OS !== 'web') {
 }
 
 export class NotificationService {
+  /**
+   * Register for push notifications and save token to backend
+   * @param {string} userId - User ID
+   * @returns {Promise<string|null>} Push token or null if failed
+   */
   static async registerForPushNotifications(userId) {
     try {
       // On web, push notifications require VAPID key setup
@@ -48,28 +52,29 @@ export class NotificationService {
       const token = await Notifications.getExpoPushTokenAsync();
       const tokenData = token.data;
 
-      // Save token to user's profile
+      // Save token to backend via API
       try {
-        await updateDoc(doc(db, 'users', userId), {
+        // Use profile update endpoint to save push token
+        // Backend handles pushToken field in profile updates
+        const response = await api.put('/profile/update', {
           pushToken: tokenData,
           notificationsEnabled: true,
         });
-      } catch (firestoreError) {
-        // Handle ERR_BLOCKED_BY_CLIENT (ad blockers) gracefully
-        if (
-          firestoreError.message?.includes('ERR_BLOCKED_BY_CLIENT') ||
-          firestoreError.code === 'permission-denied'
-        ) {
-          logger.warn('Firestore write blocked (likely by ad blocker), push token not saved', {
+
+        if (response.data?.success) {
+          logger.info('Push notification token saved to backend', { userId, tokenData });
+        } else {
+          logger.warn('Push token save returned unsuccessful', {
             userId,
+            response: response.data,
           });
-          // Return token anyway - app can still function
-          return tokenData;
         }
-        throw firestoreError;
+      } catch (apiError) {
+        logger.error('Error saving push token to backend', apiError, { userId });
+        // Return token anyway - app can still function, but backend won't have it
+        return tokenData;
       }
 
-      logger.info('Push notification token saved', { userId, tokenData });
       return tokenData;
     } catch (error) {
       logger.error('Error registering for push notifications', error, { userId });
@@ -77,54 +82,48 @@ export class NotificationService {
     }
   }
 
+  /**
+   * Send notification through backend API
+   * @param {string} toUserId - Target user ID
+   * @param {string} title - Notification title
+   * @param {string} body - Notification body
+   * @param {Object} data - Additional notification data
+   * @returns {Promise<void>}
+   */
   static async sendNotification(toUserId, title, body, data = {}) {
     try {
-      const userDoc = await getDoc(doc(db, 'users', toUserId));
+      // Determine notification type from data or default to 'system'
+      const type = data.type || 'system';
 
-      if (!userDoc.exists()) {
-        logger.warn('User not found for notification', { toUserId });
-        return;
-      }
-
-      const userData = userDoc.data();
-
-      if (!userData.pushToken || !userData.notificationsEnabled) {
-        logger.debug('User has no push token or notifications disabled', { toUserId });
-        return;
-      }
-
-      const message = {
-        to: userData.pushToken,
-        sound: 'default',
+      // Send notification through backend API
+      const response = await api.post('/notifications/send', {
+        toUserId,
+        type,
         title,
-        body,
+        message: body,
         data,
-      };
-
-      const expoPushUrl =
-        process.env.EXPO_PUBLIC_EXPO_PUSH_URL || 'https://exp.host/--/api/v2/push/send';
-      const response = await fetch(expoPushUrl, {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Accept-encoding': 'gzip, deflate',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(message),
       });
 
-      if (!response.ok) {
-        logger.error('Failed to send push notification', null, {
+      if (response.data?.success) {
+        logger.debug('Notification sent via backend', { toUserId, type, title });
+      } else {
+        logger.warn('Backend notification send returned unsuccessful', {
           toUserId,
-          status: response.status,
-          title,
+          response: response.data,
         });
       }
     } catch (error) {
-      logger.error('Error sending push notification', error, { toUserId, title });
+      logger.error('Error sending notification via backend', error, { toUserId, title });
+      // Don't throw - notifications are non-critical
     }
   }
 
+  /**
+   * Send match notification
+   * @param {string} matchedUserId - User who was matched with
+   * @param {string} matcherName - Name of the person who matched
+   * @returns {Promise<void>}
+   */
   static async sendMatchNotification(matchedUserId, matcherName) {
     await this.sendNotification(
       matchedUserId,
@@ -134,6 +133,12 @@ export class NotificationService {
     );
   }
 
+  /**
+   * Send like notification
+   * @param {string} likedUserId - User who was liked
+   * @param {string} likerName - Name of the person who liked
+   * @returns {Promise<void>}
+   */
   static async sendLikeNotification(likedUserId, likerName) {
     await this.sendNotification(likedUserId, '💗 New Like!', `${likerName} liked your profile!`, {
       type: 'like',
@@ -141,6 +146,13 @@ export class NotificationService {
     });
   }
 
+  /**
+   * Send message notification
+   * @param {string} toUserId - Recipient user ID
+   * @param {string} fromName - Sender name
+   * @param {string} message - Message content
+   * @returns {Promise<void>}
+   */
   static async sendMessageNotification(toUserId, fromName, message) {
     await this.sendNotification(
       toUserId,
@@ -150,78 +162,144 @@ export class NotificationService {
     );
   }
 
+  /**
+   * Send system notification
+   * @param {string} toUserId - Target user ID
+   * @param {string} title - Notification title
+   * @param {string} message - Notification message
+   * @param {Object} data - Additional data
+   * @returns {Promise<void>}
+   */
   static async sendSystemNotification(toUserId, title, message, data = {}) {
     await this.sendNotification(toUserId, title, message, { type: 'system', ...data });
   }
 
+  /**
+   * Send bulk notifications (admin/system use)
+   * @param {string[]} userIds - Array of user IDs
+   * @param {string} title - Notification title
+   * @param {string} body - Notification body
+   * @param {Object} data - Additional data
+   * @returns {Promise<void>}
+   */
   static async sendBulkNotification(userIds, title, body, data = {}) {
     try {
-      for (const userId of userIds) {
-        await this.sendNotification(userId, title, body, data);
+      const response = await api.post('/notifications/send-bulk', {
+        userIds,
+        type: data.type || 'system',
+        title,
+        message: body,
+        data,
+      });
+
+      if (response.data?.success) {
+        logger.info('Bulk notification sent via backend', {
+          count: userIds.length,
+          title,
+          successCount: response.data.data?.successCount,
+          failureCount: response.data.data?.failureCount,
+        });
       }
-      logger.info('Bulk notification sent', { count: userIds.length, title });
     } catch (error) {
-      logger.error('Error sending bulk notification', error, { userIds: userIds.length, title });
+      logger.error('Error sending bulk notification via backend', error, {
+        userIds: userIds.length,
+        title,
+      });
     }
   }
 
+  /**
+   * Disable all notifications via backend API
+   * @param {string} userId - User ID (optional, uses authenticated user from API)
+   * @returns {Promise<void>}
+   */
   static async disableNotifications(userId) {
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        notificationsEnabled: false,
-      });
+      await api.put('/notifications/disable');
+      logger.debug('Notifications disabled via backend', { userId });
     } catch (error) {
-      logger.error('Error disabling notifications', error, { userId });
+      logger.error('Error disabling notifications via backend', error, { userId });
+      throw error;
     }
   }
 
+  /**
+   * Enable all notifications via backend API
+   * @param {string} userId - User ID (optional, uses authenticated user from API)
+   * @returns {Promise<void>}
+   */
   static async enableNotifications(userId) {
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        notificationsEnabled: true,
-      });
+      await api.put('/notifications/enable');
+      logger.debug('Notifications enabled via backend', { userId });
     } catch (error) {
-      logger.error('Error enabling notifications', error, { userId });
+      logger.error('Error enabling notifications via backend', error, { userId });
+      throw error;
     }
   }
 
+  /**
+   * Update notification preferences via backend API
+   * @param {string} userId - User ID (optional, uses authenticated user from API)
+   * @param {Object} preferences - Notification preferences
+   * @returns {Promise<Object>} Updated preferences
+   */
   static async updateNotificationPreferences(userId, preferences) {
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        preferences: {
-          matchNotifications: preferences.matchNotifications !== false,
-          messageNotifications: preferences.messageNotifications !== false,
-          likeNotifications: preferences.likeNotifications !== false,
-          systemNotifications: preferences.systemNotifications !== false,
-          notificationFrequency: preferences.notificationFrequency || 'instant', // 'instant', 'daily', 'weekly'
-          quietHours: preferences.quietHours || { enabled: false, start: '22:00', end: '08:00' },
-        },
-      });
-      logger.debug('Notification preferences updated', { userId });
+      const response = await api.put('/notifications/preferences', preferences);
+
+      if (response.data?.success) {
+        logger.debug('Notification preferences updated via backend', {
+          userId,
+          preferences: response.data.data?.preferences,
+        });
+        return response.data.data?.preferences || preferences;
+      }
+
+      throw new Error(response.data?.message || 'Failed to update preferences');
     } catch (error) {
-      logger.error('Error updating notification preferences', error, { userId });
+      logger.error('Error updating notification preferences via backend', error, { userId });
+      throw error;
     }
   }
 
+  /**
+   * Get notification preferences from backend API
+   * @param {string} userId - User ID (optional, uses authenticated user from API)
+   * @returns {Promise<Object>} Notification preferences
+   */
   static async getNotificationPreferences(userId) {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      const userData = userDoc.data();
+      const response = await api.get('/notifications/preferences');
 
+      if (response.data?.success && response.data.data?.preferences) {
+        const prefs = response.data.data.preferences;
+        return {
+          matchNotifications: prefs.matchNotifications !== false,
+          messageNotifications: prefs.messageNotifications !== false,
+          likeNotifications: prefs.likeNotifications !== false,
+          systemNotifications: prefs.systemNotifications !== false,
+          notificationFrequency: prefs.notificationFrequency || 'instant',
+          quietHours: prefs.quietHours || {
+            enabled: false,
+            start: '22:00',
+            end: '08:00',
+          },
+        };
+      }
+
+      // Return defaults if backend doesn't have preferences
       return {
-        matchNotifications: userData?.preferences?.matchNotifications !== false,
-        messageNotifications: userData?.preferences?.messageNotifications !== false,
-        likeNotifications: userData?.preferences?.likeNotifications !== false,
-        systemNotifications: userData?.preferences?.systemNotifications !== false,
-        notificationFrequency: userData?.preferences?.notificationFrequency || 'instant',
-        quietHours: userData?.preferences?.quietHours || {
-          enabled: false,
-          start: '22:00',
-          end: '08:00',
-        },
+        matchNotifications: true,
+        messageNotifications: true,
+        likeNotifications: true,
+        systemNotifications: true,
+        notificationFrequency: 'instant',
+        quietHours: { enabled: false, start: '22:00', end: '08:00' },
       };
     } catch (error) {
-      logger.error('Error getting notification preferences', error, { userId });
+      logger.error('Error getting notification preferences from backend', error, { userId });
+      // Return defaults on error
       return {
         matchNotifications: true,
         messageNotifications: true,
@@ -233,6 +311,11 @@ export class NotificationService {
     }
   }
 
+  /**
+   * Check if current time is within quiet hours
+   * @param {Object} quietHours - Quiet hours configuration
+   * @returns {boolean} True if within quiet hours
+   */
   static isWithinQuietHours(quietHours) {
     if (!quietHours?.enabled) return false;
 

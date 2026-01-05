@@ -41,7 +41,7 @@ export const DatePlansSharing = ({ userId, onPlanShared }) => {
   const loadActivePlans = async () => {
     try {
       setLoading(true);
-      const plans = await SafetyService.getActiveDatePlans(userId);
+      const plans = await SafetyService.getActiveDatePlans();
       setActivePlans(plans);
     } catch (error) {
       Alert.alert('Error', 'Failed to load date plans');
@@ -58,7 +58,6 @@ export const DatePlansSharing = ({ userId, onPlanShared }) => {
       }
 
       const result = await SafetyService.shareDatePlan(
-        userId,
         {
           ...formData,
           matchUserId: 'match_id_placeholder',
@@ -217,7 +216,7 @@ export const CheckInTimer = ({ datePlanId, userId, onCheckInComplete }) => {
 
   const handleStartCheckIn = async () => {
     try {
-      await SafetyService.startCheckInTimer(userId, datePlanId, 300000);
+      await SafetyService.startCheckInTimer(datePlanId, 5); // 5 minutes
       setCheckInActive(true);
       setCheckInStarted(true);
       Alert.alert('Check-in Started', 'Timer set for 5 minutes. Confirm when you&apos;re safe!');
@@ -313,7 +312,7 @@ export const EmergencySOS = ({ userId }) => {
 
   const loadSOSHistory = async () => {
     try {
-      const activeAlerts = await SafetyService.getActiveSOS(userId);
+      const activeAlerts = await SafetyService.getActiveSOS();
       setSosHistory(activeAlerts);
       if (activeAlerts.length > 0) {
         setSosActive(true);
@@ -331,7 +330,6 @@ export const EmergencySOS = ({ userId }) => {
       }
 
       const result = await SafetyService.sendEmergencySOS(
-        userId,
         {
           latitude: location?.latitude || 0,
           longitude: location?.longitude || 0,
@@ -422,7 +420,7 @@ export const PhotoVerificationAdvanced = ({ userId, onVerificationComplete }) =>
   const checkVerificationStatus = async () => {
     try {
       setLoading(true);
-      const status = await SafetyService.getPhotoVerificationStatus(userId);
+      const status = await SafetyService.getPhotoVerificationStatus();
       setVerificationStatus(status);
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -525,7 +523,9 @@ export const BackgroundCheck = ({ userId, isPremium }) => {
   const loadCheckStatus = async () => {
     try {
       setLoading(true);
-      const status = await SafetyService.getBackgroundCheckStatus(userId);
+      // Note: getBackgroundCheckStatus now requires backgroundCheckId, not userId
+      // This needs to be updated to use the actual backgroundCheckId from initiateBackgroundCheck
+      const status = await SafetyService.getBackgroundCheckStatus(backgroundCheckId || '');
       setCheckStatus(status);
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -541,7 +541,7 @@ export const BackgroundCheck = ({ userId, isPremium }) => {
         return;
       }
 
-      const result = await SafetyService.initiateBackgroundCheck(userId, {
+      const result = await SafetyService.initiateBackgroundCheck({
         firstName: 'User',
         lastName: 'Name',
       });

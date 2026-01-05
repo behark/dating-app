@@ -35,7 +35,7 @@ const SafetyAdvancedScreen = ({ route, navigation }) => {
   const loadEmergencyContacts = async () => {
     try {
       setLoading(true);
-      const contacts = await SafetyService.getEmergencyContacts(userId);
+      const contacts = await SafetyService.getEmergencyContacts();
       setEmergencyContacts(contacts);
     } catch (error) {
       Alert.alert('Error', 'Failed to load emergency contacts');
