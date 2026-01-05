@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -30,28 +30,53 @@ const MatchesScreen = () => {
   const [isPremium, setIsPremium] = useState(false);
   const [receivedLikes, setReceivedLikes] = useState([]);
   const [showLikes, setShowLikes] = useState(false);
+  
+  // Track current request to prevent race conditions
+  const requestIdRef = useRef(0);
 
   useFocusEffect(
     useCallback(() => {
-      loadConversationsList();
+      // Increment request ID on each focus
+      const currentRequestId = ++requestIdRef.current;
+      loadConversationsList(currentRequestId);
+      
+      // Cleanup: invalidate the request if screen loses focus
+      return () => {
+        requestIdRef.current++;
+      };
     }, [])
   );
 
-  const loadConversationsList = async () => {
+  const loadConversationsList = async (requestId) => {
     try {
       setLoading(true);
       await loadConversations();
+      
+      // Check if this request is still valid (not stale)
+      if (requestId !== requestIdRef.current) {
+        logger.info('Stale request ignored in MatchesScreen');
+        return;
+      }
+      
       // Load premium status
       try {
         const premiumStatus = await PremiumService.checkPremiumStatus(currentUser.uid, authToken);
+        // Check again after async operation
+        if (requestId !== requestIdRef.current) return;
         setIsPremium(premiumStatus.isPremium);
       } catch (error) {
         // Silently fail for premium status, don't break the app
         logger.error('Error loading premium status:', error);
       }
+      
+      // Final check before updating state
+      if (requestId !== requestIdRef.current) return;
       setLoading(false);
       setRefreshing(false);
     } catch (error) {
+      // Check if request is still valid before showing error
+      if (requestId !== requestIdRef.current) return;
+      
       logger.error('Error loading conversations:', error);
       setLoading(false);
       setRefreshing(false);
@@ -61,7 +86,10 @@ const MatchesScreen = () => {
       Alert.alert('Unable to Load Matches', errorMessage, [
         {
           text: 'Retry',
-          onPress: () => loadConversationsList(),
+          onPress: () => {
+            const newRequestId = ++requestIdRef.current;
+            loadConversationsList(newRequestId);
+          },
         },
         {
           text: 'OK',
@@ -73,7 +101,8 @@ const MatchesScreen = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadConversationsList();
+    const currentRequestId = ++requestIdRef.current;
+    await loadConversationsList(currentRequestId);
   };
 
   const renderConversation = ({ item }) => (
