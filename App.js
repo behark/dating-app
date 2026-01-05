@@ -100,6 +100,24 @@ function AppWithErrorHandling() {
 
 export default function App() {
   useEffect(() => {
+    // Suppress Radix UI Dialog accessibility warning from Vercel Analytics
+    // This is a third-party library issue, not our code
+    if (Platform.OS === 'web' && typeof console !== 'undefined') {
+      const originalWarn = console.warn;
+      console.warn = (...args) => {
+        const message = args[0]?.toString() || '';
+        // Filter out Radix UI Dialog accessibility warnings from Vercel Analytics
+        if (
+          message.includes('DialogContent') &&
+          message.includes('DialogTitle') &&
+          message.includes('screen reader')
+        ) {
+          return; // Suppress this specific warning
+        }
+        originalWarn.apply(console, args);
+      };
+    }
+
     // Initialize analytics on app start
     AnalyticsService.initialize();
     AnalyticsService.logAppOpened(true);
