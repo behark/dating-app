@@ -95,7 +95,7 @@ const initializeWebSocket = (httpServer) => {
       socket.userName = user.name;
       next();
     } catch (error) {
-      next(new Error(`Authentication failed: ${error.message}`));
+      next(new Error(`Authentication failed: ${(error instanceof Error ? error.message : String(error))}`));
     }
   });
 

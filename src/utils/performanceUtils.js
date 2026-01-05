@@ -389,6 +389,9 @@ export const useRenderCount = (componentName) => {
     renderCount.current += 1;
     // eslint-disable-next-line no-undef
     if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      // Note: Using console.log here is intentional for render debugging
+      // This is performance monitoring, not application logging
+      // eslint-disable-next-line no-console
       console.log(`[Render] ${componentName}: ${renderCount.current}`);
     }
   });
@@ -588,6 +591,9 @@ export const performanceTracker = {
     // Log slow operations in development
     // eslint-disable-next-line no-undef
     if (typeof __DEV__ !== 'undefined' && __DEV__ && duration > 500) {
+      // Note: Using console.warn here is intentional for performance monitoring
+      // This is performance debugging, not application logging
+      // eslint-disable-next-line no-console
       console.warn(`[Performance] ${label}: ${duration}ms`);
     }
 

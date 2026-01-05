@@ -128,7 +128,7 @@ const subscriptionSchema = new mongoose.Schema({
 });
 
 // Index for efficient queries
-subscriptionSchema.index({ userId: 1 });
+// Note: userId index is automatically created by unique: true, so we don't need to add it explicitly
 subscriptionSchema.index({ status: 1 });
 subscriptionSchema.index({ endDate: 1 });
 
@@ -167,7 +167,13 @@ subscriptionSchema.methods.hasFeature = function (featureName) {
 };
 
 // Static method to get or create subscription for user
+/**
+ * @param {string} userId 
+ * @returns {Promise<any>}
+ */
 subscriptionSchema.statics.getOrCreate = async function (userId) {
+  /** @type {any} */
+  // @ts-ignore - Mongoose static method context
   let subscription = await this.findOne({ userId });
   if (!subscription) {
     subscription = new this({ userId });
@@ -177,7 +183,13 @@ subscriptionSchema.statics.getOrCreate = async function (userId) {
 };
 
 // Static method to activate trial
+/**
+ * @param {string} userId 
+ * @returns {Promise<{success: boolean, message?: string, subscription?: any}>}
+ */
 subscriptionSchema.statics.activateTrial = async function (userId) {
+  // @ts-ignore - Mongoose static method context
+  /** @type {any} */
   const subscription = await this.getOrCreate(userId);
 
   if (!subscription.isTrialAvailable()) {
@@ -208,7 +220,15 @@ subscriptionSchema.statics.activateTrial = async function (userId) {
 };
 
 // Static method to upgrade to paid subscription
+/**
+ * @param {string} userId 
+ * @param {string} planType 
+ * @param {any} paymentData 
+ * @returns {Promise<{success: boolean, subscription?: any}>}
+ */
+// @ts-ignore - Mongoose static method context
 subscriptionSchema.statics.upgradeToPremium = async function (userId, planType, paymentData = {}) {
+  /** @type {any} */
   const subscription = await this.getOrCreate(userId);
 
   const endDate = new Date();
@@ -246,6 +266,10 @@ subscriptionSchema.statics.upgradeToPremium = async function (userId, planType, 
 };
 
 // Static method to cancel subscription
+/**
+ * @param {string} userId 
+ * @returns {Promise<{success: boolean, subscription?: any}>}
+ */
 subscriptionSchema.statics.cancelSubscription = async function (userId) {
   const subscription = await this.getOrCreate(userId);
 
@@ -257,4 +281,12 @@ subscriptionSchema.statics.cancelSubscription = async function (userId) {
   return { success: true, subscription };
 };
 
-module.exports = mongoose.model('Subscription', subscriptionSchema);
+/**
+ * @typedef {import('../types/index').SubscriptionDocument} SubscriptionDocument
+ * @typedef {import('../types/index').SubscriptionModel} SubscriptionModel
+ */
+
+/** @type {SubscriptionModel} */
+const SubscriptionModel = mongoose.model('Subscription', subscriptionSchema);
+
+module.exports = SubscriptionModel;

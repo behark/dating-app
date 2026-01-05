@@ -380,7 +380,7 @@ class StripeService {
           : null,
       };
     } catch (error) {
-      if (error.code === 'invoice_upcoming_none') {
+      if ((error instanceof Error && 'code' in error ? error.code : 'UNKNOWN_ERROR') === 'invoice_upcoming_none') {
         return null;
       }
       console.error('Error getting upcoming invoice:', error);

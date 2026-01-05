@@ -1,5 +1,7 @@
 const User = require('../models/User');
 
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
+
 // Predefined prompts
 const PROFILE_PROMPTS = [
   { id: 'traveling', question: 'Where would I love to travel next?' },
@@ -32,7 +34,7 @@ exports.getAllPrompts = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching prompts',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -105,7 +107,7 @@ exports.updatePrompts = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating prompts',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -149,7 +151,7 @@ exports.updateEducation = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating education',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -192,7 +194,7 @@ exports.updateOccupation = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating occupation',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -240,7 +242,7 @@ exports.updateHeight = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating height',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -292,7 +294,7 @@ exports.updateEthnicity = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating ethnicity',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };

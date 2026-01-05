@@ -1,5 +1,7 @@
 const SocialFeaturesService = require('../services/SocialFeaturesService');
 
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
+
 class SocialFeaturesController {
   /**
    * Create a group date
@@ -15,7 +17,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(400).json({
         error: 'Failed to create group date',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -37,7 +39,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(400).json({
         error: 'Failed to join group date',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -59,7 +61,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(400).json({
         error: 'Failed to leave group date',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -90,7 +92,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get nearby group dates',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -109,7 +111,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(400).json({
         error: 'Failed to create review',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -132,7 +134,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get reviews',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -151,7 +153,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(400).json({
         error: 'Failed to create event',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -173,7 +175,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(400).json({
         error: 'Failed to register for event',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -205,7 +207,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get nearby events',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -231,7 +233,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(400).json({
         error: 'Failed to create share link',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -253,7 +255,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(400).json({
         error: 'Failed to share profile',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -271,7 +273,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(404).json({
         error: 'Shared profile not found',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -292,7 +294,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(500).json({
         error: 'Failed to get shared profiles',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }
@@ -313,7 +315,7 @@ class SocialFeaturesController {
     } catch (error) {
       res.status(400).json({
         error: 'Failed to deactivate share link',
-        message: error.message,
+        message: (error instanceof Error ? error.message : String(error)),
       });
     }
   }

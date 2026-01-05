@@ -1,16 +1,17 @@
 import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  serverTimestamp,
-  setDoc,
-  where,
+    addDoc,
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    query,
+    serverTimestamp,
+    setDoc,
+    where,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { Swipe } from '../models/Swipe';
+import logger from '../utils/logger';
 import { NotificationService } from './NotificationService';
 
 /**
@@ -93,7 +94,7 @@ export class SwipeController {
         matchId: null,
       };
     } catch (error) {
-      console.error('Error saving swipe:', error);
+      logger.error('Error saving swipe', error, { swiperId, targetId, type });
       return {
         success: false,
         error: error.message || 'Failed to save swipe',
@@ -125,7 +126,7 @@ export class SwipeController {
           const swiperName = swiperDoc.data()?.name || 'Someone';
           await NotificationService.sendMatchNotification(targetId, swiperName);
         } catch (notifError) {
-          console.error('Error sending match notification:', notifError);
+          logger.error('Error sending match notification', notifError, { targetId, swiperId });
           // Don't fail the match creation if notification fails
         }
 
@@ -140,7 +141,7 @@ export class SwipeController {
         matchId: null,
       };
     } catch (error) {
-      console.error('Error checking for match:', error);
+      logger.error('Error checking for match', error, { swiperId, targetId });
       return {
         isMatch: false,
         matchId: null,
@@ -181,7 +182,7 @@ export class SwipeController {
 
       return matchId;
     } catch (error) {
-      console.error('Error creating match:', error);
+      logger.error('Error creating match', error, { userId1, userId2 });
       throw error;
     }
   }
@@ -207,9 +208,12 @@ export class SwipeController {
       }
 
       const doc = querySnapshot.docs[0];
+      if (!doc) {
+        return null;
+      }
       return Swipe.fromFirestore(doc.id, doc.data());
     } catch (error) {
-      console.error('Error getting swipe:', error);
+      logger.error('Error getting swipe', error, { swiperId, targetId });
       return null;
     }
   }
@@ -227,12 +231,15 @@ export class SwipeController {
       const swipes = [];
 
       querySnapshot.forEach((doc) => {
-        swipes.push(Swipe.fromFirestore(doc.id, doc.data()));
+        const docData = doc.data();
+        if (docData) {
+          swipes.push(Swipe.fromFirestore(doc.id, docData));
+        }
       });
 
       return swipes;
     } catch (error) {
-      console.error('Error getting user swipes:', error);
+      logger.error('Error getting user swipes', error, { userId });
       return [];
     }
   }
@@ -250,12 +257,15 @@ export class SwipeController {
       const swipes = [];
 
       querySnapshot.forEach((doc) => {
-        swipes.push(Swipe.fromFirestore(doc.id, doc.data()));
+        const docData = doc.data();
+        if (docData) {
+          swipes.push(Swipe.fromFirestore(doc.id, docData));
+        }
       });
 
       return swipes;
     } catch (error) {
-      console.error('Error getting received swipes:', error);
+      logger.error('Error getting received swipes', error, { userId });
       return [];
     }
   }
@@ -282,7 +292,7 @@ export class SwipeController {
         );
       }
     } catch (error) {
-      console.error('Error updating user swiped list:', error);
+      logger.error('Error updating user swiped list', error, { userId, swipedUserId });
     }
   }
 
@@ -330,7 +340,7 @@ export class SwipeController {
 
       await Promise.all(updates);
     } catch (error) {
-      console.error('Error updating user matches:', error);
+      logger.error('Error updating user matches', error, { userId1, userId2 });
     }
   }
 
@@ -341,28 +351,31 @@ export class SwipeController {
    */
   static async getSwipesCountToday(userId) {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      const userData = userDoc.data();
-
-      const today = new Date().toDateString();
-      const lastSwipeDate = userData?.lastSwipeDate;
-
-      if (lastSwipeDate !== today) {
-        // Reset counter for new day
-        await setDoc(
-          doc(db, 'users', userId),
-          {
-            swipesToday: 0,
-            lastSwipeDate: today,
-          },
-          { merge: true }
-        );
+      // Use backend API instead of direct Firebase call
+      const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+      const { API_URL } = await import('../config/api');
+      const authToken = await AsyncStorage.getItem('authToken');
+      
+      if (!authToken) {
+        logger.warn('No auth token for getSwipesCountToday, returning 0');
         return 0;
       }
 
-      return userData?.swipesToday || 0;
+      const response = await fetch(`${API_URL}/swipes/count/today`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        logger.warn('Failed to get swipes count from API, returning 0');
+        return 0;
+      }
+
+      const data = await response.json();
+      return data.data?.count || 0;
     } catch (error) {
-      console.error('Error getting swipes count today:', error);
+      logger.error('Error getting swipes count today', error, { userId });
       return 0;
     }
   }
@@ -394,7 +407,7 @@ export class SwipeController {
         isUnlimited: false,
       };
     } catch (error) {
-      console.error('Error checking swipe limit:', error);
+      logger.error('Error checking swipe limit', error, { userId, isPremium });
       return {
         canSwipe: true,
         remaining: -1,
@@ -422,7 +435,7 @@ export class SwipeController {
         { merge: true }
       );
     } catch (error) {
-      console.error('Error incrementing swipe counter:', error);
+      logger.error('Error incrementing swipe counter', error, { userId });
     }
   }
 
@@ -456,7 +469,7 @@ export class SwipeController {
         message: 'Swipe undone successfully',
       };
     } catch (error) {
-      console.error('Error undoing swipe:', error);
+      logger.error('Error undoing swipe', error, { userId, swipeId });
       return {
         success: false,
         error: error.message || 'Failed to undo swipe',
@@ -479,16 +492,18 @@ export class SwipeController {
 
       querySnapshot.forEach((doc) => {
         const swipe = doc.data();
-        const timestamp = swipe.createdAt?.toMillis?.() || 0;
-        if (timestamp > (lastTimestamp || 0)) {
-          lastSwipe = { id: doc.id, ...swipe };
-          lastTimestamp = timestamp;
+        if (swipe) {
+          const timestamp = swipe.createdAt?.toMillis?.() || 0;
+          if (timestamp > (lastTimestamp || 0)) {
+            lastSwipe = { id: doc.id, ...swipe };
+            lastTimestamp = timestamp;
+          }
         }
       });
 
       return lastSwipe;
     } catch (error) {
-      console.error('Error getting last swipe:', error);
+      logger.error('Error getting last swipe', error, { userId });
       return null;
     }
   }
@@ -550,7 +565,7 @@ export class SwipeController {
         message: 'Match deleted successfully',
       };
     } catch (error) {
-      console.error('Error unmatching:', error);
+      logger.error('Error unmatching', error, { userId1, userId2 });
       return {
         success: false,
         error: error.message || 'Failed to unmatch',
@@ -566,8 +581,14 @@ export class SwipeController {
   static async getUserMatches(userId) {
     try {
       const userDoc = await getDoc(doc(db, 'users', userId));
+      if (!userDoc.exists()) {
+        return [];
+      }
       const userData = userDoc.data();
-      const matchIds = userData?.matches || [];
+      if (!userData) {
+        return [];
+      }
+      const matchIds = userData.matches || [];
 
       const matches = [];
 
@@ -579,28 +600,30 @@ export class SwipeController {
             const matchId = `${sortedIds[0]}_${sortedIds[1]}`;
             const matchDoc = await getDoc(doc(db, 'matches', matchId));
             const matchData = matchDoc.data() || {};
-
-            matches.push({
-              id: matchId,
-              userId: matchedUserId,
-              user: {
-                id: matchedUserId,
-                name: matchedUserDoc.data().name,
-                photoURL: matchedUserDoc.data().photoURL,
-                age: matchedUserDoc.data().age,
-              },
-              createdAt: matchData.createdAt,
-              isExpired: this.isMatchExpired(matchData),
-            });
+            const matchedUserData = matchedUserDoc.data();
+            if (matchedUserData) {
+              matches.push({
+                id: matchId,
+                userId: matchedUserId,
+                user: {
+                  id: matchedUserId,
+                  name: matchedUserData.name,
+                  photoURL: matchedUserData.photoURL,
+                  age: matchedUserData.age,
+                },
+                createdAt: matchData.createdAt,
+                isExpired: this.isMatchExpired(matchData),
+              });
+            }
           }
         } catch (error) {
-          console.error(`Error getting match details for ${matchedUserId}:`, error);
+          logger.error('Error getting match details', error, { userId, matchedUserId });
         }
       }
 
       return matches;
     } catch (error) {
-      console.error('Error getting user matches:', error);
+      logger.error('Error getting user matches', error, { userId });
       return [];
     }
   }
@@ -663,7 +686,7 @@ export class SwipeController {
         removedCount: removedCount,
       };
     } catch (error) {
-      console.error('Error cleaning up expired matches:', error);
+      logger.error('Error cleaning up expired matches', error, { userId, expirationDays });
       return {
         success: false,
         error: error.message,

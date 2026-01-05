@@ -2,6 +2,7 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import logger from '../utils/logger';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -15,7 +16,7 @@ export class NotificationService {
   static async registerForPushNotifications(userId) {
     try {
       if (!Device.isDevice) {
-        console.log('Push notifications only work on physical devices');
+        logger.warn('Push notifications only work on physical devices');
         return null;
       }
 
@@ -28,7 +29,7 @@ export class NotificationService {
       }
 
       if (finalStatus !== 'granted') {
-        console.log('Failed to get push notification permissions');
+        logger.warn('Failed to get push notification permissions', { userId, finalStatus });
         return null;
       }
 
@@ -41,10 +42,10 @@ export class NotificationService {
         notificationsEnabled: true,
       });
 
-      console.log('Push notification token saved:', tokenData);
+      logger.info('Push notification token saved', { userId, tokenData });
       return tokenData;
     } catch (error) {
-      console.error('Error registering for push notifications:', error);
+      logger.error('Error registering for push notifications', error, { userId });
       return null;
     }
   }
@@ -54,14 +55,14 @@ export class NotificationService {
       const userDoc = await getDoc(doc(db, 'users', toUserId));
 
       if (!userDoc.exists()) {
-        console.log('User not found for notification');
+        logger.warn('User not found for notification', { toUserId });
         return;
       }
 
       const userData = userDoc.data();
 
       if (!userData.pushToken || !userData.notificationsEnabled) {
-        console.log('User has no push token or notifications disabled');
+        logger.debug('User has no push token or notifications disabled', { toUserId });
         return;
       }
 
@@ -73,7 +74,8 @@ export class NotificationService {
         data,
       };
 
-      const response = await fetch('https://exp.host/--/api/v2/push/send', {
+      const expoPushUrl = process.env.EXPO_PUBLIC_EXPO_PUSH_URL || 'https://exp.host/--/api/v2/push/send';
+      const response = await fetch(expoPushUrl, {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -84,10 +86,10 @@ export class NotificationService {
       });
 
       if (!response.ok) {
-        console.error('Failed to send push notification:', response.status);
+        logger.error('Failed to send push notification', null, { toUserId, status: response.status, title });
       }
     } catch (error) {
-      console.error('Error sending push notification:', error);
+      logger.error('Error sending push notification', error, { toUserId, title });
     }
   }
 
@@ -125,9 +127,9 @@ export class NotificationService {
       for (const userId of userIds) {
         await this.sendNotification(userId, title, body, data);
       }
-      console.log(`Bulk notification sent to ${userIds.length} users`);
+      logger.info('Bulk notification sent', { count: userIds.length, title });
     } catch (error) {
-      console.error('Error sending bulk notification:', error);
+      logger.error('Error sending bulk notification', error, { userIds: userIds.length, title });
     }
   }
 
@@ -137,7 +139,7 @@ export class NotificationService {
         notificationsEnabled: false,
       });
     } catch (error) {
-      console.error('Error disabling notifications:', error);
+      logger.error('Error disabling notifications', error, { userId });
     }
   }
 
@@ -147,7 +149,7 @@ export class NotificationService {
         notificationsEnabled: true,
       });
     } catch (error) {
-      console.error('Error enabling notifications:', error);
+      logger.error('Error enabling notifications', error, { userId });
     }
   }
 
@@ -163,9 +165,9 @@ export class NotificationService {
           quietHours: preferences.quietHours || { enabled: false, start: '22:00', end: '08:00' },
         },
       });
-      console.log('Notification preferences updated');
+      logger.debug('Notification preferences updated', { userId });
     } catch (error) {
-      console.error('Error updating notification preferences:', error);
+      logger.error('Error updating notification preferences', error, { userId });
     }
   }
 
@@ -187,7 +189,7 @@ export class NotificationService {
         },
       };
     } catch (error) {
-      console.error('Error getting notification preferences:', error);
+      logger.error('Error getting notification preferences', error, { userId });
       return {
         matchNotifications: true,
         messageNotifications: true,

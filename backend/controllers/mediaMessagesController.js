@@ -1,6 +1,10 @@
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
 const Message = require('../models/Message');
+
 const User = require('../models/User');
+
 const UserActivity = require('../models/UserActivity');
+
 
 /**
  * Send a GIF message
@@ -48,7 +52,7 @@ const sendGifMessage = async (req, res) => {
     console.error('Error sending GIF:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -99,7 +103,7 @@ const sendStickerMessage = async (req, res) => {
     console.error('Error sending sticker:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -159,7 +163,7 @@ const sendVoiceMessage = async (req, res) => {
     console.error('Error sending voice message:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -172,6 +176,12 @@ const transcribeVoiceMessage = async (req, res) => {
     const { messageId } = req.body;
 
     const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: 'Message not found',
+      });
+    }
 
     if (!message || message.type !== 'voice') {
       return res.status(404).json({
@@ -204,7 +214,7 @@ const transcribeVoiceMessage = async (req, res) => {
     console.error('Error transcribing voice message:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -260,7 +270,7 @@ const initiateVideoCall = async (req, res) => {
     console.error('Error initiating video call:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -287,6 +297,12 @@ const updateVideoCallStatus = async (req, res) => {
     }
 
     const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: 'Message not found',
+      });
+    }
 
     if (!message || message.type !== 'video_call') {
       return res.status(404).json({
@@ -295,10 +311,12 @@ const updateVideoCallStatus = async (req, res) => {
       });
     }
 
-    message.videoCall.status = status;
-    if (status === 'ended' && duration) {
-      message.videoCall.duration = duration;
-      message.videoCall.endedAt = new Date();
+    if (message.videoCall) {
+      message.videoCall.status = status;
+      if (status === 'ended' && duration) {
+        message.videoCall.duration = duration;
+        message.videoCall.endedAt = new Date();
+      }
     }
 
     await message.save();
@@ -319,7 +337,7 @@ const updateVideoCallStatus = async (req, res) => {
     console.error('Error updating video call status:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -359,7 +377,7 @@ const getPopularGifs = async (req, res) => {
     console.error('Error getting GIFs:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -401,7 +419,7 @@ const searchGifs = async (req, res) => {
     console.error('Error searching GIFs:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -441,7 +459,7 @@ const getStickerPacks = async (req, res) => {
     console.error('Error getting sticker packs:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 };

@@ -138,4 +138,12 @@ groupDateSchema.pre('save', function (next) {
   next();
 });
 
-module.exports = mongoose.model('GroupDate', groupDateSchema);
+/**
+ * @typedef {import('../types/index').GroupDateDocument} GroupDateDocument
+ * @typedef {import('../types/index').GroupDateModel} GroupDateModel
+ */
+
+/** @type {GroupDateModel} */
+const GroupDateModel = mongoose.model('GroupDate', groupDateSchema);
+
+module.exports = GroupDateModel;

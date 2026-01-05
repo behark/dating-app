@@ -23,6 +23,14 @@ exports.authenticate = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Ensure decoded is an object with userId property
+    if (typeof decoded === 'string' || !decoded.userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token format',
+      });
+    }
 
     const user = await User.findById(decoded.userId);
     if (!user) {
@@ -35,7 +43,7 @@ exports.authenticate = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
+    if ((error instanceof Error ? error.name : 'Error') === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
         message: 'Token expired',
@@ -44,7 +52,7 @@ exports.authenticate = async (req, res, next) => {
     return res.status(401).json({
       success: false,
       message: 'Invalid token',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };

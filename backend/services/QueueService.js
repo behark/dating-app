@@ -6,7 +6,7 @@
 const Bull = require('bull');
 const { getRedis } = require('../config/redis');
 
-// Queue configurations
+// Queue configurations with timeout and retry limits
 const QUEUE_CONFIG = {
   defaultJobOptions: {
     attempts: 3,
@@ -16,10 +16,17 @@ const QUEUE_CONFIG = {
     },
     removeOnComplete: 100, // Keep last 100 completed jobs
     removeOnFail: 1000, // Keep last 1000 failed jobs
+    timeout: 60000, // 60 second timeout per job - prevents hanging indefinitely
+    stackTraceLimit: 10, // Limit stack trace length for error logging
   },
   limiter: {
     max: 100, // Max jobs per duration
     duration: 1000, // Duration in ms
+  },
+  global: {
+    maxRetries: 3, // Global retry limit
+    retryDelay: 2000, // Base retry delay in ms
+    maxRetryDelay: 30000, // Max delay between retries
   },
 };
 
@@ -75,7 +82,7 @@ const queues = {};
  * Get Redis connection config for Bull
  */
 const getRedisConfig = () => {
-  const redisUrl = process.env.REDIS_URL;
+  const redisUrl = process.env.REDIS_URL || '';
 
   if (redisUrl) {
     return redisUrl;
@@ -83,9 +90,9 @@ const getRedisConfig = () => {
 
   return {
     host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT) || 6379,
+    port: parseInt(process.env.REDIS_PORT || '6379') || 6379,
     password: process.env.REDIS_PASSWORD || undefined,
-    db: parseInt(process.env.REDIS_QUEUE_DB) || 1, // Use different DB for queues
+    db: parseInt(process.env.REDIS_QUEUE_DB || '1') || 1, // Use different DB for queues
   };
 };
 

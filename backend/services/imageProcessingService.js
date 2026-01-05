@@ -186,7 +186,7 @@ const processProfileImage = async (file, userId) => {
     console.error('Image processing error:', error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     };
   }
 };
@@ -224,7 +224,7 @@ const processChatImage = async (file, senderId, receiverId) => {
     console.error('Chat image processing error:', error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     };
   }
 };

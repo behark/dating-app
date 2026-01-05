@@ -2,6 +2,7 @@ import * as Location from 'expo-location';
 import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { calculateDistance as calcDist } from '../utils/distanceCalculator';
+import logger from '../utils/logger';
 
 const LOCATION_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -12,12 +13,12 @@ export class LocationService {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        console.log('Location permission denied');
+        logger.warn('Location permission denied');
         return false;
       }
       return true;
     } catch (error) {
-      console.error('Error requesting location permission:', error);
+      logger.error('Error requesting location permission', error);
       return false;
     }
   }
@@ -26,12 +27,12 @@ export class LocationService {
     try {
       const { status } = await Location.requestBackgroundPermissionsAsync();
       if (status !== 'granted') {
-        console.log('Background location permission denied');
+        logger.warn('Background location permission denied');
         return false;
       }
       return true;
     } catch (error) {
-      console.error('Error requesting background location permission:', error);
+      logger.error('Error requesting background location permission', error);
       return false;
     }
   }
@@ -54,7 +55,7 @@ export class LocationService {
         accuracy: location.coords.accuracy,
       };
     } catch (error) {
-      console.error('Error getting current location:', error);
+      logger.error('Error getting current location', error);
       return null;
     }
   }
@@ -73,9 +74,9 @@ export class LocationService {
         lastLocationUpdate: new Date(),
       });
 
-      console.log('User location updated successfully');
+      logger.debug('User location updated successfully', { userId });
     } catch (error) {
-      console.error('Error updating user location:', error);
+      logger.error('Error updating user location', error, { userId });
     }
   }
 
@@ -85,7 +86,7 @@ export class LocationService {
         locationPrivacy: privacyLevel, // 'hidden', 'visible_to_matches', 'visible_to_all'
       });
     } catch (error) {
-      console.error('Error updating location privacy:', error);
+      logger.error('Error updating location privacy', error, { userId, privacyLevel });
     }
   }
 
@@ -93,11 +94,12 @@ export class LocationService {
     try {
       const userDoc = await getDoc(doc(db, 'users', userId));
       if (userDoc.exists()) {
-        return userDoc.data().locationPrivacy || 'visible_to_matches';
+        const userData = userDoc.data();
+        return userData?.locationPrivacy || 'visible_to_matches';
       }
       return 'visible_to_matches';
     } catch (error) {
-      console.error('Error getting location privacy:', error);
+      logger.error('Error getting location privacy', error, { userId });
       return 'visible_to_matches';
     }
   }
@@ -118,9 +120,9 @@ export class LocationService {
         }
       }, interval);
 
-      console.log('Periodic location updates started');
+      logger.info('Periodic location updates started', { userId, interval });
     } catch (error) {
-      console.error('Error starting periodic location updates:', error);
+      logger.error('Error starting periodic location updates', error, { userId });
     }
   }
 
@@ -128,7 +130,7 @@ export class LocationService {
     if (this.locationUpdateTimer) {
       clearInterval(this.locationUpdateTimer);
       this.locationUpdateTimer = null;
-      console.log('Periodic location updates stopped');
+      logger.info('Periodic location updates stopped');
     }
   }
 
@@ -144,10 +146,13 @@ export class LocationService {
   static async getNearbyUsers(currentUserId, maxDistanceKm = 50) {
     try {
       const currentUserDoc = await getDoc(doc(db, 'users', currentUserId));
+      if (!currentUserDoc.exists()) {
+        logger.warn('Current user not found', { currentUserId });
+        return [];
+      }
       const currentUserData = currentUserDoc.data();
-
       if (!currentUserData?.location) {
-        console.log('Current user has no location data');
+        logger.warn('Current user has no location data', { currentUserId });
         return [];
       }
 
@@ -161,7 +166,7 @@ export class LocationService {
 
       usersSnapshot.forEach((doc) => {
         const userData = doc.data();
-        if (userData.location && doc.id !== currentUserId) {
+        if (userData && userData.location && doc.id !== currentUserId) {
           const distance = this.calculateDistance(currentLocation, userData.location);
           if (distance !== null && distance <= maxDistanceKm) {
             nearbyUsers.push({
@@ -175,7 +180,7 @@ export class LocationService {
 
       return nearbyUsers.sort((a, b) => a.distance - b.distance);
     } catch (error) {
-      console.error('Error getting nearby users:', error);
+      logger.error('Error getting nearby users', error, { currentUserId, maxDistanceKm });
       return [];
     }
   }
@@ -187,7 +192,7 @@ export class LocationService {
         await this.updateUserLocation(userId, location);
       }
     } catch (error) {
-      console.error('Error updating location on login:', error);
+      logger.error('Error updating location on login', error, { userId });
     }
   }
 

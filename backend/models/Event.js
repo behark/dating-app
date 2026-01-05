@@ -199,4 +199,12 @@ eventSchema.pre('save', function (next) {
   next();
 });
 
-module.exports = mongoose.model('Event', eventSchema);
+/**
+ * @typedef {import('../types/index').EventDocument} EventDocument
+ * @typedef {import('../types/index').EventModel} EventModel
+ */
+
+/** @type {EventModel} */
+const EventModel = mongoose.model('Event', eventSchema);
+
+module.exports = EventModel;

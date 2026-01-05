@@ -1,6 +1,7 @@
 import { getAnalytics, logEvent, setUserProperties, setUserId } from 'firebase/analytics';
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import logger from '../utils/logger';
 
 // Firebase Analytics events
 export const ANALYTICS_EVENTS = {
@@ -69,7 +70,7 @@ export class AnalyticsService {
         });
       }
     } catch (error) {
-      console.warn('Analytics initialization failed:', error);
+      logger.warn('Analytics initialization failed', error);
     }
   }
 
@@ -93,10 +94,10 @@ export class AnalyticsService {
 
       // Also log to console in development
       if (__DEV__) {
-        console.log('Analytics Event:', eventName, parameters);
+        logger.debug('Analytics Event', { eventName, parameters });
       }
     } catch (error) {
-      console.warn('Analytics event logging failed:', error);
+      logger.warn('Analytics event logging failed', error, { eventName });
     }
   }
 

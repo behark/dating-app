@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, { memo, useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Animated, StyleSheet, Text, View } from 'react-native';
 import { Colors } from '../constants/colors';
+import logger from '../utils/logger';
 
 /**
  * LazyScreen Component
@@ -81,6 +82,9 @@ export function createLazyScreen(importFn, options = {}) {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(!cachedComponent);
 
+    // Ensure props is always an object (fixes "Cannot destructure property 'navigation' of 'undefined'")
+    const safeProps = props || {};
+
     const loadComponent = useCallback(async () => {
       if (cachedComponent) {
         setComponent(() => cachedComponent);
@@ -107,7 +111,7 @@ export function createLazyScreen(importFn, options = {}) {
         cachedComponent = module.default || module;
         setComponent(() => cachedComponent);
       } catch (err) {
-        console.error('Lazy loading error:', err);
+        logger.error('Lazy loading error', err);
         setError(err);
       } finally {
         setLoading(false);
@@ -140,7 +144,8 @@ export function createLazyScreen(importFn, options = {}) {
       return <LoadingPlaceholder message={loadingMessage} />;
     }
 
-    return <Component {...props} />;
+    // Pass safe props to component (ensures navigation and other props are always available)
+    return <Component {...safeProps} />;
   };
 
   LazyComponent.displayName = `Lazy(${options.displayName || 'Component'})`;

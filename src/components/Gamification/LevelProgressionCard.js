@@ -163,7 +163,12 @@ const LevelProgressionCard = ({
     setTimeout(() => setShowLevelUp(false), 3000);
   };
 
-  const getLevelData = (level) => LEVELS[level - 1] || LEVELS[0];
+  const getLevelData = (level) => {
+    if (level > 0 && level <= LEVELS.length) {
+      return LEVELS[level - 1];
+    }
+    return LEVELS[0] || null;
+  };
   const currentLevelData = getLevelData(currentLevel);
   const nextLevelData = getLevelData(nextLevel);
 

@@ -1,24 +1,22 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 import {
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { db, storage } from '../config/firebase';
-import { useAuth } from '../context/AuthContext';
-import logger from '../utils/logger';
-import { useNavigation } from '@react-navigation/native';
 import BadgeShowcase from '../components/Gamification/BadgeShowcase';
+import { useAuth } from '../context/AuthContext';
+import { ProfileService } from '../services/ProfileService';
+import logger from '../utils/logger';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -37,13 +35,12 @@ const ProfileScreen = () => {
 
   const loadProfile = async () => {
     try {
-      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        setName(data.name || '');
-        setAge(data.age?.toString() || '');
-        setBio(data.bio || '');
-        setPhotoURL(data.photoURL || '');
+      const userData = await ProfileService.getMyProfile();
+      if (userData) {
+        setName(userData.name || '');
+        setAge(userData.age?.toString() || '');
+        setBio(userData.bio || '');
+        setPhotoURL(userData.photoURL || userData.photos?.[0]?.url || '');
       }
     } catch (error) {
       logger.error('Error loading profile:', error);
@@ -174,19 +171,12 @@ const ProfileScreen = () => {
 
     try {
       setLoading(true);
-      await setDoc(
-        doc(db, 'users', currentUser.uid),
-        {
-          name: name.trim(),
-          age: parseInt(age),
-          bio: bio ? bio.trim() : '',
-          photoURL,
-          email: currentUser.email,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        { merge: true }
-      );
+      await ProfileService.updateProfile({
+        name: name.trim(),
+        age: parseInt(age),
+        bio: bio ? bio.trim() : '',
+        photoURL,
+      });
 
       Alert.alert('Success', 'Profile updated successfully!');
       setLoading(false);

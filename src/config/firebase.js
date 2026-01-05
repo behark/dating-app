@@ -5,6 +5,7 @@ import { getApps, initializeApp } from 'firebase/app';
 import { getAuth, getReactNativePersistence, initializeAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import logger from '../utils/logger';
 
 // Firebase configuration using environment variables
 const firebaseConfig = {
@@ -18,10 +19,12 @@ const firebaseConfig = {
 
 // Initialize Firebase - only if not already initialized
 let app;
-if (getApps().length === 0) {
+const existingApps = getApps();
+if (existingApps.length === 0) {
   app = initializeApp(firebaseConfig);
 } else {
-  app = getApps()[0];
+  const firstApp = existingApps[0];
+  app = firstApp || initializeApp(firebaseConfig);
 }
 
 // Initialize Auth with AsyncStorage persistence
@@ -43,7 +46,7 @@ let storage;
 try {
   storage = getStorage(app);
 } catch (error) {
-  console.warn('Firebase Storage not available:', error);
+  logger.warn('Firebase Storage not available', error);
   storage = null;
 }
 

@@ -1,0 +1,9 @@
+node_modules/
+node_modules/**
+backend/
+dist/
+build/
+web-build/
+.expo/
+coverage/
+*.config.js

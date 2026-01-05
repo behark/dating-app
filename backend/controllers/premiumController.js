@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const Swipe = require('../models/Swipe');
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
 
 /**
  * Get premium subscription status for the authenticated user
@@ -167,22 +168,45 @@ const getReceivedLikes = async (req, res) => {
 
     // Get all likes received
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
     const receivedLikes = user?.receivedLikes || [];
 
     // Get user details for each like
     const likesWithDetails = [];
     for (const like of receivedLikes) {
       try {
-        const likerUser = await User.findById(like.fromUserId).select(
-          '_id name age gender photos location bio interests education'
-        );
-        if (likerUser) {
-          likesWithDetails.push({
-            _id: like._id,
-            action: like.action,
-            receivedAt: like.receivedAt,
-            user: likerUser,
-          });
+        // Check if like is an object with details or just an ObjectId
+        if (typeof like === 'object' && like.fromUserId) {
+          // Like is already a detailed object
+          const likerUser = await User.findById(like.fromUserId).select(
+            '_id name age gender photos location bio interests education'
+          );
+          if (likerUser) {
+            likesWithDetails.push({
+              _id: like._id,
+              action: like.action,
+              receivedAt: like.receivedAt,
+              user: likerUser,
+            });
+          }
+        } else {
+          // Like is just an ObjectId, treat it as fromUserId
+          const likerUser = await User.findById(like).select(
+            '_id name age gender photos location bio interests education'
+          );
+          if (likerUser) {
+            likesWithDetails.push({
+              _id: like,
+              action: 'like',
+              receivedAt: new Date(),
+              user: likerUser,
+            });
+          }
         }
       } catch (error) {
         console.error('Error fetching liker details:', error);
@@ -259,16 +283,18 @@ const setPassportLocation = async (req, res) => {
       user.passportMode = { changeHistory: [] };
     }
 
-    user.passportMode.enabled = true;
-    user.passportMode.currentLocation = newLocation;
-    user.passportMode.lastChanged = new Date();
-    user.passportMode.changeHistory = user.passportMode.changeHistory || [];
-    user.passportMode.changeHistory.push({
-      location: newLocation,
-      city: newLocation.city,
-      country: newLocation.country,
-      changedAt: new Date(),
-    });
+    if (user.passportMode) {
+      user.passportMode.enabled = true;
+      user.passportMode.currentLocation = newLocation;
+      user.passportMode.lastChanged = new Date();
+      user.passportMode.changeHistory = user.passportMode.changeHistory || [];
+      user.passportMode.changeHistory.push({
+        location: newLocation,
+        city: newLocation.city,
+        country: newLocation.country,
+        changedAt: new Date(),
+      });
+    }
 
     await user.save();
 
@@ -301,6 +327,12 @@ const getPassportStatus = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId).select('passportMode');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     // PRIVACY: Sanitize passport location response
     const currentLocation = user?.passportMode?.currentLocation ? {
@@ -463,6 +495,12 @@ const updateAdvancedFilters = async (req, res) => {
       { advancedFilters: filters },
       { new: true, runValidators: true }
     );
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     res.json({
       success: true,
@@ -559,6 +597,12 @@ const updateAdsPreferences = async (req, res) => {
       },
       { new: true }
     );
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     res.json({
       success: true,
@@ -591,6 +635,12 @@ const getBoostAnalytics = async (req, res) => {
     }
 
     const user = await User.findById(userId).select('boostAnalytics');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     res.json({
       success: true,
@@ -628,6 +678,12 @@ const recordBoostSession = async (req, res) => {
     }
 
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     if (!user.boostAnalytics) {
       user.boostAnalytics = {
@@ -649,21 +705,22 @@ const recordBoostSession = async (req, res) => {
       likesGained: likesGained || 0,
       matches: matches || 0,
     };
+if (user.boostAnalytics) {
+      user.boostAnalytics.boostHistory.push(newBoost);
+      user.boostAnalytics.totalBoosts = (user.boostAnalytics.totalBoosts || 0) + 1;
+      user.boostAnalytics.totalProfileViews =
+        (user.boostAnalytics.totalProfileViews || 0) + (viewsGained || 0);
+      user.boostAnalytics.totalLikesReceivedDuringBoosts =
+        (user.boostAnalytics.totalLikesReceivedDuringBoosts || 0) + (likesGained || 0);
 
-    user.boostAnalytics.boostHistory.push(newBoost);
-    user.boostAnalytics.totalBoosts = (user.boostAnalytics.totalBoosts || 0) + 1;
-    user.boostAnalytics.totalProfileViews =
-      (user.boostAnalytics.totalProfileViews || 0) + (viewsGained || 0);
-    user.boostAnalytics.totalLikesReceivedDuringBoosts =
-      (user.boostAnalytics.totalLikesReceivedDuringBoosts || 0) + (likesGained || 0);
-
-    // Calculate averages
-    user.boostAnalytics.averageViewsPerBoost = Math.round(
-      user.boostAnalytics.totalProfileViews / user.boostAnalytics.totalBoosts
-    );
-    user.boostAnalytics.averageLikesPerBoost = Math.round(
-      user.boostAnalytics.totalLikesReceivedDuringBoosts / user.boostAnalytics.totalBoosts
-    );
+      // Calculate averages
+      user.boostAnalytics.averageViewsPerBoost = Math.round(
+        user.boostAnalytics.totalProfileViews / user.boostAnalytics.totalBoosts
+      );
+      user.boostAnalytics.averageLikesPerBoost = Math.round(
+        user.boostAnalytics.totalLikesReceivedDuringBoosts / user.boostAnalytics.totalBoosts
+      );
+    }
 
     await user.save();
 

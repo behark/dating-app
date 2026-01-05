@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import logger from '../utils/logger';
 
 /**
  * PWA Service - Manages Progressive Web App functionality
@@ -37,7 +38,7 @@ class PWAServiceClass {
    */
   async registerServiceWorker() {
     if (!('serviceWorker' in navigator)) {
-      console.log('Service Worker not supported');
+      logger.warn('Service Worker not supported');
       return null;
     }
 
@@ -47,7 +48,7 @@ class PWAServiceClass {
       });
 
       this.registration = registration;
-      console.log('Service Worker registered:', registration);
+      logger.info('Service Worker registered', { scope: registration.scope });
 
       // Handle updates
       registration.addEventListener('updatefound', () => {
@@ -62,7 +63,7 @@ class PWAServiceClass {
 
       return registration;
     } catch (error) {
-      console.error('Service Worker registration failed:', error);
+      logger.error('Service Worker registration failed', error);
       return null;
     }
   }
@@ -96,7 +97,7 @@ class PWAServiceClass {
       // Store the event for later use
       this.deferredPrompt = e;
       this.isInstallable = true;
-      console.log('App is installable');
+      logger.info('App is installable');
     });
   }
 
@@ -108,7 +109,7 @@ class PWAServiceClass {
       this.isInstalled = true;
       this.isInstallable = false;
       this.deferredPrompt = null;
-      console.log('App was installed');
+      logger.info('App was installed');
     });
   }
 
@@ -117,7 +118,7 @@ class PWAServiceClass {
    */
   async promptInstall() {
     if (!this.deferredPrompt) {
-      console.log('Install prompt not available');
+      logger.warn('Install prompt not available');
       return { outcome: 'unavailable' };
     }
 
@@ -126,7 +127,7 @@ class PWAServiceClass {
 
     // Wait for the user's response
     const { outcome } = await this.deferredPrompt.userChoice;
-    console.log('Install prompt outcome:', outcome);
+    logger.info('Install prompt outcome', { outcome });
 
     // Clear the deferred prompt
     this.deferredPrompt = null;
@@ -139,7 +140,7 @@ class PWAServiceClass {
    * Handle service worker update
    */
   onUpdateAvailable(registration) {
-    console.log('New version available');
+    logger.info('New version available', { scope: registration.scope });
 
     // You can show a notification to the user here
     // For automatic updates:
@@ -164,7 +165,7 @@ class PWAServiceClass {
     if ('caches' in window) {
       const cacheNames = await caches.keys();
       await Promise.all(cacheNames.map((name) => caches.delete(name)));
-      console.log('All caches cleared');
+      logger.info('All caches cleared', { cacheCount: cacheNames.length });
     }
   }
 
@@ -242,7 +243,7 @@ class PWAServiceClass {
 
     if ('sync' in this.registration) {
       await this.registration.sync.register(tag);
-      console.log('Background sync registered:', tag);
+      logger.info('Background sync registered', { tag });
     }
   }
 

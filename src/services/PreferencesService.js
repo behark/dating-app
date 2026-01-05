@@ -1,45 +1,58 @@
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '../config/api';
 import { calculateDistance as calcDist } from '../utils/distanceCalculator';
+import logger from '../utils/logger';
 
 export class PreferencesService {
+  static async getAuthToken() {
+    try {
+      return await AsyncStorage.getItem('authToken');
+    } catch (error) {
+      logger.error('Error retrieving auth token:', error);
+      return null;
+    }
+  }
+
   static async getUserPreferences(userId) {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      const userData = userDoc.data();
+      // Try to get preferences from backend API first
+      const authToken = await this.getAuthToken();
+      if (authToken) {
+        try {
+          const response = await fetch(`${API_URL}/profile/me`, {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
 
-      return {
-        // Age preferences
-        minAge: userData?.preferences?.minAge || 18,
-        maxAge: userData?.preferences?.maxAge || 100,
+          if (response.ok) {
+            const data = await response.json();
+            const userData = data.data?.user;
+            
+            if (userData?.preferences) {
+              return {
+                ...this.getDefaultPreferences(),
+                ...userData.preferences,
+              };
+            }
+          }
+        } catch (apiError) {
+          logger.warn('Failed to get preferences from API, using defaults', apiError);
+        }
+      }
 
-        // Distance preferences
-        maxDistance: userData?.preferences?.maxDistance || 50, // km
+      // Try to get from local storage as fallback
+      const localPrefs = await AsyncStorage.getItem(`preferences_${userId}`);
+      if (localPrefs) {
+        return {
+          ...this.getDefaultPreferences(),
+          ...JSON.parse(localPrefs),
+        };
+      }
 
-        // Gender preferences
-        interestedIn: userData?.preferences?.interestedIn || 'both', // 'men', 'women', 'both'
-
-        // Relationship type preferences
-        lookingFor: userData?.preferences?.lookingFor || 'any', // 'casual', 'serious', 'marriage', 'any'
-
-        // Notification preferences
-        notificationsEnabled: userData?.notificationsEnabled !== false,
-        matchNotifications: userData?.preferences?.matchNotifications !== false,
-        messageNotifications: userData?.preferences?.messageNotifications !== false,
-        likeNotifications: userData?.preferences?.likeNotifications !== false,
-        systemNotifications: userData?.preferences?.systemNotifications !== false,
-
-        // Privacy preferences
-        showDistance: userData?.preferences?.showDistance !== false,
-        showAge: userData?.preferences?.showAge !== false,
-
-        // Discovery settings
-        discoveryEnabled: userData?.preferences?.discoveryEnabled !== false,
-
-        ...userData?.preferences,
-      };
+      return this.getDefaultPreferences();
     } catch (error) {
-      console.error('Error getting user preferences:', error);
+      logger.error('Error getting user preferences', error, { userId });
       return this.getDefaultPreferences();
     }
   }
@@ -64,18 +77,30 @@ export class PreferencesService {
 
   static async updateUserPreferences(userId, preferences) {
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        preferences: {
-          ...preferences,
-          updatedAt: new Date(),
-        },
-        updatedAt: new Date(),
-      });
+      const authToken = await this.getAuthToken();
+      
+      // Save locally as well for offline access
+      await AsyncStorage.setItem(`preferences_${userId}`, JSON.stringify(preferences));
+      
+      if (authToken) {
+        const response = await fetch(`${API_URL}/profile/update`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ preferences }),
+        });
 
-      console.log('User preferences updated successfully');
+        if (!response.ok) {
+          logger.warn('Failed to sync preferences to server');
+        }
+      }
+
+      logger.info('User preferences updated successfully', { userId });
       return true;
     } catch (error) {
-      console.error('Error updating user preferences:', error);
+      logger.error('Error updating user preferences', error, { userId });
       return false;
     }
   }
@@ -86,17 +111,15 @@ export class PreferencesService {
       preferences[key] = value;
       return await this.updateUserPreferences(userId, preferences);
     } catch (error) {
-      console.error('Error updating single preference:', error);
+      logger.error('Error updating single preference', error, { userId, key, value });
       return false;
     }
   }
 
   // Advanced filtering logic
-  static async filterUsersForDiscovery(currentUserId, allUsers) {
+  static async filterUsersForDiscovery(currentUserId, allUsers, currentUserData = null) {
     try {
       const currentUserPrefs = await this.getUserPreferences(currentUserId);
-      const currentUserDoc = await getDoc(doc(db, 'users', currentUserId));
-      const currentUserData = currentUserDoc.data();
 
       if (!currentUserPrefs.discoveryEnabled) {
         return [];
@@ -104,7 +127,7 @@ export class PreferencesService {
 
       return allUsers.filter((user) => {
         // Don't show current user
-        if (user.id === currentUserId) return false;
+        if (user.id === currentUserId || user._id === currentUserId) return false;
 
         // Age filter
         if (user.age < currentUserPrefs.minAge || user.age > currentUserPrefs.maxAge) {
@@ -127,7 +150,7 @@ export class PreferencesService {
         return true;
       });
     } catch (error) {
-      console.error('Error filtering users:', error);
+      logger.error('Error filtering users', error, { currentUserId, userCount: allUsers.length });
       return allUsers;
     }
   }

@@ -226,7 +226,7 @@ class DatadogService {
 
       console.log('✅ Datadog APM initialized');
     } catch (error) {
-      console.log('⚠️  Failed to initialize Datadog:', error.message);
+      console.log('⚠️  Failed to initialize Datadog:', (error instanceof Error ? error.message : String(error)));
     }
   }
 
@@ -409,7 +409,7 @@ class HealthCheckService {
         results.status = 'unhealthy';
         results.checks[name] = {
           status: 'unhealthy',
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
         };
       }
     }

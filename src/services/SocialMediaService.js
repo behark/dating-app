@@ -98,9 +98,8 @@ export class SocialMediaService {
       }
 
       const response = await fetch(`${API_URL}/social-media/disconnect-spotify`, {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
       });
@@ -135,9 +134,8 @@ export class SocialMediaService {
       }
 
       const response = await fetch(`${API_URL}/social-media/disconnect-instagram`, {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
       });

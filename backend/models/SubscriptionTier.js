@@ -136,14 +136,17 @@ subscriptionTierSchema.pre('save', function (next) {
 
 // Static method: Get all active tiers
 subscriptionTierSchema.statics.getActiveTiers = function () {
+  // @ts-ignore - Mongoose static method context
   return this.find({ isActive: true }).sort({ level: 1 });
 };
 
 // Static method: Get tier by ID
+// @ts-ignore - Mongoose static method context
 subscriptionTierSchema.statics.getTierById = function (tierId) {
   return this.findOne({ tierId, isActive: true });
 };
 
+// @ts-ignore - Mongoose static method context
 // Static method: Compare tiers
 subscriptionTierSchema.statics.compareTiers = function (tier1Id, tier2Id) {
   return this.find({ tierId: { $in: [tier1Id, tier2Id] }, isActive: true });
@@ -253,6 +256,7 @@ subscriptionTierSchema.statics.initializeDefaultTiers = async function () {
       },
       trial: { available: false },
     },
+  // @ts-ignore - Mongoose static method context
   ];
 
   for (const tier of defaultTiers) {
@@ -275,4 +279,12 @@ subscriptionTierSchema.methods.getFeatureValue = function (featureName) {
   return this.features[featureName];
 };
 
-module.exports = mongoose.model('SubscriptionTier', subscriptionTierSchema);
+/**
+ * @typedef {import('../types/index').SubscriptionTierDocument} SubscriptionTierDocument
+ * @typedef {import('../types/index').SubscriptionTierModel} SubscriptionTierModel
+ */
+
+/** @type {SubscriptionTierModel} */
+const SubscriptionTierModel = mongoose.model('SubscriptionTier', subscriptionTierSchema);
+
+module.exports = SubscriptionTierModel;

@@ -61,6 +61,7 @@ rewindSchema.statics.getRemainingForToday = async function (userId) {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
+  // @ts-ignore - Mongoose static method context
   return await this.countDocuments({
     userId: userId,
     success: true,
@@ -69,6 +70,7 @@ rewindSchema.statics.getRemainingForToday = async function (userId) {
 };
 
 // Static method to get total rewind count for user (all time)
+// @ts-ignore - Mongoose static method context
 rewindSchema.statics.getTotalRewindCount = async function (userId) {
   return await this.countDocuments({
     userId: userId,
@@ -76,4 +78,12 @@ rewindSchema.statics.getTotalRewindCount = async function (userId) {
   });
 };
 
-module.exports = mongoose.model('Rewind', rewindSchema);
+/**
+ * @typedef {import('../types/index').RewindDocument} RewindDocument
+ * @typedef {import('../types/index').RewindModel} RewindModel
+ */
+
+/** @type {RewindModel} */
+const RewindModel = mongoose.model('Rewind', rewindSchema);
+
+module.exports = RewindModel;

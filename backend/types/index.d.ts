@@ -107,7 +107,7 @@ export interface IUser {
   interests: string[];
   location?: ILocation;
   locationPrivacy?: 'hidden' | 'visible_to_matches' | 'visible_to_all';
-  subscription?: ISubscription;
+  subscription?: IUserSubscriptionInfo;
   preferredAgeRange?: IAgeRange;
   preferredGender?: 'male' | 'female' | 'other' | 'any';
   preferredDistance?: number;
@@ -154,13 +154,108 @@ export interface IUser {
   totalSwipes?: number;
   totalMatches?: number;
   responseRate?: number;
+  // Profile views
+  profileViewCount?: number;
+  profileViewedBy?: Array<{
+    userId: Types.ObjectId;
+    viewedAt: Date;
+  }>;
+  // Boost tracking
+  activeBoostId?: Types.ObjectId;
+  // Online status
+  lastOnlineAt?: Date;
+  // Safety & Privacy
+  passportMode?: {
+    enabled?: boolean;
+    isActive: boolean;
+    latitude?: number;
+    longitude?: number;
+    city?: string;
+    country?: string;
+    currentLocation?: {
+      latitude: number;
+      longitude: number;
+      city?: string;
+      country?: string;
+    };
+    lastChanged?: Date;
+    changeHistory?: Array<{
+      location: any;
+      city?: string;
+      country?: string;
+      changedAt: Date;
+    }>;
+  };
+  privacySettings?: {
+    showDistance?: boolean;
+    showAge?: boolean;
+    showActive?: boolean;
+    hasConsented?: boolean;
+    consentDate?: Date;
+    consentVersion?: string;
+    consentHistory?: Array<{
+      version: string;
+      consentedAt: Date;
+    }>;
+    analyticsTracking?: boolean;
+    marketingEmails?: boolean;
+    thirdPartySharing?: boolean;
+    locationHistoryEnabled?: boolean;
+    changeHistory?: Array<{
+      field: string;
+      oldValue: any;
+      newValue: any;
+      changedAt: Date;
+    }>;
+  };
+  notificationPreferences?: {
+    enabled?: boolean;
+    matches?: boolean;
+    messages?: boolean;
+    likes?: boolean;
+    superLikes?: boolean;
+    promotions?: boolean;
+    matchNotifications?: boolean;
+    messageNotifications?: boolean;
+    likeNotifications?: boolean;
+    systemNotifications?: boolean;
+    quietHours?: {
+      enabled: boolean;
+      startTime: string;
+      endTime: string;
+      start?: string;
+      end?: string;
+    };
+  };
+  blockedUsers?: Types.ObjectId[];
+  blockedCount?: number;
+  reportCount?: number;
+  suspensionType?: string;
+  // Premium features
+  stripeCustomerId?: string;
+  boostAnalytics?: any;
+  superLikesBalance?: number;
+  boostsBalance?: number;
+  rewindsBalance?: number;
+  receivedLikes?: Array<{
+    fromUserId: Types.ObjectId;
+    action: string;
+    receivedAt: Date;
+  } | Types.ObjectId>;
+  advancedFilters?: any;
+  adsPreferences?: any;
+  language?: string;
 }
 
 export interface UserDocument extends IUser, Document {
   _id: Types.ObjectId;
   comparePassword(candidatePassword: string): Promise<boolean>;
+  matchPassword(candidatePassword: string): Promise<boolean>;
   generateAuthToken(): string;
   generateRefreshToken(): string;
+  updateLocation(longitude: number, latitude: number): void;
+  matches?: Types.ObjectId[];
+  values?: any;
 }
 
 export interface UserModel extends Model<UserDocument> {
@@ -174,19 +269,23 @@ export interface UserModel extends Model<UserDocument> {
 }
 
 export interface IPhoto {
+  _id?: Types.ObjectId;
   url: string;
   isMain?: boolean;
   order?: number;
   moderationStatus?: 'pending' | 'approved' | 'rejected';
   uploadedAt?: Date;
+  rejectionReason?: string;
 }
 
 export interface ILocation {
   type: 'Point';
   coordinates: [number, number]; // [longitude, latitude]
+  city?: string;
+  country?: string;
 }
 
-export interface ISubscription {
+export interface IUserSubscriptionInfo {
   tier: 'free' | 'gold' | 'platinum' | 'unlimited';
   startDate?: Date;
   endDate?: Date;
@@ -218,6 +317,11 @@ export interface SwipeDocument extends ISwipe, Document {
 export interface SwipeModel extends Model<SwipeDocument> {
   getSwipedUserIds(userId: string): Promise<Types.ObjectId[]>;
   checkMatch(swiperId: string, swipedId: string): Promise<boolean>;
+  createSwipeAtomic(swipeData: Partial<ISwipe>): Promise<SwipeDocument>;
+  hasSwiped(swiperId: string, swipedId: string): Promise<SwipeDocument | null>;
+  getMatches(userId: string): Promise<any[]>;
+  getSwipeCountToday(swiperId: string): Promise<number>;
+  canSwipe(swiperId: string, isPremium?: boolean): Promise<{ canSwipe: boolean; remaining?: number; used?: number }>;
 }
 
 export interface IMatch {
@@ -234,6 +338,20 @@ export interface IMatch {
 
 export interface MatchDocument extends IMatch, Document {
   _id: Types.ObjectId;
+  getOtherUser(userId: string): Types.ObjectId;
+  markConversationStarted(messageBy: Types.ObjectId): Promise<void>;
+}
+
+export interface MatchModel extends Model<MatchDocument> {
+  matchExists(userId1: string, userId2: string): Promise<boolean>;
+  createMatch(userId1: string, userId2: string, matchInitiator?: string, matchType?: string): Promise<{
+    match: MatchDocument;
+    isNew: boolean;
+    reactivated: boolean;
+  }>;
+  getUserMatches(userId: string, options?: any): Promise<MatchDocument[]>;
+  unmatch(matchId: string, userId: string): Promise<void>;
+  getMatchCount(userId: string, status?: string): Promise<number>;
 }
 
 // ============================================================
@@ -248,19 +366,37 @@ export interface IMessage {
   isEncrypted?: boolean;
   read?: boolean;
   readAt?: Date;
-  type?: 'text' | 'image' | 'gif' | 'sticker' | 'voice' | 'video_call';
+  type?: 'text' | 'image' | 'gif' | 'sticker' | 'voice' | 'video_call' | 'system';
   mediaUrl?: string;
   createdAt?: Date;
   metadata?: Record<string, any>;
+  // Media message fields
+  voiceMessage?: {
+    url: string;
+    duration?: number;
+    waveform?: number[];
+    transcript?: string;
+    isTranscribed?: boolean;
+    language?: string;
+  };
+  videoCall?: {
+    callId?: string;
+    status?: 'initiated' | 'accepted' | 'rejected' | 'ended' | 'missed';
+    startedAt?: Date;
+    endedAt?: Date;
+    duration?: number;
+  };
 }
 
 export interface MessageDocument extends IMessage, Document {
   _id: Types.ObjectId;
+  markAsRead(timestamp?: Date): void;
 }
 
 export interface MessageModel extends Model<MessageDocument> {
   getMessagesForMatch(matchId: string, limit?: number, skip?: number): Promise<MessageDocument[]>;
-  markMatchAsRead(matchId: string, userId: string): Promise<void>;
+  markMatchAsRead(matchId: string, userId: string): Promise<{ modifiedCount: number }>;
+  getUnreadCount(userId: string): Promise<number>;
 }
 
 export interface IConversation {
@@ -406,6 +542,208 @@ export interface ValidationSchema {
 // Service Types
 // ============================================================
 
+// Additional Model Types with Custom Methods
+
+export interface IUserActivity {
+  userId: Types.ObjectId;
+  activityType: 'login' | 'logout' | 'swipe' | 'match' | 'message' | 'profile_view' | 'profile_update' | 'super_like' | 'video_call';
+  metadata?: any;
+  relatedUserId?: Types.ObjectId;
+  createdAt?: Date;
+}
+
+export interface UserActivityDocument extends IUserActivity, Document {
+  _id: Types.ObjectId;
+}
+
+export interface UserActivityModel extends Model<UserActivityDocument> {
+  getRecentlyActiveUsers(hours?: number, limit?: number): Promise<Types.ObjectId[]>;
+  logActivity(userId: string, activityType: string, metadata?: any): Promise<UserActivityDocument>;
+  getUserRecentActivity(userId: string, limit?: number, days?: number): Promise<UserActivityDocument[]>;
+  getActivitySummary(userId: string, days?: number): Promise<any>;
+}
+
+export interface IBoostProfile {
+  userId: Types.ObjectId;
+  tier: 'free' | 'vip';
+  startedAt: Date;
+  endsAt: Date;
+  durationMinutes: number;
+  visibilityMultiplier: number;
+  impressions: number;
+  isActive: boolean;
+  createdAt?: Date;
+}
+
+export interface BoostProfileDocument extends IBoostProfile, Document {
+  _id: Types.ObjectId;
+  deactivate(): void;
+  checkActive(): boolean;
+}
+
+export interface BoostProfileModel extends Model<BoostProfileDocument> {
+  getRemainingForToday(userId: string): Promise<number>;
+  getActiveBoost(userId: string): Promise<BoostProfileDocument | null>;
+  deactivateExpired(): Promise<any>;
+}
+
+export interface ISuperLike {
+  senderId: Types.ObjectId;
+  recipientId: Types.ObjectId;
+  message?: string;
+  isViewed: boolean;
+  viewedAt?: Date;
+  createdAt?: Date;
+}
+
+export interface SuperLikeDocument extends ISuperLike, Document {
+  _id: Types.ObjectId;
+}
+
+export interface SuperLikeModel extends Model<SuperLikeDocument> {
+  getRemainingForToday(userId: string): Promise<number>;
+}
+
+export interface IRewind {
+  userId: Types.ObjectId;
+  originalSwipeId: Types.ObjectId;
+  swipedUserId: Types.ObjectId;
+  originalAction: 'like' | 'pass' | 'superlike';
+  success: boolean;
+  createdAt?: Date;
+}
+
+export interface RewindDocument extends IRewind, Document {
+  _id: Types.ObjectId;
+}
+
+export interface RewindModel extends Model<RewindDocument> {
+  getRemainingForToday(userId: string): Promise<number>;
+  getTotalRewindCount(userId: string): Promise<number>;
+}
+
+export interface ITopPicks {
+  forUserId: Types.ObjectId;
+  userId: Types.ObjectId;
+  compatibilityScore: number;
+  scoreBreakdown?: any;
+  algorithmVersion: string;
+  calculatedAt: Date;
+  isSeen: boolean;
+  seenAt?: Date;
+  isActive: boolean;
+  rankPosition: number;
+}
+
+export interface TopPicksDocument extends ITopPicks, Document {
+  _id: Types.ObjectId;
+  markAsSeen(): void;
+}
+
+export interface TopPicksModel extends Model<TopPicksDocument> {
+  getTopPicksForUser(userId: string, limit?: number): Promise<TopPicksDocument[]>;
+  recalculateForUser(userId: string): Promise<void>;
+}
+
+export interface ISubscriptionTier {
+  name: string;
+  tier: 'free' | 'gold' | 'platinum' | 'unlimited';
+  displayName: string;
+  description: string;
+  pricing: {
+    monthly: number;
+    quarterly?: number;
+    annual?: number;
+  };
+  features: Record<string, any>;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export interface SubscriptionTierDocument extends ISubscriptionTier, Document {
+  _id: Types.ObjectId;
+  hasFeature(featureName: string): boolean;
+  getFeatureValue(featureName: string): any;
+}
+
+export interface SubscriptionTierModel extends Model<SubscriptionTierDocument> {
+  getActiveTiers(): Promise<SubscriptionTierDocument[]>;
+  getTierById(tierId: string): Promise<SubscriptionTierDocument | null>;
+  compareTiers(tier1Id: string, tier2Id: string): Promise<number>;
+  initializeDefaultTiers(): Promise<void>;
+}
+
+export interface ISubscription {
+  userId: Types.ObjectId;
+  tierId?: Types.ObjectId;
+  tier: 'free' | 'gold' | 'platinum' | 'unlimited';
+  status: 'active' | 'cancelled' | 'expired' | 'past_due';
+  startDate?: Date;
+  endDate?: Date;
+  autoRenew: boolean;
+  stripeSubscriptionId?: string;
+  stripeCustomerId?: string;
+  trialUsed: boolean;
+  trialEndsAt?: Date;
+  planType?: string;
+  paymentMethod?: string;
+  features?: any;
+  superLikesUsedToday?: number;
+  profileBoostsUsedThisMonth?: number;
+}
+
+export interface SubscriptionDocument extends ISubscription, Document {
+  _id: Types.ObjectId;
+  isTrialAvailable(): boolean;
+  hasFeature(featureName: string): Promise<boolean>;
+  isActive?: boolean;
+  success?: boolean;
+  message?: string;
+  subscription?: any;
+}
+
+export interface SubscriptionModel extends Model<SubscriptionDocument> {
+  getOrCreate(userId: string): Promise<SubscriptionDocument>;
+  activateTrial(userId: string): Promise<SubscriptionDocument>;
+  upgradeToPremium(userId: string, planType: string, paymentData?: any): Promise<SubscriptionDocument>;
+  cancelSubscription(userId: string): Promise<SubscriptionDocument>;
+}
+
+export interface IPaymentTransaction {
+  userId: Types.ObjectId;
+  amount: number;
+  currency: string;
+  provider: 'stripe' | 'apple' | 'google';
+  providerTransactionId: string;
+  productType: 'subscription' | 'boost' | 'superlike' | 'rewind';
+  productId?: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  failureReason?: string;
+  failureCode?: string;
+  metadata?: any;
+  createdAt?: Date;
+  completedAt?: Date;
+}
+
+export interface PaymentTransactionDocument extends IPaymentTransaction, Document {
+  _id: Types.ObjectId;
+  markCompleted(additionalData?: any): void;
+  markFailed(reason: string, code?: string): void;
+  processRefund(refundAmount: number, refundId: string, reason?: string): void;
+}
+
+export interface PaymentTransactionModel extends Model<PaymentTransactionDocument> {
+  getUserTransactions(userId: string, options?: any): Promise<PaymentTransactionDocument[]>;
+  findByProviderId(provider: string, providerTransactionId: string): Promise<PaymentTransactionDocument | null>;
+  getUserTotalSpend(userId: string): Promise<number>;
+  getRevenueAnalytics(startDate: Date, endDate: Date): Promise<any>;
+  getRefundStats(startDate: Date, endDate: Date): Promise<any>;
+}
+
+// ============================================================
+// Service Types
+// ============================================================
+
 export interface IEmailService {
   sendEmail(to: string, subject: string, html: string): Promise<boolean>;
   sendVerificationEmail(email: string, token: string): Promise<boolean>;
@@ -506,4 +844,206 @@ export interface OnlineStatusEvent {
   userId: string;
   isOnline: boolean;
   lastActive?: Date;
+}
+
+// ============================================================
+// Additional Model Types
+// ============================================================
+
+export interface IAchievementBadge {
+  userId: Types.ObjectId;
+  badgeType: string;
+  badgeName: string;
+  badgeDescription: string;
+  badgeIcon: string;
+  rarity?: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+  unlockedAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface AchievementBadgeDocument extends IAchievementBadge, Document {
+  _id: Types.ObjectId;
+}
+
+export interface AchievementBadgeModel extends Model<AchievementBadgeDocument> {
+  findByUserId(userId: string): Promise<AchievementBadgeDocument[]>;
+  findByBadgeType(badgeType: string): Promise<AchievementBadgeDocument[]>;
+}
+
+export interface IBlock {
+  blockerId: Types.ObjectId;
+  blockedUserId: Types.ObjectId;
+  reason?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface BlockDocument extends IBlock, Document {
+  _id: Types.ObjectId;
+}
+
+export interface BlockModel extends Model<BlockDocument> {
+  findBlockedUsers(userId: string): Promise<BlockDocument[]>;
+  findBlockers(userId: string): Promise<BlockDocument[]>;
+  isBlocked(blockerId: string, blockedUserId: string): Promise<boolean>;
+}
+
+export interface IDailyReward {
+  userId: Types.ObjectId;
+  rewardDate: Date;
+  rewardType: 'login' | 'swipe' | 'match' | 'message' | 'profile_view';
+  rewardValue: number;
+  rewardDescription: string;
+  isClaimed: boolean;
+  claimedAt?: Date;
+  expiresAt: Date;
+  loginStreak?: number;
+  bonusMultiplier?: number;
+  metadata?: any;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface DailyRewardDocument extends IDailyReward, Document {
+  _id: Types.ObjectId;
+}
+
+export interface DailyRewardModel extends Model<DailyRewardDocument> {
+  getTodayReward(userId: string): Promise<DailyRewardDocument | null>;
+  claimReward(rewardId: string): Promise<DailyRewardDocument>;
+}
+
+export interface IEvent {
+  organizerId: Types.ObjectId;
+  title: string;
+  description: string;
+  category: string;
+  subcategory?: string;
+  location: ILocation;
+  locationName?: string;
+  startDate: Date;
+  endDate?: Date;
+  maxAttendees?: number;
+  currentAttendees?: number;
+  isPublic: boolean;
+  status: 'draft' | 'published' | 'cancelled' | 'completed';
+  tags?: string[];
+  coverImage?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface EventDocument extends IEvent, Document {
+  _id: Types.ObjectId;
+}
+
+export interface EventModel extends Model<EventDocument> {
+  findNearbyEvents(longitude: number, latitude: number, radius: number): Promise<EventDocument[]>;
+  getUpcomingEvents(limit?: number): Promise<EventDocument[]>;
+}
+
+export interface IFriendReview {
+  reviewerId: Types.ObjectId;
+  reviewedUserId: Types.ObjectId;
+  rating: number;
+  comment?: string;
+  isVerified: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface FriendReviewDocument extends IFriendReview, Document {
+  _id: Types.ObjectId;
+}
+
+export interface FriendReviewModel extends Model<FriendReviewDocument> {
+  getReviewsForUser(userId: string): Promise<FriendReviewDocument[]>;
+  getAverageRating(userId: string): Promise<number>;
+}
+
+export interface IGroupDate {
+  organizerId: Types.ObjectId;
+  title: string;
+  description: string;
+  location: ILocation;
+  locationName?: string;
+  dateTime: Date;
+  maxParticipants?: number;
+  currentParticipants?: number;
+  category?: string;
+  isPublic: boolean;
+  status: 'draft' | 'published' | 'cancelled' | 'completed';
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface GroupDateDocument extends IGroupDate, Document {
+  _id: Types.ObjectId;
+}
+
+export interface GroupDateModel extends Model<GroupDateDocument> {
+  findNearbyGroupDates(longitude: number, latitude: number, radius: number): Promise<GroupDateDocument[]>;
+  getUpcomingGroupDates(limit?: number): Promise<GroupDateDocument[]>;
+}
+
+export interface IReport {
+  reporterId: Types.ObjectId;
+  reportedUserId: Types.ObjectId;
+  reportType: 'inappropriate_content' | 'harassment' | 'spam' | 'fake_profile' | 'other';
+  description?: string;
+  status: 'pending' | 'reviewed' | 'resolved' | 'dismissed';
+  reviewedBy?: Types.ObjectId;
+  reviewedAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface ReportDocument extends IReport, Document {
+  _id: Types.ObjectId;
+}
+
+export interface ReportModel extends Model<ReportDocument> {
+  getPendingReports(): Promise<ReportDocument[]>;
+  getReportsForUser(userId: string): Promise<ReportDocument[]>;
+}
+
+export interface ISharedProfile {
+  sharerId: Types.ObjectId;
+  sharedWithId: Types.ObjectId;
+  profileUserId: Types.ObjectId;
+  message?: string;
+  isViewed: boolean;
+  viewedAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface SharedProfileDocument extends ISharedProfile, Document {
+  _id: Types.ObjectId;
+}
+
+export interface SharedProfileModel extends Model<SharedProfileDocument> {
+  getSharedProfilesForUser(userId: string): Promise<SharedProfileDocument[]>;
+  markAsViewed(shareId: string): Promise<SharedProfileDocument>;
+}
+
+export interface ISwipeStreak {
+  userId: Types.ObjectId;
+  currentStreak: number;
+  longestStreak: number;
+  lastSwipeDate: Date;
+  streakStartDate: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface SwipeStreakDocument extends ISwipeStreak, Document {
+  _id: Types.ObjectId;
+}
+
+export interface SwipeStreakModel extends Model<SwipeStreakDocument> {
+  getOrCreateStreak(userId: string): Promise<SwipeStreakDocument>;
+  updateStreak(userId: string): Promise<SwipeStreakDocument>;
+  getTopStreaks(limit?: number): Promise<SwipeStreakDocument[]>;
 }

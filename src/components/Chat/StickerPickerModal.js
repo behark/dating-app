@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import MediaMessagesService from '../../services/MediaMessagesService';
+import logger from '../../utils/logger';
 
 const { width } = Dimensions.get('window');
 const GRID_COLS = 4;
@@ -30,7 +31,7 @@ const StickerPickerModal = ({ visible, onClose, onSelectSticker, authToken }) =>
       const result = await mediaService.getStickerPacks();
       setPacks(result.packs || []);
     } catch (error) {
-      console.error('Error loading sticker packs:', error);
+      logger.error('Error loading sticker packs', error);
     } finally {
       setLoading(false);
     }
@@ -44,7 +45,10 @@ const StickerPickerModal = ({ visible, onClose, onSelectSticker, authToken }) =>
 
   useEffect(() => {
     if (packs.length > 0 && !selectedPackId) {
-      setSelectedPackId(packs[0].id);
+      const firstPack = packs[0];
+      if (firstPack) {
+        setSelectedPackId(firstPack.id);
+      }
     }
   }, [packs, selectedPackId]);
 

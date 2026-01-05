@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const User = require('../models/User');
 
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
+
 // Initialize SMS service (using Twilio as an example)
 const smsService = {
   sendSMS: async function (phoneNumber, code) {
@@ -74,7 +76,7 @@ exports.sendPhoneVerification = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error sending verification code',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -111,7 +113,7 @@ exports.verifyPhone = async (req, res) => {
     }
 
     // Check code expiry
-    if (new Date() > user.phoneVerificationCodeExpiry) {
+    if (user.phoneVerificationCodeExpiry && new Date() > user.phoneVerificationCodeExpiry) {
       return res.status(400).json({
         success: false,
         message: 'Verification code has expired',
@@ -133,7 +135,7 @@ exports.verifyPhone = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error verifying phone',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -189,7 +191,7 @@ exports.resendPhoneVerification = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error resending verification code',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };

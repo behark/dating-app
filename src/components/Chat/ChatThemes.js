@@ -11,6 +11,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import logger from '../../utils/logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -136,7 +137,7 @@ const ChatThemes = ({
       if (savedTheme) setSelectedTheme(savedTheme);
       if (savedPattern) setSelectedPattern(savedPattern);
     } catch (error) {
-      console.error('Error loading theme:', error);
+      logger.error('Error loading theme', error, { matchId });
     }
   };
 
@@ -164,7 +165,7 @@ const ChatThemes = ({
       
       onClose?.();
     } catch (error) {
-      console.error('Error saving theme:', error);
+      logger.error('Error saving theme', error, { matchId, themeId: selectedTheme });
     }
   };
 
@@ -430,7 +431,7 @@ export const useChatTheme = (matchId, defaultTheme = 'default') => {
         setPattern(savedPattern);
       }
     } catch (error) {
-      console.error('Error loading theme:', error);
+      logger.error('Error loading theme', error, { matchId });
     }
   };
 

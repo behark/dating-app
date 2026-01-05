@@ -114,12 +114,14 @@ const TopPicksScreen = ({ navigation }) => {
 
   let distance = null;
   if (location && user?.location) {
-    distance = calculateDistance(
-      location.latitude,
-      location.longitude,
-      user.location.coordinates[1],
-      user.location.coordinates[0]
-    );
+    if (user.location?.coordinates && user.location.coordinates.length >= 2) {
+      distance = calculateDistance(
+        location.latitude,
+        location.longitude,
+        user.location.coordinates[1],
+        user.location.coordinates[0]
+      );
+    }
   }
 
   return (

@@ -90,6 +90,7 @@ boostProfileSchema.statics.getRemainingForToday = async function (userId) {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
+  // @ts-ignore - Mongoose static method context
   return await this.countDocuments({
     userId: userId,
     startedAt: { $gte: today, $lt: tomorrow },
@@ -97,6 +98,7 @@ boostProfileSchema.statics.getRemainingForToday = async function (userId) {
 };
 
 // Static method to get active boost for a user
+// @ts-ignore - Mongoose static method context
 boostProfileSchema.statics.getActiveBoost = async function (userId) {
   return await this.findOne({
     userId: userId,
@@ -105,6 +107,7 @@ boostProfileSchema.statics.getActiveBoost = async function (userId) {
   });
 };
 
+// @ts-ignore - Mongoose static method context
 // Static method to deactivate expired boosts
 boostProfileSchema.statics.deactivateExpired = async function () {
   return await this.updateMany(
@@ -131,4 +134,12 @@ boostProfileSchema.methods.checkActive = function () {
   return true;
 };
 
-module.exports = mongoose.model('BoostProfile', boostProfileSchema);
+/**
+ * @typedef {import('../types/index').BoostProfileDocument} BoostProfileDocument
+ * @typedef {import('../types/index').BoostProfileModel} BoostProfileModel
+ */
+
+/** @type {BoostProfileModel} */
+const BoostProfileModel = mongoose.model('BoostProfile', boostProfileSchema);
+
+module.exports = BoostProfileModel;

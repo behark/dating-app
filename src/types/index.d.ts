@@ -25,35 +25,299 @@ export interface User {
   age?: number;
   gender?: 'male' | 'female' | 'other';
   bio?: string;
-  photos?: Photo[];
+  photos: Photo[]; // Required array (can be empty)
   location?: Location;
-  interests?: string[];
+  interests: string[]; // Required array (can be empty)
+  // Email verification
   isEmailVerified?: boolean;
+  emailVerified?: boolean; // Alias for isEmailVerified
+  emailVerificationToken?: string;
+  emailVerificationTokenExpiry?: string;
+  // Phone verification
+  phoneNumber?: string;
+  isPhoneVerified?: boolean;
+  phoneVerified?: boolean; // Alias for isPhoneVerified
+  phoneVerificationCode?: string;
+  phoneVerificationCodeExpiry?: string;
+  // Premium & Subscription
   isPremium?: boolean;
-  subscriptionEnd?: string;
+  premiumExpiresAt?: string;
+  subscription?: Subscription;
+  subscriptionEnd?: string; // Deprecated: use subscription.endDate
+  // Timestamps
   createdAt?: string;
   updatedAt?: string;
-  // Enhanced profile fields
+  // Location & Privacy
   locationPrivacy?: 'hidden' | 'visible_to_matches' | 'visible_to_all';
+  lastLocationUpdate?: string;
+  locationHistoryEnabled?: boolean;
+  // Preferences
   preferredGender?: 'male' | 'female' | 'other' | 'any';
-  preferredAgeRange?: { min: number; max: number };
+  preferredAgeRange?: AgeRange;
   preferredDistance?: number;
+  // Account status
   isActive?: boolean;
   isVerified?: boolean;
+  suspended?: boolean;
+  suspendedAt?: string;
+  suspendReason?: string;
+  suspensionType?: 'manual' | 'auto' | null;
+  needsReview?: boolean;
+  appealReason?: string;
+  appealedAt?: string;
+  reportCount?: number;
+  blockedUsers?: string[];
+  blockedCount?: number;
+  // Profile verification
   isProfileVerified?: boolean;
+  verificationStatus?: 'unverified' | 'pending' | 'verified' | 'rejected';
+  verificationMethod?: 'photo' | 'video' | 'id' | 'none';
+  verificationDate?: string;
+  // Activity & Engagement
+  isOnline?: boolean;
   lastActive?: string;
+  lastOnlineAt?: string;
+  lastActivityAt?: string;
+  profileViewCount?: number;
+  profileViewedBy?: Array<{
+    userId: string;
+    viewedAt?: string;
+  }>;
+  activityScore?: number;
+  totalSwipes?: number;
+  totalMatches?: number;
+  totalConversations?: number;
+  responseRate?: number;
+  profileCompleteness?: number;
+  // Enhanced profile fields
+  videos?: Video[];
+  profilePrompts?: ProfilePrompt[];
+  education?: Education;
+  occupation?: Occupation;
+  height?: Height;
+  ethnicity?: string[];
+  socialMedia?: SocialMedia;
   // OAuth providers
   googleId?: string;
   facebookId?: string;
   appleId?: string;
+  oauthProviders?: string[];
+  // Premium Features - See Who Liked You
+  receivedLikes?: Array<{
+    fromUserId: string;
+    action?: 'like' | 'superlike';
+    receivedAt?: string;
+  }>;
+  // Premium Features - Passport (Location Override)
+  passportMode?: {
+    enabled?: boolean;
+    currentLocation?: {
+      type?: 'Point';
+      coordinates?: [number, number];
+      city?: string;
+      country?: string;
+    };
+    lastChanged?: string;
+    changeHistory?: Array<{
+      location?: {
+        type?: 'Point';
+        coordinates?: [number, number];
+      };
+      city?: string;
+      country?: string;
+      changedAt?: string;
+    }>;
+  };
+  // Premium Features - Advanced Filters
+  advancedFilters?: {
+    minIncome?: number;
+    maxIncome?: number;
+    educationLevel?: string[];
+    bodyType?: string[];
+    drinkingFrequency?: string;
+    smokingStatus?: string;
+    maritalStatus?: string[];
+    hasChildren?: boolean;
+    wantsChildren?: string;
+    religion?: string[];
+    zodiacSign?: string[];
+    languages?: string[];
+    pets?: Array<{
+      type?: string;
+      description?: string;
+    }>;
+    travelFrequency?: string;
+  };
+  // Premium Features - Priority Likes
+  priorityLikesReceived?: number;
+  priorityLikesSent?: number;
+  // Premium Features - Ads Control
+  adsPreferences?: {
+    showAds?: boolean;
+    adCategories?: string[];
+    lastAdUpdate?: string;
+  };
+  // Premium Features - Boost Analytics
+  boostAnalytics?: {
+    totalBoosts?: number;
+    totalProfileViews?: number;
+    totalLikesReceivedDuringBoosts?: number;
+    boostHistory?: Array<{
+      startTime?: string;
+      endTime?: string;
+      duration?: number;
+      viewsGained?: number;
+      likesGained?: number;
+      matches?: number;
+    }>;
+    averageViewsPerBoost?: number;
+    averageLikesPerBoost?: number;
+  };
+  // Premium Features - Swipe Stats
+  swipeStats?: {
+    dailySwipeCount?: number;
+    swipeResetTime?: string;
+    totalSwipesAllTime?: number;
+  };
+  // Premium Features - Usage Tracking
+  superLikeUsageToday?: number;
+  superLikeResetTime?: string;
+  rewindUsageToday?: number;
+  rewindResetTime?: string;
+  boostUsageToday?: number;
+  boostResetTime?: string;
+  activeBoostId?: string;
+  // Privacy & Compliance (GDPR/CCPA)
+  privacySettings?: {
+    dataSharing?: boolean;
+    marketingEmails?: boolean;
+    thirdPartySharing?: boolean;
+    analyticsTracking?: boolean;
+    doNotSell?: boolean;
+    doNotSellDate?: string;
+    dataRetentionPeriod?: '1year' | '2years' | '5years' | 'indefinite';
+    hasConsented?: boolean;
+    consentDate?: string;
+    consentVersion?: string;
+    consentHistory?: Array<{
+      timestamp?: string;
+      action?: string;
+      version?: string;
+      purposes?: any;
+      ipAddress?: string;
+      userAgent?: string;
+      changes?: any;
+    }>;
+    lastUpdated?: string;
+  };
+  // End-to-End Encryption
+  encryptionPublicKey?: string;
+  encryptionPrivateKeyEncrypted?: string;
+  encryptionKeyVersion?: number;
+  // Gamification
+  gamification?: {
+    xp?: number;
+    totalXPEarned?: number;
+    lastXPAction?: string;
+    lastXPDate?: string;
+    dailyChallenges?: Array<{
+      challengeId?: string;
+      id?: string;
+      type?: string;
+      title?: string;
+      description?: string;
+      icon?: string;
+      targetCount?: number;
+      currentProgress?: number;
+      xpReward?: number;
+      difficulty?: string;
+      completed?: boolean;
+      claimed?: boolean;
+      claimedAt?: string;
+      expiresAt?: string;
+      order?: number;
+    }>;
+    lastChallengeDate?: string;
+    dailyBonusClaimed?: boolean;
+    lastBonusDate?: string;
+    achievementProgress?: {
+      matchCount?: number;
+      messagesSent?: number;
+      conversationsStarted?: number;
+      superLikesSent?: number;
+      datesScheduled?: number;
+    };
+  };
 }
 
 export interface Photo {
+  _id?: string;
   url: string;
-  order: number;
+  order?: number;
   moderationStatus?: 'pending' | 'approved' | 'rejected';
   isMain?: boolean;
   uploadedAt?: string;
+}
+
+export interface Video {
+  _id?: string;
+  url: string;
+  thumbnailUrl?: string;
+  duration?: number; // in seconds (6-15)
+  order?: number;
+  moderationStatus?: 'pending' | 'approved' | 'rejected';
+  uploadedAt?: string;
+}
+
+export interface ProfilePrompt {
+  promptId: string;
+  answer: string;
+}
+
+export interface Education {
+  school?: string;
+  degree?: string;
+  fieldOfStudy?: string;
+  graduationYear?: number;
+}
+
+export interface Occupation {
+  jobTitle?: string;
+  company?: string;
+  industry?: string;
+}
+
+export interface Height {
+  value?: number; // in cm
+  unit?: 'cm' | 'ft';
+}
+
+export interface SocialMedia {
+  spotify?: {
+    id?: string;
+    username?: string;
+    profileUrl?: string;
+    isVerified?: boolean;
+  };
+  instagram?: {
+    id?: string;
+    username?: string;
+    profileUrl?: string;
+    isVerified?: boolean;
+  };
+}
+
+export interface Subscription {
+  tier?: 'free' | 'gold' | 'platinum' | 'unlimited';
+  startDate?: string;
+  endDate?: string;
+  stripeSubscriptionId?: string;
+  status?: 'active' | 'cancelled' | 'expired' | 'past_due';
+}
+
+export interface AgeRange {
+  min: number;
+  max: number;
 }
 
 export interface Location {
@@ -202,7 +466,7 @@ export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
 
 // Export all types
 export type {
-    ApiConfig, ApiResponse, AppError, AuthTokens, DiscoveryOptions,
-    DiscoveryResult, GoogleAuthData, Location, LogLevel, LoginCredentials, Match, Message, NavigationParams, PaymentStatus, Photo, PremiumFeatures, ScreenProps, ServiceMethod, SignupData, SubscriptionTier, User, ValidationResult
+    AgeRange, ApiConfig, ApiResponse, AppError, AuthTokens, DiscoveryOptions,
+    DiscoveryResult, Education, GoogleAuthData, Height, Location, LogLevel, LoginCredentials, Match, Message, NavigationParams, Occupation, PaymentStatus, Photo, PremiumFeatures, ProfilePrompt, ScreenProps, ServiceMethod, SignupData, SocialMedia, Subscription, SubscriptionTier, User, ValidationResult, Video
 };
 

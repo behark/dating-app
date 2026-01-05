@@ -21,7 +21,7 @@ class AIGatewayService {
     // Get API key from environment or Vercel config
     // In production, this should come from Vercel environment variables
     this.apiKey = process.env.EXPO_PUBLIC_VERCEL_AI_GATEWAY_KEY || null;
-    this.baseUrl = 'https://api.vercel.ai'; // Vercel AI Gateway endpoint
+    this.baseUrl = process.env.EXPO_PUBLIC_VERCEL_AI_GATEWAY_URL || 'https://api.vercel.ai'; // Vercel AI Gateway endpoint
   }
 
   /**

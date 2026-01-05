@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useReducer, useRef } from 'react';
 import { OfflineService } from '../services/OfflineService';
+import logger from '../utils/logger';
 
 // Initial State
 const initialState = {
@@ -190,7 +191,7 @@ export const AppProvider = ({ children }) => {
         },
       });
     } catch (error) {
-      console.error('Error initializing app:', error);
+      logger.error('Error initializing app', error);
       dispatch({ type: ActionTypes.INITIALIZE, payload: {} });
     }
   };
@@ -215,7 +216,7 @@ export const AppProvider = ({ children }) => {
         await AsyncStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(updatedSettings));
         dispatch({ type: ActionTypes.UPDATE_SETTINGS, payload: newSettings });
       } catch (error) {
-        console.error('Error saving settings:', error);
+        logger.error('Error saving settings', error);
       }
     },
     [state.settings]
@@ -226,7 +227,7 @@ export const AppProvider = ({ children }) => {
       await OfflineService.cacheProfiles(profiles);
       dispatch({ type: ActionTypes.SET_CACHED_PROFILES, payload: profiles });
     } catch (error) {
-      console.error('Error caching profiles:', error);
+      logger.error('Error caching profiles', error, { profileCount: profiles.length });
     }
   }, []);
 
@@ -235,7 +236,7 @@ export const AppProvider = ({ children }) => {
       await OfflineService.cacheMatches(matches);
       dispatch({ type: ActionTypes.SET_CACHED_MATCHES, payload: matches });
     } catch (error) {
-      console.error('Error caching matches:', error);
+      logger.error('Error caching matches', error, { matchCount: matches.length });
     }
   }, []);
 

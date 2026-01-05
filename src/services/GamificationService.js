@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
+import logger from '../utils/logger';
 
 // XP amounts for different actions
 export const XP_ACTIONS = {
@@ -215,7 +216,7 @@ export const GamificationService = {
       const response = await api.post('/gamification/streaks/track', { userId });
       return response.data;
     } catch (error) {
-      console.error('Error tracking swipe:', error);
+      logger.error('Error tracking swipe', error, { userId });
       throw error;
     }
   },
@@ -228,7 +229,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/streaks/${userId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting swipe streak:', error);
+      logger.error('Error getting swipe streak', error, { userId });
       throw error;
     }
   },
@@ -241,7 +242,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/badges/${userId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting badges:', error);
+      logger.error('Error getting badges', error, { userId });
       throw error;
     }
   },
@@ -260,7 +261,7 @@ export const GamificationService = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error awarding badge:', error);
+      logger.error('Error awarding badge', error, { userId, badgeType });
       throw error;
     }
   },
@@ -273,7 +274,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/rewards/${userId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting daily rewards:', error);
+      logger.error('Error getting daily rewards', error, { userId });
       throw error;
     }
   },
@@ -286,7 +287,7 @@ export const GamificationService = {
       const response = await api.post(`/gamification/rewards/${rewardId}/claim`);
       return response.data;
     } catch (error) {
-      console.error('Error claiming reward:', error);
+      logger.error('Error claiming reward', error, { rewardId });
       throw error;
     }
   },
@@ -299,7 +300,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/stats/${userId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting gamification stats:', error);
+      logger.error('Error getting gamification stats', error, { userId });
       throw error;
     }
   },
@@ -312,7 +313,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/leaderboards/streaks?limit=${limit}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting streak leaderboard:', error);
+      logger.error('Error getting streak leaderboard', error, { limit });
       throw error;
     }
   },
@@ -325,7 +326,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/leaderboards/longest-streaks?limit=${limit}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting longest streak leaderboard:', error);
+      logger.error('Error getting longest streak leaderboard', error, { limit });
       throw error;
     }
   },
@@ -338,7 +339,7 @@ export const GamificationService = {
       const response = await api.post(`/gamification/badges/${userId}/update`);
       return response.data;
     } catch (error) {
-      console.error('Error updating badges:', error);
+      logger.error('Error updating badges', error, { userId });
       throw error;
     }
   },
@@ -355,7 +356,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/levels/${userId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting user level:', error);
+      logger.error('Error getting user level', error, { userId });
       // Fallback to local storage
       const stored = await AsyncStorage.getItem(`user_level_${userId}`);
       if (stored) {
@@ -383,12 +384,15 @@ export const GamificationService = {
       
       if (currentLevel > previousLevel) {
         userData.leveledUp = true;
-        userData.newLevel = LEVELS.find(l => l.level === currentLevel);
+        const newLevelData = LEVELS.find(l => l.level === currentLevel);
+        if (newLevelData) {
+          userData.newLevel = newLevelData;
+        }
       }
       
       return userData;
     } catch (error) {
-      console.error('Error adding XP:', error);
+      logger.error('Error adding XP', error, { userId, amount, action });
       throw error;
     }
   },
@@ -409,7 +413,8 @@ export const GamificationService = {
    * Get level details
    */
   getLevelDetails: (level) => {
-    return LEVELS.find(l => l.level === level) || LEVELS[0];
+    const found = LEVELS.find(l => l.level === level);
+    return found || (LEVELS[0] || null);
   },
 
   /**
@@ -420,7 +425,7 @@ export const GamificationService = {
     const levelData = LEVELS.find(l => l.level === currentLevel);
     const nextLevel = LEVELS.find(l => l.level === currentLevel + 1);
     
-    if (!nextLevel) {
+    if (!nextLevel || !levelData) {
       return { progress: 100, xpInLevel: 0, xpNeeded: 0, isMaxLevel: true };
     }
     
@@ -439,7 +444,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/levels/${level}/rewards`);
       return response.data;
     } catch (error) {
-      console.error('Error getting level rewards:', error);
+      logger.error('Error getting level rewards', error, { level });
       // Return default rewards
       return {
         superLikes: level,
@@ -461,7 +466,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/challenges/daily/${userId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting daily challenges:', error);
+      logger.error('Error getting daily challenges', error, { userId });
       // Generate local challenges as fallback
       return GamificationService.generateLocalChallenges();
     }
@@ -502,7 +507,7 @@ export const GamificationService = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error updating challenge progress:', error);
+      logger.error('Error updating challenge progress', error, { userId, challengeId, progress });
       throw error;
     }
   },
@@ -519,7 +524,7 @@ export const GamificationService = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error tracking challenge action:', error);
+      logger.error('Error tracking challenge action', error, { userId, actionType, count });
       throw error;
     }
   },
@@ -536,13 +541,13 @@ export const GamificationService = {
       
       // Also add XP
       const challenge = CHALLENGE_TEMPLATES.find(c => challengeId.startsWith(c.id));
-      if (challenge) {
+      if (challenge?.xpReward) {
         await GamificationService.addXP(userId, challenge.xpReward, 'challenge_complete');
       }
       
       return response.data;
     } catch (error) {
-      console.error('Error claiming challenge reward:', error);
+      logger.error('Error claiming challenge reward', error, { userId, challengeId });
       throw error;
     }
   },
@@ -555,7 +560,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/challenges/bonus/${userId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting completion bonus:', error);
+      logger.error('Error getting completion bonus', error, { userId });
       return { available: false, bonusXP: 50 };
     }
   },
@@ -569,7 +574,7 @@ export const GamificationService = {
       await GamificationService.addXP(userId, 50, 'daily_bonus');
       return response.data;
     } catch (error) {
-      console.error('Error claiming completion bonus:', error);
+      logger.error('Error claiming completion bonus', error, { userId });
       throw error;
     }
   },
@@ -586,7 +591,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/achievements/${userId}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting user achievements:', error);
+      logger.error('Error getting user achievements', error, { userId });
       // Return empty achievements
       return { unlocked: [], progress: {} };
     }
@@ -603,7 +608,7 @@ export const GamificationService = {
       });
       return response.data;
     } catch (error) {
-      console.error('Error checking achievements:', error);
+      logger.error('Error checking achievements', error, { userId, stats });
       throw error;
     }
   },
@@ -627,10 +632,10 @@ export const GamificationService = {
       
       return {
         ...response.data,
-        achievement,
+        achievement: achievement || null,
       };
     } catch (error) {
-      console.error('Error unlocking achievement:', error);
+      logger.error('Error unlocking achievement', error, { userId, achievementId });
       throw error;
     }
   },
@@ -643,7 +648,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/achievements/${userId}/${achievementId}/progress`);
       return response.data;
     } catch (error) {
-      console.error('Error getting achievement progress:', error);
+      logger.error('Error getting achievement progress', error, { userId, achievementId });
       return { current: 0, target: 1, percentage: 0 };
     }
   },
@@ -656,7 +661,7 @@ export const GamificationService = {
       const response = await api.get(`/gamification/achievements/${userId}/recent?limit=${limit}`);
       return response.data;
     } catch (error) {
-      console.error('Error getting recent achievements:', error);
+      logger.error('Error getting recent achievements', error, { userId, limit });
       return [];
     }
   },
@@ -713,7 +718,7 @@ export const GamificationService = {
         badges,
       };
     } catch (error) {
-      console.error('Error getting all gamification data:', error);
+      logger.error('Error getting all gamification data', error, { userId });
       throw error;
     }
   },
@@ -737,7 +742,7 @@ export const GamificationService = {
       
       return { success: true };
     } catch (error) {
-      console.error('Error tracking action:', error);
+      logger.error('Error tracking action', error, { userId, actionType, metadata });
       throw error;
     }
   },

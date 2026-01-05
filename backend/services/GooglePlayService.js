@@ -75,7 +75,7 @@ class GooglePlayService {
     } catch (error) {
       console.error('Error validating Google subscription:', error);
 
-      if (error.code === 410) {
+      if ((error instanceof Error && 'code' in error ? error.code : 'UNKNOWN_ERROR') === 410) {
         return {
           valid: false,
           error: 'Purchase token is no longer valid',
@@ -284,8 +284,8 @@ class GooglePlayService {
         provider: 'google',
         type: 'subscription',
         status: 'completed',
-        amount: validation.priceInfo.priceAmount,
-        currency: validation.priceInfo.priceCurrencyCode,
+        amount: validation?.priceInfo.priceAmount,
+        currency: validation?.priceInfo.priceCurrencyCode,
         providerTransactionId: validation.orderId,
         subscriptionPlan: planType,
         metadata: {
@@ -422,7 +422,7 @@ class GooglePlayService {
             purchase.purchaseToken,
             purchase.productId
           );
-          if (result.success && result.subscription.isActive) {
+          if (result.success && result?.subscription.isActive) {
             restored.subscriptions.push(result.subscription);
           }
         }

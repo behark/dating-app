@@ -100,7 +100,7 @@ const ExploreScreen = ({ navigation }) => {
 
   const renderUserCard = ({ item }) => {
     let distance = item.distance;
-    if (!distance && location && item.location) {
+    if (!distance && location && item.location?.coordinates && item.location.coordinates.length >= 2) {
       distance = calculateDistance(
         location.latitude,
         location.longitude,

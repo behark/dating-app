@@ -63,7 +63,7 @@ const decrypt = (encryptedData) => {
     const key = getEncryptionKey();
     const parts = encryptedData.split(':');
 
-    if (parts.length !== 3) {
+    if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) {
       // Data is not encrypted or in wrong format
       return encryptedData;
     }
@@ -156,7 +156,7 @@ const decryptMessage = (encryptedMessage, userKey) => {
     const key = Buffer.from(userKey, 'base64');
     const parts = encryptedMessage.split(':');
 
-    if (parts.length !== 3) {
+    if (parts.length !== 3 || !parts[0] || !parts[1] || !parts[2]) {
       return encryptedMessage;
     }
 

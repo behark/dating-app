@@ -695,12 +695,14 @@ userSchema.virtual('profileCompleteness').get(function () {
 });
 
 // Method to update location
+// Instance method to update user's location
 userSchema.methods.updateLocation = function (longitude, latitude) {
   this.location = {
     type: 'Point',
     coordinates: [longitude, latitude],
   };
   this.lastActive = new Date();
+  // @ts-ignore - 'this' refers to the document instance with save method
   return this.save();
 };
 
@@ -736,7 +738,16 @@ userSchema.statics.findNearby = function (longitude, latitude, maxDistance, opti
     query._id = { $nin: options.excludeIds };
   }
 
+  // @ts-ignore - Mongoose static method context
   return this.find(query);
 };
 
-module.exports = mongoose.model('User', userSchema);
+/**
+ * @typedef {import('../types/index').UserDocument} UserDocument
+ * @typedef {import('../types/index').UserModel} UserModel
+ */
+
+/** @type {UserModel} */
+const UserModel = mongoose.model('User', userSchema);
+
+module.exports = UserModel;

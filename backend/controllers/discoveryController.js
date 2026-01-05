@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Swipe = require('../models/Swipe');
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require('../utils/responseHelpers');
 const { calculateDistance, getDistanceCategory, stripPreciseLocation } = require('../utils/geoUtils');
 
 // Query timeout constants - MUST be less than Nginx proxy_read_timeout (90s)
@@ -56,6 +57,7 @@ const discoverUsers = async (req, res) => {
     // Get current user to access their preferences (with timeout)
     let currentUser = null;
     if (currentUserId) {
+      /** @type {any} */
       currentUser = await User.findById(currentUserId)
         .select('preferredAgeRange preferredGender preferredDistance')
         .maxTimeMS(QUERY_TIMEOUT_MS)
@@ -103,6 +105,7 @@ const discoverUsers = async (req, res) => {
     };
 
     // Find users within the specified radius with query timeout
+    /** @type {any} */
     const nearbyUsers = await User.findNearby(longitude, latitude, searchRadius, discoveryOptions)
       .select(
         'name age gender bio photos interests location profileCompleteness lastActive locationPrivacy'
@@ -115,6 +118,7 @@ const discoverUsers = async (req, res) => {
 
     // Check if there are more results
     const hasMore = nearbyUsers.length > resultLimit;
+    /** @type {any} */
     const users = hasMore ? nearbyUsers.slice(0, resultLimit) : nearbyUsers;
 
     // Transform the response - PRIVACY: NEVER expose raw coordinates
@@ -204,7 +208,7 @@ const discoverUsers = async (req, res) => {
     console.error(`Discovery error after ${queryTime}ms:`, error);
     
     // Check if this was a timeout error
-    if (error.name === 'MongooseError' && error.message.includes('maxTimeMS')) {
+    if ((error instanceof Error ? (error instanceof Error ? error.name : 'Error') : 'Error') === 'MongooseError' && (error instanceof Error ? (error instanceof Error ? error.message : String(error)) : String(error)).includes('maxTimeMS')) {
       return res.status(503).json({
         success: false,
         message: 'Discovery query timed out. Try with a smaller search radius or more filters.',
@@ -343,6 +347,12 @@ const updateLocationPrivacy = async (req, res) => {
       { locationPrivacy: privacyLevel },
       { new: true }
     ).select('locationPrivacy');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     res.json({
       success: true,
@@ -372,7 +382,14 @@ const getLocationPrivacy = async (req, res) => {
       });
     }
 
+    /** @type {import('../types/index.d.ts').UserDocument | null} */
     const user = await User.findById(userId).select('locationPrivacy locationHistoryEnabled');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     res.json({
       success: true,
@@ -417,6 +434,12 @@ const updatePreferredDistance = async (req, res) => {
     const user = await User.findByIdAndUpdate(userId, { preferredDistance }, { new: true }).select(
       'preferredDistance'
     );
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     res.json({
       success: true,

@@ -1,3 +1,4 @@
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
 /**
  * Payment Controller
  *
@@ -10,14 +11,23 @@
  */
 
 const User = require('../models/User');
+
 const Subscription = require('../models/Subscription');
+
 const SubscriptionTier = require('../models/SubscriptionTier');
+
 const PaymentTransaction = require('../models/PaymentTransaction');
+
 const StripeService = require('../services/StripeService');
+
 const PayPalService = require('../services/PayPalService');
+
 const AppleIAPService = require('../services/AppleIAPService');
+
 const GooglePlayService = require('../services/GooglePlayService');
+
 const RefundService = require('../services/RefundService');
+
 const paymentConfig = require('../config/payment');
 
 /**
@@ -50,6 +60,12 @@ const getPaymentStatus = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
     const subscription = await Subscription.findOne({ userId });
 
     // Get payment methods if Stripe customer exists
@@ -114,6 +130,12 @@ const createStripeCheckout = async (req, res) => {
     }
 
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
     const session = await StripeService.createSubscriptionCheckout(
@@ -154,6 +176,12 @@ const createStripePaymentIntent = async (req, res) => {
     const { productType, productId, quantity = 1 } = req.body;
 
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     const result = await StripeService.createPaymentIntent(user, productType, productId, quantity);
 
@@ -184,6 +212,12 @@ const createStripeSetupIntent = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     const result = await StripeService.createSetupIntent(user);
 
@@ -213,6 +247,12 @@ const getStripePortal = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
     if (!user.stripeCustomerId) {
@@ -244,6 +284,12 @@ const getBillingHistory = async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     // Get Stripe history
     let stripeHistory = [];
@@ -290,6 +336,12 @@ const createPayPalSubscription = async (req, res) => {
     }
 
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
     const result = await PayPalService.createSubscription(
@@ -343,6 +395,12 @@ const createPayPalOrder = async (req, res) => {
     const { productType, productId, quantity = 1 } = req.body;
 
     const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
 
     const result = await PayPalService.createOrder(user, productType, productId, quantity);
 
@@ -608,7 +666,7 @@ const stripeWebhook = async (req, res) => {
     res.json({ received: true });
   } catch (error) {
     console.error('Stripe webhook error:', error);
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
   }
 };
 
@@ -628,7 +686,7 @@ const paypalWebhook = async (req, res) => {
     res.json({ received: true });
   } catch (error) {
     console.error('PayPal webhook error:', error);
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
   }
 };
 
@@ -648,7 +706,7 @@ const appleWebhook = async (req, res) => {
     res.json({ received: true });
   } catch (error) {
     console.error('Apple webhook error:', error);
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
   }
 };
 
@@ -669,7 +727,7 @@ const googleWebhook = async (req, res) => {
     res.status(200).send();
   } catch (error) {
     console.error('Google webhook error:', error);
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
   }
 };
 

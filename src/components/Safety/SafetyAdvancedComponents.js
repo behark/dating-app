@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import { SafetyService } from '../../services/SafetyService';
+import logger from '../../utils/logger';
 
 /**
  * DatePlansSharing Component
@@ -305,7 +306,7 @@ export const EmergencySOS = ({ userId }) => {
         setLocation(loc.coords);
       }
     } catch (error) {
-      console.error('Location permission error:', error);
+      logger.error('Location permission error', error, { userId });
     }
   };
 
@@ -317,7 +318,7 @@ export const EmergencySOS = ({ userId }) => {
         setSosActive(true);
       }
     } catch (error) {
-      console.error('Error loading SOS history:', error);
+      logger.error('Error loading SOS history', error, { userId });
     }
   };
 

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { Platform } from 'react-native';
+import logger from '../utils/logger';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -133,7 +134,7 @@ class OfflineServiceClass {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.OFFLINE_QUEUE, JSON.stringify(this.pendingActions));
     } catch (error) {
-      console.error('Error saving pending actions:', error);
+      logger.error('Error saving pending actions', error);
     }
   }
 
@@ -147,7 +148,7 @@ class OfflineServiceClass {
         this.pendingActions = JSON.parse(stored);
       }
     } catch (error) {
-      console.error('Error loading pending actions:', error);
+      logger.error('Error loading pending actions', error);
       this.pendingActions = [];
     }
   }
@@ -166,7 +167,7 @@ class OfflineServiceClass {
         await this.executeAction(action);
         completedActions.push(action.id);
       } catch (error) {
-        console.error('Error syncing action:', action, error);
+        logger.error('Error syncing action', error, { actionType: action.type, actionId: action.id });
         action.retryCount += 1;
 
         // Remove action if max retries exceeded
@@ -193,18 +194,18 @@ class OfflineServiceClass {
       case 'SEND_MESSAGE':
         // Re-send message through chat service
         // This would integrate with your ChatContext
-        console.log('Syncing message:', action.data);
+        logger.debug('Syncing message', { actionId: action.id, data: action.data });
         break;
       case 'SWIPE':
         // Re-submit swipe action
-        console.log('Syncing swipe:', action.data);
+        logger.debug('Syncing swipe', { actionId: action.id, data: action.data });
         break;
       case 'UPDATE_PROFILE':
         // Re-submit profile update
-        console.log('Syncing profile update:', action.data);
+        logger.debug('Syncing profile update', { actionId: action.id, data: action.data });
         break;
       default:
-        console.warn('Unknown action type:', action.type);
+        logger.warn('Unknown action type', null, { actionType: action.type, actionId: action.id });
     }
   }
 
@@ -221,7 +222,7 @@ class OfflineServiceClass {
       };
       await AsyncStorage.setItem(STORAGE_KEYS.CACHED_PROFILES, JSON.stringify(cacheData));
     } catch (error) {
-      console.error('Error caching profiles:', error);
+      logger.error('Error caching profiles', error, { profileCount: profiles.length });
     }
   }
 
@@ -240,7 +241,7 @@ class OfflineServiceClass {
       }
       return null;
     } catch (error) {
-      console.error('Error getting cached profiles:', error);
+      logger.error('Error getting cached profiles', error);
       return null;
     }
   }
@@ -256,7 +257,7 @@ class OfflineServiceClass {
       };
       await AsyncStorage.setItem(STORAGE_KEYS.CACHED_MATCHES, JSON.stringify(cacheData));
     } catch (error) {
-      console.error('Error caching matches:', error);
+      logger.error('Error caching matches', error, { matchCount: matches.length });
     }
   }
 
@@ -274,7 +275,7 @@ class OfflineServiceClass {
       }
       return null;
     } catch (error) {
-      console.error('Error getting cached matches:', error);
+      logger.error('Error getting cached matches', error);
       return null;
     }
   }
@@ -294,7 +295,7 @@ class OfflineServiceClass {
 
       await AsyncStorage.setItem(STORAGE_KEYS.CACHED_MESSAGES, JSON.stringify(allMessages));
     } catch (error) {
-      console.error('Error caching messages:', error);
+      logger.error('Error caching messages', error, { matchId, messageCount: messages.length });
     }
   }
 
@@ -314,7 +315,7 @@ class OfflineServiceClass {
       }
       return null;
     } catch (error) {
-      console.error('Error getting cached messages:', error);
+      logger.error('Error getting cached messages', error, { matchId });
       return null;
     }
   }
@@ -330,7 +331,7 @@ class OfflineServiceClass {
         STORAGE_KEYS.CACHED_MESSAGES,
       ]);
     } catch (error) {
-      console.error('Error clearing cache:', error);
+      logger.error('Error clearing cache', error);
     }
   }
 
@@ -355,7 +356,7 @@ class OfflineServiceClass {
         totalSizeKB: (totalSize / 1024).toFixed(2),
       };
     } catch (error) {
-      console.error('Error getting storage info:', error);
+      logger.error('Error getting storage info', error);
       return null;
     }
   }

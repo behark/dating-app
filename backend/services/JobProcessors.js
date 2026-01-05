@@ -60,7 +60,14 @@ const setupNotificationProcessors = () => {
 
     try {
       // Get user's push token
+      /** @type {any} */
       const user = await User.findById(userId).select('expoPushToken notificationPreferences');
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
 
       if (!user?.expoPushToken) {
         return { success: false, reason: 'No push token' };
@@ -109,7 +116,14 @@ const setupNotificationProcessors = () => {
     const messages = [];
 
     for (const notif of notifications) {
+      /** @type {any} */
       const user = await User.findById(notif.userId).select('expoPushToken');
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
 
       if (user?.expoPushToken && Expo.isExpoPushToken(user.expoPushToken)) {
         messages.push({
@@ -158,6 +172,7 @@ const setupMatchProcessors = () => {
 
     try {
       // Get both users
+      /** @type {[any, any]} */
       const [swiper, swiped] = await Promise.all([
         User.findById(swiperId).select('name photos expoPushToken notificationPreferences'),
         User.findById(swipedId).select('name photos expoPushToken notificationPreferences'),
@@ -220,6 +235,7 @@ const setupMatchProcessors = () => {
   matchQueue.process(JOB_TYPES.CALCULATE_COMPATIBILITY, async (job) => {
     const { userId1, userId2 } = job.data;
 
+    /** @type {[any, any]} */
     const [user1, user2] = await Promise.all([User.findById(userId1), User.findById(userId2)]);
 
     if (!user1 || !user2) {
@@ -376,6 +392,12 @@ const setupEmailProcessors = () => {
     const { userId } = job.data;
 
     const user = await User.findById(userId).select('email name');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
     if (!user || !user.email) {
       return { success: false, reason: 'User not found or no email' };
     }
@@ -477,6 +499,7 @@ const setupModerationProcessors = () => {
   moderationQueue.process(JOB_TYPES.MODERATE_PROFILE, async (job) => {
     const { userId } = job.data;
 
+    /** @type {any} */
     const user = await User.findById(userId);
     if (!user) {
       return { success: false, reason: 'User not found' };

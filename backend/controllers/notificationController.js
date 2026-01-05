@@ -1,5 +1,8 @@
+const { sendSuccess, sendError, sendValidationError, sendNotFound, sendUnauthorized, sendForbidden, sendRateLimit, asyncHandler } = require("../utils/responseHelpers");
 const User = require('../models/User');
+
 const Swipe = require('../models/Swipe');
+
 
 // @route   PUT /api/notifications/preferences
 // @desc    Update user notification preferences
@@ -58,7 +61,7 @@ exports.updateNotificationPreferences = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating notification preferences',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -97,7 +100,7 @@ exports.getNotificationPreferences = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching notification preferences',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -217,7 +220,7 @@ exports.sendNotification = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error sending notification',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -285,7 +288,7 @@ exports.sendBulkNotification = async (req, res) => {
         results.push({ userId, success: true });
       } catch (err) {
         failureCount++;
-        results.push({ userId, success: false, reason: err.message });
+        results.push({ userId, success: false, reason: (err instanceof Error ? err.message : String(err)) });
       }
     }
 
@@ -303,7 +306,7 @@ exports.sendBulkNotification = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error sending bulk notification',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -348,7 +351,7 @@ exports.enableNotifications = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error enabling notifications',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -393,7 +396,7 @@ exports.disableNotifications = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error disabling notifications',
-      error: error.message,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };

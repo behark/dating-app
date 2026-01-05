@@ -99,4 +99,12 @@ sharedProfileSchema.pre('save', function (next) {
 // TTL index to auto-delete expired share links after 30 days (includes expiresAt index)
 sharedProfileSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-module.exports = mongoose.model('SharedProfile', sharedProfileSchema);
+/**
+ * @typedef {import('../types/index').SharedProfileDocument} SharedProfileDocument
+ * @typedef {import('../types/index').SharedProfileModel} SharedProfileModel
+ */
+
+/** @type {SharedProfileModel} */
+const SharedProfileModel = mongoose.model('SharedProfile', sharedProfileSchema);
+
+module.exports = SharedProfileModel;

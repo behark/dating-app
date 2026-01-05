@@ -3,6 +3,8 @@ const { query } = require('express-validator');
 const { discoverUsers } = require('../controllers/discoveryController');
 const { apiCache } = require('../middleware/apiCache');
 const { authenticate } = require('../middleware/auth');
+const User = require('../models/User');
+const { sendSuccess, sendError, sendNotFound } = require('../utils/responseHelpers');
 
 const router = express.Router();
 
@@ -64,5 +66,50 @@ router.get(
   apiCache('user-discovery', 60), // Cache for 60 seconds
   discoverUsers
 );
+
+/**
+ * @route   GET /api/users/:id
+ * @desc    Get user profile by ID
+ * @access  Private (requires authentication)
+ */
+router.get('/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.user?.id;
+
+    if (!id) {
+      return sendError(res, 400, { message: 'User ID is required', error: 'VALIDATION_ERROR' });
+    }
+
+    // Get user profile
+    const user = await User.findById(id)
+      .select('-password -refreshToken -emailVerificationToken -passwordResetToken -passwordResetExpires')
+      .maxTimeMS(10000)
+      .lean();
+
+    if (!user) {
+      return sendNotFound(res, { message: 'User not found', error: 'USER_NOT_FOUND' });
+    }
+
+    // Check if current user has blocked this user or vice versa
+    if (currentUserId) {
+      const currentUser = await User.findById(currentUserId).select('blockedUsers').lean();
+      if (currentUser?.blockedUsers?.includes(id) || user.blockedUsers?.includes(currentUserId)) {
+        return sendNotFound(res, { message: 'User not found', error: 'USER_NOT_FOUND' });
+      }
+    }
+
+    return sendSuccess(res, 200, {
+      message: 'User profile retrieved successfully',
+      data: { user },
+    });
+  } catch (error) {
+    console.error('Error getting user profile:', error);
+    return sendError(res, 500, { 
+      message: 'Failed to retrieve user profile', 
+      error: 'INTERNAL_ERROR' 
+    });
+  }
+});
 
 module.exports = router;

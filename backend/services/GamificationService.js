@@ -65,6 +65,7 @@ class GamificationService {
    */
   static async updateSwipeStreak(userId) {
     try {
+      /** @type {any} */
       let streak = await SwipeStreak.findOne({ userId });
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -168,6 +169,7 @@ class GamificationService {
   static async awardBadge(userId, badgeType, badgeName, badgeDescription, points = 0) {
     try {
       // Check if badge already exists and is unlocked
+      /** @type {any} */
       let badge = await AchievementBadge.findOne({ userId, badgeType });
 
       if (!badge) {
@@ -216,6 +218,7 @@ class GamificationService {
    */
   static async updateBadgesForUser(userId) {
     try {
+      /** @type {any} */
       const user = await User.findById(userId);
       if (!user) return;
 
@@ -517,6 +520,7 @@ class GamificationService {
    */
   static async getUserLevel(userId) {
     try {
+      /** @type {any} */
       const user = await User.findById(userId);
       if (!user) {
         return { currentXP: 0, level: 1, totalXPEarned: 0 };
@@ -524,7 +528,10 @@ class GamificationService {
 
       const currentXP = user.gamification?.xp || 0;
       const level = this.calculateLevel(currentXP);
-      const levelData = LEVELS.find(l => l.level === level) || LEVELS[0];
+      const levelData = LEVELS.find(l => l.level === level) || (LEVELS.length > 0 ? LEVELS[0] : null);
+      if (!levelData) {
+        return null;
+      }
 
       return {
         currentXP,
@@ -555,6 +562,7 @@ class GamificationService {
    */
   static async addXP(userId, amount, action) {
     try {
+      /** @type {any} */
       const user = await User.findById(userId);
       if (!user) throw new Error('User not found');
 
@@ -608,7 +616,10 @@ class GamificationService {
       10: { superLikes: 10, boosts: 5, badge: 'Cupid Elite Badge', premium: true },
     };
 
-    return rewards[level] || rewards[1];
+    if (rewards[level]) {
+      return rewards[level];
+    }
+    return rewards[1] || null;
   }
 
   // =============================================
@@ -625,6 +636,7 @@ class GamificationService {
       const todayStr = today.toDateString();
 
       // Check if user has challenges for today
+      /** @type {any} */
       const user = await User.findById(userId);
       if (!user) throw new Error('User not found');
 
@@ -676,6 +688,7 @@ class GamificationService {
    */
   static async updateChallengeProgress(userId, challengeId, progress) {
     try {
+      /** @type {any} */
       const user = await User.findById(userId);
       if (!user) throw new Error('User not found');
 
@@ -705,6 +718,7 @@ class GamificationService {
    */
   static async trackChallengeAction(userId, actionType, count = 1) {
     try {
+      /** @type {any} */
       const user = await User.findById(userId);
       if (!user) throw new Error('User not found');
 
@@ -739,6 +753,7 @@ class GamificationService {
    */
   static async claimChallengeReward(userId, challengeId) {
     try {
+      /** @type {any} */
       const user = await User.findById(userId);
       if (!user) throw new Error('User not found');
 
@@ -770,6 +785,7 @@ class GamificationService {
    */
   static async getCompletionBonus(userId) {
     try {
+      /** @type {any} */
       const user = await User.findById(userId);
       if (!user) return { available: false, bonusXP: 50 };
 
@@ -796,7 +812,14 @@ class GamificationService {
       const bonus = await this.getCompletionBonus(userId);
       if (!bonus.available) throw new Error('Bonus not available');
 
+      /** @type {any} */
       const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
       user.gamification.dailyBonusClaimed = true;
       user.gamification.lastBonusDate = new Date();
       await user.save();
@@ -827,11 +850,12 @@ class GamificationService {
 
       // Calculate progress for each achievement
       for (const achievement of allAchievements) {
+        /** @type {any} */
         const badge = badges.find(b => b.badgeType === achievement.id);
         progress[achievement.id] = {
-          current: badge?.progress || 0,
+          current: badge?.progressCurrent || 0,
           target: achievement.target,
-          percentage: badge ? Math.min(100, (badge.progress / achievement.target) * 100) : 0,
+          percentage: badge ? Math.min(100, (badge.progressCurrent / achievement.target) * 100) : 0,
           unlocked: unlocked.includes(achievement.id),
         };
       }
@@ -937,6 +961,7 @@ class GamificationService {
    */
   static async getAchievementProgress(userId, achievementId) {
     try {
+      /** @type {any} */
       const badge = await AchievementBadge.findOne({ userId, badgeType: achievementId });
       const achievement = Object.values(ACHIEVEMENTS).find(a => a.id === achievementId);
 
@@ -944,7 +969,7 @@ class GamificationService {
         return { current: 0, target: 1, percentage: 0 };
       }
 
-      const current = badge?.progress || 0;
+      const current = badge?.progressCurrent || 0;
       const target = achievement.target;
       const percentage = Math.min(100, (current / target) * 100);
 
