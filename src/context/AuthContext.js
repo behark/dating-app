@@ -91,53 +91,119 @@ export const AuthProvider = ({ children }) => {
   }, [response]);
 
   const signup = async (email, password, name, age, gender) => {
-    const response = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        password,
-        name,
-        age,
-        gender,
-      }),
-    });
+    try {
+      logger.debug('Signup attempt:', { email, name, apiUrl: API_URL });
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          age,
+          gender,
+        }),
+      });
 
-    const data = await response.json();
+      // Handle network errors
+      if (!response) {
+        throw new Error('Network error. Please check your connection and try again.');
+      }
 
-    if (!response.ok) {
-      throw new Error(getUserFriendlyMessage(data.message || 'Registration failed'));
+      let data;
+      try {
+        const responseText = await response.text();
+        if (!responseText) {
+          throw new Error('Empty response from server');
+        }
+        data = JSON.parse(responseText);
+      } catch (jsonError) {
+        logger.error('Failed to parse signup response:', jsonError);
+        throw new Error('Invalid response from server. Please try again.');
+      }
+
+      if (!response.ok) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Registration failed'));
+      }
+
+      // Validate response structure
+      if (!data || !data.data) {
+        throw new Error('Invalid response from server. Please try again.');
+      }
+
+      const { user, authToken: token, refreshToken: refToken } = data.data;
+
+      if (!user || !token) {
+        throw new Error('Invalid response data. Please try again.');
+      }
+
+      await saveUserSession(user, token, refToken);
+
+      return { user, authToken: token };
+    } catch (error) {
+      // Re-throw with better error message if it's not already a user-friendly error
+      if (error.message && !error.message.includes('Network error') && !error.message.includes('Invalid')) {
+        throw error;
+      }
+      throw new Error(error.message || 'Registration failed. Please try again.');
     }
-
-    const { user, authToken: token, refreshToken: refToken } = data.data;
-
-    await saveUserSession(user, token, refToken);
-
-    return { user, authToken: token };
   };
 
   const login = async (email, password) => {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      logger.debug('Login attempt:', { email, apiUrl: API_URL });
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await response.json();
+      // Handle network errors
+      if (!response) {
+        throw new Error('Network error. Please check your connection and try again.');
+      }
 
-    if (!response.ok) {
-      throw new Error(getUserFriendlyMessage(data.message || 'Login failed'));
+      let data;
+      try {
+        const responseText = await response.text();
+        if (!responseText) {
+          throw new Error('Empty response from server');
+        }
+        data = JSON.parse(responseText);
+      } catch (jsonError) {
+        logger.error('Failed to parse login response:', jsonError);
+        throw new Error('Invalid response from server. Please try again.');
+      }
+
+      if (!response.ok) {
+        throw new Error(getUserFriendlyMessage(data.message || 'Login failed'));
+      }
+
+      // Validate response structure
+      if (!data || !data.data) {
+        throw new Error('Invalid response from server. Please try again.');
+      }
+
+      const { user, authToken: token, refreshToken: refToken } = data.data;
+
+      if (!user || !token) {
+        throw new Error('Invalid response data. Please try again.');
+      }
+
+      await saveUserSession(user, token, refToken);
+
+      return { user, authToken: token };
+    } catch (error) {
+      // Re-throw with better error message if it's not already a user-friendly error
+      if (error.message && !error.message.includes('Network error') && !error.message.includes('Invalid')) {
+        throw error;
+      }
+      throw new Error(error.message || 'Login failed. Please try again.');
     }
-
-    const { user, authToken: token, refreshToken: refToken } = data.data;
-
-    await saveUserSession(user, token, refToken);
-
-    return { user, authToken: token };
   };
 
   const logout = async () => {
