@@ -281,12 +281,17 @@ const AppNavigator = () => {
   };
 
   return (
-    <NavigationContainer
-      ref={navigationRef}
-      onReady={onNavigationReady}
-      onStateChange={onNavigationStateChange}
-    >
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <>
+      <ConsentBanner
+        visible={showConsentBanner && !checkingConsent}
+        onConsentComplete={handleConsentComplete}
+      />
+      <NavigationContainer
+        ref={navigationRef}
+        onReady={onNavigationReady}
+        onStateChange={onNavigationStateChange}
+      >
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
         {currentUser ? (
           <>
             <Stack.Screen name="Main" component={MainTabs} />
@@ -433,6 +438,7 @@ const AppNavigator = () => {
         )}
       </Stack.Navigator>
     </NavigationContainer>
+    </>
   );
 };
 
