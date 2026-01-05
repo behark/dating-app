@@ -11,28 +11,30 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { AnalyticsService } from './src/services/AnalyticsService';
 import { PWAService } from './src/services/PWAService';
 import { UserBehaviorAnalytics } from './src/services/UserBehaviorAnalytics';
-// Vercel Speed Insights (web only)
-let SpeedInsights;
-if (Platform.OS === 'web') {
-  try {
-    // eslint-disable-next-line import/no-unresolved
-    const speedInsightsModule = require('@vercel/speed-insights/react');
-    SpeedInsights = speedInsightsModule.SpeedInsights || speedInsightsModule.default;
-  } catch (error) {
-    console.warn('Speed Insights not available:', error);
-  }
-}
 
-// Vercel Analytics (web only)
-let Analytics;
+// Vercel Analytics and Speed Insights (web only)
+// Using dynamic imports for web platform to avoid breaking native builds
+let Analytics = null;
+let SpeedInsights = null;
+
 if (Platform.OS === 'web') {
   try {
     // eslint-disable-next-line import/no-unresolved
-    Analytics = require('@vercel/analytics/react').Analytics;
+    const { Analytics: AnalyticsComponent } = require('@vercel/analytics/react');
+    Analytics = AnalyticsComponent;
   } catch (error) {
     console.warn('Vercel Analytics not available:', error);
   }
+
+  try {
+    // eslint-disable-next-line import/no-unresolved
+    const { SpeedInsights: SpeedInsightsComponent } = require('@vercel/speed-insights/react');
+    SpeedInsights = SpeedInsightsComponent;
+  } catch (error) {
+    console.warn('Vercel Speed Insights not available:', error);
+  }
 }
+
 // Only import gesture handler on native platforms
 if (Platform.OS !== 'web') {
   require('react-native-gesture-handler');
