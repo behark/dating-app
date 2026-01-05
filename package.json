@@ -31,7 +31,9 @@
     "verify:env": "node scripts/verify-production-env.js",
     "verify:legal": "node scripts/verify-legal-urls.js",
     "test:deletion": "node scripts/test-account-deletion.js",
-    "test:monitoring": "node scripts/test-error-monitoring.js"
+    "test:monitoring": "node scripts/test-error-monitoring.js",
+    "validate:env": "node scripts/validate-env-for-production.js",
+    "preproduction:check": "node scripts/production-readiness-check.js && node scripts/validate-env-for-production.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.0",

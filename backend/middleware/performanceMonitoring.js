@@ -185,7 +185,7 @@ const performanceMonitoringMiddleware = (req, res, next) => {
           });
         } catch (error) {
           // Don't let metric storage failures break the request
-          logger.debug('Failed to store performance metric', { error: error.message });
+          logger.debug('Failed to store performance metric', { error: error instanceof Error ? error.message : String(error) });
         }
       });
     }
@@ -290,7 +290,7 @@ const trackDatabaseQuery = async (operation, collection, duration, success = tru
         });
       } catch (error) {
         // Don't let metric storage failures break the query
-        logger.debug('Failed to store query performance metric', { error: error.message });
+        logger.debug('Failed to store query performance metric', { error: error instanceof Error ? error.message : String(error) });
       }
     });
   }
