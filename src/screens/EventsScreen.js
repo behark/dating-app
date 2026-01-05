@@ -1,12 +1,12 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import SocialFeaturesService from '../services/SocialFeaturesService';
@@ -52,7 +52,7 @@ const EventsScreen = ({ navigation }) => {
 
   const handleRegisterEvent = async (eventId) => {
     try {
-      await SocialFeaturesService.registerForEvent(eventId, currentUser._id);
+      await SocialFeaturesService.registerForEvent(eventId, getUserId(currentUser));
       fetchEvents();
       alert('Successfully registered for event!');
     } catch (error) {
@@ -63,7 +63,8 @@ const EventsScreen = ({ navigation }) => {
 
   const EventCard = ({ item }) => {
     const startDate = new Date(item.startTime);
-    const isRegistered = item.attendees.some((a) => a.userId === currentUser._id);
+    const userId = getUserId(currentUser);
+    const isRegistered = item.attendees.some((a) => userIdsMatch(a.userId, userId));
     const spotsAvailable = item.maxAttendees ? item.maxAttendees - item.currentAttendeeCount : null;
 
     return (

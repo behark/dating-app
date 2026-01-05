@@ -1,16 +1,17 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import SocialFeaturesService from '../services/SocialFeaturesService';
 import logger from '../utils/logger';
+import { getUserId, userIdsMatch } from '../utils/userIdUtils';
 
 const GroupDatesScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
@@ -47,7 +48,7 @@ const GroupDatesScreen = ({ navigation }) => {
 
   const handleJoinGroupDate = async (groupDateId) => {
     try {
-      await SocialFeaturesService.joinGroupDate(groupDateId, currentUser._id);
+      await SocialFeaturesService.joinGroupDate(groupDateId, getUserId(currentUser));
       fetchGroupDates();
     } catch (error) {
       logger.error('Error joining group date:', error);
@@ -57,7 +58,8 @@ const GroupDatesScreen = ({ navigation }) => {
 
   const GroupDateCard = ({ item }) => {
     const startDate = new Date(item.startTime);
-    const isJoined = item.currentParticipants.some((p) => p.userId === currentUser._id);
+    const userId = getUserId(currentUser);
+    const isJoined = item.currentParticipants.some((p) => userIdsMatch(p.userId, userId));
 
     return (
       <TouchableOpacity

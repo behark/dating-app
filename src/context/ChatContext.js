@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../config/api';
+import api from '../services/api';
+import logger from '../utils/logger';
 import { useAuth } from './AuthContext';
 
 const ChatContext = createContext();
@@ -44,12 +46,16 @@ export const ChatProvider = ({ children }) => {
 
   // Initialize Socket.io connection
   useEffect(() => {
-    if (user?.uid) {
+    const initSocket = async () => {
+      if (!user?.uid) return;
+      
       const serverUrl = SOCKET_URL;
+      const authToken = await api.getAuthToken();
 
       const newSocket = io(serverUrl, {
         auth: {
           userId: user.uid,
+          token: authToken, // Include token for socket auth
         },
         transports: ['websocket', 'polling'],
         timeout: 20000,
@@ -57,12 +63,12 @@ export const ChatProvider = ({ children }) => {
 
       // Connection events
       newSocket.on('connect', () => {
-        console.log('Connected to chat server');
+        logger.info('Connected to chat server');
         setIsConnected(true);
       });
 
       newSocket.on('disconnect', () => {
-        console.log('Disconnected from chat server');
+        logger.info('Disconnected from chat server');
         setIsConnected(false);
       });
 
@@ -127,7 +133,7 @@ export const ChatProvider = ({ children }) => {
 
       // Error handling
       newSocket.on('error', (error) => {
-        console.error('Socket error:', error);
+        logger.error('Socket error:', error);
       });
 
       setSocket(newSocket);
@@ -135,7 +141,9 @@ export const ChatProvider = ({ children }) => {
       return () => {
         newSocket.disconnect();
       };
-    }
+    };
+    
+    initSocket();
   }, [user?.uid]);
 
   // Load conversations
@@ -143,27 +151,20 @@ export const ChatProvider = ({ children }) => {
     if (!user?.uid) return;
 
     try {
-      const serverUrl = SOCKET_URL;
-      const response = await fetch(`${serverUrl}/api/chat/conversations`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-ID': user.uid,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setConversations(data.data.conversations);
+      const response = await api.get('/chat/conversations');
+      
+      if (response.data?.conversations) {
+        setConversations(response.data.conversations);
 
         // Calculate total unread count
-        const totalUnread = data.data.conversations.reduce(
-          (sum, conv) => sum + conv.unreadCount,
+        const totalUnread = response.data.conversations.reduce(
+          (sum, conv) => sum + (conv.unreadCount || 0),
           0
         );
         setUnreadCount(totalUnread);
       }
     } catch (error) {
-      console.error('Error loading conversations:', error);
+      logger.error('Error loading conversations:', error);
     }
   }, [user?.uid]);
 
@@ -173,30 +174,19 @@ export const ChatProvider = ({ children }) => {
       if (!user?.uid || !matchId) return;
 
       try {
-        const serverUrl = SOCKET_URL;
-        const response = await fetch(
-          `${serverUrl}/api/chat/messages/${matchId}?page=${page}&limit=50`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'X-User-ID': user.uid,
-            },
-          }
-        );
+        const response = await api.get(`/chat/messages/${matchId}?page=${page}&limit=50`);
 
-        if (response.ok) {
-          const data = await response.json();
-
+        if (response.data?.messages) {
           if (page === 1) {
-            setMessages(data.data.messages);
+            setMessages(response.data.messages);
           } else {
-            setMessages((prevMessages) => [...data.data.messages, ...prevMessages]);
+            setMessages((prevMessages) => [...response.data.messages, ...prevMessages]);
           }
 
-          return data.data.messages;
+          return response.data.messages;
         }
       } catch (error) {
-        console.error('Error loading messages:', error);
+        logger.error('Error loading messages:', error);
       }
     },
     [user?.uid]
@@ -236,14 +226,7 @@ export const ChatProvider = ({ children }) => {
       if (!user?.uid || !matchId) return;
 
       try {
-        const serverUrl = SOCKET_URL;
-        await fetch(`${serverUrl}/api/chat/messages/${matchId}/read`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-User-ID': user.uid,
-          },
-        });
+        await api.put(`/chat/messages/${matchId}/read`);
 
         // Update local state
         setConversations((prevConversations) =>
@@ -256,7 +239,7 @@ export const ChatProvider = ({ children }) => {
           Math.max(0, prev - (conversations.find((c) => c.matchId === matchId)?.unreadCount || 0))
         );
       } catch (error) {
-        console.error('Error marking messages as read:', error);
+        logger.error('Error marking messages as read:', error);
       }
     },
     [user?.uid, conversations]
