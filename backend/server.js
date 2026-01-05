@@ -184,10 +184,11 @@ const corsOrigins = process.env.CORS_ORIGIN
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   ...corsOrigins,
+  'https://dating-app-seven-peach.vercel.app', // Explicit Vercel frontend URL
   'http://localhost:3000',
   'http://localhost:8081',
   'http://localhost:19006',
-  /\.vercel\.app$/,
+  /\.vercel\.app$/,  // Allow all vercel.app subdomains
   /\.onrender\.com$/,  // Support Render.com deployments
 ].filter(Boolean);
 
