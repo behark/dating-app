@@ -71,66 +71,6 @@ export class SwipeController {
   }
 
   /**
-   * Checks if target user has also liked the swiper, and creates a match if so
-   * NOTE: This is now handled by the backend API automatically when saving a swipe
-   * @param {string} swiperId - User ID who just swiped
-   * @param {string} targetId - User ID who was swiped on
-   * @returns {Promise<Object>} Object with isMatch boolean and matchId if matched
-   * @deprecated Match creation is now handled by the backend API
-   */
-  static async checkAndCreateMatch(swiperId, targetId) {
-    // This method is deprecated - match creation is handled by the backend
-    // Keeping for backward compatibility but it's no longer needed
-    logger.warn('checkAndCreateMatch is deprecated - backend handles match creation automatically');
-    return {
-      isMatch: false,
-      matchId: null,
-    };
-  }
-
-  /**
-   * Creates a match record in the matches collection
-   * NOTE: This is now handled by the backend API automatically
-   * @param {string} userId1 - First user ID
-   * @param {string} userId2 - Second user ID
-   * @returns {Promise<string>} Match document ID
-   * @deprecated Match creation is now handled by the backend API
-   */
-  static async createMatch(userId1, userId2) {
-    // This method is deprecated - match creation is handled by the backend
-    logger.warn('createMatch is deprecated - backend handles match creation automatically');
-    const sortedIds = [userId1, userId2].sort();
-    return `${sortedIds[0]}_${sortedIds[1]}`;
-  }
-
-  /**
-   * Gets a swipe between two users
-   * @param {string} swiperId - User ID of the swiper
-   * @param {string} targetId - User ID of the target
-   * @returns {Promise<Swipe|null>} Swipe object or null if not found
-   * @deprecated Use backend API if needed, but this is typically not needed on frontend
-   */
-  static async getSwipe(swiperId, targetId) {
-    // This method is deprecated - backend handles swipe queries
-    // Keeping for backward compatibility but consider removing if not used
-    logger.warn('getSwipe is deprecated - use backend API if needed');
-    return null;
-  }
-
-  /**
-   * Gets all swipes by a user
-   * @param {string} userId - User ID
-   * @returns {Promise<Array<Swipe>>} Array of Swipe objects
-   * @deprecated Consider using backend API if this functionality is needed
-   */
-  static async getUserSwipes(userId) {
-    // This method is deprecated - backend handles swipe queries
-    // If needed, add a backend endpoint for this
-    logger.warn('getUserSwipes is deprecated - use backend API if needed');
-    return [];
-  }
-
-  /**
    * Gets all swipes received by a user (who liked you)
    * @param {string} userId - User ID
    * @returns {Promise<Array<Swipe>>} Array of Swipe objects
@@ -162,26 +102,6 @@ export class SwipeController {
       logger.error('Error getting received swipes', error, { userId });
       return [];
     }
-  }
-
-  /**
-   * Updates user's swipedUsers array for backward compatibility
-   * @deprecated Backend now handles this automatically
-   * @private
-   */
-  static async updateUserSwipedList(userId, swipedUserId) {
-    // This method is deprecated - backend handles swipe tracking
-    logger.warn('updateUserSwipedList is deprecated - backend handles this automatically');
-  }
-
-  /**
-   * Updates both users' matches arrays for backward compatibility
-   * @deprecated Backend now handles this automatically
-   * @private
-   */
-  static async updateUserMatches(userId1, userId2) {
-    // This method is deprecated - backend handles match tracking
-    logger.warn('updateUserMatches is deprecated - backend handles this automatically');
   }
 
   /**
