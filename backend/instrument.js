@@ -26,11 +26,11 @@ if (process.env.SENTRY_DSN) {
     // Send structured logs to Sentry
     enableLogs: true,
 
-    // Tracing - capture 100% in development, 10% in production
-    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    // Tracing - capture 100% of transactions (as per Sentry recommendation)
+    tracesSampleRate: 1.0,
 
-    // Profiling - capture 100% in development, 10% in production
-    profileSessionSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    // Profiling - capture 100% of sessions (as per Sentry recommendation)
+    profileSessionSampleRate: 1.0,
 
     // Trace lifecycle automatically enables profiling during active traces
     profileLifecycle: 'trace',

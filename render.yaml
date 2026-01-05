@@ -35,3 +35,15 @@ services:
         value: 7d
       - key: JWT_REFRESH_EXPIRES_IN
         value: 30d
+      # Datadog APM Configuration
+      - key: DD_API_KEY
+        sync: false  # Set manually in dashboard for security
+      - key: DD_SITE
+        value: datadoghq.eu
+      - key: DD_ENV
+        value: prod
+      - key: DD_AGENT_HOST
+        value: localhost  # For application APM (not infrastructure agent)
+      # Sentry Error Monitoring
+      - key: SENTRY_DSN
+        value: https://e21c92d839607c2d0f9378d08ca96903@o4510655194726400.ingest.de.sentry.io/4510655204687952
