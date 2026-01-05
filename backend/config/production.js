@@ -9,7 +9,7 @@ const productionConfig = {
     name: 'Dating App',
     version: process.env.npm_package_version || '1.0.0',
     environment: process.env.NODE_ENV || 'development',
-    port: parseInt(process.env.PORT, 10) || 3001,
+    port: process.env.PORT ? parseInt(process.env.PORT, 10) : 3001,
     host: process.env.HOST || '0.0.0.0',
   },
 
@@ -33,8 +33,8 @@ const productionConfig = {
     },
     // Rate Limiting
     rateLimit: {
-      windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000, // 15 minutes
-      max: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100,
+      windowMs: process.env.RATE_LIMIT_WINDOW_MS ? parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) : 15 * 60 * 1000, // 15 minutes
+      max: process.env.RATE_LIMIT_MAX ? parseInt(process.env.RATE_LIMIT_MAX, 10) : 100,
       standardHeaders: true,
       legacyHeaders: false,
     },
@@ -68,7 +68,7 @@ const productionConfig = {
     mongodb: {
       uri: process.env.MONGODB_URI,
       options: {
-        maxPoolSize: parseInt(process.env.MONGODB_POOL_SIZE, 10) || 10,
+        maxPoolSize: process.env.MONGODB_POOL_SIZE ? parseInt(process.env.MONGODB_POOL_SIZE, 10) : 10,
         minPoolSize: 2,
         serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 45000,
@@ -89,7 +89,7 @@ const productionConfig = {
 
   // Caching Settings
   cache: {
-    defaultTTL: parseInt(process.env.CACHE_DEFAULT_TTL, 10) || 300, // 5 minutes
+    defaultTTL: process.env.CACHE_DEFAULT_TTL ? parseInt(process.env.CACHE_DEFAULT_TTL, 10) : 300, // 5 minutes
     profileTTL: 600, // 10 minutes
     discoveryTTL: 60, // 1 minute
     staticTTL: 86400, // 24 hours
@@ -97,7 +97,7 @@ const productionConfig = {
 
   // File Upload Settings
   upload: {
-    maxFileSize: parseInt(process.env.MAX_FILE_SIZE, 10) || 5 * 1024 * 1024, // 5MB
+    maxFileSize: process.env.MAX_FILE_SIZE ? parseInt(process.env.MAX_FILE_SIZE, 10) : 5 * 1024 * 1024, // 5MB
     maxPhotos: 6,
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
     imageQuality: 80,

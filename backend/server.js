@@ -315,6 +315,7 @@ app.use(cors(corsOptions));
 
 // Global rate limiting - Apply to all API routes
 const { dynamicRateLimiter } = require('./middleware/rateLimiter');
+// @ts-ignore - dynamicRateLimiter returns Express middleware
 app.use('/api', dynamicRateLimiter());
 
 // Body parsing middleware

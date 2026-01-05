@@ -305,6 +305,9 @@ export const AuthProvider = ({ children }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authToken, sessionWarningShown]); // refreshSession and logout are stable functions
+
+  // Handle Google OAuth response
+  useEffect(() => {
     if (response?.type === 'success') {
       const { id_token } = response.params;
       if (id_token) {

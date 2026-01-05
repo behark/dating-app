@@ -442,9 +442,11 @@ exports.logout = async (req, res) => {
     try {
       // Decode token to get expiry and userId
       const decoded = jwt.decode(token);
-      if (decoded && decoded.exp) {
+      // Type guard: ensure decoded is an object (JwtPayload) not a string
+      if (decoded && typeof decoded === 'object' && 'exp' in decoded && decoded.exp) {
         // Calculate TTL (time until token expires)
-        const ttl = decoded.exp - Math.floor(Date.now() / 1000);
+        const exp = decoded.exp; // TypeScript now knows exp is defined
+        const ttl = exp - Math.floor(Date.now() / 1000);
         
         if (ttl > 0) {
           // Try Redis first (faster)
@@ -452,7 +454,8 @@ exports.logout = async (req, res) => {
             const redisClient = await getRedis();
             if (redisClient) {
               await redisClient.setex(`blacklist:${token}`, ttl, '1');
-              logger.info('Token blacklisted in Redis', { userId: decoded.userId });
+              const userId = 'userId' in decoded ? decoded.userId : null;
+              logger.info('Token blacklisted in Redis', { userId });
             }
           } catch (redisError) {
             // Redis failed - use MongoDB fallback
@@ -463,23 +466,25 @@ exports.logout = async (req, res) => {
             // CRITICAL FIX: Store in MongoDB as fallback
             try {
               const BlacklistedToken = require('../models/BlacklistedToken');
+              const userId = 'userId' in decoded ? decoded.userId : null;
               await BlacklistedToken.findOneAndUpdate(
                 { token },
                 {
                   token,
-                  userId: decoded.userId,
-                  expiresAt: new Date(decoded.exp * 1000), // Convert to Date
+                  userId,
+                  expiresAt: new Date(exp * 1000), // Convert to Date
                   blacklistedAt: new Date(),
                 },
                 { upsert: true, new: true }
               );
-              logger.info('Token blacklisted in MongoDB (fallback)', { userId: decoded.userId });
+              logger.info('Token blacklisted in MongoDB (fallback)', { userId });
             } catch (mongoError) {
               // Both Redis and MongoDB failed - log error but don't block logout
+              const userId = 'userId' in decoded ? decoded.userId : null;
               logger.error('Failed to blacklist token in both Redis and MongoDB', {
                 redisError: redisError instanceof Error ? redisError.message : String(redisError),
                 mongoError: mongoError instanceof Error ? mongoError.message : String(mongoError),
-                userId: decoded.userId,
+                userId,
               });
             }
           }

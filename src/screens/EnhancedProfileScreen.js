@@ -163,6 +163,7 @@ const EnhancedProfileScreen = () => {
       
       if (response.success) {
         setProfileData((prev) => ({ ...prev, photos: newPhotos }));
+      }
     } catch (error) {
       logger.error('Error updating photos:', error);
     }

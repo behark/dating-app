@@ -1114,3 +1114,49 @@ export interface SwipeStreakModel extends Model<SwipeStreakDocument> {
   updateStreak(userId: string): Promise<SwipeStreakDocument>;
   getTopStreaks(limit?: number): Promise<SwipeStreakDocument[]>;
 }
+
+// ============================================================
+// Performance Metric Types
+// ============================================================
+
+export interface IPerformanceMetric {
+  type: 'api_request' | 'database_query' | 'cache_operation' | 'external_api_call';
+  endpoint: string;
+  method: string;
+  duration: number;
+  statusCode?: number;
+  userId?: Types.ObjectId;
+  isSlow: boolean;
+  isVerySlow: boolean;
+  isError: boolean;
+  timestamp: Date;
+  metadata?: any;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface PerformanceMetricDocument extends IPerformanceMetric, Document {
+  _id: Types.ObjectId;
+}
+
+export interface PerformanceMetricModel extends Model<PerformanceMetricDocument> {
+  getSlowRequests(
+    startDate: Date,
+    endDate: Date,
+    limit?: number
+  ): Promise<PerformanceMetricDocument[]>;
+  getSlowQueries(
+    startDate: Date,
+    endDate: Date,
+    limit?: number
+  ): Promise<PerformanceMetricDocument[]>;
+  getPerformanceSummary(
+    startDate: Date,
+    endDate: Date,
+    groupBy?: string
+  ): Promise<any[]>;
+  getAverageResponseTimes(
+    startDate: Date,
+    endDate: Date
+  ): Promise<any[]>;
+}

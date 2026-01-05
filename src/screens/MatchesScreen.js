@@ -57,13 +57,6 @@ const MatchesScreen = () => {
       setRefreshing(false);
 
       // Show user-friendly error message
-      let errorMessage = 'Failed to load conversations.';
-      if (error.statusCode === 401) {
-        errorMessage = 'Session expired. Please log in again.';
-      } else if (error.statusCode === 403) {
-        errorMessage = "You don't have permission to view conversations.";
-      } else if (error.statusCode === 404) {
-        errorMessage = 'Conversations not found.';
       const errorMessage = getUserFriendlyMessage(error, 'load');
       Alert.alert('Unable to Load Matches', errorMessage, [
         {
