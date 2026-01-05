@@ -1,19 +1,18 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import {
-  Alert,
-  Dimensions,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
-import { db } from '../config/firebase';
+import api from '../services/api';
 import logger from '../utils/logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -31,14 +30,16 @@ const ViewProfileScreen = ({ route, navigation }) => {
   const loadProfile = async () => {
     try {
       setLoading(true);
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      if (userDoc.exists()) {
-        setProfile({ id: userDoc.id, ...userDoc.data() });
+      // Use backend API to get profile
+      const response = await api.get(`/profile/${userId}`);
+      
+      if (response.success && response.data) {
+        setProfile({ id: userId, ...response.data });
       } else {
-        // Profile doesn't exist
+        // Profile doesn't exist or user not authorized to view
         Alert.alert(
           'Profile Not Found',
-          'This profile could not be found. It may have been deleted.',
+          response.message || 'This profile could not be found. It may have been deleted.',
           [
             {
               text: 'Go Back',

@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { ERROR_MESSAGES } = require('../constants/messages');
+const { getRedis } = require('../config/redis');
 
 // Middleware to verify JWT token
 exports.authenticate = async (req, res, next) => {
@@ -25,6 +26,24 @@ exports.authenticate = async (req, res, next) => {
         success: false,
         message: 'Authentication system is not properly configured',
       });
+    }
+
+    // Check if token is blacklisted (for logout functionality)
+    try {
+      const redisClient = await getRedis();
+      if (redisClient) {
+        const isBlacklisted = await redisClient.get(`blacklist:${token}`);
+        if (isBlacklisted) {
+          return res.status(401).json({
+            success: false,
+            message: 'Token has been revoked. Please login again.',
+          });
+        }
+      }
+    } catch (redisError) {
+      // If Redis is unavailable, continue without blacklist check
+      // This allows the app to work even if Redis is down
+      console.warn('Redis unavailable for blacklist check, continuing without it');
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

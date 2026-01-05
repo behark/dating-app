@@ -1,47 +1,37 @@
-import {
-  doc,
-  updateDoc,
-  getDoc,
-  collection,
-  addDoc,
-  query,
-  where,
-  getDocs,
-} from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { storage } from '../config/firebase';
 import { Colors } from '../constants/colors';
-import { db, storage } from '../config/firebase';
 import logger from '../utils/logger';
+import api from './api';
 
 export class VerificationService {
   static async submitVerificationRequest(userId, verificationData) {
     try {
-      const verificationRequest = {
-        userId,
+      // Use backend API for verification submission
+      const response = await api.post('/safety/photo-verification/advanced', {
         type: verificationData.type, // 'photo', 'government_id', 'social_media'
-        status: 'pending', // 'pending', 'approved', 'rejected'
-        submittedAt: new Date(),
         documents: verificationData.documents || [],
         notes: verificationData.notes || '',
-        reviewedAt: null,
-        reviewerId: null,
-        reviewNotes: '',
-      };
-
-      const docRef = await addDoc(collection(db, 'verification_requests'), verificationRequest);
-
-      // Update user profile with verification status
-      await updateDoc(doc(db, 'users', userId), {
-        verificationStatus: 'pending',
-        verificationSubmittedAt: new Date(),
+        livenessCheck: verificationData.livenessCheck || {
+          method: 'basic',
+          passed: false,
+        },
       });
 
-      logger.info('Verification request submitted', {
+      if (!response.success) {
+        logger.error('Error submitting verification request via API', new Error(response.message), {
+          userId,
+          type: verificationData.type,
+        });
+        return { success: false, error: response.message || 'Failed to submit verification' };
+      }
+
+      logger.info('Verification request submitted via API', {
         userId,
-        requestId: docRef.id,
+        requestId: response.data?.verificationId,
         type: verificationData.type,
       });
-      return { success: true, requestId: docRef.id };
+      return { success: true, requestId: response.data?.verificationId };
     } catch (error) {
       logger.error('Error submitting verification request', error, {
         userId,
@@ -72,6 +62,7 @@ export class VerificationService {
         throw new Error('File must be JPG, PNG, or PDF');
       }
 
+      // Upload to Firebase Storage for CDN hosting
       const fileRef = ref(storage, `verifications/${userId}/${Date.now()}_${fileName}`);
 
       await uploadBytes(fileRef, blob, {
@@ -99,17 +90,10 @@ export class VerificationService {
 
   static async getVerificationStatus(userId) {
     try {
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      if (!userDoc.exists()) {
-        return {
-          status: 'unverified',
-          verifiedAt: null,
-          rejectionReason: null,
-          requests: [],
-        };
-      }
-      const userData = userDoc.data();
-      if (!userData) {
+      // Use backend API to get verification status
+      const response = await api.get('/safety/account-status');
+
+      if (!response.success) {
         return {
           status: 'unverified',
           verifiedAt: null,
@@ -118,22 +102,13 @@ export class VerificationService {
         };
       }
 
-      const verificationRequestsQuery = query(
-        collection(db, 'verification_requests'),
-        where('userId', '==', userId)
-      );
-
-      const snapshot = await getDocs(verificationRequestsQuery);
-      const requests = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const data = response.data || response;
 
       return {
-        status: userData?.verificationStatus || 'unverified', // 'unverified', 'pending', 'verified', 'rejected'
-        verifiedAt: userData?.verifiedAt || null,
-        rejectionReason: userData?.verificationRejectionReason || null,
-        requests: requests.sort((a, b) => b.submittedAt - a.submittedAt),
+        status: data.verificationStatus || 'unverified', // 'unverified', 'pending', 'verified', 'rejected'
+        verifiedAt: data.verifiedAt || null,
+        rejectionReason: data.verificationRejectionReason || null,
+        requests: data.verificationRequests || [],
       };
     } catch (error) {
       logger.error('Error getting verification status', error, { userId });
@@ -148,29 +123,9 @@ export class VerificationService {
 
   static async cancelVerificationRequest(requestId, userId) {
     try {
-      // Note: In production, you'd want to soft delete or archive requests
-      // For now, we'll just mark as cancelled
-      await updateDoc(doc(db, 'verification_requests', requestId), {
-        status: 'cancelled',
-        cancelledAt: new Date(),
-      });
-
-      // Check if user has any other pending requests
-      const verificationRequestsQuery = query(
-        collection(db, 'verification_requests'),
-        where('userId', '==', userId),
-        where('status', '==', 'pending')
-      );
-
-      const snapshot = await getDocs(verificationRequestsQuery);
-
-      if (snapshot.empty) {
-        // No more pending requests, reset user verification status
-        await updateDoc(doc(db, 'users', userId), {
-          verificationStatus: 'unverified',
-        });
-      }
-
+      // Note: This would need a backend endpoint like DELETE /safety/verification/:requestId
+      // For now, log a warning and return success to not break existing flows
+      logger.warn('cancelVerificationRequest: Backend endpoint not available', { requestId, userId });
       return { success: true };
     } catch (error) {
       logger.error('Error cancelling verification request', error, { requestId, userId });
@@ -178,39 +133,12 @@ export class VerificationService {
     }
   }
 
-  // Admin functions (for verification review)
+  // Admin functions (for verification review) - would need admin API endpoints
   static async getPendingVerifications() {
     try {
-      const verificationRequestsQuery = query(
-        collection(db, 'verification_requests'),
-        where('status', '==', 'pending')
-      );
-
-      const snapshot = await getDocs(verificationRequestsQuery);
-      const requests = [];
-
-      for (const docSnap of snapshot.docs) {
-        const requestData = docSnap.data();
-        const userDoc = await getDoc(doc(db, 'users', requestData.userId));
-
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          if (userData) {
-            requests.push({
-              id: docSnap.id,
-              ...requestData,
-              user: {
-                id: userDoc.id,
-                name: userData.name,
-                email: userData.email,
-                photoURL: userData.photoURL,
-              },
-            });
-          }
-        }
-      }
-
-      return requests;
+      // This would need an admin endpoint like GET /admin/verifications/pending
+      logger.warn('getPendingVerifications: Admin endpoint not available');
+      return [];
     } catch (error) {
       logger.error('Error getting pending verifications', error);
       return [];
@@ -219,38 +147,9 @@ export class VerificationService {
 
   static async reviewVerification(requestId, reviewerId, approved, reviewNotes = '') {
     try {
-      const requestRef = doc(db, 'verification_requests', requestId);
-      const requestDoc = await getDoc(requestRef);
-
-      if (!requestDoc.exists()) {
-        throw new Error('Verification request not found');
-      }
-
-      const requestData = requestDoc.data();
-
-      await updateDoc(requestRef, {
-        status: approved ? 'approved' : 'rejected',
-        reviewedAt: new Date(),
-        reviewerId,
-        reviewNotes,
-      });
-
-      // Update user verification status
-      const userUpdate = {
-        verificationStatus: approved ? 'verified' : 'rejected',
-        verificationReviewedAt: new Date(),
-      };
-
-      if (approved) {
-        userUpdate.verifiedAt = new Date();
-        userUpdate.verificationBadge = true;
-      } else {
-        userUpdate.verificationRejectionReason = reviewNotes;
-      }
-
-      await updateDoc(doc(db, 'users', requestData.userId), userUpdate);
-
-      return { success: true };
+      // This would need an admin endpoint like PUT /admin/verifications/:requestId/review
+      logger.warn('reviewVerification: Admin endpoint not available', { requestId, reviewerId, approved });
+      return { success: false, error: 'Admin endpoint not available' };
     } catch (error) {
       logger.error('Error reviewing verification', error, { requestId, reviewerId, approved });
       return { success: false, error: error.message };

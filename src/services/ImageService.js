@@ -1,10 +1,9 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
-import { arrayRemove, arrayUnion, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { db, storage } from '../config/firebase';
-import { ERROR_MESSAGES } from '../constants/constants';
+import { storage } from '../config/firebase';
 import logger from '../utils/logger';
+import api from './api';
 
 export class ImageService {
   static async requestPermissions() {
@@ -110,7 +109,7 @@ export class ImageService {
       const fullImageRef = ref(storage, `profiles/${userId}/${fileName}_full.jpg`);
       const thumbnailRef = ref(storage, `profiles/${userId}/${fileName}_thumb.jpg`);
 
-      // Upload images
+      // Upload images to Firebase Storage (for CDN hosting)
       const [fullUpload, thumbUpload] = await Promise.all([
         uploadBytes(fullImageRef, await this.uriToBlob(compressedImage.uri)),
         thumbnail ? uploadBytes(thumbnailRef, await this.uriToBlob(thumbnail.uri)) : null,
@@ -122,7 +121,29 @@ export class ImageService {
         thumbnail ? getDownloadURL(thumbnailRef) : null,
       ]);
 
-      // Create image object
+      // Create photo object for backend API
+      const photoData = {
+        url: fullUrl,
+        thumbnailUrl: thumbUrl,
+        isPrimary,
+      };
+
+      // Use backend API to add photo to user profile
+      const response = await api.post('/profile/photos/upload', {
+        photos: [photoData],
+      });
+
+      if (!response.success) {
+        // If backend fails, clean up uploaded storage files
+        try {
+          await deleteObject(fullImageRef);
+          if (thumbnail) await deleteObject(thumbnailRef);
+        } catch (cleanupError) {
+          logger.warn('Failed to cleanup storage after API error', cleanupError);
+        }
+        throw new Error(response.message || 'Failed to update profile with photo');
+      }
+
       const imageData = {
         id: `${timestamp}`,
         fullUrl,
@@ -131,21 +152,6 @@ export class ImageService {
         isPrimary,
         fileName,
       };
-
-      // Update user profile
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        photos: arrayUnion(imageData),
-        updatedAt: new Date(),
-      });
-
-      // If this is primary, update the main photoURL field
-      if (isPrimary) {
-        await updateDoc(userRef, {
-          photoURL: fullUrl,
-          updatedAt: new Date(),
-        });
-      }
 
       return { success: true, imageData };
     } catch (error) {
@@ -156,53 +162,27 @@ export class ImageService {
 
   static async deleteProfileImage(userId, imageId, imageData) {
     try {
-      // Delete from storage
-      if (imageData.fullUrl) {
-        const fullRef = ref(storage, imageData.fullUrl);
-        await deleteObject(fullRef);
+      // Delete from storage if URL is from Firebase Storage
+      try {
+        if (imageData.fullUrl && imageData.fullUrl.includes('firebase')) {
+          const fullRef = ref(storage, imageData.fullUrl);
+          await deleteObject(fullRef);
+        }
+
+        if (imageData.thumbnailUrl && imageData.thumbnailUrl.includes('firebase')) {
+          const thumbRef = ref(storage, imageData.thumbnailUrl);
+          await deleteObject(thumbRef);
+        }
+      } catch (storageError) {
+        logger.warn('Failed to delete from storage', storageError);
+        // Continue with API deletion even if storage deletion fails
       }
 
-      if (imageData.thumbnailUrl) {
-        const thumbRef = ref(storage, imageData.thumbnailUrl);
-        await deleteObject(thumbRef);
-      }
+      // Remove from user profile via backend API
+      const response = await api.delete(`/profile/photos/${imageId}`);
 
-      // Remove from user profile
-      const userRef = doc(db, 'users', userId);
-      await updateDoc(userRef, {
-        photos: arrayRemove(imageData),
-        updatedAt: new Date(),
-      });
-
-      // If this was the primary photo, set another photo as primary or clear photoURL
-      if (imageData.isPrimary) {
-        const userDoc = await getDoc(userRef);
-        if (!userDoc.exists()) {
-          throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
-        }
-        const userData = userDoc.data();
-        if (!userData) {
-          throw new Error(ERROR_MESSAGES.USER_DATA_NOT_FOUND);
-        }
-        const remainingPhotos = userData.photos?.filter((p) => p.id !== imageId) || [];
-
-        if (remainingPhotos.length > 0) {
-          // Set first remaining photo as primary
-          const newPrimary = remainingPhotos[0];
-          if (newPrimary) {
-            await updateDoc(userRef, {
-              photoURL: newPrimary.fullUrl,
-              photos: remainingPhotos.map((p) =>
-                p.id === newPrimary.id ? { ...p, isPrimary: true } : p
-              ),
-            });
-          }
-        } else {
-          // No photos left
-          await updateDoc(userRef, {
-            photoURL: null,
-          });
-        }
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to delete photo');
       }
 
       return { success: true };
@@ -214,29 +194,15 @@ export class ImageService {
 
   static async setPrimaryPhoto(userId, imageId) {
     try {
-      const userRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userRef);
-      if (!userDoc.exists()) {
-        throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
-      }
-      const userData = userDoc.data();
-      if (!userData) {
-        throw new Error(ERROR_MESSAGES.USER_DATA_NOT_FOUND);
-      }
-
-      const updatedPhotos =
-        userData.photos?.map((photo) => ({
-          ...photo,
-          isPrimary: photo.id === imageId,
-        })) || [];
-
-      const primaryPhoto = updatedPhotos.find((p) => p.isPrimary);
-
-      await updateDoc(userRef, {
-        photos: updatedPhotos,
-        photoURL: primaryPhoto?.fullUrl || null,
-        updatedAt: new Date(),
+      // Use backend API to update profile with reordered photos
+      // Note: Setting primary is typically done by reordering photos where first photo is primary
+      const response = await api.put('/profile/update', {
+        primaryPhotoId: imageId,
       });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to set primary photo');
+      }
 
       return { success: true };
     } catch (error) {
@@ -247,25 +213,14 @@ export class ImageService {
 
   static async reorderPhotos(userId, photoIds) {
     try {
-      const userRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userRef);
-      if (!userDoc.exists()) {
-        throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
-      }
-      const userData = userDoc.data();
-      if (!userData) {
-        throw new Error(ERROR_MESSAGES.USER_DATA_NOT_FOUND);
-      }
-
-      // Reorder photos based on new order
-      const reorderedPhotos = photoIds
-        .map((id) => userData.photos?.find((p) => p.id === id))
-        .filter(Boolean);
-
-      await updateDoc(userRef, {
-        photos: reorderedPhotos,
-        updatedAt: new Date(),
+      // Use backend API to reorder photos
+      const response = await api.put('/profile/photos/reorder', {
+        photoIds,
       });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to reorder photos');
+      }
 
       return { success: true };
     } catch (error) {

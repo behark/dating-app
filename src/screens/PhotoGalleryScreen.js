@@ -1,21 +1,20 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
-import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 import { ImageService } from '../services/ImageService';
 import logger from '../utils/logger';
 
@@ -31,9 +30,11 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
 
   const loadPhotos = async () => {
     try {
-      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-      const userData = userDoc.data();
-      setPhotos(userData?.photos || []);
+      // Use backend API to get profile photos
+      const response = await api.get('/profile/me');
+      if (response.success && response.data) {
+        setPhotos(response.data.photos || []);
+      }
     } catch (error) {
       logger.error('Error loading photos:', error);
       Alert.alert('Error', 'Failed to load photos');
