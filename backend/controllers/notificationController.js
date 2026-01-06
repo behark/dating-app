@@ -66,7 +66,10 @@ exports.updateNotificationPreferences = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Update notification preferences error:', { error: error.message, stack: error.stack });
+    logger.error('Update notification preferences error:', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: 'Error updating notification preferences',
@@ -105,7 +108,10 @@ exports.getNotificationPreferences = async (req, res) => {
       data: { preferences },
     });
   } catch (error) {
-    logger.error('Get notification preferences error:', { error: error.message, stack: error.stack });
+    logger.error('Get notification preferences error:', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: 'Error fetching notification preferences',
@@ -534,7 +540,10 @@ exports.markAllAsRead = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Mark all notifications as read error:', { error: error.message, stack: error.stack });
+    logger.error('Mark all notifications as read error:', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: 'Error marking all notifications as read',

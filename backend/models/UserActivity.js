@@ -114,7 +114,7 @@ userActivitySchema.statics.getRecentlyActiveUsers = async function (
 // Static method to log activity
 userActivitySchema.statics.logActivity = async function (userId, activityType, metadata = {}) {
   // @ts-ignore - Mongoose static method context
-// @ts-ignore
+  // @ts-ignore
   try {
     // @ts-ignore
     await this.create({

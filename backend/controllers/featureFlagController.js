@@ -68,15 +68,15 @@ async function isFlagEnabledForUser(flag, userId, userGroups = []) {
 async function getUserGroups(userId) {
   const groups = [];
 
-    // Check if user is beta tester
-    let enrollment = null;
-    try {
-      const BetaEnrollment = require('../models/BetaEnrollment');
-      enrollment = await BetaEnrollment.findOne({ userId, status: 'active' });
-    } catch (error) {
-      // BetaEnrollment model might not exist yet, continue without it
-      console.warn('BetaEnrollment model not available:', error);
-    }
+  // Check if user is beta tester
+  let enrollment = null;
+  try {
+    const BetaEnrollment = require('../models/BetaEnrollment');
+    enrollment = await BetaEnrollment.findOne({ userId, status: 'active' });
+  } catch (error) {
+    // BetaEnrollment model might not exist yet, continue without it
+    console.warn('BetaEnrollment model not available:', error);
+  }
   if (enrollment) {
     groups.push('beta_testers');
     if (enrollment.tier === 'vip') {

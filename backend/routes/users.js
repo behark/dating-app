@@ -98,7 +98,10 @@ router.get('/:id', authenticate, async (req, res) => {
     // Check if current user has blocked this user or vice versa
     if (currentUserId) {
       const currentUser = await User.findById(currentUserId).select('blockedUsers').lean();
-      if (currentUser?.blockedUsers?.some(blockedId => blockedId.toString() === id) || user.blockedUsers?.some(blockedId => blockedId.toString() === currentUserId)) {
+      if (
+        currentUser?.blockedUsers?.some((blockedId) => blockedId.toString() === id) ||
+        user.blockedUsers?.some((blockedId) => blockedId.toString() === currentUserId)
+      ) {
         return sendNotFound(res, 'User');
       }
     }

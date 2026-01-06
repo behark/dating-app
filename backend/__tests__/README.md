@@ -132,18 +132,19 @@ open coverage/lcov-report/index.html
 
 ### Coverage Targets
 
-| Metric | Target | Current |
-|--------|--------|---------|
-| Statements | 60% | - |
-| Branches | 50% | - |
-| Functions | 50% | - |
-| Lines | 60% | - |
+| Metric     | Target | Current |
+| ---------- | ------ | ------- |
+| Statements | 60%    | -       |
+| Branches   | 50%    | -       |
+| Functions  | 50%    | -       |
+| Lines      | 60%    | -       |
 
 ## 🔄 CI/CD Integration
 
 ### GitHub Actions
 
 The test suite is automatically run on:
+
 - Push to `main`, `develop`, or `feature/*` branches
 - Pull requests to `main` or `develop`
 
@@ -185,35 +186,35 @@ jest.mock('../../models/User', () => ({
 const createTestApp = () => {
   const app = express();
   app.use(express.json());
-  
+
   const myRoutes = require('../../routes/myRoutes');
   app.use('/api/myroutes', myRoutes);
-  
+
   return app;
 };
 
 describe('MyRoutes API Tests', () => {
   let app;
-  
+
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';
     app = createTestApp();
   });
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
-  
+
   describe('GET /api/myroutes', () => {
     it('should return data successfully', async () => {
       const response = await request(app)
         .get('/api/myroutes')
         .set('Authorization', `Bearer ${generateTestToken()}`);
-      
+
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
     });
-    
+
     it('should reject unauthenticated request', async () => {
       const response = await request(app).get('/api/myroutes');
       assertUnauthorized(response);
@@ -242,8 +243,8 @@ const token = generateTestToken({ userId: 'user_123' });
 const adminToken = generateAdminToken();
 
 // Assert responses
-assertUnauthorized(response);   // Expects 401
-assertForbidden(response);      // Expects 403
+assertUnauthorized(response); // Expects 401
+assertForbidden(response); // Expects 403
 assertValidationError(response); // Expects 400 with errors
 ```
 
@@ -274,12 +275,14 @@ await close();
 ### Common Issues
 
 #### Tests Timing Out
+
 ```bash
 # Increase timeout
 npm test -- --testTimeout=60000
 ```
 
 #### MongoDB Connection Issues
+
 ```bash
 # Ensure mongodb-memory-server is installed
 npm install mongodb-memory-server --save-dev
@@ -289,6 +292,7 @@ export MONGODB_URI=mongodb://localhost:27017/test
 ```
 
 #### Mock Not Working
+
 ```javascript
 // Ensure mocks are at the top of the file, before imports
 jest.mock('../../models/User', () => ({...}));
@@ -300,6 +304,7 @@ beforeEach(() => {
 ```
 
 #### Open Handles Warning
+
 ```bash
 # Detect open handles
 npm test -- --detectOpenHandles

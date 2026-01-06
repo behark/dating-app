@@ -70,14 +70,14 @@ export const getTokenSecurely = async (key) => {
         return value;
       }
     }
-    
+
     // Fallback to AsyncStorage
     const value = await AsyncStorage.getItem(key);
     if (value) {
       logger.debug('Token retrieved from AsyncStorage', { key });
       return value;
     }
-    
+
     return null;
   } catch (error) {
     logger.error('Error retrieving token', error, { key });
@@ -103,7 +103,7 @@ export const removeTokenSecurely = async (key) => {
       await SecureStore.deleteItemAsync(key);
       logger.debug(`Token removed from ${Platform.OS} secure storage`, { key });
     }
-    
+
     // Also remove from AsyncStorage (in case it was stored there)
     await AsyncStorage.removeItem(key);
   } catch (error) {
@@ -172,9 +172,6 @@ export const removeRefreshToken = async () => {
  * @returns {Promise<void>}
  */
 export const clearAllTokens = async () => {
-  await Promise.all([
-    removeAuthToken(),
-    removeRefreshToken(),
-  ]);
+  await Promise.all([removeAuthToken(), removeRefreshToken()]);
   logger.debug('All tokens cleared from secure storage');
 };

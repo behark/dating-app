@@ -196,7 +196,14 @@ const api = {
    * @param {boolean} _isRetry - Internal flag to prevent infinite retry loops
    * @param {boolean} _isDeduplicated - Internal flag to prevent double deduplication
    */
-  async request(method, endpoint, data = null, options = {}, _isRetry = false, _isDeduplicated = false) {
+  async request(
+    method,
+    endpoint,
+    data = null,
+    options = {},
+    _isRetry = false,
+    _isDeduplicated = false
+  ) {
     // Request deduplication (unless explicitly bypassed or already deduplicated)
     if (!options.bypassDeduplication && !_isDeduplicated && !_isRetry) {
       return requestDeduplicator.deduplicate(
@@ -231,7 +238,15 @@ const api = {
       };
 
       return retryWithBackoff(
-        () => this.request(method, endpoint, data, { ...options, retry: false }, false, _isDeduplicated),
+        () =>
+          this.request(
+            method,
+            endpoint,
+            data,
+            { ...options, retry: false },
+            false,
+            _isDeduplicated
+          ),
         retryOptions
       );
     }
@@ -301,7 +316,7 @@ const api = {
 
       // Parse response
       const rawResponse = await response.json();
-      
+
       // Normalize response format to ensure consistency
       return this.normalizeResponse(rawResponse);
     } catch (error) {

@@ -25,9 +25,7 @@ const GroupDateDetailScreen = ({ navigation, route }) => {
   useEffect(() => {
     if (groupDate) {
       const userId = getUserId(currentUser);
-      const joined = groupDate.currentParticipants?.some((p) =>
-        userIdsMatch(p.userId, userId)
-      );
+      const joined = groupDate.currentParticipants?.some((p) => userIdsMatch(p.userId, userId));
       setIsJoined(joined || false);
     }
   }, [groupDate, currentUser]);
@@ -113,8 +111,8 @@ const GroupDateDetailScreen = ({ navigation, route }) => {
             <View style={styles.detailRow}>
               <Ionicons name="people" size={20} color={Colors.primary} />
               <Text style={styles.detailText}>
-                {groupDate.currentParticipants?.length || 0}/
-                {groupDate.maxParticipants || '∞'} going
+                {groupDate.currentParticipants?.length || 0}/{groupDate.maxParticipants || '∞'}{' '}
+                going
               </Text>
             </View>
           </View>

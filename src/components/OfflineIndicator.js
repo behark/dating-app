@@ -17,7 +17,7 @@ export const OfflineIndicator = () => {
     // Subscribe to network status changes
     const unsubscribe = OfflineService.subscribe((online) => {
       setIsOnline(online);
-      
+
       // Animate in/out
       Animated.timing(fadeAnim, {
         toValue: online ? 0 : 1,

@@ -17,6 +17,7 @@ import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import PreviewHomeScreen from '../screens/PreviewHomeScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import MatchesScreen from '../screens/MatchesScreen';
 
 // Lazy-loaded screens - deferred for better startup performance
 // These screens are loaded on-demand when user navigates to them
@@ -25,10 +26,7 @@ const ChatScreen = createLazyScreen(() => import('../screens/ChatScreen'), {
   displayName: 'ChatScreen',
 });
 
-const MatchesScreen = createLazyScreen(() => import('../screens/MatchesScreen'), {
-  loadingMessage: 'Loading matches...',
-  displayName: 'MatchesScreen',
-});
+// MatchesScreen moved to core imports
 
 const EventsScreen = createLazyScreen(() => import('../screens/EventsScreen'), {
   loadingMessage: 'Loading events...',
@@ -124,10 +122,13 @@ const EditProfileScreen = createLazyScreen(() => import('../screens/EditProfileS
   displayName: 'EditProfileScreen',
 });
 
-const EmailVerificationScreen = createLazyScreen(() => import('../screens/EmailVerificationScreen'), {
-  loadingMessage: 'Loading verification...',
-  displayName: 'EmailVerificationScreen',
-});
+const EmailVerificationScreen = createLazyScreen(
+  () => import('../screens/EmailVerificationScreen'),
+  {
+    loadingMessage: 'Loading verification...',
+    displayName: 'EmailVerificationScreen',
+  }
+);
 
 const ForgotPasswordScreen = createLazyScreen(() => import('../screens/ForgotPasswordScreen'), {
   loadingMessage: 'Loading...',
@@ -189,7 +190,7 @@ const ProfileViewsScreen = createLazyScreen(() => import('../screens/ProfileView
 });
 
 const RegisterScreen = createLazyScreen(
-  () => import('../screens/RegisterScreen').then(module => ({ default: module.RegisterScreen })),
+  () => import('../screens/RegisterScreen').then((module) => ({ default: module.RegisterScreen })),
   {
     loadingMessage: 'Loading...',
     displayName: 'RegisterScreen',
@@ -200,7 +201,7 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // Screens to preload after initial render for smoother navigation
-const screensToPreload = [MatchesScreen, ChatScreen, ViewProfileScreen];
+const screensToPreload = [ChatScreen, ViewProfileScreen];
 
 const MainTabs = () => {
   const { unreadCount } = useChat();
@@ -293,7 +294,7 @@ const AppNavigator = () => {
       try {
         // Check local storage first
         const hasConsented = await AsyncStorage.getItem('hasConsented');
-        
+
         if (hasConsented === 'true') {
           // Also verify with backend
           try {
@@ -377,288 +378,288 @@ const AppNavigator = () => {
         onStateChange={onNavigationStateChange}
       >
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {currentUser ? (
-          <>
-            <Stack.Screen name="Main" component={MainTabs} />
-            <Stack.Screen
-              name="Chat"
-              component={ChatScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="ViewProfile"
-              component={ViewProfileScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="Preferences"
-              component={PreferencesScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="NotificationPreferences"
-              component={NotificationPreferencesScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="Verification"
-              component={VerificationScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="Premium"
-              component={PremiumScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="PhotoGallery"
-              component={PhotoGalleryScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="ReportUser"
-              component={ReportUserScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="SafetyTips"
-              component={SafetyTipsScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="SafetyAdvanced"
-              component={SafetyAdvancedScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="PrivacySettings"
-              component={PrivacySettingsScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="PrivacyPolicy"
-              component={PrivacyPolicyScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="TermsOfService"
-              component={TermsOfServiceScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="AIInsights"
-              component={AIInsightsScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="Events"
-              component={EventsScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="ProfileSharing"
-              component={ProfileSharingScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="SocialMediaConnection"
-              component={SocialMediaConnectionScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="EditProfile"
-              component={EditProfileScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="VerifyEmail"
-              component={EmailVerificationScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="ForgotPassword"
-              component={ForgotPasswordScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="CreateEvent"
-              component={CreateEventScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="EventDetail"
-              component={EventDetailScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="CreateGroupDate"
-              component={CreateGroupDateScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="GroupDateDetail"
-              component={GroupDateDetailScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="MatchAnimation"
-              component={MatchAnimationScreen}
-              options={{
-                headerShown: false,
-                presentation: 'modal',
-              }}
-            />
-            <Stack.Screen
-              name="AddEmergencyContact"
-              component={AddEmergencyContactScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="TopPicks"
-              component={TopPicksScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="Explore"
-              component={ExploreScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="SuperLike"
-              component={SuperLikeScreen}
-              options={{
-                headerShown: false,
-                presentation: 'modal',
-              }}
-            />
-            <Stack.Screen
-              name="ProfileViews"
-              component={ProfileViewsScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-          </>
-        ) : (
-          <>
-            <Stack.Screen name="Preview" component={PreviewHomeScreen} />
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-              options={{
-                presentation: 'modal',
-              }}
-            />
-            <Stack.Screen
-              name="Register"
-              component={RegisterScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="ForgotPassword"
-              component={ForgotPasswordScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-            <Stack.Screen
-              name="VerifyEmail"
-              component={EmailVerificationScreen}
-              options={{
-                headerShown: false,
-                presentation: 'card',
-              }}
-            />
-          </>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+          {currentUser ? (
+            <>
+              <Stack.Screen name="Main" component={MainTabs} />
+              <Stack.Screen
+                name="Chat"
+                component={ChatScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="ViewProfile"
+                component={ViewProfileScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="Preferences"
+                component={PreferencesScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="NotificationPreferences"
+                component={NotificationPreferencesScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="Verification"
+                component={VerificationScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="Premium"
+                component={PremiumScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="PhotoGallery"
+                component={PhotoGalleryScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="ReportUser"
+                component={ReportUserScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="SafetyTips"
+                component={SafetyTipsScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="SafetyAdvanced"
+                component={SafetyAdvancedScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="PrivacySettings"
+                component={PrivacySettingsScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="PrivacyPolicy"
+                component={PrivacyPolicyScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="TermsOfService"
+                component={TermsOfServiceScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="AIInsights"
+                component={AIInsightsScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="Events"
+                component={EventsScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="ProfileSharing"
+                component={ProfileSharingScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="SocialMediaConnection"
+                component={SocialMediaConnectionScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="EditProfile"
+                component={EditProfileScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="VerifyEmail"
+                component={EmailVerificationScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="ForgotPassword"
+                component={ForgotPasswordScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="CreateEvent"
+                component={CreateEventScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="EventDetail"
+                component={EventDetailScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="CreateGroupDate"
+                component={CreateGroupDateScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="GroupDateDetail"
+                component={GroupDateDetailScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="MatchAnimation"
+                component={MatchAnimationScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'modal',
+                }}
+              />
+              <Stack.Screen
+                name="AddEmergencyContact"
+                component={AddEmergencyContactScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="TopPicks"
+                component={TopPicksScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="Explore"
+                component={ExploreScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="SuperLike"
+                component={SuperLikeScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'modal',
+                }}
+              />
+              <Stack.Screen
+                name="ProfileViews"
+                component={ProfileViewsScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+            </>
+          ) : (
+            <>
+              <Stack.Screen name="Preview" component={PreviewHomeScreen} />
+              <Stack.Screen
+                name="Login"
+                component={LoginScreen}
+                options={{
+                  presentation: 'modal',
+                }}
+              />
+              <Stack.Screen
+                name="Register"
+                component={RegisterScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="ForgotPassword"
+                component={ForgotPasswordScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="VerifyEmail"
+                component={EmailVerificationScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+            </>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
     </>
   );
 };

@@ -41,12 +41,14 @@ class SwipeService {
     /** @type {any} */
     let swipeResult;
     try {
-      swipeResult = await Swipe.createSwipeAtomic(/** @type {any} */ ({
-        swiperId,
-        swipedId: targetId,
-        action,
-        isPriority,
-      }));
+      swipeResult = await Swipe.createSwipeAtomic(
+        /** @type {any} */ ({
+          swiperId,
+          swipedId: targetId,
+          action,
+          isPriority,
+        })
+      );
     } catch (error) {
       // Handle MongoDB duplicate key error (E11000) gracefully
       // This can still happen in edge cases with high concurrency

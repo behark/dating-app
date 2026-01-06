@@ -3,14 +3,14 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
@@ -84,7 +84,11 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
           Alert.alert('Success', 'Photo uploaded successfully!');
           loadPhotos(); // Refresh photos
         } else {
-          showStandardError(uploadResult.error || STANDARD_ERROR_MESSAGES.UPLOAD_FAILED, 'upload', 'Upload Failed');
+          showStandardError(
+            uploadResult.error || STANDARD_ERROR_MESSAGES.UPLOAD_FAILED,
+            'upload',
+            'Upload Failed'
+          );
         }
       }
     } catch (error) {
@@ -109,7 +113,11 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
               Alert.alert('Success', 'Photo deleted successfully');
               loadPhotos();
             } else {
-              showStandardError(result.error || STANDARD_ERROR_MESSAGES.DELETE_FAILED, 'delete', 'Delete Failed');
+              showStandardError(
+                result.error || STANDARD_ERROR_MESSAGES.DELETE_FAILED,
+                'delete',
+                'Delete Failed'
+              );
             }
           } catch (error) {
             logger.error('Error deleting photo:', error);
@@ -128,7 +136,11 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
         Alert.alert('Success', 'Primary photo updated!');
         loadPhotos();
       } else {
-        showStandardError(result.error || STANDARD_ERROR_MESSAGES.SAVE_FAILED, 'update', 'Update Failed');
+        showStandardError(
+          result.error || STANDARD_ERROR_MESSAGES.SAVE_FAILED,
+          'update',
+          'Update Failed'
+        );
       }
     } catch (error) {
       logger.error('Error setting primary photo:', error);

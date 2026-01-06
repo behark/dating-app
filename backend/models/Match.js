@@ -158,7 +158,8 @@ matchSchema.statics.createMatch = async function (
     if (existingMatch.status === 'unmatched') {
       existingMatch.status = 'active';
       existingMatch.matchInitiator = initiatorId;
-      existingMatch.matchType = (matchType === 'superlike' || matchType === 'regular') ? matchType : 'regular';
+      existingMatch.matchType =
+        matchType === 'superlike' || matchType === 'regular' ? matchType : 'regular';
       existingMatch.unmatchedBy = undefined;
       existingMatch.unmatchedAt = undefined;
       await existingMatch.save();

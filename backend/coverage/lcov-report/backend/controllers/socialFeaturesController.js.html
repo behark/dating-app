@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">3.75% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/79</span>
+                <span class='fraction'>3/80</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/15</span>
+                <span class='fraction'>0/43</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">3.75% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/79</span>
+                <span class='fraction'>3/80</span>
             </div>
         
             
@@ -385,13 +385,35 @@
 <a name='L320'></a><a href='#L320'>320</a>
 <a name='L321'></a><a href='#L321'>321</a>
 <a name='L322'></a><a href='#L322'>322</a>
-<a name='L323'></a><a href='#L323'>323</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a>
+<a name='L334'></a><a href='#L334'>334</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -706,8 +728,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const SocialFeaturesService = <span class="cstat-no" title="statement not covered" >require('../services/SocialFeaturesService');</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const SocialFeaturesService = require('../services/SocialFeaturesService');
+&nbsp;
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 &nbsp;
 class SocialFeaturesController {
   /**
@@ -724,7 +757,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(400).json({</span>
         error: 'Failed to create group date',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -746,7 +779,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(400).json({</span>
         error: 'Failed to join group date',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -768,7 +801,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(400).json({</span>
         error: 'Failed to leave group date',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -799,7 +832,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(500).json({</span>
         error: 'Failed to get nearby group dates',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -818,7 +851,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(400).json({</span>
         error: 'Failed to create review',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -841,7 +874,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(500).json({</span>
         error: 'Failed to get reviews',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -860,7 +893,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(400).json({</span>
         error: 'Failed to create event',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -882,7 +915,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(400).json({</span>
         error: 'Failed to register for event',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -914,7 +947,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(500).json({</span>
         error: 'Failed to get nearby events',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -940,7 +973,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(400).json({</span>
         error: 'Failed to create share link',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -962,7 +995,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(400).json({</span>
         error: 'Failed to share profile',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -980,7 +1013,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(404).json({</span>
         error: 'Shared profile not found',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -1001,7 +1034,7 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(500).json({</span>
         error: 'Failed to get shared profiles',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -1022,13 +1055,13 @@ class SocialFeaturesController {
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      res.status(400).json({</span>
         error: 'Failed to deactivate share link',
-        message: error.message,
+        message: error instanceof Error ? error.message : String(error),
       });
     }
   }
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >module.exports = SocialFeaturesController;</span>
+module.exports = SocialFeaturesController;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -1036,7 +1069,7 @@ class SocialFeaturesController {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-04T22:01:49.555Z
+                at 2026-01-05T21:33:32.394Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

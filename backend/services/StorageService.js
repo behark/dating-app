@@ -161,39 +161,42 @@ const uploadToCloudinary = async (file, fileName, fileType, userId) => {
       }),
     };
 
-    const uploadStream = cloudinary.uploader.upload_stream(/** @type {any} */(uploadOptions), (error, result) => {
-      if (error) {
-        reject(error);
-      } else if (!result) {
-        reject(new Error('Upload failed: No result returned'));
-      } else {
-        resolve({
-          url: result.secure_url,
-          publicId: result.public_id,
-          format: result.format,
-          width: result.width,
-          height: result.height,
-          duration: result.duration, // For videos
-          thumbnailUrl:
-            fileType === 'video'
-              ? cloudinary.url(result.public_id, {
-                  resource_type: 'video',
-                  format: 'jpg',
-                  ...config.transformations.thumbnail,
-                })
-              : undefined,
-          variants:
-            fileType === 'image'
-              ? {
-                  thumbnail: cloudinary.url(result.public_id, config.transformations.thumbnail),
-                  medium: cloudinary.url(result.public_id, config.transformations.medium),
-                  large: cloudinary.url(result.public_id, config.transformations.large),
-                }
-              : undefined,
-          provider: 'cloudinary',
-        });
+    const uploadStream = cloudinary.uploader.upload_stream(
+      /** @type {any} */ (uploadOptions),
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else if (!result) {
+          reject(new Error('Upload failed: No result returned'));
+        } else {
+          resolve({
+            url: result.secure_url,
+            publicId: result.public_id,
+            format: result.format,
+            width: result.width,
+            height: result.height,
+            duration: result.duration, // For videos
+            thumbnailUrl:
+              fileType === 'video'
+                ? cloudinary.url(result.public_id, {
+                    resource_type: 'video',
+                    format: 'jpg',
+                    ...config.transformations.thumbnail,
+                  })
+                : undefined,
+            variants:
+              fileType === 'image'
+                ? {
+                    thumbnail: cloudinary.url(result.public_id, config.transformations.thumbnail),
+                    medium: cloudinary.url(result.public_id, config.transformations.medium),
+                    large: cloudinary.url(result.public_id, config.transformations.large),
+                  }
+                : undefined,
+            provider: 'cloudinary',
+          });
+        }
       }
-    });
+    );
 
     uploadStream.end(file.buffer);
   });
@@ -264,8 +267,14 @@ const StorageService = {
       }
       return uploadToS3(file, fileName, fileType);
     } else {
-      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-        throw new Error('Cloudinary not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.');
+      if (
+        !process.env.CLOUDINARY_CLOUD_NAME ||
+        !process.env.CLOUDINARY_API_KEY ||
+        !process.env.CLOUDINARY_API_SECRET
+      ) {
+        throw new Error(
+          'Cloudinary not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.'
+        );
       }
       return uploadToCloudinary(file, fileName, fileType, userId);
     }
@@ -347,7 +356,9 @@ const StorageService = {
       const apiKey = process.env.CLOUDINARY_API_KEY;
 
       if (!apiSecret || !cloudName || !apiKey) {
-        throw new Error('Cloudinary not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.');
+        throw new Error(
+          'Cloudinary not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.'
+        );
       }
 
       const timestamp = Math.round(new Date().getTime() / 1000);
@@ -363,10 +374,7 @@ const StorageService = {
         upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
       };
 
-      const signature = cloudinary.utils.api_sign_request(
-        params,
-        apiSecret
-      );
+      const signature = cloudinary.utils.api_sign_request(params, apiSecret);
 
       return {
         signature,

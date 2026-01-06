@@ -45,7 +45,9 @@ class GooglePlayService {
    */
   static async validateSubscription(purchaseToken, productId) {
     try {
-      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (
+        await this.getAndroidPublisher()
+      );
 
       const response = await publisher.purchases.subscriptions.get({
         packageName: paymentConfig.google.packageName,
@@ -92,7 +94,9 @@ class GooglePlayService {
    */
   static async validateProduct(purchaseToken, productId) {
     try {
-      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (
+        await this.getAndroidPublisher()
+      );
 
       const response = await publisher.purchases.products.get({
         packageName: paymentConfig.google.packageName,
@@ -123,7 +127,9 @@ class GooglePlayService {
    */
   static async acknowledgeSubscription(purchaseToken, productId, developerPayload) {
     try {
-      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (
+        await this.getAndroidPublisher()
+      );
 
       await publisher.purchases.subscriptions.acknowledge({
         packageName: paymentConfig.google.packageName,
@@ -146,7 +152,9 @@ class GooglePlayService {
    */
   static async acknowledgeProduct(purchaseToken, productId, developerPayload) {
     try {
-      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (
+        await this.getAndroidPublisher()
+      );
 
       await publisher.purchases.products.acknowledge({
         packageName: paymentConfig.google.packageName,
@@ -169,7 +177,9 @@ class GooglePlayService {
    */
   static async consumeProduct(purchaseToken, productId) {
     try {
-      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (
+        await this.getAndroidPublisher()
+      );
 
       await publisher.purchases.products.consume({
         packageName: paymentConfig.google.packageName,
@@ -189,7 +199,9 @@ class GooglePlayService {
    */
   static async cancelSubscription(purchaseToken, productId) {
     try {
-      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (
+        await this.getAndroidPublisher()
+      );
 
       await publisher.purchases.subscriptions.cancel({
         packageName: paymentConfig.google.packageName,
@@ -209,7 +221,9 @@ class GooglePlayService {
    */
   static async refundSubscription(purchaseToken, productId) {
     try {
-      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (
+        await this.getAndroidPublisher()
+      );
 
       await publisher.purchases.subscriptions.refund({
         packageName: paymentConfig.google.packageName,
@@ -229,7 +243,9 @@ class GooglePlayService {
    */
   static async revokeSubscription(purchaseToken, productId) {
     try {
-      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (await this.getAndroidPublisher());
+      const publisher = /** @type {NonNullable<typeof GooglePlayService.androidPublisher>} */ (
+        await this.getAndroidPublisher()
+      );
 
       await publisher.purchases.subscriptions.revoke({
         packageName: paymentConfig.google.packageName,

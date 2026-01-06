@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">2.47% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/240</span>
+                <span class='fraction'>6/242</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/105</span>
+                <span class='fraction'>0/119</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">2.59% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/229</span>
+                <span class='fraction'>6/231</span>
             </div>
         
             
@@ -812,7 +812,13 @@
 <a name='L747'></a><a href='#L747'>747</a>
 <a name='L748'></a><a href='#L748'>748</a>
 <a name='L749'></a><a href='#L749'>749</a>
-<a name='L750'></a><a href='#L750'>750</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L750'></a><a href='#L750'>750</a>
+<a name='L751'></a><a href='#L751'>751</a>
+<a name='L752'></a><a href='#L752'>752</a>
+<a name='L753'></a><a href='#L753'>753</a>
+<a name='L754'></a><a href='#L754'>754</a>
+<a name='L755'></a><a href='#L755'>755</a>
+<a name='L756'></a><a href='#L756'>756</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -821,13 +827,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1223,6 +1230,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1440,6 +1448,8 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1477,8 +1487,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1560,7 +1572,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
  * Google Play Billing Service
  *
@@ -1570,13 +1582,14 @@
  * - Real-time Developer Notifications (RTDN)
  */
 &nbsp;
-const { google } = <span class="cstat-no" title="statement not covered" >require('googleapis');</span>
-const paymentConfig = <span class="cstat-no" title="statement not covered" >require('../config/payment');</span>
-const Subscription = <span class="cstat-no" title="statement not covered" >require('../models/Subscription');</span>
-const PaymentTransaction = <span class="cstat-no" title="statement not covered" >require('../models/PaymentTransaction');</span>
+const { google } = require('googleapis');
+const paymentConfig = require('../config/payment');
+const Subscription = require('../models/Subscription');
+const PaymentTransaction = require('../models/PaymentTransaction');
 &nbsp;
 class GooglePlayService {
-  static androidPublisher = <span class="cstat-no" title="statement not covered" >null;</span>
+  /** @type {import('googleapis').androidpublisher_v3.Androidpublisher | null} */
+  static androidPublisher = null;
 &nbsp;
   /**
    * Initialize Google Play API client
@@ -1607,7 +1620,7 @@ class GooglePlayService {
    */
 <span class="fstat-no" title="function not covered" >  st</span>atic async validateSubscription(purchaseToken, productId) {
 <span class="cstat-no" title="statement not covered" >    try {</span>
-      const publisher = <span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher();</span>
+      const publisher = /** @type {NonNullable&lt;typeof GooglePlayService.androidPublisher&gt;} */ (<span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher())</span>;
 &nbsp;
       const response = <span class="cstat-no" title="statement not covered" >await publisher.purchases.subscriptions.get({</span>
         packageName: paymentConfig.google.packageName,
@@ -1620,8 +1633,8 @@ class GooglePlayService {
 <span class="cstat-no" title="statement not covered" >      return {</span>
         valid: true,
         orderId: subscription.orderId,
-        purchaseTime: new Date(parseInt(subscription.startTimeMillis)),
-        expiryTime: new Date(parseInt(subscription.expiryTimeMillis)),
+        purchaseTime: new Date(parseInt(subscription.startTimeMillis || '0')),
+        expiryTime: new Date(parseInt(subscription.expiryTimeMillis || '0')),
         autoRenewing: subscription.autoRenewing,
         paymentState: subscription.paymentState,
         cancelReason: subscription.cancelReason,
@@ -1633,12 +1646,12 @@ class GooglePlayService {
         },
         acknowledgementState: subscription.acknowledgementState,
         linkedPurchaseToken: subscription.linkedPurchaseToken,
-        isActive: parseInt(subscription.expiryTimeMillis) &gt; Date.now(),
+        isActive: parseInt(subscription.expiryTimeMillis || '0') &gt; Date.now(),
       };
     } catch (error) {
 <span class="cstat-no" title="statement not covered" >      console.error('Error validating Google subscription:', error);</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      if (error.code === 410) {</span>
+<span class="cstat-no" title="statement not covered" >      if ((error instanceof Error &amp;&amp; 'code' in error ? error.code : 'UNKNOWN_ERROR') === 410) {</span>
 <span class="cstat-no" title="statement not covered" >        return {</span>
           valid: false,
           error: 'Purchase token is no longer valid',
@@ -1654,7 +1667,7 @@ class GooglePlayService {
    */
 <span class="fstat-no" title="function not covered" >  st</span>atic async validateProduct(purchaseToken, productId) {
 <span class="cstat-no" title="statement not covered" >    try {</span>
-      const publisher = <span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher();</span>
+      const publisher = /** @type {NonNullable&lt;typeof GooglePlayService.androidPublisher&gt;} */ (<span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher())</span>;
 &nbsp;
       const response = <span class="cstat-no" title="statement not covered" >await publisher.purchases.products.get({</span>
         packageName: paymentConfig.google.packageName,
@@ -1667,7 +1680,7 @@ class GooglePlayService {
 <span class="cstat-no" title="statement not covered" >      return {</span>
         valid: true,
         orderId: purchase.orderId,
-        purchaseTime: new Date(parseInt(purchase.purchaseTimeMillis)),
+        purchaseTime: new Date(parseInt(purchase.purchaseTimeMillis || '0')),
         purchaseState: purchase.purchaseState,
         consumptionState: purchase.consumptionState,
         developerPayload: purchase.developerPayload,
@@ -1685,7 +1698,7 @@ class GooglePlayService {
    */
 <span class="fstat-no" title="function not covered" >  st</span>atic async acknowledgeSubscription(purchaseToken, productId, developerPayload) {
 <span class="cstat-no" title="statement not covered" >    try {</span>
-      const publisher = <span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher();</span>
+      const publisher = /** @type {NonNullable&lt;typeof GooglePlayService.androidPublisher&gt;} */ (<span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher())</span>;
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      await publisher.purchases.subscriptions.acknowledge({</span>
         packageName: paymentConfig.google.packageName,
@@ -1708,7 +1721,7 @@ class GooglePlayService {
    */
 <span class="fstat-no" title="function not covered" >  st</span>atic async acknowledgeProduct(purchaseToken, productId, developerPayload) {
 <span class="cstat-no" title="statement not covered" >    try {</span>
-      const publisher = <span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher();</span>
+      const publisher = /** @type {NonNullable&lt;typeof GooglePlayService.androidPublisher&gt;} */ (<span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher())</span>;
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      await publisher.purchases.products.acknowledge({</span>
         packageName: paymentConfig.google.packageName,
@@ -1731,7 +1744,7 @@ class GooglePlayService {
    */
 <span class="fstat-no" title="function not covered" >  st</span>atic async consumeProduct(purchaseToken, productId) {
 <span class="cstat-no" title="statement not covered" >    try {</span>
-      const publisher = <span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher();</span>
+      const publisher = /** @type {NonNullable&lt;typeof GooglePlayService.androidPublisher&gt;} */ (<span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher())</span>;
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      await publisher.purchases.products.consume({</span>
         packageName: paymentConfig.google.packageName,
@@ -1751,7 +1764,7 @@ class GooglePlayService {
    */
 <span class="fstat-no" title="function not covered" >  st</span>atic async cancelSubscription(purchaseToken, productId) {
 <span class="cstat-no" title="statement not covered" >    try {</span>
-      const publisher = <span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher();</span>
+      const publisher = /** @type {NonNullable&lt;typeof GooglePlayService.androidPublisher&gt;} */ (<span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher())</span>;
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      await publisher.purchases.subscriptions.cancel({</span>
         packageName: paymentConfig.google.packageName,
@@ -1771,7 +1784,7 @@ class GooglePlayService {
    */
 <span class="fstat-no" title="function not covered" >  st</span>atic async refundSubscription(purchaseToken, productId) {
 <span class="cstat-no" title="statement not covered" >    try {</span>
-      const publisher = <span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher();</span>
+      const publisher = /** @type {NonNullable&lt;typeof GooglePlayService.androidPublisher&gt;} */ (<span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher())</span>;
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      await publisher.purchases.subscriptions.refund({</span>
         packageName: paymentConfig.google.packageName,
@@ -1791,7 +1804,7 @@ class GooglePlayService {
    */
 <span class="fstat-no" title="function not covered" >  st</span>atic async revokeSubscription(purchaseToken, productId) {
 <span class="cstat-no" title="statement not covered" >    try {</span>
-      const publisher = <span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher();</span>
+      const publisher = /** @type {NonNullable&lt;typeof GooglePlayService.androidPublisher&gt;} */ (<span class="cstat-no" title="statement not covered" >await this.getAndroidPublisher())</span>;
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      await publisher.purchases.subscriptions.revoke({</span>
         packageName: paymentConfig.google.packageName,
@@ -1837,7 +1850,7 @@ class GooglePlayService {
       const subscription = <span class="cstat-no" title="statement not covered" >await Subscription.findOne({ userId });</span>
 <span class="cstat-no" title="statement not covered" >      if (subscription) {</span>
 <span class="cstat-no" title="statement not covered" >        subscription.endDate = validation.expiryTime;</span>
-<span class="cstat-no" title="statement not covered" >        subscription.autoRenew = validation.autoRenewing;</span>
+<span class="cstat-no" title="statement not covered" >        subscription.autoRenew = validation.autoRenewing ?? false;</span>
 <span class="cstat-no" title="statement not covered" >        await subscription.save();</span>
       }
 &nbsp;
@@ -1847,8 +1860,8 @@ class GooglePlayService {
         provider: 'google',
         type: 'subscription',
         status: 'completed',
-        amount: validation.priceInfo.priceAmount,
-        currency: validation.priceInfo.priceCurrencyCode,
+        amount: validation?.priceInfo?.priceAmount,
+        currency: validation?.priceInfo?.priceCurrencyCode,
         providerTransactionId: validation.orderId,
         subscriptionPlan: planType,
         metadata: {
@@ -1972,6 +1985,7 @@ class GooglePlayService {
    * Restore purchases
    */
 <span class="fstat-no" title="function not covered" >  st</span>atic async restorePurchases(userId, purchases) {
+    /** @type {{ subscriptions: any[], products: any[] }} */
     const restored = <span class="cstat-no" title="statement not covered" >{</span>
       subscriptions: [],
       products: [],
@@ -1985,7 +1999,7 @@ class GooglePlayService {
             purchase.purchaseToken,
             purchase.productId
           );
-<span class="cstat-no" title="statement not covered" >          if (result.success &amp;&amp; result.subscription.isActive) {</span>
+<span class="cstat-no" title="statement not covered" >          if (result.success &amp;&amp; result?.subscription?.isActive) {</span>
 <span class="cstat-no" title="statement not covered" >            restored.subscriptions.push(result.subscription);</span>
           }
         }
@@ -2190,7 +2204,9 @@ class GooglePlayService {
 &nbsp;
     const subscription = <span class="cstat-no" title="statement not covered" >await Subscription.findOne({ userId });</span>
 <span class="cstat-no" title="statement not covered" >    if (subscription) {</span>
-<span class="cstat-no" title="statement not covered" >      subscription.status = 'grace_period';</span>
+      /** @type {any} */
+      const status = <span class="cstat-no" title="statement not covered" >'grace_period';</span>
+<span class="cstat-no" title="statement not covered" >      subscription.status = status;</span>
       // Still allow access during grace period
 <span class="cstat-no" title="statement not covered" >      await subscription.save();</span>
     }
@@ -2226,7 +2242,9 @@ class GooglePlayService {
 &nbsp;
     const subscription = <span class="cstat-no" title="statement not covered" >await Subscription.findOne({ userId });</span>
 <span class="cstat-no" title="statement not covered" >    if (subscription) {</span>
-<span class="cstat-no" title="statement not covered" >      subscription.status = 'paused';</span>
+      /** @type {any} */
+      const pausedStatus = <span class="cstat-no" title="statement not covered" >'paused';</span>
+<span class="cstat-no" title="statement not covered" >      subscription.status = pausedStatus;</span>
 <span class="cstat-no" title="statement not covered" >      subscription.features = {</span>
         unlimitedSwipes: false,
         seeWhoLikedYou: false,
@@ -2309,7 +2327,7 @@ class GooglePlayService {
   }
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >module.exports = GooglePlayService;</span>
+module.exports = GooglePlayService;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -2317,7 +2335,7 @@ class GooglePlayService {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-04T22:01:49.555Z
+                at 2026-01-05T21:33:32.394Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

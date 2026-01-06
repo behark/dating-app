@@ -48,7 +48,10 @@ router.get(
     param('matchId').isMongoId().withMessage('Invalid match ID format'),
     // Optional query params validation
     body('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    body('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+    body('limit')
+      .optional()
+      .isInt({ min: 1, max: 100 })
+      .withMessage('Limit must be between 1 and 100'),
   ],
   handleValidationErrors,
   getMessages

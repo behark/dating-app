@@ -47,11 +47,11 @@ exports.authenticate = async (req, res, next) => {
       redisLogger.warn('Redis unavailable for blacklist check, using MongoDB fallback', {
         error: redisError instanceof Error ? redisError.message : String(redisError),
       });
-      
+
       try {
         const BlacklistedToken = require('../models/BlacklistedToken');
         const blacklistedToken = await BlacklistedToken.findOne({ token });
-        
+
         if (blacklistedToken) {
           return res.status(401).json({
             success: false,
@@ -101,7 +101,7 @@ exports.authenticate = async (req, res, next) => {
       ip: req.ip,
       path: req.path,
     });
-    
+
     return res.status(401).json({
       success: false,
       message: ERROR_MESSAGES.INVALID_TOKEN,
@@ -120,7 +120,12 @@ exports.optionalAuth = async (req, res, next) => {
 
     if (token && process.env.JWT_SECRET) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = typeof decoded === 'string' ? decoded : (decoded && typeof decoded === 'object' ? decoded.userId : null);
+      const userId =
+        typeof decoded === 'string'
+          ? decoded
+          : decoded && typeof decoded === 'object'
+            ? decoded.userId
+            : null;
       if (userId) {
         const user = await User.findById(userId);
         if (user) {

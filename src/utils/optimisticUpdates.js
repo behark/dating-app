@@ -13,7 +13,7 @@ export const createOptimisticUpdate = (updateFn, rollbackFn = null) => {
   return async (apiCall, ...args) => {
     // Store previous state for rollback
     let previousState = null;
-    
+
     try {
       // Apply optimistic update
       if (rollbackFn) {

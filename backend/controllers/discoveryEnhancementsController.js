@@ -311,7 +311,10 @@ const getRecentlyActiveUsers = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error getting recently active users:', { error: error.message, stack: error.stack });
+    logger.error('Error getting recently active users:', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : String(error),

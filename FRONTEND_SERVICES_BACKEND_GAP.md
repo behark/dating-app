@@ -12,6 +12,7 @@ This document identifies frontend services that lack backend support and provide
 **Location:** `src/services/PWAService.js`
 
 ### Current Implementation
+
 - Manages Progressive Web App features client-side
 - Handles service worker registration
 - Manages install prompts
@@ -19,9 +20,11 @@ This document identifies frontend services that lack backend support and provide
 - Background sync registration
 
 ### Backend Support Required
+
 **None** - This service correctly operates client-only. PWA features are browser/platform specific and don't require backend coordination.
 
 ### Notes
+
 - Push notification subscriptions may need to be sent to backend for server-side push notifications
 - Consider adding endpoint: `POST /api/notifications/push-subscription` to register push tokens
 
@@ -33,6 +36,7 @@ This document identifies frontend services that lack backend support and provide
 **Location:** `src/services/OfflineService.js`
 
 ### Current Implementation
+
 - Queues actions when offline: `SEND_MESSAGE`, `SWIPE`, `UPDATE_PROFILE`
 - Stores pending actions in AsyncStorage
 - Attempts to sync when back online
@@ -41,6 +45,7 @@ This document identifies frontend services that lack backend support and provide
 ### Missing Backend APIs
 
 #### 1. Bulk Action Execution
+
 ```
 POST /api/sync/execute
 Body: {
@@ -63,6 +68,7 @@ Response: {
 ```
 
 #### 2. Conflict Detection & Resolution
+
 ```
 GET /api/sync/conflicts
 Response: {
@@ -86,6 +92,7 @@ Body: {
 ```
 
 #### 3. Sync Status
+
 ```
 GET /api/sync/status
 Response: {
@@ -119,6 +126,7 @@ Response: {
    - Verify data hasn't been deleted
 
 ### Priority: **HIGH**
+
 Affects user experience when offline. Users expect actions to sync when back online.
 
 ---
@@ -129,6 +137,7 @@ Affects user experience when offline. Users expect actions to sync when back onl
 **Location:** `src/services/BetaTestingService.js`
 
 ### Current Implementation
+
 - All data stored client-side only (in-memory)
 - No persistence across devices
 - No admin visibility
@@ -137,6 +146,7 @@ Affects user experience when offline. Users expect actions to sync when back onl
 ### Missing Backend APIs
 
 #### 1. Beta Enrollment
+
 ```
 POST /api/beta/enroll
 Body: {
@@ -167,6 +177,7 @@ Response: {
 ```
 
 #### 2. Feedback Submission
+
 ```
 POST /api/beta/feedback
 Body: {
@@ -195,6 +206,7 @@ Response: {
 ```
 
 #### 3. Bug Reports
+
 ```
 POST /api/beta/bug
 Body: {
@@ -219,6 +231,7 @@ Response: {
 ```
 
 #### 4. Session Analytics
+
 ```
 POST /api/beta/session
 Body: {
@@ -244,6 +257,7 @@ Response: {
 ```
 
 #### 5. Admin Analytics
+
 ```
 GET /api/beta/analytics
 Response: {
@@ -295,6 +309,7 @@ Response: {
    - Export data
 
 ### Priority: **MEDIUM**
+
 Improves beta testing workflow but not critical for core functionality.
 
 ---
@@ -305,6 +320,7 @@ Improves beta testing workflow but not critical for core functionality.
 **Location:** `src/services/FeatureFlagService.js`
 
 ### Current Implementation
+
 - Flags hardcoded in frontend
 - No centralized control
 - No user-specific overrides from backend
@@ -314,6 +330,7 @@ Improves beta testing workflow but not critical for core functionality.
 ### Missing Backend APIs
 
 #### 1. Get User Flags
+
 ```
 GET /api/feature-flags
 Response: {
@@ -340,6 +357,7 @@ Response: {
 ```
 
 #### 2. Admin Flag Management
+
 ```
 GET /api/feature-flags/admin
 Response: {
@@ -384,6 +402,7 @@ Response: {
 ```
 
 #### 3. Rollout Management
+
 ```
 PUT /api/feature-flags/admin/:flagName/rollout
 Body: {
@@ -396,6 +415,7 @@ Response: {
 ```
 
 #### 4. User Overrides
+
 ```
 POST /api/feature-flags/admin/:flagName/override
 Body: {
@@ -415,6 +435,7 @@ Response: {
 ### Implementation Requirements
 
 1. **Feature Flag Model**
+
    ```javascript
    {
      name: String (unique),
@@ -429,6 +450,7 @@ Response: {
    ```
 
 2. **User Override Model**
+
    ```javascript
    {
      userId: ObjectId,
@@ -457,7 +479,9 @@ Response: {
    - Support analytics integration
 
 ### Priority: **HIGH**
+
 Critical for:
+
 - Beta testing coordination
 - Gradual feature rollouts
 - A/B testing
@@ -468,18 +492,21 @@ Critical for:
 ## Implementation Priority
 
 ### Phase 1 (Critical - Week 1)
+
 1. ✅ Feature Flag Backend
    - Flag model and CRUD endpoints
    - User flag evaluation
    - Admin management
 
 ### Phase 2 (High Priority - Week 2)
+
 2. ✅ Offline Sync Backend
    - Bulk action execution
    - Conflict detection
    - Sync status tracking
 
 ### Phase 3 (Medium Priority - Week 3-4)
+
 3. ✅ Beta Testing Backend
    - Enrollment system
    - Feedback/bug submission
@@ -491,6 +518,7 @@ Critical for:
 ## Database Models Needed
 
 ### FeatureFlag
+
 ```javascript
 {
   name: String (unique, indexed),
@@ -506,6 +534,7 @@ Critical for:
 ```
 
 ### FeatureFlagOverride
+
 ```javascript
 {
   userId: ObjectId (indexed),
@@ -517,6 +546,7 @@ Critical for:
 ```
 
 ### OfflineAction
+
 ```javascript
 {
   userId: ObjectId (indexed),
@@ -532,6 +562,7 @@ Critical for:
 ```
 
 ### BetaEnrollment
+
 ```javascript
 {
   userId: ObjectId (unique, indexed),
@@ -547,6 +578,7 @@ Critical for:
 ```
 
 ### BetaFeedback
+
 ```javascript
 {
   userId: ObjectId (indexed),
@@ -570,6 +602,7 @@ Critical for:
 ```
 
 ### BetaSession
+
 ```javascript
 {
   userId: ObjectId (indexed),
@@ -591,6 +624,7 @@ Critical for:
 ## Testing Requirements
 
 ### Feature Flags
+
 - [ ] Test flag evaluation logic
 - [ ] Test user overrides
 - [ ] Test rollout percentages
@@ -598,6 +632,7 @@ Critical for:
 - [ ] Test caching and invalidation
 
 ### Offline Sync
+
 - [ ] Test bulk action execution
 - [ ] Test conflict detection
 - [ ] Test conflict resolution
@@ -605,6 +640,7 @@ Critical for:
 - [ ] Test action deduplication
 
 ### Beta Testing
+
 - [ ] Test enrollment flow
 - [ ] Test feedback submission
 - [ ] Test bug report submission

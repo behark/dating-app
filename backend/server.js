@@ -4,6 +4,7 @@ const Sentry = require('./instrument.js');
 require('dotenv').config();
 const { createServer } = require('http');
 const express = require('express');
+const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet').default || require('helmet');
@@ -80,6 +81,7 @@ const syncRoutes = require('./routes/sync');
 const featureFlagsRoutes = require('./routes/featureFlags');
 const betaRoutes = require('./routes/beta');
 const performanceRoutes = require('./routes/performance');
+const uploadRoutes = require('./routes/upload');
 
 // Analytics metrics middleware
 const {
@@ -143,10 +145,10 @@ healthCheckService.registerCheck('mongodb', async () => {
 healthCheckService.registerCheck('redis', async () => {
   try {
     const { getRedis } = require('./config/redis');
-    
+
     // Get Redis client
     const redisClient = await getRedis();
-    
+
     if (!redisClient) {
       // Redis not configured - return info status
       if (!process.env.REDIS_HOST && !process.env.REDIS_URL) {
@@ -155,25 +157,25 @@ healthCheckService.registerCheck('redis', async () => {
       // Redis is configured but connection failed
       throw new Error('Redis is configured but connection failed');
     }
-    
+
     // Test Redis connection with PING
     const result = await Promise.race([
       redisClient.ping(),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Redis ping timeout')), 5000)
-      ),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Redis ping timeout')), 5000)),
     ]);
-    
+
     if (result === 'PONG' || result === true) {
       return { status: 'ok', connected: true };
     }
-    
+
     throw new Error('Redis ping did not return PONG');
   } catch (error) {
     logger.warn('Redis health check failed', {
       error: error instanceof Error ? error.message : String(error),
     });
-    throw new Error(`Redis not available: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(
+      `Redis not available: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 });
 
@@ -224,6 +226,9 @@ app.use(cdnCacheMiddleware); // CDN cache headers
 app.use(preflightCache(86400)); // Cache CORS preflight for 24h
 app.use(morgan(morganFormat, { stream: logger.getStream() })); // Structured logging
 
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
 // CORS configuration - Enhanced security
 // Parse CORS_ORIGIN if provided (comma-separated list of origins)
 const corsOrigins = process.env.CORS_ORIGIN
@@ -271,7 +276,9 @@ const corsOptions = {
         logger.warn('CORS: Request with no origin rejected in production', {
           // Note: Can't log IP here as req is not available in CORS callback
         });
-        callback(new Error('Origin required in production. Use API key for server-to-server requests.'));
+        callback(
+          new Error('Origin required in production. Use API key for server-to-server requests.')
+        );
         return;
       }
       // Development: allow requests with no origin (for mobile apps, curl, etc.)
@@ -302,7 +309,10 @@ if (process.env.NODE_ENV === 'production' && process.env.API_KEY) {
       // Set CORS headers manually for server-to-server requests
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-ID, X-Request-ID, X-API-Key');
+      res.setHeader(
+        'Access-Control-Allow-Headers',
+        'Content-Type, Authorization, X-User-ID, X-Request-ID, X-API-Key'
+      );
       logger.debug('Server-to-server request authenticated with API key', {
         ip: req.ip,
         path: req.path,
@@ -325,25 +335,28 @@ const SAFE_NO_ORIGIN_PATHS = [
 // Apply CORS conditionally - allow safe paths without origin
 app.use((req, res, next) => {
   // Check if this is a safe path that doesn't require origin
-  const isSafePath = SAFE_NO_ORIGIN_PATHS.some(path => {
+  const isSafePath = SAFE_NO_ORIGIN_PATHS.some((path) => {
     // Exact match or path starts with the safe path followed by /
     return req.path === path || req.path.startsWith(path + '/');
   });
-  
+
   if (isSafePath && !req.headers.origin && process.env.NODE_ENV === 'production') {
     // Set CORS headers manually for safe paths
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-User-ID, X-Request-ID, X-API-Key');
-    
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, X-User-ID, X-Request-ID, X-API-Key'
+    );
+
     // Handle OPTIONS preflight
     if (req.method === 'OPTIONS') {
       return res.sendStatus(200);
     }
-    
+
     return next();
   }
-  
+
   // Apply CORS for all other requests
   cors(corsOptions)(req, res, next);
 });
@@ -468,6 +481,7 @@ app.use('/api/sync', syncRoutes);
 app.use('/api/feature-flags', featureFlagsRoutes);
 app.use('/api/beta', betaRoutes);
 app.use('/api/performance', performanceRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // 404 handler for undefined routes
 app.use('*', (req, res) => {
@@ -659,7 +673,9 @@ io.use(async (socket, next) => {
           ip: socket.handshake.address,
           userAgent: socket.handshake.headers['user-agent'],
         });
-        return next(new Error('Authentication required - JWT token must be provided in production'));
+        return next(
+          new Error('Authentication required - JWT token must be provided in production')
+        );
       }
 
       // JWT authentication (required in production)
@@ -669,7 +685,7 @@ io.use(async (socket, next) => {
         logger.error('JWT_SECRET not configured for Socket.io authentication');
         return next(new Error('JWT_SECRET not configured'));
       }
-      
+
       try {
         const decoded = /** @type {any} */ (jwtProd.verify(token, jwtSecretProd));
         /** @type {any} */ (socket).userId = decoded.userId || decoded.id;
@@ -697,9 +713,9 @@ io.use(async (socket, next) => {
           logger.debug('JWT verification failed in dev mode, falling back to userId');
         }
       }
-      
+
       // Development fallback: direct userId (with strict validation)
-      if (!/** @type {any} */ (socket).userId && userId) {
+      if (!(/** @type {any} */ (socket).userId) && userId) {
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           return next(new Error('Invalid user ID format'));
         }
@@ -709,14 +725,16 @@ io.use(async (socket, next) => {
         });
         /** @type {any} */ (socket).userId = userId;
       }
-      
-      if (!/** @type {any} */ (socket).userId) {
+
+      if (!(/** @type {any} */ (socket).userId)) {
         return next(new Error('Authentication required - provide token or userId (dev only)'));
       }
     }
 
     // Verify user exists and is active
-    const user = await User.findById(/** @type {any} */ (socket).userId).select('_id name isActive');
+    const user = await User.findById(/** @type {any} */ (socket).userId).select(
+      '_id name isActive'
+    );
     if (!user) {
       logger.warn('Socket.io connection rejected: User not found', {
         userId: /** @type {any} */ (socket).userId,
@@ -724,7 +742,7 @@ io.use(async (socket, next) => {
       });
       return next(new Error('User not found'));
     }
-    
+
     if (!user.isActive) {
       logger.warn('Socket.io connection rejected: User inactive', {
         userId: /** @type {any} */ (socket).userId,
@@ -879,7 +897,9 @@ io.on('connection', (socket) => {
           userId: senderId,
           type,
         });
-        socket.emit('error', { message: `Invalid message type. Allowed: ${allowedTypes.join(', ')}` });
+        socket.emit('error', {
+          message: `Invalid message type. Allowed: ${allowedTypes.join(', ')}`,
+        });
         return;
       }
 
@@ -1076,7 +1096,7 @@ const startServer = async () => {
       logger.warn('MongoDB connection failed - server starting without database', {
         note: 'Some features may not work until MongoDB is connected',
       });
-      
+
       // In production, exit if database connection fails
       if (process.env.NODE_ENV === 'production') {
         logger.error('CRITICAL: Cannot start server without database in production');
@@ -1125,7 +1145,7 @@ const startServer = async () => {
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
   const error = err instanceof Error ? err : new Error(String(err));
-  
+
   // Log with structured logger
   logger.error('Unhandled Promise Rejection', {
     error: error.message,
@@ -1133,7 +1153,7 @@ process.on('unhandledRejection', (err, promise) => {
     promise: promise?.toString?.() || String(promise),
     name: error.name,
   });
-  
+
   // Send to Sentry if configured
   if (process.env.SENTRY_DSN) {
     Sentry.captureException(error, {
@@ -1148,7 +1168,7 @@ process.on('unhandledRejection', (err, promise) => {
       },
     });
   }
-  
+
   // In production, gracefully shutdown after logging
   if (process.env.NODE_ENV === 'production') {
     logger.error('Shutting down server due to unhandled rejection');
@@ -1167,14 +1187,14 @@ process.on('unhandledRejection', (err, promise) => {
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
   const error = err instanceof Error ? err : new Error(String(err));
-  
+
   // Log with structured logger
   logger.error('Uncaught Exception', {
     error: error.message,
     stack: error.stack,
     name: error.name,
   });
-  
+
   // Send to Sentry if configured
   if (process.env.SENTRY_DSN) {
     Sentry.captureException(error, {
@@ -1184,7 +1204,7 @@ process.on('uncaughtException', (err) => {
       },
     });
   }
-  
+
   // Always exit on uncaught exceptions (they indicate programming errors)
   logger.error('Shutting down server due to uncaught exception');
   if (process.env.NODE_ENV === 'production') {

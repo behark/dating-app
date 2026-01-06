@@ -315,19 +315,15 @@ exports.recordSession = async (req, res) => {
  */
 exports.getAnalytics = async (req, res) => {
   try {
-    const [
-      totalBetaUsers,
-      activeUsers,
-      totalSessions,
-      feedbackStats,
-      bugStats,
-    ] = await Promise.all([
-      BetaEnrollment.countDocuments(),
-      BetaEnrollment.countDocuments({ status: 'active' }),
-      BetaSession.countDocuments(),
-      getFeedbackStats(),
-      getBugStats(),
-    ]);
+    const [totalBetaUsers, activeUsers, totalSessions, feedbackStats, bugStats] = await Promise.all(
+      [
+        BetaEnrollment.countDocuments(),
+        BetaEnrollment.countDocuments({ status: 'active' }),
+        BetaSession.countDocuments(),
+        getFeedbackStats(),
+        getBugStats(),
+      ]
+    );
 
     // Calculate average session duration
     const sessions = await BetaSession.find({ duration: { $gt: 0 } })
@@ -340,10 +336,7 @@ exports.getAnalytics = async (req, res) => {
         : 0;
 
     // Get feature usage
-    const allSessions = await BetaSession.find({})
-      .select('featuresUsed')
-      .limit(1000)
-      .lean();
+    const allSessions = await BetaSession.find({}).select('featuresUsed').limit(1000).lean();
     const featureUsage = {};
     allSessions.forEach((session) => {
       (session.featuresUsed || []).forEach((feature) => {
@@ -446,9 +439,7 @@ async function getFeedbackStats() {
     .select('rating')
     .lean();
   const avgRating =
-    ratings.length > 0
-      ? ratings.reduce((sum, f) => sum + (f.rating || 0), 0) / ratings.length
-      : 0;
+    ratings.length > 0 ? ratings.reduce((sum, f) => sum + (f.rating || 0), 0) / ratings.length : 0;
 
   return {
     total,
@@ -498,7 +489,7 @@ async function getBugStats() {
       acc[item._id] = item.count;
       return acc;
     }, {}),
-    critical: (bySeverity.find((s) => s._id === 'critical')?.count || 0),
-    high: (bySeverity.find((s) => s._id === 'high')?.count || 0),
+    critical: bySeverity.find((s) => s._id === 'critical')?.count || 0,
+    high: bySeverity.find((s) => s._id === 'high')?.count || 0,
   };
 }

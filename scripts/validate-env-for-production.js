@@ -2,10 +2,10 @@
 
 /**
  * Environment Variables Validation Script
- * 
+ *
  * Validates all required environment variables for production deployment
  * Run before deploying to Render/Vercel
- * 
+ *
  * Usage: node scripts/validate-env-for-production.js
  */
 
@@ -47,7 +47,7 @@ const BACKEND_VARS = {
       pattern: /^mongodb(\+srv)?:\/\//,
     },
   ],
-  
+
   important: [
     {
       name: 'NODE_ENV',
@@ -66,7 +66,7 @@ const BACKEND_VARS = {
       description: 'Redis connection',
     },
   ],
-  
+
   recommended: [
     { name: 'SENTRY_DSN', description: 'Error tracking' },
     { name: 'EMAIL_USER', description: 'Email service' },
@@ -92,14 +92,14 @@ const FRONTEND_VARS = {
       patternMessage: 'Must be HTTPS in production',
     },
   ],
-  
+
   important: [
     { name: 'EXPO_PUBLIC_FIREBASE_API_KEY', description: 'Firebase config' },
     { name: 'EXPO_PUBLIC_FIREBASE_PROJECT_ID', description: 'Firebase config' },
     { name: 'EXPO_PUBLIC_PRIVACY_POLICY_URL', description: 'Legal - App Store requirement' },
     { name: 'EXPO_PUBLIC_TERMS_OF_SERVICE_URL', description: 'Legal - App Store requirement' },
   ],
-  
+
   recommended: [
     { name: 'EXPO_PUBLIC_SENTRY_DSN', description: 'Error tracking' },
     { name: 'EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN', description: 'Firebase auth' },
@@ -283,7 +283,7 @@ class EnvValidator {
 
     // Check that secrets are not exposed in EXPO_PUBLIC_* variables
     let hasSecurityIssue = false;
-    
+
     for (const forbidden of FORBIDDEN_IN_FRONTEND) {
       const exposedName = `EXPO_PUBLIC_${forbidden}`;
       if (process.env[exposedName]) {
@@ -348,7 +348,7 @@ class EnvValidator {
 
     // Check Cloudinary configuration
     const cloudinaryVars = ['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET'];
-    const cloudinarySet = cloudinaryVars.filter(v => process.env[v]);
+    const cloudinarySet = cloudinaryVars.filter((v) => process.env[v]);
     if (cloudinarySet.length > 0 && cloudinarySet.length < 3) {
       this.warn(`Cloudinary partially configured. Set: ${cloudinarySet.join(', ')}`);
     }
@@ -371,12 +371,12 @@ class EnvValidator {
 
     if (this.errors.length > 0) {
       console.log('\n🚫 CRITICAL ISSUES (must fix before deployment):');
-      this.errors.forEach(e => console.log(`   ${FAIL} ${e}`));
+      this.errors.forEach((e) => console.log(`   ${FAIL} ${e}`));
     }
 
     if (this.warnings.length > 0) {
       console.log('\n⚠️  WARNINGS (review before deployment):');
-      this.warnings.forEach(w => console.log(`   ${WARN} ${w}`));
+      this.warnings.forEach((w) => console.log(`   ${WARN} ${w}`));
     }
 
     console.log('\n' + '='.repeat(60));

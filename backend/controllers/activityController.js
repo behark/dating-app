@@ -331,7 +331,9 @@ exports.getMultipleStatus = async (req, res) => {
         activityStatus = 'online';
       } else if (user.lastActive) {
         const lastActiveDate = new Date(user.lastActive);
-        const minutesAgo = Math.floor((new Date().getTime() - lastActiveDate.getTime()) / (1000 * 60));
+        const minutesAgo = Math.floor(
+          (new Date().getTime() - lastActiveDate.getTime()) / (1000 * 60)
+        );
         if (minutesAgo < 5) {
           activityStatus = 'active_now';
         }

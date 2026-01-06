@@ -20,17 +20,9 @@ const TEST_ADMIN_ID = new mongoose.Types.ObjectId().toString();
  * @returns {string} JWT token
  */
 const generateTestToken = (options = {}) => {
-  const {
-    userId = TEST_USER_ID,
-    role = 'user',
-    expiresIn = 3600,
-  } = options;
+  const { userId = TEST_USER_ID, role = 'user', expiresIn = 3600 } = options;
 
-  return jwt.sign(
-    { userId, role },
-    process.env.JWT_SECRET || TEST_JWT_SECRET,
-    { expiresIn }
-  );
+  return jwt.sign({ userId, role }, process.env.JWT_SECRET || TEST_JWT_SECRET, { expiresIn });
 };
 
 /**
@@ -39,11 +31,7 @@ const generateTestToken = (options = {}) => {
  * @returns {string} Expired JWT token
  */
 const generateExpiredToken = (userId = TEST_USER_ID) => {
-  return jwt.sign(
-    { userId },
-    process.env.JWT_SECRET || TEST_JWT_SECRET,
-    { expiresIn: -1 }
-  );
+  return jwt.sign({ userId }, process.env.JWT_SECRET || TEST_JWT_SECRET, { expiresIn: -1 });
 };
 
 /**
@@ -68,7 +56,7 @@ const generateAdminToken = () => {
  * @param {number} ms - Milliseconds to wait
  * @returns {Promise<void>}
  */
-const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Retry a function until it succeeds or max attempts reached

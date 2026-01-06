@@ -6,9 +6,9 @@ import { Colors } from '../constants/colors';
 const PrivacyPolicyScreen = ({ navigation }) => {
   const handleOpenWebVersion = () => {
     // Replace with your actual privacy policy URL
-    const privacyPolicyUrl = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL || 
-      'https://your-domain.com/privacy-policy';
-    Linking.openURL(privacyPolicyUrl).catch((err) => 
+    const privacyPolicyUrl =
+      process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL || 'https://your-domain.com/privacy-policy';
+    Linking.openURL(privacyPolicyUrl).catch((err) =>
       console.error('Failed to open privacy policy URL:', err)
     );
   };
@@ -36,14 +36,14 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={styles.bulletPoint}>• Profile information (photos, bio, interests)</Text>
             <Text style={styles.bulletPoint}>• Location data (for matching purposes)</Text>
             <Text style={styles.bulletPoint}>• Messages and interactions with other users</Text>
-            <Text style={styles.bulletPoint}>• Device information and push notification tokens</Text>
+            <Text style={styles.bulletPoint}>
+              • Device information and push notification tokens
+            </Text>
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>2. How We Use Your Information</Text>
-            <Text style={styles.sectionText}>
-              We use the information we collect to:
-            </Text>
+            <Text style={styles.sectionText}>We use the information we collect to:</Text>
             <Text style={styles.bulletPoint}>• Provide, maintain, and improve our services</Text>
             <Text style={styles.bulletPoint}>• Match you with potential partners</Text>
             <Text style={styles.bulletPoint}>• Send you notifications and updates</Text>
@@ -56,7 +56,9 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={styles.sectionText}>
               We do not sell your personal information. We may share your information:
             </Text>
-            <Text style={styles.bulletPoint}>• With other users (as part of the matching service)</Text>
+            <Text style={styles.bulletPoint}>
+              • With other users (as part of the matching service)
+            </Text>
             <Text style={styles.bulletPoint}>• With service providers who assist us</Text>
             <Text style={styles.bulletPoint}>• When required by law or to protect rights</Text>
             <Text style={styles.bulletPoint}>• In connection with a business transfer</Text>
@@ -79,11 +81,11 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>5. California Privacy Rights (CCPA)</Text>
-            <Text style={styles.sectionText}>
-              California residents have the right to:
-            </Text>
+            <Text style={styles.sectionText}>California residents have the right to:</Text>
             <Text style={styles.bulletPoint}>• Know what personal information is collected</Text>
-            <Text style={styles.bulletPoint}>• Know if personal information is sold or disclosed</Text>
+            <Text style={styles.bulletPoint}>
+              • Know if personal information is sold or disclosed
+            </Text>
             <Text style={styles.bulletPoint}>• Opt-out of the sale of personal information</Text>
             <Text style={styles.bulletPoint}>• Access and delete personal information</Text>
             <Text style={styles.sectionText}>
@@ -94,8 +96,9 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>6. Data Security</Text>
             <Text style={styles.sectionText}>
-              We implement appropriate technical and organizational measures to protect your personal
-              information. However, no method of transmission over the internet is 100% secure.
+              We implement appropriate technical and organizational measures to protect your
+              personal information. However, no method of transmission over the internet is 100%
+              secure.
             </Text>
           </View>
 
@@ -110,8 +113,8 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>8. Children's Privacy</Text>
             <Text style={styles.sectionText}>
-              Our service is not intended for users under 18 years of age. We do not knowingly collect
-              personal information from children under 18.
+              Our service is not intended for users under 18 years of age. We do not knowingly
+              collect personal information from children under 18.
             </Text>
           </View>
 

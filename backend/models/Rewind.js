@@ -63,7 +63,7 @@ rewindSchema.statics.getRemainingForToday = async function (userId) {
 
   // @ts-ignore
   // @ts-ignore
-// @ts-ignore
+  // @ts-ignore
   // @ts-ignore
   // @ts-ignore
   // @ts-ignore

@@ -77,7 +77,13 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
       if (isLogin) {
         await login(sanitizedEmail, sanitizedPassword);
       } else {
-        await signup(sanitizedEmail, sanitizedPassword, sanitizedName, parseInt(sanitizedAge), gender);
+        await signup(
+          sanitizedEmail,
+          sanitizedPassword,
+          sanitizedName,
+          parseInt(sanitizedAge),
+          gender
+        );
       }
       // Call success callback if provided
       if (onAuthSuccess) {
@@ -85,7 +91,11 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
       }
     } catch (error) {
       logger.error('Authentication error:', error);
-      showStandardError(error, isLogin ? 'login' : 'signup', isLogin ? 'Sign In Failed' : 'Sign Up Failed');
+      showStandardError(
+        error,
+        isLogin ? 'login' : 'signup',
+        isLogin ? 'Sign In Failed' : 'Sign Up Failed'
+      );
     } finally {
       setLoading(false);
     }
@@ -287,12 +297,18 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
               activeOpacity={0.8}
               disabled={loading || isAuthPending}
               accessibilityLabel={isLogin ? 'Sign in button' : 'Sign up button'}
-              accessibilityHint={isLogin ? 'Tap to sign in with your email and password' : 'Tap to create a new account'}
+              accessibilityHint={
+                isLogin
+                  ? 'Tap to sign in with your email and password'
+                  : 'Tap to create a new account'
+              }
               accessibilityRole="button"
               accessibilityState={{ disabled: loading || isAuthPending }}
             >
               <LinearGradient
-                colors={loading ? Colors.gradient.disabled || ['#999', '#777'] : Colors.gradient.primary}
+                colors={
+                  loading ? Colors.gradient.disabled || ['#999', '#777'] : Colors.gradient.primary
+                }
                 style={styles.buttonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
@@ -303,9 +319,7 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                     <Text style={styles.primaryButtonText}>Please wait...</Text>
                   </View>
                 ) : (
-                  <Text style={styles.primaryButtonText}>
-                    {isLogin ? 'Sign In' : 'Sign Up'}
-                  </Text>
+                  <Text style={styles.primaryButtonText}>{isLogin ? 'Sign In' : 'Sign Up'}</Text>
                 )}
               </LinearGradient>
             </TouchableOpacity>
@@ -319,15 +333,20 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                 </View>
 
                 <TouchableOpacity
-                  style={[styles.googleButton, (loading || isGooglePending) && styles.buttonDisabled]}
+                  style={[
+                    styles.googleButton,
+                    (loading || isGooglePending) && styles.buttonDisabled,
+                  ]}
                   onPress={handleGoogleSignIn}
                   activeOpacity={0.8}
                   disabled={loading || isGooglePending}
                 >
-                  {(loading || isGooglePending) ? (
+                  {loading || isGooglePending ? (
                     <View style={styles.loadingContainer}>
                       <ActivityIndicator size="small" color={Colors.text.tertiary} />
-                      <Text style={[styles.googleButtonText, styles.textDisabled]}>Please wait...</Text>
+                      <Text style={[styles.googleButtonText, styles.textDisabled]}>
+                        Please wait...
+                      </Text>
                     </View>
                   ) : (
                     <>

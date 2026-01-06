@@ -35,17 +35,17 @@ jest.mock('../../models/Activity', () => {
 const createTestApp = () => {
   const app = express();
   app.use(express.json());
-  
+
   const activityRoutes = require('../../routes/activity');
   app.use('/api/activity', activityRoutes);
-  
+
   app.use((err, req, res, next) => {
     res.status(err.status || 500).json({
       success: false,
       message: err.message || 'Internal server error',
     });
   });
-  
+
   return app;
 };
 
@@ -53,16 +53,16 @@ describe('Activity API Tests', () => {
   let app;
   const User = require('../../models/User');
   const Activity = require('../../models/Activity');
-  
+
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';
     app = createTestApp();
   });
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
-  
+
   describe('GET /api/activity', () => {
     describe('Success Cases', () => {
       it('should return user activity feed', async () => {
@@ -90,18 +90,18 @@ describe('Activity API Tests', () => {
             }),
           }),
         });
-        
+
         Activity.countDocuments.mockResolvedValue(2);
-        
+
         const response = await request(app)
           .get('/api/activity')
           .set('Authorization', `Bearer ${generateTestToken()}`);
-        
+
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
         expect(Array.isArray(response.body.data.activities)).toBe(true);
       });
-      
+
       it('should support pagination', async () => {
         Activity.find.mockReturnValue({
           sort: jest.fn().mockReturnValue({
@@ -114,40 +114,38 @@ describe('Activity API Tests', () => {
             }),
           }),
         });
-        
+
         Activity.countDocuments.mockResolvedValue(50);
-        
+
         const response = await request(app)
           .get('/api/activity?page=2&limit=10')
           .set('Authorization', `Bearer ${generateTestToken()}`);
-        
+
         expect(response.status).toBe(200);
       });
-      
+
       it('should filter by activity type', async () => {
         Activity.find.mockReturnValue({
           sort: jest.fn().mockReturnValue({
             skip: jest.fn().mockReturnValue({
               limit: jest.fn().mockReturnValue({
                 populate: jest.fn().mockReturnValue({
-                  lean: jest.fn().mockResolvedValue([
-                    { _id: 'activity_1', type: 'like_received' },
-                  ]),
+                  lean: jest.fn().mockResolvedValue([{ _id: 'activity_1', type: 'like_received' }]),
                 }),
               }),
             }),
           }),
         });
-        
+
         Activity.countDocuments.mockResolvedValue(1);
-        
+
         const response = await request(app)
           .get('/api/activity?type=like_received')
           .set('Authorization', `Bearer ${generateTestToken()}`);
-        
+
         expect(response.status).toBe(200);
       });
-      
+
       it('should filter by date range', async () => {
         Activity.find.mockReturnValue({
           sort: jest.fn().mockReturnValue({
@@ -160,17 +158,17 @@ describe('Activity API Tests', () => {
             }),
           }),
         });
-        
+
         Activity.countDocuments.mockResolvedValue(0);
-        
+
         const response = await request(app)
           .get('/api/activity?startDate=2024-01-01&endDate=2024-12-31')
           .set('Authorization', `Bearer ${generateTestToken()}`);
-        
+
         expect(response.status).toBe(200);
       });
     });
-    
+
     describe('Unauthorized Access', () => {
       it('should reject unauthenticated request', async () => {
         const response = await request(app).get('/api/activity');
@@ -178,7 +176,7 @@ describe('Activity API Tests', () => {
       });
     });
   });
-  
+
   describe('GET /api/activity/profile-views', () => {
     describe('Success Cases', () => {
       it('should return profile views', async () => {
@@ -200,22 +198,22 @@ describe('Activity API Tests', () => {
             }),
           }),
         });
-        
+
         const response = await request(app)
           .get('/api/activity/profile-views')
           .set('Authorization', `Bearer ${generateTestToken()}`);
-        
+
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
       });
-      
+
       it('should return profile views with premium user details', async () => {
         User.findById.mockResolvedValue({
           _id: 'user_id',
           isPremium: true,
           premiumFeatures: { seeWhoViewsYou: true },
         });
-        
+
         Activity.find.mockReturnValue({
           sort: jest.fn().mockReturnValue({
             skip: jest.fn().mockReturnValue({
@@ -232,16 +230,16 @@ describe('Activity API Tests', () => {
             }),
           }),
         });
-        
+
         const response = await request(app)
           .get('/api/activity/profile-views')
           .set('Authorization', `Bearer ${generateTestToken()}`);
-        
+
         expect(response.status).toBe(200);
       });
     });
   });
-  
+
   describe('GET /api/activity/stats', () => {
     describe('Success Cases', () => {
       it('should return activity statistics', async () => {
@@ -251,44 +249,42 @@ describe('Activity API Tests', () => {
           { _id: 'match', count: 10 },
           { _id: 'message_sent', count: 100 },
         ]);
-        
+
         const response = await request(app)
           .get('/api/activity/stats')
           .set('Authorization', `Bearer ${generateTestToken()}`);
-        
+
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
         expect(response.body.data.stats).toBeDefined();
       });
-      
+
       it('should return stats for specific time period', async () => {
-        Activity.aggregate.mockResolvedValue([
-          { _id: 'profile_view', count: 10 },
-        ]);
-        
+        Activity.aggregate.mockResolvedValue([{ _id: 'profile_view', count: 10 }]);
+
         const response = await request(app)
           .get('/api/activity/stats?period=week')
           .set('Authorization', `Bearer ${generateTestToken()}`);
-        
+
         expect(response.status).toBe(200);
       });
-      
+
       it('should support different stat periods', async () => {
         const periods = ['day', 'week', 'month', 'year', 'all'];
-        
+
         for (const period of periods) {
           Activity.aggregate.mockResolvedValue([]);
-          
+
           const response = await request(app)
             .get(`/api/activity/stats?period=${period}`)
             .set('Authorization', `Bearer ${generateTestToken()}`);
-          
+
           expect(response.status).toBe(200);
         }
       });
     });
   });
-  
+
   describe('GET /api/activity/insights', () => {
     describe('Success Cases', () => {
       it('should return user insights', async () => {
@@ -301,17 +297,17 @@ describe('Activity API Tests', () => {
             responseRate: 0.8,
           },
         ]);
-        
+
         const response = await request(app)
           .get('/api/activity/insights')
           .set('Authorization', `Bearer ${generateTestToken()}`);
-        
+
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
       });
     });
   });
-  
+
   describe('POST /api/activity/log', () => {
     describe('Success Cases', () => {
       it('should log app activity', async () => {
@@ -322,11 +318,11 @@ describe('Activity API Tests', () => {
             type: 'screen_view',
             data: { screen: 'discover' },
           });
-        
+
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
       });
-      
+
       it('should log different activity types', async () => {
         const activityTypes = [
           'screen_view',
@@ -335,30 +331,30 @@ describe('Activity API Tests', () => {
           'filter_applied',
           'feature_used',
         ];
-        
+
         for (const type of activityTypes) {
           const response = await request(app)
             .post('/api/activity/log')
             .set('Authorization', `Bearer ${generateTestToken()}`)
             .send({ type, data: {} });
-          
+
           expect(response.status).toBe(200);
         }
       });
     });
-    
+
     describe('Validation', () => {
       it('should require activity type', async () => {
         const response = await request(app)
           .post('/api/activity/log')
           .set('Authorization', `Bearer ${generateTestToken()}`)
           .send({});
-        
+
         expect(response.status).toBe(400);
       });
     });
   });
-  
+
   describe('PUT /api/activity/online-status', () => {
     describe('Success Cases', () => {
       it('should update online status', async () => {
@@ -367,33 +363,33 @@ describe('Activity API Tests', () => {
           isOnline: true,
           lastActive: new Date(),
         });
-        
+
         const response = await request(app)
           .put('/api/activity/online-status')
           .set('Authorization', `Bearer ${generateTestToken()}`)
           .send({ isOnline: true });
-        
+
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
       });
-      
+
       it('should set user as offline', async () => {
         User.findByIdAndUpdate.mockResolvedValue({
           _id: 'user_id',
           isOnline: false,
           lastActive: new Date(),
         });
-        
+
         const response = await request(app)
           .put('/api/activity/online-status')
           .set('Authorization', `Bearer ${generateTestToken()}`)
           .send({ isOnline: false });
-        
+
         expect(response.status).toBe(200);
       });
     });
   });
-  
+
   describe('GET /api/activity/timeline', () => {
     describe('Success Cases', () => {
       it('should return activity timeline', async () => {
@@ -416,32 +412,32 @@ describe('Activity API Tests', () => {
             }),
           }),
         });
-        
+
         const response = await request(app)
           .get('/api/activity/timeline')
           .set('Authorization', `Bearer ${generateTestToken()}`);
-        
+
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
       });
     });
   });
-  
+
   describe('DELETE /api/activity', () => {
     describe('Success Cases', () => {
       it('should clear activity history', async () => {
         Activity.deleteMany = jest.fn().mockResolvedValue({ deletedCount: 100 });
-        
+
         const response = await request(app)
           .delete('/api/activity')
           .set('Authorization', `Bearer ${generateTestToken()}`);
-        
+
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
       });
     });
   });
-  
+
   describe('Activity Types', () => {
     const activityTypes = [
       'profile_view',
@@ -455,7 +451,7 @@ describe('Activity API Tests', () => {
       'boost_activated',
       'profile_updated',
     ];
-    
+
     it('should handle all activity types', async () => {
       for (const type of activityTypes) {
         Activity.find.mockReturnValue({
@@ -463,21 +459,19 @@ describe('Activity API Tests', () => {
             skip: jest.fn().mockReturnValue({
               limit: jest.fn().mockReturnValue({
                 populate: jest.fn().mockReturnValue({
-                  lean: jest.fn().mockResolvedValue([
-                    { _id: `activity_${type}`, type },
-                  ]),
+                  lean: jest.fn().mockResolvedValue([{ _id: `activity_${type}`, type }]),
                 }),
               }),
             }),
           }),
         });
-        
+
         Activity.countDocuments.mockResolvedValue(1);
-        
+
         const response = await request(app)
           .get(`/api/activity?type=${type}`)
           .set('Authorization', `Bearer ${generateTestToken()}`);
-        
+
         expect(response.status).toBe(200);
       }
     });

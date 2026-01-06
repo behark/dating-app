@@ -63,9 +63,7 @@ class MonitoringService {
     return (err, req, res, next) => {
       // Only capture 500+ errors or errors without status
       const shouldCapture =
-        err.status >= 500 ||
-        !err.status ||
-        (err.status === 400 && !err.isValidationError);
+        err.status >= 500 || !err.status || (err.status === 400 && !err.isValidationError);
 
       if (this.initialized && shouldCapture) {
         Sentry.captureException(err);

@@ -16,7 +16,7 @@ import logger from './logger';
 export const showStandardError = (error, context = '', customTitle = 'Error') => {
   const message = getUserFriendlyMessage(error, context);
   Alert.alert(customTitle, message, [{ text: 'OK', style: 'cancel' }]);
-  
+
   // Log error for debugging (but don't expose to user)
   logger.error(`Error in ${context || 'unknown context'}:`, error);
 };

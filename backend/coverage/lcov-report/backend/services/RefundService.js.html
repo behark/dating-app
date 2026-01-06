@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">3.61% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/163</span>
+                <span class='fraction'>6/166</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/92</span>
+                <span class='fraction'>0/101</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">3.65% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/161</span>
+                <span class='fraction'>6/164</span>
             </div>
         
             
@@ -642,18 +642,23 @@
 <a name='L577'></a><a href='#L577'>577</a>
 <a name='L578'></a><a href='#L578'>578</a>
 <a name='L579'></a><a href='#L579'>579</a>
-<a name='L580'></a><a href='#L580'>580</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L580'></a><a href='#L580'>580</a>
+<a name='L581'></a><a href='#L581'>581</a>
+<a name='L582'></a><a href='#L582'>582</a>
+<a name='L583'></a><a href='#L583'>583</a>
+<a name='L584'></a><a href='#L584'>584</a>
+<a name='L585'></a><a href='#L585'>585</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1092,7 +1097,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1220,7 +1230,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
  * Refund Service
  *
@@ -1228,11 +1238,11 @@
  * including automatic approvals and manual review queue
  */
 &nbsp;
-const paymentConfig = <span class="cstat-no" title="statement not covered" >require('../config/payment');</span>
-const StripeService = <span class="cstat-no" title="statement not covered" >require('./StripeService');</span>
-const PayPalService = <span class="cstat-no" title="statement not covered" >require('./PayPalService');</span>
-const PaymentTransaction = <span class="cstat-no" title="statement not covered" >require('../models/PaymentTransaction');</span>
-const Subscription = <span class="cstat-no" title="statement not covered" >require('../models/Subscription');</span>
+const paymentConfig = require('../config/payment');
+const PaymentTransaction = require('../models/PaymentTransaction');
+const Subscription = require('../models/Subscription');
+const StripeService = require('./StripeService');
+const PayPalService = require('./PayPalService');
 &nbsp;
 class RefundService {
   /**
@@ -1426,7 +1436,7 @@ class RefundService {
 <span class="cstat-no" title="statement not covered" >      console.error('Stripe refund error:', error);</span>
 <span class="cstat-no" title="statement not covered" >      return {</span>
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -1465,7 +1475,7 @@ class RefundService {
 <span class="cstat-no" title="statement not covered" >      console.error('PayPal refund error:', error);</span>
 <span class="cstat-no" title="statement not covered" >      return {</span>
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -1502,7 +1512,7 @@ class RefundService {
 <span class="cstat-no" title="statement not covered" >      console.error('Google refund error:', error);</span>
 <span class="cstat-no" title="statement not covered" >      return {</span>
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   }
@@ -1671,6 +1681,11 @@ class RefundService {
 <span class="fstat-no" title="function not covered" >  st</span>atic async cancelSubscription(userId, cancelAtPeriodEnd = <span class="branch-0 cbranch-no" title="branch not covered" >true)</span> {
 <span class="cstat-no" title="statement not covered" >    try {</span>
       const subscription = <span class="cstat-no" title="statement not covered" >await Subscription.findOne({ userId });</span>
+<span class="cstat-no" title="statement not covered" >      if (!subscription) {</span>
+        // TODO: Log a more detailed error
+<span class="cstat-no" title="statement not covered" >        console.error(`User with ID ${userId} not found.`);</span>
+<span class="cstat-no" title="statement not covered" >        return { success: false, message: 'User not found', statusCode: 404 };</span>
+      }
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      if (!subscription || subscription.status !== 'active') {</span>
 <span class="cstat-no" title="statement not covered" >        return {</span>
@@ -1762,7 +1777,7 @@ class RefundService {
         };
       }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      if (subscription.status !== 'active' || subscription.endDate &lt;= new Date()) {</span>
+<span class="cstat-no" title="statement not covered" >      if (subscription.status !== 'active' || !subscription.endDate || subscription.endDate &lt;= new Date()) {</span>
 <span class="cstat-no" title="statement not covered" >        return {</span>
           success: false,
           error: 'Subscription cannot be resumed. Please start a new subscription.',
@@ -1799,7 +1814,7 @@ class RefundService {
   }
 }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >module.exports = RefundService;</span>
+module.exports = RefundService;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -1807,7 +1822,7 @@ class RefundService {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-04T22:01:49.555Z
+                at 2026-01-05T21:33:32.394Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

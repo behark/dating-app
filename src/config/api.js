@@ -3,11 +3,11 @@ import { Platform } from 'react-native';
 import logger from '../utils/logger';
 
 // Get API URLs from environment variables
-// Production API URL - from environment variable or default
+// Production API URL - from environment variable
 const PRODUCTION_API_URL =
   process.env.EXPO_PUBLIC_API_URL_PRODUCTION ||
   process.env.EXPO_PUBLIC_API_URL ||
-  'https://dating-app-backend-x4yq.onrender.com/api';
+  'http://localhost:3000/api'; // Use local as ultimate fallback for safety during dev
 
 // Development API URL - use localhost for local testing
 const DEVELOPMENT_API_URL =

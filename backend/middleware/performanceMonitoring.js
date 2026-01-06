@@ -185,7 +185,9 @@ const performanceMonitoringMiddleware = (req, res, next) => {
           });
         } catch (error) {
           // Don't let metric storage failures break the request
-          logger.debug('Failed to store performance metric', { error: error instanceof Error ? error.message : String(error) });
+          logger.debug('Failed to store performance metric', {
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
       });
     }
@@ -200,7 +202,13 @@ const performanceMonitoringMiddleware = (req, res, next) => {
 /**
  * Track database query performance
  */
-const trackDatabaseQuery = async (operation, collection, duration, success = true, details = {}) => {
+const trackDatabaseQuery = async (
+  operation,
+  collection,
+  duration,
+  success = true,
+  details = {}
+) => {
   const durationMs = duration;
   const isSlow = durationMs > THRESHOLDS.SLOW_QUERY;
   const isVerySlow = durationMs > THRESHOLDS.VERY_SLOW_QUERY;
@@ -290,7 +298,9 @@ const trackDatabaseQuery = async (operation, collection, duration, success = tru
         });
       } catch (error) {
         // Don't let metric storage failures break the query
-        logger.debug('Failed to store query performance metric', { error: error instanceof Error ? error.message : String(error) });
+        logger.debug('Failed to store query performance metric', {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     });
   }
@@ -337,9 +347,12 @@ const getPerformanceMetrics = () => {
       slow: performanceMetrics.requests.slow,
       verySlow: performanceMetrics.requests.verySlow,
       errors: performanceMetrics.requests.errors,
-      slowPercentage: performanceMetrics.requests.total > 0
-        ? ((performanceMetrics.requests.slow / performanceMetrics.requests.total) * 100).toFixed(2)
-        : '0.00',
+      slowPercentage:
+        performanceMetrics.requests.total > 0
+          ? ((performanceMetrics.requests.slow / performanceMetrics.requests.total) * 100).toFixed(
+              2
+            )
+          : '0.00',
       byRoute: Object.fromEntries(performanceMetrics.requests.byRoute),
       byMethod: Object.fromEntries(performanceMetrics.requests.byMethod),
     },
@@ -347,9 +360,10 @@ const getPerformanceMetrics = () => {
       total: performanceMetrics.queries.total,
       slow: performanceMetrics.queries.slow,
       verySlow: performanceMetrics.queries.verySlow,
-      slowPercentage: performanceMetrics.queries.total > 0
-        ? ((performanceMetrics.queries.slow / performanceMetrics.queries.total) * 100).toFixed(2)
-        : '0.00',
+      slowPercentage:
+        performanceMetrics.queries.total > 0
+          ? ((performanceMetrics.queries.slow / performanceMetrics.queries.total) * 100).toFixed(2)
+          : '0.00',
       byCollection: Object.fromEntries(performanceMetrics.queries.byCollection),
       byOperation: Object.fromEntries(performanceMetrics.queries.byOperation),
     },

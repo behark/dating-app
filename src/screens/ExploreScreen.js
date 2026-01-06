@@ -14,8 +14,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
 import { API_BASE_URL } from '../config/api';
+import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { calculateDistance } from '../utils/distanceCalculator';
 import logger from '../utils/logger';
@@ -98,64 +98,67 @@ const ExploreScreen = ({ navigation }) => {
     }
   }, []);
 
-  const exploreUsers = useCallback(async (loadMore = false) => {
-    if (!location) return;
+  const exploreUsers = useCallback(
+    async (loadMore = false) => {
+      if (!location) return;
 
-    if (loadMore) {
-      if (!hasMore || loadingMore) return;
-      setLoadingMore(true);
-    } else {
-      setLoading(true);
-      setPage(1);
-      setUsers([]);
-      setHasMore(true);
-    }
-
-    try {
-      const currentPage = loadMore ? page + 1 : 1;
-      const queryParams = new URLSearchParams({
-        lat: location.latitude,
-        lng: location.longitude,
-        radius: '50000',
-        minAge: filters.minAge,
-        maxAge: filters.maxAge,
-        gender: filters.gender,
-        sortBy: sortBy,
-        page: currentPage.toString(),
-        limit: '20',
-      });
-
-      const response = await fetch(`${API_BASE_URL}/discovery/explore?${queryParams}`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+      if (loadMore) {
+        if (!hasMore || loadingMore) return;
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+        setPage(1);
+        setUsers([]);
+        setHasMore(true);
       }
 
-      const data = await response.json();
-      if (data.success) {
-        const newUsers = data.data?.users || data.data || [];
-        const pagination = data.pagination || {};
-        
-        if (loadMore) {
-          setUsers((prev) => [...prev, ...newUsers]);
-        } else {
-          setUsers(newUsers);
+      try {
+        const currentPage = loadMore ? page + 1 : 1;
+        const queryParams = new URLSearchParams({
+          lat: location.latitude,
+          lng: location.longitude,
+          radius: '50000',
+          minAge: filters.minAge,
+          maxAge: filters.maxAge,
+          gender: filters.gender,
+          sortBy: sortBy,
+          page: currentPage.toString(),
+          limit: '20',
+        });
+
+        const response = await fetch(`${API_BASE_URL}/discovery/explore?${queryParams}`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
         }
-        
-        setHasMore(pagination.hasMore !== false && newUsers.length === 20);
-        setPage(currentPage);
+
+        const data = await response.json();
+        if (data.success) {
+          const newUsers = data.data?.users || data.data || [];
+          const pagination = data.pagination || {};
+
+          if (loadMore) {
+            setUsers((prev) => [...prev, ...newUsers]);
+          } else {
+            setUsers(newUsers);
+          }
+
+          setHasMore(pagination.hasMore !== false && newUsers.length === 20);
+          setPage(currentPage);
+        }
+      } catch (error) {
+        logger.error('Error exploring users:', error);
+        showStandardError(error, 'load', 'Unable to Load');
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-    } catch (error) {
-      logger.error('Error exploring users:', error);
-      showStandardError(error, 'load', 'Unable to Load');
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [location, sortBy, filters, user, authToken, page, hasMore, loadingMore]);
+    },
+    [location, sortBy, filters, user, authToken, page, hasMore, loadingMore]
+  );
 
   useEffect(() => {
     getLocation();
@@ -245,6 +248,9 @@ const ExploreScreen = ({ navigation }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={Colors.text.dark} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Explore</Text>
         <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={styles.filterButton}>
           <Ionicons name="options" size={24} color={Colors.primary} />
@@ -330,6 +336,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.text.lighter,
+  },
+  backButton: {
+    padding: 4,
+    marginRight: 12,
   },
   headerTitle: {
     fontSize: 24,

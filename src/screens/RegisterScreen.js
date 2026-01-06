@@ -105,7 +105,7 @@ export const RegisterScreen = ({ navigation }) => {
       if (!location) {
         Alert.alert(
           'Location Not Available',
-          'We couldn\'t access your location. You can still sign up, but we recommend enabling location services later to find matches nearby. Would you like to continue?',
+          "We couldn't access your location. You can still sign up, but we recommend enabling location services later to find matches nearby. Would you like to continue?",
           [
             {
               text: 'Cancel',
@@ -117,7 +117,14 @@ export const RegisterScreen = ({ navigation }) => {
                 // Continue with signup - location will be null, backend will use default
                 try {
                   setLoading(true);
-                  await signup(sanitizedEmail, sanitizedPassword, sanitizedName, parseInt(age), gender, null);
+                  await signup(
+                    sanitizedEmail,
+                    sanitizedPassword,
+                    sanitizedName,
+                    parseInt(age),
+                    gender,
+                    null
+                  );
                 } catch (error) {
                   logger.error('Signup error:', error);
                   showStandardError(error, 'signup', 'Sign Up Failed');

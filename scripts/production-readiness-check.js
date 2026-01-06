@@ -42,19 +42,9 @@ class ProductionChecker {
   checkEnvVariables() {
     console.log('\n📋 Checking Environment Variables...\n');
 
-    const required = [
-      'NODE_ENV',
-      'MONGODB_URI',
-      'JWT_SECRET',
-      'JWT_REFRESH_SECRET',
-    ];
+    const required = ['NODE_ENV', 'MONGODB_URI', 'JWT_SECRET', 'JWT_REFRESH_SECRET'];
 
-    const recommended = [
-      'REDIS_URL',
-      'SENTRY_DSN',
-      'CORS_ORIGINS',
-      'RATE_LIMIT_MAX',
-    ];
+    const recommended = ['REDIS_URL', 'SENTRY_DSN', 'CORS_ORIGINS', 'RATE_LIMIT_MAX'];
 
     required.forEach((key) => {
       if (process.env[key]) {
@@ -197,10 +187,7 @@ class ProductionChecker {
     }
 
     // Check for error middleware
-    const errorMiddlewarePath = path.join(
-      process.cwd(),
-      'backend/middleware/errorHandler.js'
-    );
+    const errorMiddlewarePath = path.join(process.cwd(), 'backend/middleware/errorHandler.js');
     if (fs.existsSync(errorMiddlewarePath)) {
       this.pass('Error handler middleware exists');
     } else {
@@ -220,10 +207,7 @@ class ProductionChecker {
     }
 
     // Check for CDN/static file handling
-    const cdnServicePath = path.join(
-      process.cwd(),
-      'backend/services/cdnService.js'
-    );
+    const cdnServicePath = path.join(process.cwd(), 'backend/services/cdnService.js');
     if (fs.existsSync(cdnServicePath)) {
       this.pass('CDN service exists');
     } else {
@@ -265,10 +249,7 @@ class ProductionChecker {
   checkTestCoverage() {
     console.log('\n🧪 Checking Test Configuration...\n');
 
-    const testDirs = [
-      'backend/__tests__',
-      'src/__tests__',
-    ];
+    const testDirs = ['backend/__tests__', 'src/__tests__'];
 
     testDirs.forEach((dir) => {
       const fullPath = path.join(process.cwd(), dir);
@@ -362,9 +343,7 @@ class ProductionChecker {
     console.log(`${WARN} Warnings: ${this.results.warnings.length}`);
 
     const score = Math.round(
-      (this.results.passed.length /
-        (this.results.passed.length + this.results.failed.length)) *
-        100
+      (this.results.passed.length / (this.results.passed.length + this.results.failed.length)) * 100
     );
 
     console.log(`\n📈 Readiness Score: ${score}%`);

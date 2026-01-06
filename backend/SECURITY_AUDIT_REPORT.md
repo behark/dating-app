@@ -184,6 +184,7 @@ pm2 reload dating-app-backend
 Location: `backend/ecosystem.config.js`
 
 Key features:
+
 - **Cluster mode**: Uses all CPU cores for load balancing
 - **Auto-restart**: Automatically restarts on crashes
 - **Memory limit**: Restarts if memory exceeds 1GB

@@ -76,7 +76,10 @@ const connectDB = async () => {
     // Use circuit breaker for connection attempt
     return await dbCircuitBreaker.execute(async () => {
       // Add connection timeout to prevent hanging
-      const connectionPromise = mongoose.connect(mongoURI, /** @type {mongoose.ConnectOptions} */ (mongoOptions));
+      const connectionPromise = mongoose.connect(
+        mongoURI,
+        /** @type {mongoose.ConnectOptions} */ (mongoOptions)
+      );
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Connection timeout after 15 seconds')), 15000);
       });

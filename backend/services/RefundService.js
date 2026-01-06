@@ -544,7 +544,11 @@ class RefundService {
         };
       }
 
-      if (subscription.status !== 'active' || !subscription.endDate || subscription.endDate <= new Date()) {
+      if (
+        subscription.status !== 'active' ||
+        !subscription.endDate ||
+        subscription.endDate <= new Date()
+      ) {
         return {
           success: false,
           error: 'Subscription cannot be resumed. Please start a new subscription.',

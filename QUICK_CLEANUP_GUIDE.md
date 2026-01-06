@@ -3,6 +3,7 @@
 **Quick Reference:** Files that are 100% safe to remove with zero risk.
 
 **Rules Applied:**
+
 - ✅ Do NOT remove tests
 - ✅ Do NOT remove configs
 - ✅ Do NOT remove migrations
@@ -18,6 +19,7 @@ bash scripts/cleanup-safe-files.sh
 ```
 
 **This will remove:**
+
 - ✅ Coverage reports (9.4 MB) - Generated files, not tests
 - ✅ 5 preview HTML files - Static previews, not used in code
 - ✅ 7 one-time fix scripts - Code transformations (not migrations), already applied
@@ -71,6 +73,7 @@ bash scripts/cleanup-safe-files.sh
 ## ✅ WHAT STAYS (Protected by Rules)
 
 The cleanup script will **NOT** remove:
+
 - ✅ **Tests** - All test files preserved (`__tests__/`, `tests/`, `e2e/`, `*.test.js`, `*.spec.js`)
 - ✅ **Configs** - All config files preserved (`.env.example`, `package.json`, `*.config.js`, etc.)
 - ✅ **Migrations** - All migration scripts preserved (`backend/scripts/migrate-api-responses.sh`, etc.)
@@ -81,6 +84,7 @@ The cleanup script will **NOT** remove:
 ## ✅ VERIFICATION
 
 All files verified:
+
 - ✅ Not imported/required in code
 - ✅ Not in package.json scripts
 - ✅ Not needed for deployment

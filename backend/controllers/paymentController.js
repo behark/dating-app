@@ -366,7 +366,10 @@ const createPayPalSubscription = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    logger.error('Error creating PayPal subscription:', { error: error.message, stack: error.stack });
+    logger.error('Error creating PayPal subscription:', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: 'Error creating PayPal subscription',
@@ -388,7 +391,10 @@ const activatePayPalSubscription = async (req, res) => {
       data: result,
     });
   } catch (error) {
-    logger.error('Error activating PayPal subscription:', { error: error.message, stack: error.stack });
+    logger.error('Error activating PayPal subscription:', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: 'Error activating subscription',

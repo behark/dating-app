@@ -9,18 +9,21 @@ This document details the fixes applied to migrate frontend services from direct
 ### 1. LocationService.js ✅
 
 **Before:** Used Firebase Firestore directly for:
+
 - `updateUserLocation()` - wrote to `users` collection
-- `updateLocationPrivacy()` - wrote to `users` collection  
+- `updateLocationPrivacy()` - wrote to `users` collection
 - `getLocationPrivacy()` - read from `users` collection
 - `getNearbyUsers()` - read from `users` collection with client-side distance filtering
 
 **After:** Now uses backend API:
+
 - `updateUserLocation()` → `PUT /api/discover/location`
 - `updateLocationPrivacy()` → `PUT /api/profile/update`
 - `getLocationPrivacy()` → `GET /api/profile`
 - `getNearbyUsers()` → `GET /api/discover/explore` (server-side geospatial queries)
 
 **Benefits:**
+
 - Geospatial queries now handled by MongoDB $geoNear
 - Location privacy settings enforced server-side
 - Consistent data access through API
@@ -30,16 +33,19 @@ This document details the fixes applied to migrate frontend services from direct
 ### 2. PhotoVerificationService.js ✅
 
 **Before:** Used Firebase Firestore and Storage:
+
 - `submitVerificationPhoto()` - uploaded to Firebase Storage, wrote to `verifications` collection
 - `getVerificationStatus()` - read from `verifications` collection
 - Admin methods - read/wrote directly to Firestore
 
 **After:** Now uses backend API:
+
 - `submitVerificationPhoto()` → `POST /api/safety/photo-verification/advanced`
 - `getVerificationStatus()` → `GET /api/safety/account-status`
 - Admin methods - now return warnings that admin endpoints are needed
 
 **Benefits:**
+
 - Verification review centralized in backend
 - Photo moderation can be handled server-side
 - Security improved - verification status not manipulatable client-side
@@ -49,11 +55,13 @@ This document details the fixes applied to migrate frontend services from direct
 ### 3. ImageService.js ✅
 
 **Before:** Used Firebase Firestore for profile photo management:
+
 - `uploadProfileImage()` - wrote to `users.photos` array in Firestore
 - `deleteProfileImage()` - removed from `users.photos` array
 - `setPrimaryPhoto()` / `reorderPhotos()` - updated Firestore directly
 
 **After:** Now uses hybrid approach:
+
 - Firebase Storage - still used for CDN image hosting (optimal for mobile)
 - Backend API - for profile photo management:
   - `uploadProfileImage()` → `POST /api/profile/photos/upload`
@@ -62,6 +70,7 @@ This document details the fixes applied to migrate frontend services from direct
   - `reorderPhotos()` → `PUT /api/profile/photos/reorder`
 
 **Benefits:**
+
 - Photo moderation can happen server-side
 - Consistent profile data via API
 - Image CDN delivery via Firebase Storage
@@ -71,17 +80,20 @@ This document details the fixes applied to migrate frontend services from direct
 ### 4. VerificationService.js ✅
 
 **Before:** Used Firebase Firestore:
+
 - `submitVerificationRequest()` - wrote to `verification_requests` collection
 - `getVerificationStatus()` - queried `verification_requests` collection
 - Admin methods - read/wrote Firestore directly
 
 **After:** Now uses backend API:
+
 - `submitVerificationRequest()` → `POST /api/safety/photo-verification/advanced`
 - `getVerificationStatus()` → `GET /api/safety/account-status`
 - `uploadVerificationDocument()` - still uses Firebase Storage for secure document hosting
 - Admin methods - return warnings that admin endpoints are needed
 
 **Benefits:**
+
 - Verification workflow centralized
 - Document storage still secure via Firebase Storage
 - Admin review can be built as separate admin panel
@@ -91,6 +103,7 @@ This document details the fixes applied to migrate frontend services from direct
 ### 5. SafetyService.js ✅ (Previously Fixed)
 
 **Already migrated to use API for:**
+
 - `blockUser()` → `POST /api/safety/block`
 - `unblockUser()` → `DELETE /api/safety/block/:blockedUserId`
 - `getBlockedUsers()` → `GET /api/safety/blocked`
@@ -105,6 +118,7 @@ This document details the fixes applied to migrate frontend services from direct
 ### 6. EnhancedProfileService.js ✅ (Previously Fixed)
 
 **API paths corrected from `/profile/` to `/profile/enhanced/`:**
+
 - `getPrompts()` → `GET /api/profile/enhanced/prompts/list`
 - `updatePrompts()` → `POST /api/profile/enhanced/prompts/update`
 - `updateEducation()` → `PUT /api/profile/enhanced/education`
@@ -117,12 +131,15 @@ This document details the fixes applied to migrate frontend services from direct
 ### 7. ViewProfileScreen.js ✅
 
 **Before:** Used Firebase Firestore directly:
+
 - `loadProfile()` - read from `users` collection via `getDoc(doc(db, 'users', userId))`
 
 **After:** Now uses backend API:
+
 - `loadProfile()` → `GET /api/profile/:userId`
 
 **Benefits:**
+
 - Profile access now goes through backend authorization
 - Only matched users can view each other's profiles (IDOR protection)
 
@@ -131,11 +148,13 @@ This document details the fixes applied to migrate frontend services from direct
 ### 8. EnhancedProfileScreen.js ✅
 
 **Before:** Used Firebase Firestore directly:
+
 - `loadProfile()` - read from `users` collection
 - `handleVideoChange()` - wrote via `setDoc(doc(db, 'users', ...))`
 - `handlePhotosChange()` - wrote via `setDoc(doc(db, 'users', ...))`
 
 **After:** Now uses backend API:
+
 - `loadProfile()` → `GET /api/profile/me`
 - `handleVideoChange()` → `PUT /api/profile/update`
 - `handlePhotosChange()` → `PUT /api/profile/update`
@@ -145,9 +164,11 @@ This document details the fixes applied to migrate frontend services from direct
 ### 9. PhotoGalleryScreen.js ✅
 
 **Before:** Used Firebase Firestore directly:
+
 - `loadPhotos()` - read from `users` collection via `getDoc()`
 
 **After:** Now uses backend API:
+
 - `loadPhotos()` → `GET /api/profile/me`
 
 ---
@@ -231,6 +252,7 @@ This document details the fixes applied to migrate frontend services from direct
 ## Migration Complete ✅
 
 All frontend services and screens now properly use the backend API for data operations, ensuring:
+
 - Data consistency through single source of truth (MongoDB)
 - Server-side validation and business logic
 - Proper security through authenticated API calls

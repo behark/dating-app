@@ -13,7 +13,7 @@ try {
   if (typeof require !== 'undefined') {
     // Check if we're on web platform
     isWeb = Platform.OS === 'web';
-    
+
     if (isWeb) {
       // Use @sentry/react for web
       Sentry = require('@sentry/react');
@@ -51,7 +51,7 @@ export const initSentry = (options = {}) => {
   try {
     // Build integrations array based on platform
     const integrations = [];
-    
+
     // Only use reactNativeTracing on native platforms
     if (!isWeb && Sentry.reactNativeTracing) {
       try {
@@ -60,7 +60,7 @@ export const initSentry = (options = {}) => {
         console.warn('Failed to add reactNativeTracing:', e);
       }
     }
-    
+
     // For web, use browser tracing if available
     if (isWeb && Sentry.browserTracingIntegration) {
       try {

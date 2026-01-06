@@ -33,7 +33,9 @@ const productionConfig = {
     },
     // Rate Limiting
     rateLimit: {
-      windowMs: process.env.RATE_LIMIT_WINDOW_MS ? parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) : 15 * 60 * 1000, // 15 minutes
+      windowMs: process.env.RATE_LIMIT_WINDOW_MS
+        ? parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10)
+        : 15 * 60 * 1000, // 15 minutes
       max: process.env.RATE_LIMIT_MAX ? parseInt(process.env.RATE_LIMIT_MAX, 10) : 100,
       standardHeaders: true,
       legacyHeaders: false,
@@ -68,7 +70,9 @@ const productionConfig = {
     mongodb: {
       uri: process.env.MONGODB_URI,
       options: {
-        maxPoolSize: process.env.MONGODB_POOL_SIZE ? parseInt(process.env.MONGODB_POOL_SIZE, 10) : 10,
+        maxPoolSize: process.env.MONGODB_POOL_SIZE
+          ? parseInt(process.env.MONGODB_POOL_SIZE, 10)
+          : 10,
         minPoolSize: 2,
         serverSelectionTimeoutMS: 5000,
         socketTimeoutMS: 45000,
@@ -97,7 +101,9 @@ const productionConfig = {
 
   // File Upload Settings
   upload: {
-    maxFileSize: process.env.MAX_FILE_SIZE ? parseInt(process.env.MAX_FILE_SIZE, 10) : 5 * 1024 * 1024, // 5MB
+    maxFileSize: process.env.MAX_FILE_SIZE
+      ? parseInt(process.env.MAX_FILE_SIZE, 10)
+      : 5 * 1024 * 1024, // 5MB
     maxPhotos: 6,
     allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
     imageQuality: 80,

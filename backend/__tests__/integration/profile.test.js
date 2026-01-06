@@ -66,9 +66,7 @@ describe('Profile API', () => {
     });
 
     it('should require authentication', async () => {
-      const res = await request(app)
-        .get('/api/profile')
-        .expect(401);
+      const res = await request(app).get('/api/profile').expect(401);
 
       expect(res.body.success).toBe(false);
     });

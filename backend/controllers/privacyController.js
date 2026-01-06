@@ -88,7 +88,9 @@ exports.exportUserData = async (req, res) => {
       metadata: {
         accountCreated: userData?.createdAt,
         lastActive: userData?.lastActive,
-        totalLogins: activities?.filter((a) => a && typeof a === 'object' && 'type' in a && a.type === 'login')?.length || 0,
+        totalLogins:
+          activities?.filter((a) => a && typeof a === 'object' && 'type' in a && a.type === 'login')
+            ?.length || 0,
       },
     };
 

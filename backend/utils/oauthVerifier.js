@@ -155,8 +155,12 @@ const verifyFacebookToken = async (accessToken, facebookId) => {
     // Check if it's an axios error with response data
     const isAxiosError = axios.isAxiosError
       ? axios.isAxiosError(err)
-      : err && typeof err === 'object' && err !== null && 'response' in err && err.response !== null;
-    
+      : err &&
+        typeof err === 'object' &&
+        err !== null &&
+        'response' in err &&
+        err.response !== null;
+
     if (isAxiosError && err && typeof err === 'object' && err !== null) {
       // @ts-ignore - response property exists on axios errors
       const response = err.response;
@@ -166,7 +170,9 @@ const verifyFacebookToken = async (accessToken, facebookId) => {
           const errorObj = responseData.error;
           if (errorObj && typeof errorObj === 'object' && errorObj !== null) {
             if (errorObj.code === 190) {
-              throw new Error('Facebook OAuth token has expired or is invalid. Please sign in again.');
+              throw new Error(
+                'Facebook OAuth token has expired or is invalid. Please sign in again.'
+              );
             }
             if (typeof errorObj.message === 'string' && errorObj.message.length > 0) {
               throw new Error(`Facebook OAuth error: ${errorObj.message}`);

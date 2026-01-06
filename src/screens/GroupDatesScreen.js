@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
+import { LocationService } from '../services/LocationService';
 import { SocialFeaturesService } from '../services/SocialFeaturesService';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
@@ -22,36 +23,94 @@ const GroupDatesScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+
+  // Initialize location from currentUser or fetch it
+  const initializeLocation = useCallback(async () => {
+    // First, try to use location from currentUser
+    if (currentUser?.location?.coordinates?.length >= 2) {
+      setUserLocation({
+        longitude: currentUser.location.coordinates[0],
+        latitude: currentUser.location.coordinates[1],
+      });
+      return true;
+    }
+
+    // If no location in currentUser, try to get current location
+    try {
+      const location = await LocationService.getCurrentLocation();
+      if (location?.latitude && location?.longitude) {
+        setUserLocation({
+          longitude: location.longitude,
+          latitude: location.latitude,
+        });
+        return true;
+      }
+    } catch (err) {
+      logger.error('Error getting current location for group dates:', err);
+    }
+
+    // No location available
+    setError('Location is required to find nearby group dates. Please enable location services.');
+    return false;
+  }, [currentUser?.location?.coordinates]);
 
   const fetchGroupDates = useCallback(async () => {
-    if (!currentUser?.location) return;
+    if (!userLocation) {
+      const hasLocation = await initializeLocation();
+      if (!hasLocation) {
+        setLoading(false);
+        return;
+      }
+    }
 
     try {
       setLoading(true);
-      if (!currentUser.location?.coordinates || currentUser.location.coordinates.length < 2) {
+      setError(null);
+
+      const locationToUse = userLocation || {
+        longitude: currentUser?.location?.coordinates?.[0],
+        latitude: currentUser?.location?.coordinates?.[1],
+      };
+
+      if (!locationToUse?.longitude || !locationToUse?.latitude) {
         setError('Location not available');
         setLoading(false);
         return;
       }
+
       const data = await SocialFeaturesService.getNearbyGroupDates(
-        currentUser.location.coordinates[0],
-        currentUser.location.coordinates[1]
+        locationToUse.longitude,
+        locationToUse.latitude
       );
       setGroupDates(data.groupDates || []);
-    } catch (error) {
-      logger.error('Error fetching group dates:', error);
-      Alert.alert(
-        'Error',
-        getUserFriendlyMessage(error.message || 'Failed to load group dates. Please try again.')
+      setError(null);
+    } catch (err) {
+      logger.error('Error fetching group dates:', err);
+      setError(
+        getUserFriendlyMessage(err.message || 'Failed to load group dates. Please try again.')
       );
     } finally {
       setLoading(false);
     }
-  }, [currentUser?.location]);
+  }, [userLocation, currentUser?.location?.coordinates, initializeLocation]);
 
   useEffect(() => {
-    fetchGroupDates();
-  }, [fetchGroupDates]);
+    initializeLocation().then((hasLocation) => {
+      if (hasLocation) {
+        fetchGroupDates();
+      } else {
+        setLoading(false);
+      }
+    });
+  }, []);
+
+  // Re-fetch when userLocation changes
+  useEffect(() => {
+    if (userLocation) {
+      fetchGroupDates();
+    }
+  }, [userLocation]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -125,6 +184,52 @@ const GroupDatesScreen = ({ navigation }) => {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={Colors.accent.pink} />
+        <Text style={styles.loadingText}>Finding group dates nearby...</Text>
+      </View>
+    );
+  }
+
+  // Show error state if location is not available
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.headerSection}>
+          <Text style={styles.screenTitle}>👫 Group Dates</Text>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              style={styles.eventsButton}
+              onPress={() => navigation.navigate('Events')}
+            >
+              <Text style={styles.eventsButtonText}>📅 Events</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.createButton}
+              onPress={() => navigation.navigate('CreateGroupDate')}
+            >
+              <Text style={styles.createButtonText}>Create New</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>📍 Location Required</Text>
+          <Text style={styles.emptySubtext}>{error}</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => {
+              setError(null);
+              setLoading(true);
+              initializeLocation().then((hasLocation) => {
+                if (hasLocation) {
+                  fetchGroupDates();
+                } else {
+                  setLoading(false);
+                }
+              });
+            }}
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -133,12 +238,20 @@ const GroupDatesScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.headerSection}>
         <Text style={styles.screenTitle}>👫 Group Dates</Text>
-        <TouchableOpacity
-          style={styles.createButton}
-          onPress={() => navigation.navigate('CreateGroupDate')}
-        >
-          <Text style={styles.createButtonText}>Create New</Text>
-        </TouchableOpacity>
+        <View style={styles.headerButtons}>
+          <TouchableOpacity
+            style={styles.eventsButton}
+            onPress={() => navigation.navigate('Events')}
+          >
+            <Text style={styles.eventsButtonText}>📅 Events</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={() => navigation.navigate('CreateGroupDate')}
+          >
+            <Text style={styles.createButtonText}>Create New</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {groupDates.length === 0 ? (
@@ -182,6 +295,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: Colors.text.dark,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  eventsButton: {
+    backgroundColor: Colors.accent.teal,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  eventsButtonText: {
+    color: Colors.background.white,
+    fontWeight: '600',
+    fontSize: 12,
   },
   createButton: {
     backgroundColor: Colors.accent.pink,
@@ -272,16 +400,37 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 32,
   },
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.text.tertiary,
     marginBottom: 8,
+    textAlign: 'center',
   },
   emptySubtext: {
     fontSize: 14,
     color: '#BBB',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: Colors.text.secondary,
+  },
+  retryButton: {
+    backgroundColor: Colors.accent.pink,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+    marginTop: 8,
+  },
+  retryButtonText: {
+    color: Colors.background.white,
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
 

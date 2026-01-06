@@ -31,7 +31,7 @@ export const STANDARD_ERROR_MESSAGES = {
   INTERNAL_ERROR: 'An unexpected error occurred. Please try again.',
 
   // Rate limiting
-  RATE_LIMIT: 'You\'re making requests too quickly. Please wait a moment and try again.',
+  RATE_LIMIT: "You're making requests too quickly. Please wait a moment and try again.",
   TOO_MANY_REQUESTS: 'Too many requests. Please wait a moment before trying again.',
 
   // Not found
@@ -55,7 +55,10 @@ export const STANDARD_ERROR_MESSAGES = {
 /**
  * Map HTTP status codes to user-friendly messages
  */
-export const getHttpErrorMessage = (status, defaultMessage = STANDARD_ERROR_MESSAGES.UNKNOWN_ERROR) => {
+export const getHttpErrorMessage = (
+  status,
+  defaultMessage = STANDARD_ERROR_MESSAGES.UNKNOWN_ERROR
+) => {
   const statusMessages = {
     400: STANDARD_ERROR_MESSAGES.VALIDATION_ERROR,
     401: STANDARD_ERROR_MESSAGES.UNAUTHORIZED,

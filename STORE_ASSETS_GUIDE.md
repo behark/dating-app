@@ -7,20 +7,23 @@ This guide will help you create all required assets for app store submission.
 ## 🎨 1. App Icon
 
 ### iOS Requirements
+
 - **Size:** 1024x1024 pixels
 - **Format:** PNG (no transparency)
 - **Color Space:** RGB
 - **File:** `assets/icon.png`
 
 ### Android Requirements
+
 - **Size:** 512x512 pixels (foreground)
 - **Format:** PNG (no transparency)
 - **Adaptive Icon:** Requires foreground and background
-- **Files:** 
+- **Files:**
   - `assets/adaptive-icon.png` (foreground)
   - Background color defined in `app.config.js`
 
 ### Design Guidelines
+
 - ✅ Use simple, recognizable design
 - ✅ Avoid text (may be unreadable at small sizes)
 - ✅ Use high contrast colors
@@ -29,6 +32,7 @@ This guide will help you create all required assets for app store submission.
 - ❌ Don't include app name in icon
 
 ### Tools
+
 - **Design:** Figma, Sketch, Adobe Illustrator
 - **Export:** Use "Export for Screens" feature
 - **Testing:** Use [App Icon Generator](https://www.appicon.co/) to preview all sizes
@@ -40,7 +44,8 @@ This guide will help you create all required assets for app store submission.
 ### iOS Screenshot Requirements
 
 **iPhone (Required):**
-- **Sizes:** 
+
+- **Sizes:**
   - 6.7" Display (iPhone 14 Pro Max): 1290 x 2796 pixels
   - 6.5" Display (iPhone 11 Pro Max): 1242 x 2688 pixels
   - 5.5" Display (iPhone 8 Plus): 1242 x 2208 pixels
@@ -48,12 +53,14 @@ This guide will help you create all required assets for app store submission.
 - **Maximum:** 10 screenshots
 
 **iPad (Optional but recommended):**
+
 - **Size:** 2048 x 2732 pixels (12.9" iPad Pro)
 - **Minimum:** 1 screenshot
 
 ### Android Screenshot Requirements
 
 **Phone:**
+
 - **Sizes:**
   - 16:9 aspect ratio (e.g., 1080 x 1920)
   - 9:16 aspect ratio (portrait)
@@ -61,12 +68,14 @@ This guide will help you create all required assets for app store submission.
 - **Maximum:** 8 screenshots
 
 **Tablet (Optional):**
+
 - **Size:** 7" tablet: 1200 x 1920 pixels
 - **Minimum:** 1 screenshot
 
 ### Screenshot Content Checklist
 
 Take screenshots of these key screens:
+
 - [ ] **Login/Registration Screen** - Show authentication flow
 - [ ] **Home/Discovery Screen** - Show swipe cards interface
 - [ ] **Profile Screen** - Show user profile with photos
@@ -76,6 +85,7 @@ Take screenshots of these key screens:
 - [ ] **Safety Features** - Show safety tools (if applicable)
 
 ### Screenshot Best Practices
+
 - ✅ Use real content (not placeholders)
 - ✅ Show key features prominently
 - ✅ Use consistent design language
@@ -85,6 +95,7 @@ Take screenshots of these key screens:
 - ❌ Don't show errors or empty states
 
 ### Tools
+
 - **iOS Simulator:** Take screenshots directly from simulator
 - **Android Emulator:** Use built-in screenshot tool
 - **Physical Devices:** Use device screenshot feature
@@ -97,11 +108,13 @@ Take screenshots of these key screens:
 ### Play Store Description
 
 **Short Description (80 characters max):**
+
 ```
 Find meaningful connections with people nearby. Swipe, match, and chat!
 ```
 
 **Full Description (4000 characters max):**
+
 ```
 [Your Dating App Name] - Find Your Perfect Match
 
@@ -132,16 +145,19 @@ Questions? Contact us at support@your-dating-app.com
 ### App Store Description
 
 **Subtitle (30 characters max):**
+
 ```
 Find meaningful connections
 ```
 
 **Description (4000 characters max):**
+
 ```
 [Same as Play Store full description above]
 ```
 
 ### Description Best Practices
+
 - ✅ Start with value proposition
 - ✅ Use bullet points for features
 - ✅ Include keywords naturally
@@ -157,11 +173,13 @@ Find meaningful connections
 ## 🎬 4. Promotional Graphics (Optional but Recommended)
 
 ### Feature Graphic (Android)
+
 - **Size:** 1024 x 500 pixels
 - **Format:** PNG or JPG
 - **Purpose:** Displayed at top of Play Store listing
 
 ### App Preview Video (iOS)
+
 - **Duration:** 15-30 seconds
 - **Format:** MP4, MOV
 - **Purpose:** Show app in action
@@ -174,6 +192,7 @@ Find meaningful connections
 Before submitting, ensure you have:
 
 ### Required Assets
+
 - [ ] App icon (1024x1024 for iOS, 512x512 for Android)
 - [ ] At least 2 screenshots (Android) or 1 screenshot (iOS)
 - [ ] App description (short + full)
@@ -183,6 +202,7 @@ Before submitting, ensure you have:
 - [ ] Privacy contact email
 
 ### Optional Assets
+
 - [ ] Feature graphic (Android)
 - [ ] App preview video (iOS)
 - [ ] Promotional images
@@ -193,6 +213,7 @@ Before submitting, ensure you have:
 ## 🚀 6. Quick Start
 
 1. **Create App Icon:**
+
    ```bash
    # Design in Figma/Sketch
    # Export as 1024x1024 PNG
@@ -200,6 +221,7 @@ Before submitting, ensure you have:
    ```
 
 2. **Take Screenshots:**
+
    ```bash
    # iOS: Use Simulator → Device → Screenshot
    # Android: Use Emulator → Extended Controls → Screenshot
@@ -207,6 +229,7 @@ Before submitting, ensure you have:
    ```
 
 3. **Write Description:**
+
    ```bash
    # Use templates above
    # Customize for your app

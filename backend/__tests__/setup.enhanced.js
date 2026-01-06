@@ -46,7 +46,9 @@ jest.mock('stripe', () => {
     },
     checkout: {
       sessions: {
-        create: jest.fn().mockResolvedValue({ id: 'cs_test123', url: 'https://checkout.stripe.com/test' }),
+        create: jest
+          .fn()
+          .mockResolvedValue({ id: 'cs_test123', url: 'https://checkout.stripe.com/test' }),
       },
     },
     paymentIntents: {

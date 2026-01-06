@@ -13,6 +13,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Platform,
 } from 'react-native';
 import BadgeShowcase from '../components/Gamification/BadgeShowcase';
 import { storage } from '../config/firebase';
@@ -20,6 +21,7 @@ import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { ProfileService } from '../services/ProfileService';
 import logger from '../utils/logger';
+import { shadowToWebBoxShadow, textShadowToWeb } from '../utils/stylePlatform';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -219,11 +221,23 @@ const ProfileScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Edit Profile</Text>
+          <Text
+            style={[
+              styles.headerTitle,
+              Platform.OS === 'web' ? textShadowToWeb(styles.headerTitle) : null,
+            ]}
+          >
+            Edit Profile
+          </Text>
           <Text style={styles.headerSubtitle}>Make your profile stand out</Text>
         </View>
 
-        <View style={styles.card}>
+        <View
+          style={[
+            styles.card,
+            Platform.OS === 'web' ? shadowToWebBoxShadow(styles.card) : null,
+          ]}
+        >
           <TouchableOpacity
             onPress={() => navigation.navigate('PhotoGallery')}
             style={styles.imageContainer}
@@ -236,7 +250,12 @@ const ProfileScreen = () => {
                 <Text style={styles.placeholderText}>Tap to add photo</Text>
               </LinearGradient>
             )}
-            <View style={styles.editBadge}>
+            <View
+              style={[
+                styles.editBadge,
+                Platform.OS === 'web' ? shadowToWebBoxShadow(styles.editBadge) : null,
+              ]}
+            >
               <Ionicons name="images" size={16} color={Colors.background.white} />
             </View>
           </TouchableOpacity>
@@ -311,7 +330,10 @@ const ProfileScreen = () => {
           <Text style={styles.helpText}>💡 Tip: Upload to Imgur or ImgBB and paste the URL</Text>
 
           <TouchableOpacity
-            style={styles.saveButton}
+            style={[
+              styles.saveButton,
+              Platform.OS === 'web' ? shadowToWebBoxShadow(styles.saveButton) : null,
+            ]}
             onPress={saveProfile}
             disabled={loading}
             activeOpacity={0.8}
@@ -387,12 +409,7 @@ const ProfileScreen = () => {
               onPress={() => navigation.navigate('SocialMediaConnection')}
               activeOpacity={0.8}
             >
-              <Ionicons
-                name="share-social"
-                size={20}
-                color="#1DB954"
-                style={{ marginRight: 8 }}
-              />
+              <Ionicons name="share-social" size={20} color="#1DB954" style={{ marginRight: 8 }} />
               <Text style={styles.secondaryButtonText}>Social Media</Text>
             </TouchableOpacity>
 
@@ -441,7 +458,10 @@ const ProfileScreen = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.premiumButton}
+              style={[
+                styles.premiumButton,
+                Platform.OS === 'web' ? shadowToWebBoxShadow(styles.premiumButton) : null,
+              ]}
               onPress={() => navigation.navigate('Premium')}
               activeOpacity={0.8}
             >

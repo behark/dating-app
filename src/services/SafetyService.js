@@ -7,12 +7,12 @@ export class SafetyService {
   static async blockUser(blockedUserId) {
     try {
       const response = await api.post('/safety/block', { blockedUserId });
-      
+
       if (!response.success) {
         logger.error('Error blocking user', new Error(response.message), { blockedUserId });
         return false;
       }
-      
+
       logger.info('User blocked', { blockedUserId });
       return response.data || false;
     } catch (error) {
@@ -24,12 +24,12 @@ export class SafetyService {
   static async unblockUser(blockedUserId) {
     try {
       const response = await api.delete(`/safety/block/${blockedUserId}`);
-      
+
       if (!response.success) {
         logger.error('Error unblocking user', new Error(response.message), { blockedUserId });
         return false;
       }
-      
+
       logger.info('User unblocked', { blockedUserId });
       return true;
     } catch (error) {
@@ -41,12 +41,12 @@ export class SafetyService {
   static async getBlockedUsers() {
     try {
       const response = await api.get('/safety/blocked');
-      
+
       if (!response.success) {
         logger.error('Error getting blocked users', new Error(response.message));
         return [];
       }
-      
+
       // Backend returns { success: true, blockedUsers: [...], count: number }
       return response.blockedUsers || response.data?.blockedUsers || [];
     } catch (error) {
@@ -58,12 +58,12 @@ export class SafetyService {
   static async isUserBlocked(otherUserId) {
     try {
       const response = await api.get(`/safety/blocked/${otherUserId}`);
-      
+
       if (!response.success) {
         logger.error('Error checking if user is blocked', new Error(response.message));
         return false;
       }
-      
+
       // Backend returns { success: true, userHasBlocked: boolean, blockedByOther: boolean, canInteract: boolean }
       return response.userHasBlocked || response.data?.userHasBlocked || false;
     } catch (error) {
@@ -83,14 +83,17 @@ export class SafetyService {
       });
 
       if (!response.success) {
-        logger.error('Error creating report', new Error(response.message), { reportedUserId, category });
+        logger.error('Error creating report', new Error(response.message), {
+          reportedUserId,
+          category,
+        });
         return { success: false, error: response.message || 'Failed to create report' };
       }
 
-      logger.info('Report created', { 
-        reportId: response.data?.reportId, 
-        reportedUserId, 
-        category 
+      logger.info('Report created', {
+        reportId: response.data?.reportId,
+        reportedUserId,
+        category,
       });
 
       return response.data || { success: true, reportId: response.data?.reportId };
@@ -133,12 +136,12 @@ export class SafetyService {
   static async getPhotoVerificationStatus() {
     try {
       const response = await api.get('/safety/photo-verification/status');
-      
+
       if (!response.success) {
         logger.error('Error getting verification status', new Error(response.message));
         return { verified: false, status: 'error' };
       }
-      
+
       return response.data || { verified: false, status: 'not_submitted' };
     } catch (error) {
       logger.error('Error getting verification status', error);
@@ -201,7 +204,7 @@ export class SafetyService {
     try {
       // Use the backend endpoint to check block status
       const response = await api.get(`/safety/blocked/${targetUserId}`);
-      
+
       if (!response.success) {
         logger.error('Error checking interaction', new Error(response.message), { targetUserId });
         return { allowed: false, reason: 'error' };
@@ -209,7 +212,7 @@ export class SafetyService {
 
       // Backend returns: { success: true, userHasBlocked: boolean, blockedByOther: boolean, canInteract: boolean }
       const canInteract = response.canInteract || response.data?.canInteract || false;
-      
+
       if (!canInteract) {
         let reason = 'unknown';
         if (response.userHasBlocked || response.data?.userHasBlocked) {
@@ -231,13 +234,13 @@ export class SafetyService {
   static async getSafetyTips() {
     try {
       const response = await api.get('/safety/tips');
-      
+
       if (!response.success) {
         logger.error('Error getting safety tips', new Error(response.message));
         // Return fallback tips if API fails
         return this.getFallbackSafetyTips();
       }
-      
+
       // Backend returns: { success: true, count: number, data: [...] }
       return response.data || response.tips || [];
     } catch (error) {
@@ -350,12 +353,12 @@ export class SafetyService {
   static async calculateSafetyScore(userId) {
     try {
       const response = await api.get(`/safety/safety-score/${userId}`);
-      
+
       if (!response.success) {
         logger.error('Error getting safety score', new Error(response.message), { userId });
         return null;
       }
-      
+
       // Backend returns: { success: true, userId, safetyScore, riskFactors }
       return response.safetyScore || response.data?.safetyScore || null;
     } catch (error) {
@@ -414,12 +417,12 @@ export class SafetyService {
   static async getActiveDatePlans() {
     try {
       const response = await api.get('/safety/date-plans/active');
-      
+
       if (!response.success) {
         logger.error('Error getting active date plans', new Error(response.message));
         return [];
       }
-      
+
       // Backend returns: { success: true, data: [...] }
       return response.data || [];
     } catch (error) {
@@ -434,12 +437,12 @@ export class SafetyService {
   static async getSharedDatePlans() {
     try {
       const response = await api.get('/safety/date-plans/shared');
-      
+
       if (!response.success) {
         logger.error('Error getting shared date plans', new Error(response.message));
         return [];
       }
-      
+
       return response.data || [];
     } catch (error) {
       logger.error('Error getting shared date plans', error);
@@ -453,12 +456,15 @@ export class SafetyService {
   static async updateDatePlanStatus(datePlanId, status) {
     try {
       const response = await api.put(`/safety/date-plan/${datePlanId}`, { status });
-      
+
       if (!response.success) {
-        logger.error('Error updating date plan', new Error(response.message), { datePlanId, status });
+        logger.error('Error updating date plan', new Error(response.message), {
+          datePlanId,
+          status,
+        });
         return { success: false, error: response.message || 'Failed to update date plan' };
       }
-      
+
       logger.info('Date plan updated', { datePlanId, status });
       return { success: true, data: response.data };
     } catch (error) {
@@ -520,12 +526,12 @@ export class SafetyService {
   static async getActiveCheckIns() {
     try {
       const response = await api.get('/safety/checkin/active');
-      
+
       if (!response.success) {
         logger.error('Error getting active check-ins', new Error(response.message));
         return [];
       }
-      
+
       return response.data || [];
     } catch (error) {
       logger.error('Error getting check-ins', error);
@@ -569,12 +575,12 @@ export class SafetyService {
   static async getActiveSOS() {
     try {
       const response = await api.get('/safety/sos/active');
-      
+
       if (!response.success) {
         logger.error('Error getting active SOS', new Error(response.message));
         return [];
       }
-      
+
       // Backend returns: { success: true, data: [...] }
       return response.data || [];
     } catch (error) {
@@ -649,11 +655,14 @@ export class SafetyService {
       });
 
       if (!response.success) {
-        logger.error('Error initiating background check', new Error(response.message), { userInfo });
+        logger.error('Error initiating background check', new Error(response.message), {
+          userInfo,
+        });
         return { success: false, error: response.message || 'Failed to initiate background check' };
       }
 
-      const backgroundCheckId = response.data?.backgroundCheckId || response.data?.backgroundCheck?.id;
+      const backgroundCheckId =
+        response.data?.backgroundCheckId || response.data?.backgroundCheck?.id;
       logger.info('Background check requested', { backgroundCheckId });
 
       return { success: true, backgroundCheckId };
@@ -669,7 +678,7 @@ export class SafetyService {
   static async getBackgroundCheckStatus(backgroundCheckId) {
     try {
       const response = await api.get(`/safety/background-check/${backgroundCheckId}`);
-      
+
       if (!response.success) {
         logger.error('Error getting background check status', new Error(response.message), {
           backgroundCheckId,
@@ -703,12 +712,14 @@ export class SafetyService {
         results,
         status: results.status || 'in_progress',
       });
-      
+
       if (!response.success) {
-        logger.error('Error updating background check', new Error(response.message), { backgroundCheckId });
+        logger.error('Error updating background check', new Error(response.message), {
+          backgroundCheckId,
+        });
         return { success: false, error: response.message || 'Failed to update background check' };
       }
-      
+
       logger.info('Background check updated', { backgroundCheckId });
       return { success: true, data: response.data };
     } catch (error) {
@@ -762,12 +773,12 @@ export class SafetyService {
   static async getEmergencyContacts() {
     try {
       const response = await api.get('/safety/emergency-contacts');
-      
+
       if (!response.success) {
         logger.error('Error getting emergency contacts', new Error(response.message));
         return [];
       }
-      
+
       // Backend returns: { success: true, data: [...] }
       return response.data || [];
     } catch (error) {
@@ -788,7 +799,9 @@ export class SafetyService {
       });
 
       if (!response.success) {
-        logger.error('Error adding emergency contact', new Error(response.message), { contactInfo });
+        logger.error('Error adding emergency contact', new Error(response.message), {
+          contactInfo,
+        });
         return { success: false, error: response.message || 'Failed to add emergency contact' };
       }
 
@@ -810,7 +823,9 @@ export class SafetyService {
       const response = await api.delete(`/safety/emergency-contact/${contactId}`);
 
       if (!response.success) {
-        logger.error('Error deleting emergency contact', new Error(response.message), { contactId });
+        logger.error('Error deleting emergency contact', new Error(response.message), {
+          contactId,
+        });
         return { success: false, error: response.message || 'Failed to delete emergency contact' };
       }
 

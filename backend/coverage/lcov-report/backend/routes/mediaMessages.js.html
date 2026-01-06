@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>14/14</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>14/14</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -86,52 +86,52 @@
 <a name='L21'></a><a href='#L21'>21</a>
 <a name='L22'></a><a href='#L22'>22</a>
 <a name='L23'></a><a href='#L23'>23</a>
-<a name='L24'></a><a href='#L24'>24</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L24'></a><a href='#L24'>24</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const express = <span class="cstat-no" title="statement not covered" >require('express');</span>
-const router = <span class="cstat-no" title="statement not covered" >express.Router();</span>
-const { authenticate } = <span class="cstat-no" title="statement not covered" >require('../middleware/auth');</span>
-const mediaMessagesController = <span class="cstat-no" title="statement not covered" >require('../controllers/mediaMessagesController');</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const express = require('express');
+const router = express.Router();
+const { authenticate } = require('../middleware/auth');
+const mediaMessagesController = require('../controllers/mediaMessagesController');
 &nbsp;
 // GIFs
-<span class="cstat-no" title="statement not covered" >router.post('/gif', authenticate, mediaMessagesController.sendGifMessage);</span>
-<span class="cstat-no" title="statement not covered" >router.get('/gifs/popular', authenticate, mediaMessagesController.getPopularGifs);</span>
-<span class="cstat-no" title="statement not covered" >router.get('/gifs/search', authenticate, mediaMessagesController.searchGifs);</span>
+router.post('/gif', authenticate, mediaMessagesController.sendGifMessage);
+router.get('/gifs/popular', authenticate, mediaMessagesController.getPopularGifs);
+router.get('/gifs/search', authenticate, mediaMessagesController.searchGifs);
 &nbsp;
 // Stickers
-<span class="cstat-no" title="statement not covered" >router.post('/sticker', authenticate, mediaMessagesController.sendStickerMessage);</span>
-<span class="cstat-no" title="statement not covered" >router.get('/sticker-packs', authenticate, mediaMessagesController.getStickerPacks);</span>
+router.post('/sticker', authenticate, mediaMessagesController.sendStickerMessage);
+router.get('/sticker-packs', authenticate, mediaMessagesController.getStickerPacks);
 &nbsp;
 // Voice Messages
-<span class="cstat-no" title="statement not covered" >router.post('/voice', authenticate, mediaMessagesController.sendVoiceMessage);</span>
-<span class="cstat-no" title="statement not covered" >router.post('/voice/transcribe', authenticate, mediaMessagesController.transcribeVoiceMessage);</span>
+router.post('/voice', authenticate, mediaMessagesController.sendVoiceMessage);
+router.post('/voice/transcribe', authenticate, mediaMessagesController.transcribeVoiceMessage);
 &nbsp;
 // Video Calls
-<span class="cstat-no" title="statement not covered" >router.post('/video-call/initiate', authenticate, mediaMessagesController.initiateVideoCall);</span>
-<span class="cstat-no" title="statement not covered" >router.put('/video-call/status', authenticate, mediaMessagesController.updateVideoCallStatus);</span>
+router.post('/video-call/initiate', authenticate, mediaMessagesController.initiateVideoCall);
+router.put('/video-call/status', authenticate, mediaMessagesController.updateVideoCallStatus);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >module.exports = router;</span>
+module.exports = router;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -139,7 +139,7 @@ const mediaMessagesController = <span class="cstat-no" title="statement not cove
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-04T22:01:49.555Z
+                at 2026-01-05T21:33:32.394Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

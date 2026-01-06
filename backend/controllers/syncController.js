@@ -428,9 +428,7 @@ async function executeSuperLike(userId, data, timestamp) {
 async function executeRewind(userId, data, timestamp) {
   try {
     // Get last swipe
-    const lastSwipe = await Swipe.findOne({ swiperId: userId })
-      .sort({ createdAt: -1 })
-      .lean();
+    const lastSwipe = await Swipe.findOne({ swiperId: userId }).sort({ createdAt: -1 }).lean();
 
     if (!lastSwipe) {
       return {
@@ -617,9 +615,7 @@ exports.getSyncStatus = async (req, res) => {
         status: 'conflict',
         'conflict.resolved': false,
       }),
-      OfflineAction.findOne({ userId, status: 'synced' })
-        .sort({ syncedAt: -1 })
-        .lean(),
+      OfflineAction.findOne({ userId, status: 'synced' }).sort({ syncedAt: -1 }).lean(),
     ]);
 
     res.json({

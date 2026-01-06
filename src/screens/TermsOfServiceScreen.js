@@ -6,9 +6,9 @@ import { Colors } from '../constants/colors';
 const TermsOfServiceScreen = ({ navigation }) => {
   const handleOpenWebVersion = () => {
     // Replace with your actual terms of service URL
-    const termsUrl = process.env.EXPO_PUBLIC_TERMS_OF_SERVICE_URL || 
-      'https://your-domain.com/terms-of-service';
-    Linking.openURL(termsUrl).catch((err) => 
+    const termsUrl =
+      process.env.EXPO_PUBLIC_TERMS_OF_SERVICE_URL || 'https://your-domain.com/terms-of-service';
+    Linking.openURL(termsUrl).catch((err) =>
       console.error('Failed to open terms of service URL:', err)
     );
   };
@@ -49,30 +49,36 @@ const TermsOfServiceScreen = ({ navigation }) => {
               represent and warrant that:
             </Text>
             <Text style={styles.bulletPoint}>• You are at least 18 years of age</Text>
-            <Text style={styles.bulletPoint}>• You have the legal capacity to enter into these terms</Text>
+            <Text style={styles.bulletPoint}>
+              • You have the legal capacity to enter into these terms
+            </Text>
             <Text style={styles.bulletPoint}>• You will comply with all applicable laws</Text>
-            <Text style={styles.bulletPoint}>• You have not been convicted of a felony or sex offense</Text>
+            <Text style={styles.bulletPoint}>
+              • You have not been convicted of a felony or sex offense
+            </Text>
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>3. User Accounts</Text>
-            <Text style={styles.sectionText}>
-              You are responsible for:
+            <Text style={styles.sectionText}>You are responsible for:</Text>
+            <Text style={styles.bulletPoint}>
+              • Maintaining the confidentiality of your account
             </Text>
-            <Text style={styles.bulletPoint}>• Maintaining the confidentiality of your account</Text>
             <Text style={styles.bulletPoint}>• All activities that occur under your account</Text>
             <Text style={styles.bulletPoint}>• Providing accurate and truthful information</Text>
-            <Text style={styles.bulletPoint}>• Notifying us immediately of any unauthorized use</Text>
+            <Text style={styles.bulletPoint}>
+              • Notifying us immediately of any unauthorized use
+            </Text>
           </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>4. User Conduct</Text>
-            <Text style={styles.sectionText}>
-              You agree not to:
-            </Text>
+            <Text style={styles.sectionText}>You agree not to:</Text>
             <Text style={styles.bulletPoint}>• Use the service for any illegal purpose</Text>
             <Text style={styles.bulletPoint}>• Harass, abuse, or harm other users</Text>
-            <Text style={styles.bulletPoint}>• Post false, misleading, or fraudulent information</Text>
+            <Text style={styles.bulletPoint}>
+              • Post false, misleading, or fraudulent information
+            </Text>
             <Text style={styles.bulletPoint}>• Impersonate any person or entity</Text>
             <Text style={styles.bulletPoint}>• Spam or send unsolicited messages</Text>
             <Text style={styles.bulletPoint}>• Use automated systems to access the service</Text>
@@ -99,8 +105,8 @@ const TermsOfServiceScreen = ({ navigation }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>7. Safety and Reporting</Text>
             <Text style={styles.sectionText}>
-              We are committed to user safety. You can report inappropriate behavior through the app.
-              We reserve the right to suspend or terminate accounts that violate these terms.
+              We are committed to user safety. You can report inappropriate behavior through the
+              app. We reserve the right to suspend or terminate accounts that violate these terms.
             </Text>
           </View>
 
@@ -133,7 +139,8 @@ const TermsOfServiceScreen = ({ navigation }) => {
             <Text style={styles.sectionTitle}>11. Changes to Terms</Text>
             <Text style={styles.sectionText}>
               We reserve the right to modify these terms at any time. We will notify you of
-              significant changes. Continued use of the service after changes constitutes acceptance.
+              significant changes. Continued use of the service after changes constitutes
+              acceptance.
             </Text>
           </View>
 

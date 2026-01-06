@@ -300,11 +300,11 @@ export default function EnhancedProfileEditScreen() {
     try {
       setInitialLoading(true);
       setError(null);
-      
+
       // Load prompts
       const allPrompts = await EnhancedProfileService.getAllPrompts();
       setAvailablePrompts(allPrompts || []);
-      
+
       // Load existing profile data for each tab
       // Note: These would ideally be loaded from a single endpoint
       // For now, we'll handle errors gracefully
@@ -322,7 +322,8 @@ export default function EnhancedProfileEditScreen() {
       setError(errorMessage);
       Alert.alert(
         'Error Loading Data',
-        error.message || 'Failed to load profile information. Please check your connection and try again.',
+        error.message ||
+          'Failed to load profile information. Please check your connection and try again.',
         [
           {
             text: 'Retry',
@@ -346,20 +347,16 @@ export default function EnhancedProfileEditScreen() {
       setAvailablePrompts(allPrompts || []);
     } catch (error) {
       logger.error('Error fetching prompts:', error);
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to load prompts. Please try again.',
-        [
-          {
-            text: 'Retry',
-            onPress: fetchPrompts,
-          },
-          {
-            text: 'OK',
-            style: 'cancel',
-          },
-        ]
-      );
+      Alert.alert('Error', error.message || 'Failed to load prompts. Please try again.', [
+        {
+          text: 'Retry',
+          onPress: fetchPrompts,
+        },
+        {
+          text: 'OK',
+          style: 'cancel',
+        },
+      ]);
     } finally {
       setLoading(false);
     }

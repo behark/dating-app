@@ -19,7 +19,8 @@ const {
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { name, age, gender, bio, interests, pushToken, notificationsEnabled } = req.body;
+    const { name, age, gender, bio, interests, pushToken, expoPushToken, notificationsEnabled } =
+      req.body;
 
     // Validate bio length
     if (bio && bio.length > 500) {
@@ -39,9 +40,13 @@ exports.updateProfile = async (req, res) => {
       updateData.interests = interests.filter((i) => i.trim()).slice(0, 20); // Max 20 interests
     }
     // Handle push token registration (for notifications)
-    if (pushToken !== undefined) {
-      updateData.pushToken = pushToken;
+    // Accept either pushToken (legacy) or expoPushToken
+    if (expoPushToken !== undefined) {
+      updateData.expoPushToken = expoPushToken;
+    } else if (pushToken !== undefined) {
+      updateData.expoPushToken = pushToken;
     }
+
     if (notificationsEnabled !== undefined) {
       // Update notification preferences to enable/disable all
       updateData.notificationPreferences = {
@@ -243,7 +248,10 @@ exports.uploadPhotos = async (req, res) => {
       const modStatus = photo.moderationStatus || 'pending';
       return {
         ...photo,
-        moderationStatus: (modStatus === 'pending' || modStatus === 'approved' || modStatus === 'rejected') ? modStatus : 'pending',
+        moderationStatus:
+          modStatus === 'pending' || modStatus === 'approved' || modStatus === 'rejected'
+            ? modStatus
+            : 'pending',
       };
     });
 

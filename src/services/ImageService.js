@@ -1,9 +1,11 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
-import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { storage } from '../config/firebase';
+// Firebase imports removed for local upload strategy
+// import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+// import { storage } from '../config/firebase';
 import logger from '../utils/logger';
 import api from './api';
+import { API_URL } from '../config/api';
 
 export class ImageService {
   static async requestPermissions() {
@@ -101,25 +103,44 @@ export class ImageService {
 
       // Compress image
       const compressedImage = await this.compressImage(uri);
-      const thumbnail = await this.createThumbnail(uri);
+      // We skip separate thumbnail generation for local upload simplicity
+      // The backend or frontend can handle resizing if needed
 
-      // Generate unique filename
-      const timestamp = Date.now();
-      const fileName = `${userId}_${timestamp}`;
-      const fullImageRef = ref(storage, `profiles/${userId}/${fileName}_full.jpg`);
-      const thumbnailRef = ref(storage, `profiles/${userId}/${fileName}_thumb.jpg`);
+      // Create FormData for upload
+      const formData = new FormData();
+      formData.append('image', {
+        uri: compressedImage.uri,
+        name: `photo_${Date.now()}.jpg`,
+        type: 'image/jpeg',
+      });
 
-      // Upload images to Firebase Storage (for CDN hosting)
-      const [fullUpload, thumbUpload] = await Promise.all([
-        uploadBytes(fullImageRef, await this.uriToBlob(compressedImage.uri)),
-        thumbnail ? uploadBytes(thumbnailRef, await this.uriToBlob(thumbnail.uri)) : null,
-      ]);
+      // Get auth token
+      const token = await api.getAuthToken();
 
-      // Get download URLs
-      const [fullUrl, thumbUrl] = await Promise.all([
-        getDownloadURL(fullImageRef),
-        thumbnail ? getDownloadURL(thumbnailRef) : null,
-      ]);
+      // Upload to backend
+      const uploadResponse = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          // Content-Type is set automatically by fetch for FormData
+        },
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        throw new Error(`Upload failed: ${uploadResponse.status} ${errorText}`);
+      }
+
+      const uploadResult = await uploadResponse.json();
+      
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.message || 'Upload failed');
+      }
+
+      const fullUrl = uploadResult.url;
+      const thumbUrl = uploadResult.url; // Use same URL for now
 
       // Create photo object for backend API
       const photoData = {
@@ -134,23 +155,16 @@ export class ImageService {
       });
 
       if (!response.success) {
-        // If backend fails, clean up uploaded storage files
-        try {
-          await deleteObject(fullImageRef);
-          if (thumbnail) await deleteObject(thumbnailRef);
-        } catch (cleanupError) {
-          logger.warn('Failed to cleanup storage after API error', cleanupError);
-        }
         throw new Error(response.message || 'Failed to update profile with photo');
       }
 
       const imageData = {
-        id: `${timestamp}`,
+        id: uploadResult.fileId || Date.now().toString(),
         fullUrl,
         thumbnailUrl: thumbUrl,
         uploadedAt: new Date(),
         isPrimary,
-        fileName,
+        fileName: uploadResult.fileName,
       };
 
       return { success: true, imageData };
@@ -237,14 +251,14 @@ export class ImageService {
   static async moderateImage(uri) {
     /**
      * Image Moderation Service
-     * 
+     *
      * Integrates with moderation services to detect inappropriate content:
      * - Nudity/Adult content
      * - Violence
      * - Hate symbols
      * - Weapons
      * - Spam/Scam content
-     * 
+     *
      * Supported services:
      * - Google Cloud Vision API (recommended)
      * - AWS Rekognition

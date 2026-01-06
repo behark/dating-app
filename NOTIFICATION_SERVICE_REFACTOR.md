@@ -1,19 +1,24 @@
 # NotificationService Refactor - Backend API Integration
 
 ## Problem
+
 The frontend `NotificationService` was bypassing the backend entirely by writing directly to Firestore, causing:
+
 - No server-side notification preferences sync
 - Backend `/api/notifications/*` routes unused
 - Inconsistent data between Firestore and MongoDB
 - Missing server-side validation and business logic
 
 ## Solution
+
 Refactored `NotificationService` to use backend API endpoints instead of direct Firestore access.
 
 ## Changes Made
 
 ### 1. Frontend: NotificationService.js
+
 **Before**: Direct Firestore access
+
 ```javascript
 await updateDoc(doc(db, 'users', userId), {
   pushToken: tokenData,
@@ -22,6 +27,7 @@ await updateDoc(doc(db, 'users', userId), {
 ```
 
 **After**: Backend API calls
+
 ```javascript
 await api.put('/profile/update', {
   pushToken: tokenData,
@@ -30,21 +36,23 @@ await api.put('/profile/update', {
 ```
 
 ### 2. Backend: profileController.js
+
 **Added**: Support for pushToken and notificationsEnabled in profile update
+
 - `pushToken` - Expo push notification token
 - `notificationsEnabled` - Global notification toggle
 
 ### 3. All Notification Operations Now Use Backend
 
-| Operation | Old Method | New Method |
-|-----------|-----------|------------|
-| Register Push Token | Direct Firestore | `PUT /api/profile/update` |
-| Get Preferences | Direct Firestore | `GET /api/notifications/preferences` |
-| Update Preferences | Direct Firestore | `PUT /api/notifications/preferences` |
-| Enable Notifications | Direct Firestore | `PUT /api/notifications/enable` |
-| Disable Notifications | Direct Firestore | `PUT /api/notifications/disable` |
-| Send Notification | Direct Expo API | `POST /api/notifications/send` |
-| Send Bulk Notification | Direct Expo API | `POST /api/notifications/send-bulk` |
+| Operation              | Old Method       | New Method                           |
+| ---------------------- | ---------------- | ------------------------------------ |
+| Register Push Token    | Direct Firestore | `PUT /api/profile/update`            |
+| Get Preferences        | Direct Firestore | `GET /api/notifications/preferences` |
+| Update Preferences     | Direct Firestore | `PUT /api/notifications/preferences` |
+| Enable Notifications   | Direct Firestore | `PUT /api/notifications/enable`      |
+| Disable Notifications  | Direct Firestore | `PUT /api/notifications/disable`     |
+| Send Notification      | Direct Expo API  | `POST /api/notifications/send`       |
+| Send Bulk Notification | Direct Expo API  | `POST /api/notifications/send-bulk`  |
 
 ## Benefits
 
@@ -58,12 +66,14 @@ await api.put('/profile/update', {
 ## API Endpoints Used
 
 ### Profile Update (Push Token)
+
 ```
 PUT /api/profile/update
 Body: { pushToken: string, notificationsEnabled: boolean }
 ```
 
 ### Notification Preferences
+
 ```
 GET /api/notifications/preferences
 Returns: { success: true, data: { preferences: {...} } }
@@ -80,12 +90,14 @@ Body: {
 ```
 
 ### Enable/Disable
+
 ```
 PUT /api/notifications/enable
 PUT /api/notifications/disable
 ```
 
 ### Send Notifications
+
 ```
 POST /api/notifications/send
 Body: {
@@ -109,10 +121,12 @@ Body: {
 ## Migration Notes
 
 ### Breaking Changes
+
 - **None** - All public methods maintain the same signature
 - Existing code using `NotificationService` will continue to work
 
 ### Data Migration
+
 - Existing Firestore notification preferences will need to be migrated to MongoDB
 - Push tokens in Firestore should be migrated to MongoDB User model
 - Consider running a migration script to sync existing data

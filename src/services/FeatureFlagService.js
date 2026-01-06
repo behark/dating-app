@@ -23,14 +23,14 @@ class FeatureFlagService {
    */
   async fetchFlagsFromAPI() {
     if (this.isFetching) return;
-    
+
     this.isFetching = true;
     try {
       const response = await api.get('/feature-flags');
       if (response.success && response.data) {
         // Merge API flags with local flags (API takes precedence)
         if (Array.isArray(response.data)) {
-          response.data.forEach(flag => {
+          response.data.forEach((flag) => {
             this.flags.set(flag.name, {
               ...this.flags.get(flag.name),
               ...flag,
@@ -161,7 +161,7 @@ class FeatureFlagService {
   async isEnabled(flagName, userId = null, userGroups = []) {
     // Ensure we have fresh flags from API
     await this.ensureFreshFlags();
-    
+
     return this.isEnabledSync(flagName, userId, userGroups);
   }
 
@@ -281,7 +281,7 @@ const featureFlagService = new FeatureFlagService();
 featureFlagService.initializeFlags();
 
 // Fetch flags from API on initialization (async, non-blocking)
-featureFlagService.fetchFlagsFromAPI().catch(err => {
+featureFlagService.fetchFlagsFromAPI().catch((err) => {
   logger.warn('Initial feature flag fetch failed:', err.message);
 });
 

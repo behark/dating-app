@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/20</span>
+                <span class='fraction'>20/20</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/20</span>
+                <span class='fraction'>20/20</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -101,82 +101,82 @@
 <a name='L36'></a><a href='#L36'>36</a>
 <a name='L37'></a><a href='#L37'>37</a>
 <a name='L38'></a><a href='#L38'>38</a>
-<a name='L39'></a><a href='#L39'>39</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L39'></a><a href='#L39'>39</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const express = <span class="cstat-no" title="statement not covered" >require('express');</span>
-const premiumController = <span class="cstat-no" title="statement not covered" >require('../controllers/premiumController');</span>
-const { authenticate } = <span class="cstat-no" title="statement not covered" >require('../middleware/auth');</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const express = require('express');
+const premiumController = require('../controllers/premiumController');
+const { authenticate } = require('../middleware/auth');
 &nbsp;
-const router = <span class="cstat-no" title="statement not covered" >express.Router();</span>
+const router = express.Router();
 &nbsp;
 // All routes require authentication
-<span class="cstat-no" title="statement not covered" >router.use(authenticate);</span>
+router.use(authenticate);
 &nbsp;
 // Subscription management
-<span class="cstat-no" title="statement not covered" >router.get('/subscription/status', premiumController.getSubscriptionStatus);</span>
-<span class="cstat-no" title="statement not covered" >router.post('/subscription/trial/start', premiumController.startTrial);</span>
-<span class="cstat-no" title="statement not covered" >router.post('/subscription/upgrade', premiumController.upgradeToPremium);</span>
-<span class="cstat-no" title="statement not covered" >router.post('/subscription/cancel', premiumController.cancelSubscription);</span>
+router.get('/subscription/status', premiumController.getSubscriptionStatus);
+router.post('/subscription/trial/start', premiumController.startTrial);
+router.post('/subscription/upgrade', premiumController.upgradeToPremium);
+router.post('/subscription/cancel', premiumController.cancelSubscription);
 &nbsp;
 // See Who Liked You
-<span class="cstat-no" title="statement not covered" >router.get('/likes/received', premiumController.getReceivedLikes);</span>
+router.get('/likes/received', premiumController.getReceivedLikes);
 &nbsp;
 // Passport Feature
-<span class="cstat-no" title="statement not covered" >router.get('/passport/status', premiumController.getPassportStatus);</span>
-<span class="cstat-no" title="statement not covered" >router.post('/passport/location', premiumController.setPassportLocation);</span>
-<span class="cstat-no" title="statement not covered" >router.post('/passport/disable', premiumController.disablePassport);</span>
+router.get('/passport/status', premiumController.getPassportStatus);
+router.post('/passport/location', premiumController.setPassportLocation);
+router.post('/passport/disable', premiumController.disablePassport);
 &nbsp;
 // Advanced Filters
-<span class="cstat-no" title="statement not covered" >router.get('/filters/options', premiumController.getAdvancedFilterOptions);</span>
-<span class="cstat-no" title="statement not covered" >router.post('/filters/update', premiumController.updateAdvancedFilters);</span>
+router.get('/filters/options', premiumController.getAdvancedFilterOptions);
+router.post('/filters/update', premiumController.updateAdvancedFilters);
 &nbsp;
 // Priority Likes
-<span class="cstat-no" title="statement not covered" >router.post('/likes/priority', premiumController.sendPriorityLike);</span>
+router.post('/likes/priority', premiumController.sendPriorityLike);
 &nbsp;
 // Ads Preferences
-<span class="cstat-no" title="statement not covered" >router.post('/ads/preferences', premiumController.updateAdsPreferences);</span>
+router.post('/ads/preferences', premiumController.updateAdsPreferences);
 &nbsp;
 // Profile Boost Analytics
-<span class="cstat-no" title="statement not covered" >router.get('/analytics/boosts', premiumController.getBoostAnalytics);</span>
-<span class="cstat-no" title="statement not covered" >router.post('/analytics/boost-session', premiumController.recordBoostSession);</span>
+router.get('/analytics/boosts', premiumController.getBoostAnalytics);
+router.post('/analytics/boost-session', premiumController.recordBoostSession);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >module.exports = router;</span>
+module.exports = router;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -184,7 +184,7 @@ const router = <span class="cstat-no" title="statement not covered" >express.Rou
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-04T22:01:49.555Z
+                at 2026-01-05T21:33:32.394Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

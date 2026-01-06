@@ -197,9 +197,9 @@ const discoverUsers = async (req, res) => {
 
     // Log slow queries for monitoring
     if (queryTime > 5000) {
-      logger.warn('[SLOW] Discovery query', { 
-        duration: queryTime, 
-        resultCount: usersWithDistance.length 
+      logger.warn('[SLOW] Discovery query', {
+        duration: queryTime,
+        resultCount: usersWithDistance.length,
       });
     }
 
@@ -226,7 +226,11 @@ const discoverUsers = async (req, res) => {
     });
   } catch (error) {
     const queryTime = Date.now() - startTime;
-    logger.error('Discovery error', { duration: queryTime, error: error.message, stack: error.stack });
+    logger.error('Discovery error', {
+      duration: queryTime,
+      error: error.message,
+      stack: error.stack,
+    });
 
     // Check if this was a timeout error
     if (
