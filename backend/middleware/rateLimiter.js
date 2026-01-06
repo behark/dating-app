@@ -5,6 +5,7 @@
 
 const { rateLimiter, cache, CACHE_KEYS } = require('../config/redis');
 const { RATE_LIMIT_MESSAGES, ERROR_MESSAGES } = require('../constants/messages');
+const { logger } = require('../services/LoggingService');
 
 /**
  * Create rate limiter middleware
@@ -50,7 +51,7 @@ const createRateLimiter = (options = {}) => {
     } catch (error) {
       // Log error without sensitive data
       const safeError = error instanceof Error ? error.message : String(error);
-      console.error('Rate limiter error:', safeError);
+      logger.error('Rate limiter error:', { error: safeError });
       // SECURITY: Fail closed - deny request when rate limiter errors
       // This prevents brute force attacks during Redis outages
       return res.status(503).json({
@@ -79,7 +80,7 @@ const authLimiter = createRateLimiter({
   keyGenerator: (req) => `auth:${req.ip}`,
   message: RATE_LIMIT_MESSAGES.AUTH,
   onLimitReached: (req, res) => {
-    console.warn(`Auth rate limit reached for IP: ${req.ip}`);
+    logger.warn('Auth rate limit reached', { ip: req.ip });
   },
 });
 
@@ -139,7 +140,7 @@ const swipeLimiter = async (req, res, next) => {
   } catch (error) {
     // Log error without sensitive data
     const safeError = error instanceof Error ? error.message : String(error);
-    console.error('Swipe limiter error:', safeError);
+    logger.error('Swipe limiter error:', { error: safeError });
     next();
   }
 };

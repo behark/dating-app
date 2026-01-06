@@ -235,7 +235,7 @@ class EnvValidator {
   }
 
   validateBackend() {
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${'='.repeat(60)}`);
     console.log('🔧 BACKEND ENVIRONMENT VALIDATION');
     console.log('='.repeat(60));
 
@@ -256,7 +256,7 @@ class EnvValidator {
   }
 
   validateFrontend() {
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${'='.repeat(60)}`);
     console.log('🌐 FRONTEND ENVIRONMENT VALIDATION');
     console.log('='.repeat(60));
 
@@ -277,9 +277,9 @@ class EnvValidator {
   }
 
   validateSecurity() {
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${'='.repeat(60)}`);
     console.log('🔒 SECURITY VALIDATION');
-    console.log('='.repeat(60) + '\n');
+    console.log(`${'='.repeat(60)}\n`);
 
     // Check that secrets are not exposed in EXPO_PUBLIC_* variables
     let hasSecurityIssue = false;
@@ -318,9 +318,9 @@ class EnvValidator {
   }
 
   checkMisconfigurations() {
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${'='.repeat(60)}`);
     console.log('⚠️  POTENTIAL MISCONFIGURATIONS');
-    console.log('='.repeat(60) + '\n');
+    console.log(`${'='.repeat(60)}\n`);
 
     // Check URL consistency
     const frontendUrl = process.env.FRONTEND_URL || '';
@@ -360,9 +360,9 @@ class EnvValidator {
   }
 
   generateSummary() {
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${'='.repeat(60)}`);
     console.log('📊 VALIDATION SUMMARY');
-    console.log('='.repeat(60) + '\n');
+    console.log(`${'='.repeat(60)}\n`);
 
     console.log(`${CHECK} Passed: ${this.passes.length}`);
     console.log(`${FAIL} Errors: ${this.errors.length}`);
@@ -379,13 +379,13 @@ class EnvValidator {
       this.warnings.forEach((w) => console.log(`   ${WARN} ${w}`));
     }
 
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${'='.repeat(60)}`);
     if (this.errors.length === 0) {
       console.log('✅ READY FOR PRODUCTION');
     } else {
       console.log('❌ NOT READY - Fix critical issues before deploying');
     }
-    console.log('='.repeat(60) + '\n');
+    console.log(`${'='.repeat(60)}\n`);
 
     return this.errors.length === 0;
   }

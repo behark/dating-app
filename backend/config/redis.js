@@ -7,6 +7,12 @@ const Redis = require('ioredis');
 
 let redisClient = null;
 let isConnected = false;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 3;
+let shouldReconnect = true;
+
+// Check if Redis is disabled via environment variable
+const REDIS_ENABLED = process.env.REDIS_ENABLED !== 'false';
 
 // Redis configuration
 const redisConfig = {
@@ -18,6 +24,15 @@ const redisConfig = {
   retryDelayOnFailover: 100,
   enableReadyCheck: true,
   lazyConnect: true,
+  // Disable auto-reconnect after max attempts
+  maxRetriesPerRequest: null, // Disable automatic retries
+  retryStrategy: (times) => {
+    if (times > MAX_RECONNECT_ATTEMPTS || !shouldReconnect) {
+      console.log('Redis: Stopping reconnection attempts. Redis will work in degraded mode (no caching).');
+      return null; // Stop reconnecting
+    }
+    return Math.min(times * 200, 2000); // Exponential backoff
+  },
   // Connection pool settings
   family: 4,
   connectTimeout: 10000,
@@ -57,8 +72,19 @@ const CACHE_KEYS = {
  * Initialize Redis connection
  */
 const initRedis = async () => {
+  // If Redis is disabled, skip initialization
+  if (!REDIS_ENABLED) {
+    console.log('Redis is disabled (REDIS_ENABLED=false). Running without cache.');
+    return null;
+  }
+
   if (redisClient && isConnected) {
     return redisClient;
+  }
+
+  // If we've exceeded max reconnect attempts, don't try again
+  if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS && !shouldReconnect) {
+    return null;
   }
 
   // Check if Redis URL is provided (for cloud services like Upstash, Railway)
@@ -68,10 +94,17 @@ const initRedis = async () => {
     if (redisUrl) {
       // @ts-ignore - ioredis constructor accepts URL string
       redisClient = new Redis(redisUrl, {
-        maxRetriesPerRequest: 3,
+        maxRetriesPerRequest: null, // Disable automatic retries
         lazyConnect: true,
         enableReadyCheck: true,
         tls: redisUrl.startsWith('rediss://') ? {} : undefined,
+        retryStrategy: (times) => {
+          if (times > MAX_RECONNECT_ATTEMPTS || !shouldReconnect) {
+            console.log('Redis: Stopping reconnection attempts. Running without cache.');
+            return null;
+          }
+          return Math.min(times * 200, 2000);
+        },
       });
     } else {
       // @ts-ignore - ioredis constructor accepts config object
@@ -81,34 +114,65 @@ const initRedis = async () => {
     // Event handlers
     redisClient.on('connect', () => {
       console.log('Redis connecting...');
+      reconnectAttempts = 0; // Reset on successful connection attempt
     });
 
     redisClient.on('ready', () => {
-      console.log('Redis connected and ready');
+      console.log('✅ Redis connected and ready');
       isConnected = true;
+      reconnectAttempts = 0; // Reset on successful connection
     });
 
     redisClient.on('error', (error) => {
-      console.error('Redis error:', error.message);
+      // Only log first few errors to avoid spam
+      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        console.error(`Redis error (attempt ${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS}):`, error.message);
+      }
       isConnected = false;
+      reconnectAttempts++;
+      
+      // After max attempts, stop trying
+      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        shouldReconnect = false;
+        console.log('⚠️  Redis unavailable after multiple attempts. App will run without caching.');
+        console.log('   To disable Redis completely, set REDIS_ENABLED=false in your .env file');
+      }
     });
 
     redisClient.on('close', () => {
-      console.log('Redis connection closed');
+      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        console.log('Redis connection closed');
+      }
       isConnected = false;
     });
 
-    redisClient.on('reconnecting', () => {
-      console.log('Redis reconnecting...');
+    redisClient.on('reconnecting', (delay) => {
+      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        console.log(`Redis reconnecting... (attempt ${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})`);
+      }
     });
 
-    // Connect
-    await redisClient.connect();
+    // Connect with timeout
+    await Promise.race([
+      redisClient.connect(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Connection timeout')), 5000)
+      )
+    ]);
 
     return redisClient;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Failed to initialize Redis:', errorMessage);
+    reconnectAttempts++;
+    
+    if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+      console.error(`Failed to initialize Redis (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}):`, errorMessage);
+    } else {
+      shouldReconnect = false;
+      console.log('⚠️  Redis initialization failed after multiple attempts. App will run without caching.');
+      console.log('   To disable Redis completely, set REDIS_ENABLED=false in your .env file');
+    }
+    
     isConnected = false;
     return null;
   }
@@ -118,6 +182,11 @@ const initRedis = async () => {
  * Get Redis client (lazy initialization)
  */
 const getRedis = async () => {
+  // If Redis is disabled or we've given up, return null immediately
+  if (!REDIS_ENABLED || (!shouldReconnect && reconnectAttempts >= MAX_RECONNECT_ATTEMPTS)) {
+    return null;
+  }
+  
   if (!redisClient || !isConnected) {
     await initRedis();
   }

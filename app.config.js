@@ -3,6 +3,13 @@ export default {
     name: 'dating-app',
     slug: 'dating-app',
     version: '1.0.0',
+    // Runtime version for OTA updates - increment when native code changes
+    runtimeVersion: {
+      policy: 'sdkVersion',
+    },
+    plugins: [
+      'expo-in-app-purchases',
+    ],
     orientation: 'default', // Allow both portrait and landscape for tablets
     icon: './assets/icon.png',
     userInterfaceStyle: 'automatic', // Support light/dark mode
@@ -11,6 +18,16 @@ export default {
       image: './assets/splash-icon.png',
       resizeMode: 'contain',
       backgroundColor: '#ffffff',
+    },
+    // OTA Updates Configuration
+    updates: {
+      enabled: true,
+      // Check for updates when app starts
+      checkAutomatically: 'ON_LOAD',
+      // Fallback timeout if update check fails (5 seconds)
+      fallbackToCacheTimeout: 5000,
+      // URL for Expo updates (EAS Update)
+      url: 'https://u.expo.dev/your-project-id',
     },
     // iOS Configuration - Minimum iOS 14+
     ios: {
@@ -117,13 +134,14 @@ export default {
     },
     // Deep Linking Configuration
     scheme: 'dating-app',
-    // Support Expo Go for development
+    // Extra configuration for runtime access
     extra: {
+      // Environment
+      env: process.env.EXPO_PUBLIC_ENV || 'production',
+      // Support Expo Go for development
       ...(process.env.EXPO_PUBLIC_ENV === 'development' && {
         expoGoScheme: 'exp',
       }),
-    },
-    extra: {
       // Backend API URL - Uses Vercel env var or defaults to production Render URL
       backendUrl:
         process.env.EXPO_PUBLIC_API_URL ||
@@ -135,6 +153,9 @@ export default {
         process.env.EXPO_PUBLIC_BACKEND_URL ||
         'https://dating-app-backend-x4yq.onrender.com/api'
       ).replace('/api', ''),
+      // Sentry DSN for error tracking
+      sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN || '',
+      // Firebase configuration
       firebaseApiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'your_firebase_api_key_here',
       firebaseAuthDomain:
         process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || 'your_project.firebaseapp.com',
@@ -151,6 +172,10 @@ export default {
       googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '',
       googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '',
       googleAndroidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || '',
+      // EAS Project ID for updates
+      eas: {
+        projectId: process.env.EAS_PROJECT_ID || 'your-project-id',
+      },
     },
   },
 };

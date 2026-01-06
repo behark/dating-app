@@ -4,6 +4,7 @@
  */
 
 const { cache, CACHE_TTL, CACHE_KEYS } = require('../config/redis');
+const { logger } = require('../services/LoggingService');
 
 /**
  * Cache key generator for different resource types
@@ -83,7 +84,7 @@ const apiCache = (type, ttlOverride = null) => {
           const ttl = ttlOverride || getTTLForType(type);
           // Cache asynchronously to avoid blocking response
           cache.set(cacheKey, data, ttl).catch((err) => {
-            console.error('Cache set error:', err);
+            logger.error('Cache set error:', { error: err.message || err });
           });
         }
 
@@ -104,7 +105,7 @@ const apiCache = (type, ttlOverride = null) => {
 
       next();
     } catch (error) {
-      console.error('Cache middleware error:', error);
+      logger.error('Cache middleware error:', { error: error.message || error });
       next(); // Continue without caching on error
     }
   };
@@ -135,7 +136,7 @@ const invalidateCache = async (type, params = {}) => {
     await cache.del(cacheKey);
     return true;
   } catch (error) {
-    console.error('Cache invalidation error:', error);
+    logger.error('Cache invalidation error:', { error: error.message || error });
     return false;
   }
 };
@@ -157,7 +158,7 @@ const invalidateUserCache = async (userId) => {
     await Promise.all(patterns.map((pattern) => cache.delByPattern(pattern)));
     return true;
   } catch (error) {
-    console.error('User cache invalidation error:', error);
+    logger.error('User cache invalidation error:', { error: error.message || error });
     return false;
   }
 };
@@ -185,7 +186,7 @@ const warmCache = async (type, data, params = {}) => {
     await cache.set(cacheKey, data, ttl);
     return true;
   } catch (error) {
-    console.error('Cache warm error:', error);
+    logger.error('Cache warm error:', { error: error.message || error });
     return false;
   }
 };
@@ -235,7 +236,7 @@ const staleWhileRevalidate = (type, fetchFn, staleTime = 60) => {
                 cache.set(metaKey, { timestamp: Date.now() }, ttl),
               ]);
             } catch (error) {
-              console.error('Background refresh error:', error);
+              logger.error('Background refresh error:', { error: error.message || error });
             }
           });
         }
@@ -252,7 +253,7 @@ const staleWhileRevalidate = (type, fetchFn, staleTime = 60) => {
           Promise.all([
             cache.set(cacheKey, data, ttl),
             cache.set(metaKey, { timestamp: Date.now() }, ttl),
-          ]).catch((err) => console.error('Cache error:', err));
+          ]).catch((err) => logger.error('Cache error:', { error: err.message || err }));
         }
 
         if (!res.headersSent) {
@@ -267,7 +268,7 @@ const staleWhileRevalidate = (type, fetchFn, staleTime = 60) => {
 
       next();
     } catch (error) {
-      console.error('SWR cache error:', error);
+      logger.error('SWR cache error:', { error: error.message || error });
       next();
     }
   };
@@ -306,11 +307,11 @@ const etagCache = (type) => {
             res.set('ETag', etag);
             // Cache asynchronously to avoid blocking response
             cache.set(etagKey, etag, getTTLForType(type)).catch((err) => {
-              console.error('Cache error:', err);
+              logger.error('Cache error:', { error: err.message || err });
             });
           } catch (error) {
             // Headers already sent or error, continue with response
-            console.error('ETag error:', error);
+            logger.error('ETag error:', { error: error.message || error });
           }
         }
 
@@ -319,7 +320,7 @@ const etagCache = (type) => {
 
       next();
     } catch (error) {
-      console.error('ETag cache error:', error);
+      logger.error('ETag cache error:', { error: error.message || error });
       next();
     }
   };

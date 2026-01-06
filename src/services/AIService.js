@@ -1,13 +1,11 @@
-import { API_BASE_URL } from '../config/api';
 import { ERROR_MESSAGES } from '../constants/constants';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { handleApiResponse } from '../utils/apiResponseHandler';
 import logger from '../utils/logger';
 import { validateUserId } from '../utils/validators';
+import api from './api';
 
 export class AIService {
-  constructor(authToken) {
-    this.authToken = authToken;
-  }
+  constructor(_authToken) {}
 
   /**
    * Get smart photo selection recommendations
@@ -19,26 +17,9 @@ export class AIService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_BASE_URL}/ai/smart-photos/${userId}`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(
-          getUserFriendlyMessage(data.message || 'Failed to get smart photo recommendations')
-        );
-      }
-      return data.data || { recommendations: [], analysis: {} }; // { recommendations: [...], analysis: {...} }
+      const response = await api.get(`/ai/smart-photos/${userId}`);
+      const handled = handleApiResponse(response, 'Get smart photo recommendations');
+      return handled.data || { recommendations: [], analysis: {} };
     } catch (error) {
       logger.error('Error getting smart photo selection:', error);
       throw error;
@@ -51,33 +32,13 @@ export class AIService {
    */
   async getBioSuggestions(userId, interests = [], currentBio = '') {
     try {
-      const response = await fetch(`${API_BASE_URL}/ai/bio-suggestions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: JSON.stringify({
-          userId,
-          interests,
-          currentBio,
-        }),
+      const response = await api.post('/ai/bio-suggestions', {
+        userId,
+        interests,
+        currentBio,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to get bio suggestions'));
-      }
-      return data.data || { suggestions: [], explanations: {} }; // { suggestions: [...], explanations: {...} }
+      const handled = handleApiResponse(response, 'Get bio suggestions');
+      return handled.data || { suggestions: [], explanations: {} };
     } catch (error) {
       logger.error('Error getting bio suggestions:', error);
       throw error;
@@ -94,26 +55,9 @@ export class AIService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_BASE_URL}/ai/compatibility/${userId}/${targetUserId}`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(
-          getUserFriendlyMessage(data.message || 'Failed to calculate compatibility score')
-        );
-      }
-      return data.data || { score: 0, breakdown: {}, explanation: '' }; // { score: 0-100, breakdown: {...}, explanation: '...' }
+      const response = await api.get(`/ai/compatibility/${userId}/${targetUserId}`);
+      const handled = handleApiResponse(response, 'Get compatibility score');
+      return handled.data || { score: 0, breakdown: {}, explanation: '' };
     } catch (error) {
       logger.error('Error calculating compatibility score:', error);
       throw error;
@@ -126,40 +70,18 @@ export class AIService {
    */
   async getConversationStarters(userId, targetUserId, targetProfile = {}) {
     try {
-      const response = await fetch(`${API_BASE_URL}/ai/conversation-starters`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
+      const response = await api.post('/ai/conversation-starters', {
+        userId,
+        targetUserId,
+        targetProfile: {
+          interests: targetProfile.interests || [],
+          bio: targetProfile.bio || '',
+          photos: targetProfile.photos || [],
+          ...targetProfile,
         },
-        body: JSON.stringify({
-          userId,
-          targetUserId,
-          targetProfile: {
-            interests: targetProfile.interests || [],
-            bio: targetProfile.bio || '',
-            photos: targetProfile.photos || [],
-            ...targetProfile,
-          },
-        }),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(
-          getUserFriendlyMessage(data.message || 'Failed to get conversation starters')
-        );
-      }
-      return data.data || { starters: [], reasoning: {} }; // { starters: [...], reasoning: {...} }
+      const handled = handleApiResponse(response, 'Get conversation starters');
+      return handled.data || { starters: [], reasoning: {} };
     } catch (error) {
       logger.error('Error getting conversation starters:', error);
       throw error;
@@ -176,27 +98,9 @@ export class AIService {
       const response = await fetch(photoUri);
       const blob = await response.blob();
       formData.append('photo', blob, 'photo.jpg');
-
-      const uploadResponse = await fetch(`${API_BASE_URL}/ai/analyze-photo`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `HTTP ${uploadResponse.status}: ${uploadResponse.statusText}`
-        );
-      }
-
-      const data = await uploadResponse.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to analyze photo'));
-      }
-      return data.data || { quality: {}, suggestions: [], score: 0 }; // { quality: {...}, suggestions: [...], score: 0-100 }
+      const uploadResponse = await api.post('/ai/analyze-photo', formData);
+      const handled = handleApiResponse(uploadResponse, 'Analyze photo');
+      return handled.data || { quality: {}, suggestions: [], score: 0 };
     } catch (error) {
       logger.error('Error analyzing photo quality:', error);
       throw error;
@@ -222,29 +126,9 @@ export class AIService {
         useValues: values,
       });
 
-      const response = await fetch(
-        `${API_BASE_URL}/ai/personalized-matches/${userId}?${queryParams}`,
-        {
-          headers: { Authorization: `Bearer ${this.authToken}` },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(
-          getUserFriendlyMessage(data.message || 'Failed to get personalized matches')
-        );
-      }
-      return data.data || { matches: [], reasoning: {} }; // { matches: [...], reasoning: {...} }
+      const response = await api.get(`/ai/personalized-matches/${userId}?${queryParams}`);
+      const handled = handleApiResponse(response, 'Get personalized matches');
+      return handled.data || { matches: [], reasoning: {} };
     } catch (error) {
       logger.error('Error getting personalized matches:', error);
       throw error;
@@ -261,26 +145,9 @@ export class AIService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_BASE_URL}/ai/profile-suggestions/${userId}`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(
-          getUserFriendlyMessage(data.message || 'Failed to get profile suggestions')
-        );
-      }
-      return data.data || { suggestions: [], priority: [], impact: {} }; // { suggestions: [...], priority: [...], impact: {...} }
+      const response = await api.get(`/ai/profile-suggestions/${userId}`);
+      const handled = handleApiResponse(response, 'Get profile suggestions');
+      return handled.data || { suggestions: [], priority: [], impact: {} };
     } catch (error) {
       logger.error('Error getting profile improvement suggestions:', error);
       throw error;
@@ -297,26 +164,9 @@ export class AIService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_BASE_URL}/ai/conversation-insights/${userId}`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(
-          getUserFriendlyMessage(data.message || 'Failed to get conversation insights')
-        );
-      }
-      return data.data || { insights: [], tips: [], patterns: {} }; // { insights: [...], tips: [...], patterns: {...} }
+      const response = await api.get(`/ai/conversation-insights/${userId}`);
+      const handled = handleApiResponse(response, 'Get conversation insights');
+      return handled.data || { insights: [], tips: [], patterns: {} };
     } catch (error) {
       logger.error('Error getting conversation insights:', error);
       throw error;

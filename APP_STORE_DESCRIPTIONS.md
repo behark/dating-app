@@ -113,7 +113,7 @@ Terms of Service: [Your Terms URL]
 Privacy Policy: [Your Privacy URL]
 Support: [Your Support Email]
 
-Age Rating: 18+
+Age Rating: 17+
 ```
 
 **Character count**: ~1,850/4000 ✅ (Plenty of room for customization)

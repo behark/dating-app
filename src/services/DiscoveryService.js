@@ -1,8 +1,8 @@
-import { API_BASE_URL } from '../config/api';
 import { ERROR_MESSAGES } from '../constants/constants';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { handleApiResponse } from '../utils/apiResponseHandler';
 import logger from '../utils/logger';
 import { validateCoordinates, validateNumberRange, validateUserId } from '../utils/validators';
+import api from './api';
 
 /**
  * DiscoveryService - User discovery and exploration functionality
@@ -14,14 +14,6 @@ import { validateCoordinates, validateNumberRange, validateUserId } from '../uti
  * - Calculating distance between users
  */
 class DiscoveryService {
-  /**
-   * Create a new DiscoveryService instance
-   * @param {string} authToken - JWT authentication token
-   */
-  constructor(authToken) {
-    this.authToken = authToken;
-  }
-
   /**
    * Explore users with filters and location-based search
    * @param {number} lat - User's current latitude
@@ -77,23 +69,9 @@ class DiscoveryService {
         skip: skip.toString(),
       });
 
-      const response = await fetch(`${API_BASE_URL}/discovery/explore?${queryParams}`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = getUserFriendlyMessage(
-          errorData.message || `HTTP ${response.status}: ${response.statusText}`
-        );
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || [];
+      const response = await api.get(`/discovery/explore?${queryParams}`);
+      const handled = handleApiResponse(response, 'Explore users');
+      return handled.data || [];
     } catch (error) {
       logger.error('Error exploring users:', error);
       throw error;
@@ -115,23 +93,9 @@ class DiscoveryService {
 
       const queryParams = new URLSearchParams({ limit: limit.toString() });
 
-      const response = await fetch(`${API_BASE_URL}/discovery/top-picks?${queryParams}`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = getUserFriendlyMessage(
-          errorData.message || `HTTP ${response.status}: ${response.statusText}`
-        );
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || { topPicks: [] };
+      const response = await api.get(`/discovery/top-picks?${queryParams}`);
+      const handled = handleApiResponse(response, 'Get top picks');
+      return handled.data || { topPicks: [] };
     } catch (error) {
       logger.error('Error getting top picks:', error);
       throw error;
@@ -158,23 +122,9 @@ class DiscoveryService {
         limit: limit.toString(),
       });
 
-      const response = await fetch(`${API_BASE_URL}/discovery/recently-active?${queryParams}`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = getUserFriendlyMessage(
-          errorData.message || `HTTP ${response.status}: ${response.statusText}`
-        );
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || { users: [] };
+      const response = await api.get(`/discovery/recently-active?${queryParams}`);
+      const handled = handleApiResponse(response, 'Get recently active users');
+      return handled.data || { users: [] };
     } catch (error) {
       logger.error('Error getting recently active users:', error);
       throw error;
@@ -222,23 +172,9 @@ class DiscoveryService {
         skip,
       });
 
-      const response = await fetch(`${API_BASE_URL}/discovery/verified?${queryParams}`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = getUserFriendlyMessage(
-          errorData.message || `HTTP ${response.status}: ${response.statusText}`
-        );
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || { users: [] };
+      const response = await api.get(`/discovery/verified?${queryParams}`);
+      const handled = handleApiResponse(response, 'Get verified profiles');
+      return handled.data || { users: [] };
     } catch (error) {
       logger.error('Error getting verified profiles:', error);
       throw error;
@@ -254,30 +190,9 @@ class DiscoveryService {
         throw new Error('Invalid verification method. Must be photo, document, or video');
       }
 
-      const response = await fetch(`${API_BASE_URL}/discovery/verify-profile`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: JSON.stringify({
-          verificationMethod,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = getUserFriendlyMessage(
-          errorData.message || `HTTP ${response.status}: ${response.statusText}`
-        );
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const response = await api.post('/discovery/verify-profile', { verificationMethod });
+      const handled = handleApiResponse(response, 'Verify profile');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error verifying profile:', error);
       throw error;
@@ -293,30 +208,9 @@ class DiscoveryService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_BASE_URL}/discovery/approve-verification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: JSON.stringify({
-          userId,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = getUserFriendlyMessage(
-          errorData.message || `HTTP ${response.status}: ${response.statusText}`
-        );
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const response = await api.post('/discovery/approve-verification', { userId });
+      const handled = handleApiResponse(response, 'Approve verification');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error approving verification:', error);
       throw error;

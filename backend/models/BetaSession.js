@@ -40,8 +40,8 @@ const betaSessionSchema = new mongoose.Schema(
       default: [],
     },
 
-    // Errors encountered
-    errors: {
+    // Errors encountered (renamed from `errors` to avoid reserved-key warning)
+    encounteredErrors: {
       type: [
         {
           message: String,

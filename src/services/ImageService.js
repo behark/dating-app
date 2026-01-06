@@ -4,8 +4,8 @@ import * as ImagePicker from 'expo-image-picker';
 // import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 // import { storage } from '../config/firebase';
 import logger from '../utils/logger';
-import api from './api';
 import { API_URL } from '../config/api';
+import api from './api';
 
 export class ImageService {
   static async requestPermissions() {
@@ -121,8 +121,8 @@ export class ImageService {
       const uploadResponse = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
           // Content-Type is set automatically by fetch for FormData
         },
         body: formData,
@@ -134,7 +134,7 @@ export class ImageService {
       }
 
       const uploadResult = await uploadResponse.json();
-      
+
       if (!uploadResult.success) {
         throw new Error(uploadResult.message || 'Upload failed');
       }
@@ -177,6 +177,8 @@ export class ImageService {
   static async deleteProfileImage(userId, imageId, imageData) {
     try {
       // Delete from storage if URL is from Firebase Storage
+      // Firebase storage deletion commented out since Firebase imports are removed
+      /*
       try {
         if (imageData.fullUrl && imageData.fullUrl.includes('firebase')) {
           const fullRef = ref(storage, imageData.fullUrl);
@@ -191,6 +193,7 @@ export class ImageService {
         logger.warn('Failed to delete from storage', storageError);
         // Continue with API deletion even if storage deletion fails
       }
+      */
 
       // Remove from user profile via backend API
       const response = await api.delete(`/profile/photos/${imageId}`);

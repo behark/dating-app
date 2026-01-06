@@ -1,224 +1,294 @@
-import { getAnalytics, logEvent, setUserProperties, setUserId } from 'firebase/analytics';
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import logger from '../utils/logger';
+import { Platform } from 'react-native';
 
-// Firebase Analytics events
-export const ANALYTICS_EVENTS = {
-  // User actions
-  USER_REGISTERED: 'user_registered',
-  USER_LOGGED_IN: 'user_logged_in',
-  USER_LOGGED_OUT: 'user_logged_out',
-  PROFILE_COMPLETED: 'profile_completed',
-  PROFILE_UPDATED: 'profile_updated',
+/**
+ * AnalyticsService
+ * Handles analytics tracking and event logging
+ *
+ * Note: This requires installation of analytics library:
+ * For Firebase: npx expo install expo-firebase-analytics @react-native-firebase/app @react-native-firebase/analytics
+ * For Segment: npm install @segment/analytics-react-native
+ */
 
-  // Swiping actions
-  SWIPE_RIGHT: 'swipe_right',
-  SWIPE_LEFT: 'swipe_left',
-  SUPER_LIKE_USED: 'super_like_used',
-  MATCH_CREATED: 'match_created',
+let Analytics = null;
 
-  // Chat actions
-  MESSAGE_SENT: 'message_sent',
-  CHAT_OPENED: 'chat_opened',
-
-  // Premium actions
-  PREMIUM_UPGRADED: 'premium_upgraded',
-  PREMIUM_TRIAL_STARTED: 'premium_trial_started',
-
-  // Verification
-  VERIFICATION_REQUESTED: 'verification_requested',
-  VERIFICATION_APPROVED: 'verification_approved',
-
-  // Error tracking
-  ERROR_OCCURRED: 'error_occurred',
-
-  // Performance
-  APP_OPENED: 'app_opened',
-  SCREEN_VIEW: 'screen_view',
-};
+// Try to import analytics library if available
+try {
+  // Try Firebase Analytics first
+  Analytics = require('expo-firebase-analytics');
+  console.log('Using Firebase Analytics');
+} catch (error) {
+  console.warn(
+    'Analytics library not installed. Install expo-firebase-analytics or @segment/analytics-react-native'
+  );
+}
 
 export class AnalyticsService {
-  static analytics = null;
+  static initialized = false;
+  static userId = null;
 
+  /**
+   * Initialize analytics service
+   */
   static async initialize() {
+    if (this.initialized) {
+      return;
+    }
+
+    if (!Analytics) {
+      console.warn('Analytics not available - library not installed');
+      return;
+    }
+
     try {
-      // Initialize Firebase Analytics
-      const app = initializeApp({
-        apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-        authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-        projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-        storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-      });
-
-      // Only initialize analytics on web platform
-      if (typeof window !== 'undefined') {
-        this.analytics = getAnalytics(app);
-
-        // Set up auth state listener for user tracking
-        const auth = getAuth(app);
-        auth.onAuthStateChanged((user) => {
-          if (user) {
-            this.setUserId(user.uid);
-            this.setUserProperties({
-              email_verified: user.emailVerified,
-              provider: user.providerData[0]?.providerId || 'unknown',
-            });
-          }
-        });
+      // Enable debug mode in development
+      if (__DEV__ && Analytics.setDebugModeEnabled) {
+        await Analytics.setDebugModeEnabled(true);
       }
+
+      // Set default properties
+      if (Analytics.setUserProperty) {
+        await Analytics.setUserProperty('platform', Platform.OS);
+        await Analytics.setUserProperty('app_version', '1.0.0');
+      }
+
+      this.initialized = true;
+      console.log('Analytics initialized successfully');
     } catch (error) {
-      logger.warn('Analytics initialization failed', error);
+      console.error('Error initializing analytics:', error);
     }
   }
 
-  static setUserId(userId) {
-    if (this.analytics) {
-      setUserId(this.analytics, userId);
+  /**
+   * Log a custom event
+   * @param {string} eventName - Name of the event
+   * @param {Object} params - Event parameters
+   */
+  static async logEvent(eventName, params = {}) {
+    if (!this.initialized || !Analytics) {
+      return;
     }
-  }
 
-  static setUserProperties(properties) {
-    if (this.analytics) {
-      setUserProperties(this.analytics, properties);
-    }
-  }
-
-  static logEvent(eventName, parameters = {}) {
     try {
-      if (this.analytics) {
-        logEvent(this.analytics, eventName, parameters);
+      if (Analytics.logEvent) {
+        await Analytics.logEvent(eventName, params);
       }
-
-      // Also log to console in development
       if (__DEV__) {
-        logger.debug('Analytics Event', { eventName, parameters });
+        console.log('Analytics event:', eventName, params);
       }
     } catch (error) {
-      logger.warn('Analytics event logging failed', error, { eventName });
+      console.error('Error logging event:', error);
     }
   }
 
-  // User lifecycle events
-  static logUserRegistered(method = 'email') {
-    this.logEvent(ANALYTICS_EVENTS.USER_REGISTERED, { method });
+  /**
+   * Set user ID for analytics
+   * @param {string} userId - User ID
+   */
+  static async setUserId(userId) {
+    if (!this.initialized || !Analytics) {
+      return;
+    }
+
+    try {
+      this.userId = userId;
+      if (Analytics.setUserId) {
+        await Analytics.setUserId(userId);
+      }
+      console.log('Analytics user ID set:', userId);
+    } catch (error) {
+      console.error('Error setting user ID:', error);
+    }
   }
 
-  static logUserLoggedIn(method = 'email') {
-    this.logEvent(ANALYTICS_EVENTS.USER_LOGGED_IN, { method });
+  /**
+   * Set user properties
+   * @param {Object} properties - User properties
+   */
+  static async setUserProperties(properties) {
+    if (!this.initialized || !Analytics) {
+      return;
+    }
+
+    try {
+      if (Analytics.setUserProperty) {
+        for (const [key, value] of Object.entries(properties)) {
+          await Analytics.setUserProperty(key, String(value));
+        }
+      }
+      if (__DEV__) {
+        console.log('Analytics user properties set:', properties);
+      }
+    } catch (error) {
+      console.error('Error setting user properties:', error);
+    }
   }
 
-  static logUserLoggedOut() {
-    this.logEvent(ANALYTICS_EVENTS.USER_LOGGED_OUT);
+  // ==========================================
+  // Dating App Specific Events
+  // ==========================================
+
+  /**
+   * Log user sign up
+   * @param {string} method - Sign up method (email, google, facebook, apple)
+   */
+  static async logSignUp(method) {
+    await this.logEvent('sign_up', { method });
   }
 
-  static logProfileCompleted() {
-    this.logEvent(ANALYTICS_EVENTS.PROFILE_COMPLETED);
+  /**
+   * Log user login
+   * @param {string} method - Login method (email, google, facebook, apple)
+   */
+  static async logLogin(method) {
+    await this.logEvent('login', { method });
   }
 
-  static logProfileUpdated(fields = []) {
-    this.logEvent(ANALYTICS_EVENTS.PROFILE_UPDATED, { fields_updated: fields.join(',') });
+  /**
+   * Log profile view
+   * @param {string} profileId - ID of viewed profile
+   */
+  static async logProfileView(profileId) {
+    await this.logEvent('profile_view', { profile_id: profileId });
   }
 
-  // Swiping events
-  static logSwipe(direction, hasMatch = false) {
-    const event =
-      direction === 'right' ? ANALYTICS_EVENTS.SWIPE_RIGHT : ANALYTICS_EVENTS.SWIPE_LEFT;
-    this.logEvent(event, { resulted_in_match: hasMatch });
+  /**
+   * Log swipe action
+   * @param {string} action - Swipe action (like, pass, superlike)
+   * @param {string} profileId - ID of swiped profile
+   */
+  static async logSwipe(action, profileId) {
+    await this.logEvent('swipe', { action, profile_id: profileId });
   }
 
-  static logSuperLikeUsed() {
-    this.logEvent(ANALYTICS_EVENTS.SUPER_LIKE_USED);
+  /**
+   * Log match
+   * @param {string} matchId - ID of the match
+   */
+  static async logMatch(matchId) {
+    await this.logEvent('match', { match_id: matchId });
   }
 
-  static logMatchCreated(matchId) {
-    this.logEvent(ANALYTICS_EVENTS.MATCH_CREATED, { match_id: matchId });
-  }
-
-  // Chat events
-  static logMessageSent(chatId, messageLength) {
-    this.logEvent(ANALYTICS_EVENTS.MESSAGE_SENT, {
-      chat_id: chatId,
-      message_length: messageLength,
+  /**
+   * Log message sent
+   * @param {string} matchId - ID of the match
+   * @param {string} messageType - Type of message (text, image, gif)
+   */
+  static async logMessageSent(matchId, messageType = 'text') {
+    await this.logEvent('message_sent', {
+      match_id: matchId,
+      message_type: messageType,
     });
   }
 
-  static logChatOpened(chatId) {
-    this.logEvent(ANALYTICS_EVENTS.CHAT_OPENED, { chat_id: chatId });
-  }
-
-  // Premium events
-  static logPremiumUpgraded(planType, amount = null) {
-    this.logEvent(ANALYTICS_EVENTS.PREMIUM_UPGRADED, {
-      plan_type: planType,
-      amount: amount,
+  /**
+   * Log premium purchase
+   * @param {string} tier - Premium tier (gold, platinum)
+   * @param {number} price - Purchase price
+   * @param {string} currency - Currency code (USD, EUR, etc)
+   */
+  static async logPremiumPurchase(tier, price, currency = 'USD') {
+    await this.logEvent('purchase', {
+      tier,
+      value: price,
+      currency,
+      item_id: `premium_${tier}`,
+      item_name: `Premium ${tier}`,
+      item_category: 'subscription',
     });
   }
 
-  static logPremiumTrialStarted() {
-    this.logEvent(ANALYTICS_EVENTS.PREMIUM_TRIAL_STARTED);
-  }
-
-  // Verification events
-  static logVerificationRequested() {
-    this.logEvent(ANALYTICS_EVENTS.VERIFICATION_REQUESTED);
-  }
-
-  static logVerificationApproved() {
-    this.logEvent(ANALYTICS_EVENTS.VERIFICATION_APPROVED);
-  }
-
-  // Error tracking
-  static logError(error, context = {}) {
-    this.logEvent(ANALYTICS_EVENTS.ERROR_OCCURRED, {
-      error_message: error.message || 'Unknown error',
-      error_code: error.code || 'unknown',
-      context: JSON.stringify(context),
-    });
-  }
-
-  // Performance tracking
-  static logAppOpened(coldStart = false) {
-    this.logEvent(ANALYTICS_EVENTS.APP_OPENED, { cold_start: coldStart });
-  }
-
-  static logScreenView(screenName, previousScreen = null) {
-    this.logEvent(ANALYTICS_EVENTS.SCREEN_VIEW, {
+  /**
+   * Log screen view
+   * @param {string} screenName - Name of the screen
+   */
+  static async logScreenView(screenName) {
+    await this.logEvent('screen_view', {
       screen_name: screenName,
-      previous_screen: previousScreen,
+      screen_class: screenName,
     });
   }
 
-  // Custom events
-  static logCustomEvent(eventName, parameters = {}) {
-    this.logEvent(eventName, parameters);
-  }
-
-  // Performance metrics
-  static logPerformanceMetric(metricName, value, unit = 'ms') {
-    this.logEvent('performance_metric', {
-      metric_name: metricName,
-      value: value,
-      unit: unit,
+  /**
+   * Log profile completion
+   * @param {number} completionPercentage - Profile completion percentage (0-100)
+   */
+  static async logProfileCompletion(completionPercentage) {
+    await this.logEvent('profile_completion', {
+      completion_percentage: completionPercentage,
     });
   }
 
-  // User engagement
-  static logUserEngagement(action, details = {}) {
-    this.logEvent('user_engagement', {
-      action: action,
-      ...details,
+  /**
+   * Log photo upload
+   * @param {number} photoCount - Number of photos uploaded
+   */
+  static async logPhotoUpload(photoCount) {
+    await this.logEvent('photo_upload', {
+      photo_count: photoCount,
     });
   }
 
-  // Business metrics
-  static logRevenue(amount, currency = 'USD', product = 'premium') {
-    this.logEvent('purchase', {
-      value: amount,
-      currency: currency,
-      items: [{ item_name: product }],
+  /**
+   * Log search/filter usage
+   * @param {Object} filters - Search filters applied
+   */
+  static async logSearch(filters) {
+    await this.logEvent('search', filters);
+  }
+
+  /**
+   * Log settings change
+   * @param {string} setting - Setting changed
+   * @param {any} value - New value
+   */
+  static async logSettingsChange(setting, value) {
+    await this.logEvent('settings_change', {
+      setting,
+      value: String(value),
+    });
+  }
+
+  /**
+   * Log app rating
+   * @param {number} rating - Rating value (1-5)
+   */
+  static async logAppRating(rating) {
+    await this.logEvent('app_rating', { rating });
+  }
+
+  /**
+   * Log share action
+   * @param {string} contentType - Type of content shared (profile, match)
+   * @param {string} method - Share method (social, link, etc)
+   */
+  static async logShare(contentType, method) {
+    await this.logEvent('share', {
+      content_type: contentType,
+      method,
+    });
+  }
+
+  /**
+   * Log error/exception
+   * @param {string} errorType - Type of error
+   * @param {string} errorMessage - Error message
+   */
+  static async logError(errorType, errorMessage) {
+    await this.logEvent('error', {
+      error_type: errorType,
+      error_message: errorMessage.substring(0, 100), // Limit message length
+    });
+  }
+
+  /**
+   * Log tutorial completion
+   * @param {string} tutorialName - Name of the tutorial
+   */
+  static async logTutorialComplete(tutorialName) {
+    await this.logEvent('tutorial_complete', {
+      tutorial_name: tutorialName,
     });
   }
 }
+
+export default AnalyticsService;

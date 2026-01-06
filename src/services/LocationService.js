@@ -44,12 +44,12 @@ export class LocationService {
         // Fallback for development/demo: NYC Coordinates
         // This ensures the app works immediately with seeded data
         if (__DEV__) {
-             logger.info('Using mock location (NYC) for development');
-             return {
-                latitude: 40.730610,
-                longitude: -73.935242,
-                accuracy: 100,
-             };
+          logger.info('Using mock location (NYC) for development');
+          return {
+            latitude: 40.73061,
+            longitude: -73.935242,
+            accuracy: 100,
+          };
         }
         return null;
       }
@@ -66,14 +66,14 @@ export class LocationService {
       };
     } catch (error) {
       logger.error('Error getting current location', error);
-      
+
       // Fallback on error too
       if (__DEV__) {
-         return {
-            latitude: 40.730610,
-            longitude: -73.935242,
-            accuracy: 100,
-         };
+        return {
+          latitude: 40.73061,
+          longitude: -73.935242,
+          accuracy: 100,
+        };
       }
       return null;
     }

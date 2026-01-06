@@ -252,7 +252,8 @@ exports.authorizeMatchedUsers = async (req, res, next) => {
   } catch (error) {
     // Log error without sensitive data
     const safeError = error instanceof Error ? error.message : String(error);
-    console.error('[SECURITY] Error checking match authorization:', safeError);
+    const { logger } = require('../services/LoggingService');
+    logger.error('Error checking match authorization', { error: safeError, security: true });
     return res.status(500).json({
       success: false,
       message: 'Error verifying access permissions',

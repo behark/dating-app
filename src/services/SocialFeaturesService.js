@@ -83,30 +83,57 @@ export const SocialFeaturesService = {
     }
   },
 
-  registerForEvent: async (eventId, userId) => {
+  registerForEvent: async (eventId) => {
     try {
-      const response = await api.post(`/social/events/${eventId}/register`, { userId });
+      // Backend uses req.user.id from authentication, no need to send userId
+      const response = await api.post(`/social/events/${eventId}/register`);
       return response.data;
     } catch (error) {
-      logger.error('Error registering for event', error, { eventId, userId });
+      logger.error('Error registering for event', error, { eventId });
       throw error;
     }
   },
 
-  getNearbyEvents: async (longitude, latitude, maxDistance = 10000, category = null) => {
+  leaveEvent: async (eventId) => {
     try {
-      let url = `/social/events/nearby?longitude=${longitude}&latitude=${latitude}&maxDistance=${maxDistance}`;
+      // Backend uses req.user.id from authentication, no need to send userId
+      const response = await api.post(`/social/events/${eventId}/leave`);
+      return response.data;
+    } catch (error) {
+      logger.error('Error leaving event', error, { eventId });
+      throw error;
+    }
+  },
+
+  getNearbyEvents: async (
+    longitude,
+    latitude,
+    maxDistance = 10000,
+    category = null,
+    page = 1,
+    limit = 20
+  ) => {
+    try {
+      let url = `/social/events/nearby?longitude=${longitude}&latitude=${latitude}&maxDistance=${maxDistance}&page=${page}&limit=${limit}`;
       if (category) {
         url += `&category=${category}`;
       }
       const response = await api.get(url);
-      return response.data;
+      // Backend returns { success: true, data: events, pagination: {...} }
+      // Return normalized structure for frontend compatibility
+      return {
+        events: response.data || [],
+        pagination: response.pagination || {},
+        ...response, // Include full response for backward compatibility
+      };
     } catch (error) {
       logger.error('Error getting nearby events', error, {
         longitude,
         latitude,
         maxDistance,
         category,
+        page,
+        limit,
       });
       throw error;
     }

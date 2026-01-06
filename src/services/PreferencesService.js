@@ -1,44 +1,26 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from '../config/api';
 import { calculateDistance as calcDist } from '../utils/distanceCalculator';
+import { handleApiResponse } from '../utils/apiResponseHandler';
 import logger from '../utils/logger';
+import api from './api';
 
 export class PreferencesService {
-  static async getAuthToken() {
-    try {
-      return await AsyncStorage.getItem('authToken');
-    } catch (error) {
-      logger.error('Error retrieving auth token:', error);
-      return null;
-    }
-  }
-
   static async getUserPreferences(userId) {
     try {
       // Try to get preferences from backend API first
-      const authToken = await this.getAuthToken();
-      if (authToken) {
-        try {
-          const response = await fetch(`${API_URL}/profile/me`, {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          });
+      try {
+        const response = await api.get('/profile/me');
+        const handled = handleApiResponse(response, 'Get user preferences');
+        const userData = handled.data?.user;
 
-          if (response.ok) {
-            const data = await response.json();
-            const userData = data.data?.user;
-
-            if (userData?.preferences) {
-              return {
-                ...this.getDefaultPreferences(),
-                ...userData.preferences,
-              };
-            }
-          }
-        } catch (apiError) {
-          logger.warn('Failed to get preferences from API, using defaults', apiError);
+        if (userData?.preferences) {
+          return {
+            ...this.getDefaultPreferences(),
+            ...userData.preferences,
+          };
         }
+      } catch (apiError) {
+        logger.warn('Failed to get preferences from API, using defaults', apiError);
       }
 
       // Try to get from local storage as fallback
@@ -77,24 +59,14 @@ export class PreferencesService {
 
   static async updateUserPreferences(userId, preferences) {
     try {
-      const authToken = await this.getAuthToken();
-
       // Save locally as well for offline access
       await AsyncStorage.setItem(`preferences_${userId}`, JSON.stringify(preferences));
 
-      if (authToken) {
-        const response = await fetch(`${API_URL}/profile/update`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authToken}`,
-          },
-          body: JSON.stringify({ preferences }),
-        });
-
-        if (!response.ok) {
-          logger.warn('Failed to sync preferences to server');
-        }
+      try {
+        const response = await api.put('/profile/update', { preferences });
+        handleApiResponse(response, 'Update user preferences');
+      } catch (apiError) {
+        logger.warn('Failed to sync preferences to server', apiError);
       }
 
       logger.info('User preferences updated successfully', { userId });

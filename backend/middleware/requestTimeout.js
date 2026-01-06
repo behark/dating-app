@@ -6,6 +6,8 @@
  * to ensure the application can respond before the load balancer kills the connection.
  */
 
+const { logger } = require('../services/LoggingService');
+
 const DEFAULT_TIMEOUT = 30000; // 30 seconds (Nginx default is 60s)
 const DISCOVERY_TIMEOUT = 45000; // 45 seconds for discovery/matching routes
 const UPLOAD_TIMEOUT = 120000; // 2 minutes for file uploads
@@ -62,11 +64,13 @@ const requestTimeout = (options = {}) => {
       timedOut = true;
 
       if (logTimeouts) {
-        console.error(
-          `[TIMEOUT] Request timeout after ${timeout}ms: ${req.method} ${req.originalUrl}`
-        );
-        console.error(`[TIMEOUT] Request ID: ${req.requestId || 'unknown'}`);
-        console.error(`[TIMEOUT] User ID: ${req.user?.id || 'unauthenticated'}`);
+        logger.error('Request timeout', {
+          timeout,
+          method: req.method,
+          url: req.originalUrl,
+          requestId: req.requestId || 'unknown',
+          userId: req.user?.id || 'unauthenticated',
+        });
       }
 
       // Call custom timeout handler if provided
@@ -109,7 +113,7 @@ const requestTimeout = (options = {}) => {
     const originalJson = res.json.bind(res);
     res.json = function (data) {
       if (timedOut) {
-        console.warn('[TIMEOUT] Response attempted after timeout, ignoring');
+        logger.warn('Response attempted after timeout, ignoring');
         return res;
       }
       return originalJson(data);
@@ -136,7 +140,7 @@ const withTimeout = (fn, timeout = DEFAULT_TIMEOUT) => {
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       if (error.message.includes('timed out')) {
-        console.error(`[TIMEOUT] Controller timeout: ${req.method} ${req.originalUrl}`);
+        logger.error('Controller timeout', { method: req.method, url: req.originalUrl });
         if (!res.headersSent) {
           res.status(503).json({
             success: false,

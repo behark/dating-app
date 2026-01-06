@@ -22,11 +22,13 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { getUserRepository } from '../repositories';
 import AdvancedInteractionsService from '../services/AdvancedInteractionsService';
+import AnalyticsService from '../services/AnalyticsService';
 import { GamificationService } from '../services/GamificationService';
 import { LocationService } from '../services/LocationService';
 import { PreferencesService } from '../services/PreferencesService';
 import { PremiumService } from '../services/PremiumService';
 import { SwipeController } from '../services/SwipeController';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import logger from '../utils/logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -37,6 +39,7 @@ const SWIPE_DEBOUNCE_MS = 500;
 const HomeScreen = ({ navigation }) => {
   const { currentUser, authToken } = useAuth();
   const { theme } = useTheme();
+  const { isOnline } = useNetworkStatus();
   const styles = getStyles(theme);
 
   // Get the user repository (API or Firebase based on config)
@@ -72,6 +75,9 @@ const HomeScreen = ({ navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
+      // Track screen view for analytics
+      AnalyticsService.logScreenView('Home');
+      
       if (userId) {
         // Initialize location first, then load cards after location is available
         initializeLocation().then(() => {
@@ -184,6 +190,17 @@ const HomeScreen = ({ navigation }) => {
       return;
     }
 
+    // Check network status before making API calls
+    if (!isOnline) {
+      setLoading(false);
+      Alert.alert(
+        'No Internet Connection',
+        'Please check your internet connection and try again.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -289,6 +306,9 @@ const HomeScreen = ({ navigation }) => {
 
           // Use SwipeController to save the swipe and check for matches
           const result = await SwipeController.saveSwipe(userId, card.id, 'like', isPremium);
+
+          // Track swipe analytics
+          AnalyticsService.logSwipe('like', card.id);
 
           // Reset swiping flag
           isSwipingRef.current = false;
@@ -405,6 +425,9 @@ const HomeScreen = ({ navigation }) => {
           // Use SwipeController to save the dislike
           const result = await SwipeController.saveSwipe(userId, card.id, 'dislike', isPremium);
 
+          // Track swipe analytics
+          AnalyticsService.logSwipe('pass', card.id);
+
           // Reset swiping flag
           isSwipingRef.current = false;
 
@@ -467,6 +490,9 @@ const HomeScreen = ({ navigation }) => {
             }
             return;
           }
+
+          // Track super like analytics
+          AnalyticsService.logSwipe('superlike', card.id);
 
           // It's automatically a like, so handle as a right swipe
           await handleSwipeRight(card);

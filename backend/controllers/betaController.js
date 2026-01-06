@@ -266,6 +266,7 @@ exports.recordSession = async (req, res) => {
       screens,
       actions,
       errors,
+      encounteredErrors,
       performance,
       featuresUsed,
       deviceInfo,
@@ -279,7 +280,8 @@ exports.recordSession = async (req, res) => {
       duration: duration || 0,
       screens: screens || [],
       actions: actions || [],
-      errors: errors || [],
+      // Accept either `errors` (legacy) or `encounteredErrors` (new)
+      encounteredErrors: errors || encounteredErrors || [],
       performance: performance || {
         loadTimes: {},
         crashes: 0,

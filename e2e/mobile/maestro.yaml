@@ -1,0 +1,37 @@
+# Maestro Mobile E2E Test Configuration
+# This is a template for mobile E2E tests using Maestro
+
+appId: com.datingapp
+
+---
+# Example: Authentication Flow
+- launchApp
+- assertVisible: "Sign In"
+- tapOn: "Email"
+- inputText: "test@example.com"
+- tapOn: "Password"
+- inputText: "TestPassword123!"
+- tapOn: "Sign In"
+- assertVisible: "Discover"
+
+---
+# Example: Swipe Flow
+- launchApp
+- assertVisible: "Discover"
+- tapOn: 
+    id: "like-button"
+- assertVisible: "Profile Card"
+
+---
+# Example: Chat Flow
+- launchApp
+- tapOn: "Chat"
+- assertVisible: "Matches"
+- tapOn: 
+    id: "match-item"
+    index: 0
+- assertVisible: "Message Input"
+- tapOn: "Message Input"
+- inputText: "Hello!"
+- tapOn: "Send"
+- assertVisible: "Hello!"

@@ -18,6 +18,8 @@ import {
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
+import AnalyticsService from '../services/AnalyticsService';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { showStandardError } from '../utils/errorHandler';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
@@ -25,6 +27,7 @@ import logger from '../utils/logger';
 const ChatScreen = ({ route, navigation }) => {
   const { matchId, otherUser } = route.params;
   const { currentUser } = useAuth();
+  const { isOnline } = useNetworkStatus();
   const {
     messages,
     sendMessage: chatSendMessage,
@@ -107,6 +110,9 @@ const ChatScreen = ({ route, navigation }) => {
 
   // Initialize chat room and load messages
   useEffect(() => {
+    // Track screen view for analytics
+    AnalyticsService.logScreenView('Chat');
+    
     if (matchId) {
       joinRoom(matchId);
       loadMessages();
@@ -137,6 +143,19 @@ const ChatScreen = ({ route, navigation }) => {
   const handleSendMessage = () => {
     if (messageText.trim() === '' || !matchId) return;
 
+    // Check network status before sending
+    if (!isOnline) {
+      Alert.alert(
+        'No Internet Connection',
+        'Please check your internet connection and try again.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    // Track message sent analytics
+    AnalyticsService.logMessageSent(matchId, 'text');
+
     chatSendMessage(matchId, messageText.trim());
     setMessageText('');
 
@@ -163,7 +182,21 @@ const ChatScreen = ({ route, navigation }) => {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
+        // Check network status before sending
+        if (!isOnline) {
+          Alert.alert(
+            'No Internet Connection',
+            'Please check your internet connection and try again.',
+            [{ text: 'OK' }]
+          );
+          return;
+        }
+
         const imageUri = result.assets[0].uri;
+        
+        // Track image message analytics
+        AnalyticsService.logMessageSent(matchId, 'image');
+        
         sendImageMessage(matchId, imageUri, {
           caption: 'Shared an image',
           width: result.assets[0].width,

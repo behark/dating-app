@@ -2,9 +2,9 @@ import { API_URL } from '../config/api';
 import { ERROR_MESSAGES } from '../constants/constants';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
-import api from './api';
 import { validateNotEmpty, validateUserId } from '../utils/validators';
 import { sanitizeString, sanitizeArray } from '../utils/sanitize';
+import api from './api';
 import OfflineService from './OfflineService';
 
 export class ProfileService {

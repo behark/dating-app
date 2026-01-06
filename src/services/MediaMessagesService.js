@@ -1,13 +1,11 @@
-import { API_BASE_URL } from '../config/api';
 import { ERROR_MESSAGES } from '../constants/constants';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { handleApiResponse } from '../utils/apiResponseHandler';
 import logger from '../utils/logger';
 import { validateNotEmpty, validateNumberRange, validateUserId } from '../utils/validators';
+import api from './api';
 
 class MediaMessagesService {
-  constructor(authToken) {
-    this.authToken = authToken;
-  }
+  constructor(_authToken) {}
 
   /**
    * Send a GIF message
@@ -18,34 +16,14 @@ class MediaMessagesService {
         throw new Error('Invalid match ID, GIF URL, or GIF ID provided');
       }
 
-      const response = await fetch(`${API_BASE_URL}/chat/media/gif`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: JSON.stringify({
-          matchId,
-          gifUrl,
-          gifId,
-          gifMetadata,
-        }),
+      const response = await api.post('/chat/media/gif', {
+        matchId,
+        gifUrl,
+        gifId,
+        gifMetadata,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const handled = handleApiResponse(response, 'Send GIF');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error sending GIF:', error);
       throw error;
@@ -61,34 +39,14 @@ class MediaMessagesService {
         throw new Error('Invalid match ID or sticker URL provided');
       }
 
-      const response = await fetch(`${API_BASE_URL}/chat/media/sticker`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: JSON.stringify({
-          matchId,
-          stickerUrl,
-          stickerPackId,
-          stickerId,
-        }),
+      const response = await api.post('/chat/media/sticker', {
+        matchId,
+        stickerUrl,
+        stickerPackId,
+        stickerId,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const handled = handleApiResponse(response, 'Send sticker');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error sending sticker:', error);
       throw error;
@@ -104,34 +62,14 @@ class MediaMessagesService {
         throw new Error('Invalid match ID or voice URL provided');
       }
 
-      const response = await fetch(`${API_BASE_URL}/chat/media/voice`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: JSON.stringify({
-          matchId,
-          voiceUrl,
-          duration,
-          language,
-        }),
+      const response = await api.post('/chat/media/voice', {
+        matchId,
+        voiceUrl,
+        duration,
+        language,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const handled = handleApiResponse(response, 'Send voice message');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error sending voice message:', error);
       throw error;
@@ -147,29 +85,9 @@ class MediaMessagesService {
         throw new Error('Invalid message ID provided');
       }
 
-      const response = await fetch(`${API_BASE_URL}/chat/media/voice/transcribe`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: JSON.stringify({ messageId }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const response = await api.post('/chat/media/voice/transcribe', { messageId });
+      const handled = handleApiResponse(response, 'Transcribe voice message');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error transcribing voice message:', error);
       throw error;
@@ -193,25 +111,9 @@ class MediaMessagesService {
         limit: limit.toString(),
         offset: offset.toString(),
       });
-
-      const response = await fetch(`${API_BASE_URL}/chat/media/gifs/popular?${queryParams}`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const response = await api.get(`/chat/media/gifs/popular?${queryParams}`);
+      const handled = handleApiResponse(response, 'Get popular GIFs');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error getting popular GIFs:', error);
       throw error;
@@ -238,25 +140,9 @@ class MediaMessagesService {
         limit: limit.toString(),
         offset: offset.toString(),
       });
-
-      const response = await fetch(`${API_BASE_URL}/chat/media/gifs/search?${queryParams}`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const response = await api.get(`/chat/media/gifs/search?${queryParams}`);
+      const handled = handleApiResponse(response, 'Search GIFs');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error searching GIFs:', error);
       throw error;
@@ -268,24 +154,9 @@ class MediaMessagesService {
    */
   async getStickerPacks() {
     try {
-      const response = await fetch(`${API_BASE_URL}/chat/media/sticker-packs`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const response = await api.get('/chat/media/sticker-packs');
+      const handled = handleApiResponse(response, 'Get sticker packs');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error getting sticker packs:', error);
       throw error;
@@ -300,33 +171,12 @@ class MediaMessagesService {
       if (!validateUserId(matchId) || !validateNotEmpty(callId)) {
         throw new Error('Invalid match ID or call ID provided');
       }
-
-      const response = await fetch(`${API_BASE_URL}/chat/media/video-call/initiate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: JSON.stringify({
-          matchId,
-          callId,
-        }),
+      const response = await api.post('/chat/media/video-call/initiate', {
+        matchId,
+        callId,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const handled = handleApiResponse(response, 'Initiate video call');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error initiating video call:', error);
       throw error;
@@ -341,34 +191,13 @@ class MediaMessagesService {
       if (!validateUserId(messageId) || !validateNotEmpty(status)) {
         throw new Error('Invalid message ID or status provided');
       }
-
-      const response = await fetch(`${API_BASE_URL}/chat/media/video-call/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: JSON.stringify({
-          messageId,
-          status,
-          duration,
-        }),
+      const response = await api.put('/chat/media/video-call/status', {
+        messageId,
+        status,
+        duration,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const handled = handleApiResponse(response, 'Update video call status');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error updating video call status:', error);
       throw error;

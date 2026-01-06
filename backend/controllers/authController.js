@@ -553,7 +553,82 @@ exports.deleteAccount = async (req, res) => {
     // Delete user
     await User.findByIdAndDelete(userId);
 
-    // TODO: Clean up user data from other collections (messages, swipes, etc.)
+    // Clean up user data from related collections
+    const cleanupPromises = [];
+    
+    try {
+      const Message = require('../models/Message');
+      const Swipe = require('../models/Swipe');
+      const Match = require('../models/Match');
+      const Notification = require('../models/Notification');
+      const Report = require('../models/Report');
+      const Block = require('../models/Block');
+      const Subscription = require('../models/Subscription');
+      const SuperLike = require('../models/SuperLike');
+      const BoostProfile = require('../models/BoostProfile');
+      const UserActivity = require('../models/UserActivity');
+      
+      // Delete user's messages
+      cleanupPromises.push(
+        Message.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] })
+      );
+      
+      // Delete user's swipes
+      cleanupPromises.push(
+        Swipe.deleteMany({ $or: [{ swiperId: userId }, { swipedId: userId }] })
+      );
+      
+      // Delete user's matches
+      cleanupPromises.push(
+        Match.deleteMany({ users: userId })
+      );
+      
+      // Delete user's notifications
+      cleanupPromises.push(
+        Notification.deleteMany({ userId })
+      );
+      
+      // Delete reports filed by or against the user
+      cleanupPromises.push(
+        Report.deleteMany({ $or: [{ reporterId: userId }, { reportedUserId: userId }] })
+      );
+      
+      // Delete blocks involving the user
+      cleanupPromises.push(
+        Block.deleteMany({ $or: [{ blockerId: userId }, { blockedUserId: userId }] })
+      );
+      
+      // Delete subscription
+      cleanupPromises.push(
+        Subscription.deleteOne({ userId })
+      );
+      
+      // Delete super likes
+      cleanupPromises.push(
+        SuperLike.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] })
+      );
+      
+      // Delete boost profiles
+      cleanupPromises.push(
+        BoostProfile.deleteMany({ userId })
+      );
+      
+      // Delete user activity logs
+      cleanupPromises.push(
+        UserActivity.deleteMany({ userId })
+      );
+      
+      // Execute all cleanup operations
+      await Promise.allSettled(cleanupPromises);
+      
+      logger.info('User data cleanup completed', { userId });
+    } catch (cleanupError) {
+      // Log but don't fail the deletion - user is already deleted
+      logger.error('Error during user data cleanup', { 
+        userId, 
+        error: cleanupError.message 
+      });
+    }
 
     res.json({
       success: true,

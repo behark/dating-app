@@ -83,8 +83,7 @@ export const getTokenSecurely = async (key) => {
     logger.error('Error retrieving token', error, { key });
     // Try AsyncStorage as fallback
     try {
-      const value = await AsyncStorage.getItem(key);
-      return value;
+      return await AsyncStorage.getItem(key);
     } catch (fallbackError) {
       logger.error('Failed to retrieve token even from AsyncStorage', fallbackError, { key });
       return null;

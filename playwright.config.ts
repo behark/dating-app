@@ -20,6 +20,7 @@ export default defineConfig({
   },
 
   projects: [
+    // Desktop browsers
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
@@ -33,6 +34,11 @@ export default defineConfig({
       use: { ...devices['Desktop Safari'] },
     },
     {
+      name: 'edge',
+      use: { ...devices['Desktop Edge'] },
+    },
+    // Mobile devices
+    {
       name: 'Mobile Chrome',
       use: { ...devices['Pixel 5'] },
     },
@@ -41,8 +47,57 @@ export default defineConfig({
       use: { ...devices['iPhone 12'] },
     },
     {
-      name: 'Tablet',
+      name: 'Mobile Chrome Android',
+      use: { ...devices['Galaxy S20'] },
+    },
+    {
+      name: 'iPhone SE',
+      use: { ...devices['iPhone SE'] },
+    },
+    // Tablets
+    {
+      name: 'Tablet iPad',
       use: { ...devices['iPad Pro 11'] },
+    },
+    {
+      name: 'Tablet Android',
+      use: { ...devices['Galaxy Tab S4'] },
+    },
+    // Performance testing with network throttling
+    {
+      name: 'chromium-slow-3g',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Slow 3G: 400ms latency, 400kb/s down, 400kb/s up
+        contextOptions: {
+          offline: false,
+        },
+      },
+    },
+    {
+      name: 'chromium-fast-3g',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Fast 3G: 150ms latency, 1.6mb/s down, 750kb/s up
+      },
+    },
+    // Device testing projects
+    {
+      name: 'device-testing',
+      testMatch: /.*device-testing.*/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // Performance testing projects
+    {
+      name: 'performance',
+      testMatch: /.*performance.*/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    // Error scenario testing
+    {
+      name: 'error-scenarios',
+      testMatch: /.*error-scenarios.*/,
+      use: { ...devices['Desktop Chrome'] },
     },
   ],
 

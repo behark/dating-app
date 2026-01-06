@@ -3,8 +3,8 @@
  * Handles GDPR and CCPA compliance features
  */
 
-import api from './api';
 import logger from '../utils/logger';
+import api from './api';
 
 class PrivacyService {
   /**

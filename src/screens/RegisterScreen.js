@@ -352,7 +352,7 @@ export const RegisterScreen = ({ navigation }) => {
               styles.registerBtn,
               (loading || locationLoading || !location) && styles.registerBtnDisabled,
             ]}
-            onPress={handleRegister}
+            onPress={executeRegister}
             disabled={loading || locationLoading || !location}
           >
             {loading ? (

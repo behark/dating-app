@@ -230,54 +230,323 @@ describe('Social Features API Tests', () => {
       });
     });
 
-    describe('POST /api/social/events/:id/join', () => {
-      it('should join an event', async () => {
-        Event.findById.mockResolvedValue({
-          _id: 'event_1',
+    describe('POST /api/social/events/:eventId/register', () => {
+      const mockUserId = '507f1f77bcf86cd799439011';
+      const mockEventId = '507f1f77bcf86cd799439012';
+
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('should successfully register for an event', async () => {
+        const mockEvent = {
+          _id: mockEventId,
+          organizerId: '507f1f77bcf86cd799439013',
+          title: 'Test Event',
+          status: 'published',
           attendees: [],
           maxAttendees: 50,
+          registrationDeadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          save: jest.fn().mockResolvedValue(true),
+          populate: jest.fn().mockResolvedValue({
+            _id: mockEventId,
+            attendees: [{ userId: mockUserId, status: 'registered' }],
+            currentAttendeeCount: 1,
+          }),
+        };
+
+        Event.findById = jest.fn().mockResolvedValue(mockEvent);
+        User.findById = jest.fn().mockResolvedValue({
+          _id: mockUserId,
+          name: 'Test User',
+          photos: [],
         });
 
-        Event.findByIdAndUpdate.mockResolvedValue({
-          _id: 'event_1',
-          attendees: ['user_id'],
+        const SocialFeaturesService = require('../../services/SocialFeaturesService');
+        jest.spyOn(SocialFeaturesService, 'registerForEvent').mockResolvedValue({
+          event: mockEvent,
+          attendeeCount: 1,
+          isFull: false,
         });
 
         const response = await request(app)
-          .post('/api/social/events/event_1/join')
-          .set('Authorization', `Bearer ${generateTestToken()}`);
+          .post(`/api/social/events/${mockEventId}/register`)
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
 
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
+        expect(response.body.data).toHaveProperty('event');
+        expect(response.body.data).toHaveProperty('attendeeCount');
       });
 
-      it('should reject joining full event', async () => {
-        Event.findById.mockResolvedValue({
-          _id: 'event_1',
-          attendees: new Array(50).fill('user'),
-          maxAttendees: 50,
-        });
-
+      it('should reject invalid event ID format', async () => {
         const response = await request(app)
-          .post('/api/social/events/event_1/join')
-          .set('Authorization', `Bearer ${generateTestToken()}`);
+          .post('/api/social/events/invalid-id/register')
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
 
         expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.errors).toBeDefined();
+      });
+
+      it('should reject joining event with status other than published/ongoing', async () => {
+        const mockEvent = {
+          _id: mockEventId,
+          status: 'draft',
+          attendees: [],
+        };
+
+        Event.findById = jest.fn().mockResolvedValue(mockEvent);
+
+        const SocialFeaturesService = require('../../services/SocialFeaturesService');
+        jest.spyOn(SocialFeaturesService, 'registerForEvent').mockRejectedValue(
+          new Error('Cannot join event with status: draft')
+        );
+
+        const response = await request(app)
+          .post(`/api/social/events/${mockEventId}/register`)
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
+
+        expect(response.status).toBe(500);
+      });
+
+      it('should reject joining event after registration deadline', async () => {
+        const mockEvent = {
+          _id: mockEventId,
+          status: 'published',
+          registrationDeadline: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
+          attendees: [],
+        };
+
+        Event.findById = jest.fn().mockResolvedValue(mockEvent);
+
+        const SocialFeaturesService = require('../../services/SocialFeaturesService');
+        jest.spyOn(SocialFeaturesService, 'registerForEvent').mockRejectedValue(
+          new Error('Registration deadline has passed')
+        );
+
+        const response = await request(app)
+          .post(`/api/social/events/${mockEventId}/register`)
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
+
+        expect(response.status).toBe(500);
+      });
+
+      it('should reject joining event that is at capacity', async () => {
+        const mockEvent = {
+          _id: mockEventId,
+          status: 'published',
+          attendees: new Array(50).fill({ userId: 'some_user' }),
+          maxAttendees: 50,
+        };
+
+        Event.findById = jest.fn().mockResolvedValue(mockEvent);
+
+        const SocialFeaturesService = require('../../services/SocialFeaturesService');
+        jest.spyOn(SocialFeaturesService, 'registerForEvent').mockRejectedValue(
+          new Error('Event is at maximum capacity')
+        );
+
+        const response = await request(app)
+          .post(`/api/social/events/${mockEventId}/register`)
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
+
+        expect(response.status).toBe(500);
       });
     });
 
-    describe('POST /api/social/events/:id/leave', () => {
-      it('should leave an event', async () => {
-        Event.findByIdAndUpdate.mockResolvedValue({
-          _id: 'event_1',
-          attendees: [],
+    describe('POST /api/social/events/:eventId/leave', () => {
+      const mockUserId = '507f1f77bcf86cd799439011';
+      const mockEventId = '507f1f77bcf86cd799439012';
+
+      it('should successfully leave an event', async () => {
+        const mockEvent = {
+          _id: mockEventId,
+          attendees: [{ userId: mockUserId, status: 'registered' }],
+          currentAttendeeCount: 1,
+          save: jest.fn().mockResolvedValue(true),
+          populate: jest.fn().mockResolvedValue({
+            _id: mockEventId,
+            attendees: [],
+            currentAttendeeCount: 0,
+          }),
+        };
+
+        Event.findById = jest.fn().mockResolvedValue(mockEvent);
+
+        const SocialFeaturesService = require('../../services/SocialFeaturesService');
+        jest.spyOn(SocialFeaturesService, 'leaveEvent').mockResolvedValue({
+          event: mockEvent,
+          attendeeCount: 0,
         });
 
         const response = await request(app)
-          .post('/api/social/events/event_1/leave')
-          .set('Authorization', `Bearer ${generateTestToken()}`);
+          .post(`/api/social/events/${mockEventId}/leave`)
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
 
         expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toHaveProperty('event');
+        expect(response.body.data).toHaveProperty('attendeeCount');
+      });
+
+      it('should reject leaving event when not registered', async () => {
+        const SocialFeaturesService = require('../../services/SocialFeaturesService');
+        jest.spyOn(SocialFeaturesService, 'leaveEvent').mockRejectedValue(
+          new Error('User is not registered for this event')
+        );
+
+        const response = await request(app)
+          .post(`/api/social/events/${mockEventId}/leave`)
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
+
+        expect(response.status).toBe(500);
+      });
+
+      it('should reject organizer leaving their own event', async () => {
+        const SocialFeaturesService = require('../../services/SocialFeaturesService');
+        jest.spyOn(SocialFeaturesService, 'leaveEvent').mockRejectedValue(
+          new Error('Organizer cannot leave their own event')
+        );
+
+        const response = await request(app)
+          .post(`/api/social/events/${mockEventId}/leave`)
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
+
+        expect(response.status).toBe(500);
+      });
+    });
+
+    describe('GET /api/social/events/nearby', () => {
+      const mockUserId = '507f1f77bcf86cd799439011';
+
+      it('should return nearby events with valid coordinates', async () => {
+        const mockEvents = [
+          {
+            _id: 'event1',
+            title: 'Event 1',
+            location: { type: 'Point', coordinates: [-122.4, 37.8] },
+            startTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          },
+          {
+            _id: 'event2',
+            title: 'Event 2',
+            location: { type: 'Point', coordinates: [-122.5, 37.9] },
+            startTime: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+          },
+        ];
+
+        const SocialFeaturesService = require('../../services/SocialFeaturesService');
+        jest.spyOn(SocialFeaturesService, 'getNearbyEvents').mockResolvedValue({
+          events: mockEvents,
+          pagination: {
+            page: 1,
+            limit: 20,
+            total: 2,
+            totalPages: 1,
+            hasNext: false,
+            hasPrev: false,
+          },
+        });
+
+        const response = await request(app)
+          .get('/api/social/events/nearby?longitude=-122.4&latitude=37.8&maxDistance=10000')
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toBeInstanceOf(Array);
+        expect(response.body.pagination).toBeDefined();
+      });
+
+      it('should require longitude and latitude', async () => {
+        const response = await request(app)
+          .get('/api/social/events/nearby')
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.errors).toBeDefined();
+      });
+
+      it('should validate longitude range', async () => {
+        const response = await request(app)
+          .get('/api/social/events/nearby?longitude=200&latitude=37.8')
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+      });
+
+      it('should validate latitude range', async () => {
+        const response = await request(app)
+          .get('/api/social/events/nearby?longitude=-122.4&latitude=100')
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+      });
+
+      it('should validate maxDistance range', async () => {
+        const response = await request(app)
+          .get('/api/social/events/nearby?longitude=-122.4&latitude=37.8&maxDistance=100000')
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
+
+        expect(response.status).toBe(400);
+        expect(response.body.success).toBe(false);
+      });
+
+      it('should filter by category when provided', async () => {
+        const SocialFeaturesService = require('../../services/SocialFeaturesService');
+        jest.spyOn(SocialFeaturesService, 'getNearbyEvents').mockResolvedValue({
+          events: [],
+          pagination: {
+            page: 1,
+            limit: 20,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: false,
+          },
+        });
+
+        const response = await request(app)
+          .get('/api/social/events/nearby?longitude=-122.4&latitude=37.8&category=singles_mixer')
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
+
+        expect(response.status).toBe(200);
+        expect(SocialFeaturesService.getNearbyEvents).toHaveBeenCalledWith(
+          expect.any(Number),
+          expect.any(Number),
+          expect.any(Number),
+          'singles_mixer',
+          expect.any(String),
+          expect.any(Object)
+        );
+      });
+
+      it('should support pagination', async () => {
+        const SocialFeaturesService = require('../../services/SocialFeaturesService');
+        jest.spyOn(SocialFeaturesService, 'getNearbyEvents').mockResolvedValue({
+          events: [],
+          pagination: {
+            page: 2,
+            limit: 10,
+            total: 25,
+            totalPages: 3,
+            hasNext: true,
+            hasPrev: true,
+          },
+        });
+
+        const response = await request(app)
+          .get('/api/social/events/nearby?longitude=-122.4&latitude=37.8&page=2&limit=10')
+          .set('Authorization', `Bearer ${generateTestToken({ userId: mockUserId })}`);
+
+        expect(response.status).toBe(200);
+        expect(response.body.pagination.page).toBe(2);
+        expect(response.body.pagination.limit).toBe(10);
+        expect(response.body.pagination.hasNext).toBe(true);
       });
     });
   });

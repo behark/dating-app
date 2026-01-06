@@ -23,8 +23,8 @@ const getSubscriptionStatus = async (req, res) => {
     const subscription = await Subscription.findOne({ userId });
 
     if (!subscription) {
-      return res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Subscription status retrieved',
         data: {
           status: 'free',
           isPremium: false,
@@ -41,8 +41,8 @@ const getSubscriptionStatus = async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
+      message: 'Subscription status retrieved',
       data: {
         status: subscription.status,
         isPremium: subscription.isActive,
@@ -61,9 +61,9 @@ const getSubscriptionStatus = async (req, res) => {
       error: error.message,
       stack: error.stack,
     });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error retrieving subscription status',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -77,22 +77,21 @@ const startTrial = async (req, res) => {
     const result = await Subscription.activateTrial(userId);
 
     if (!result.success) {
-      return res.status(400).json({
-        success: false,
+      return sendError(res, 400, {
         message: result.message,
+        error: 'TRIAL_ERROR',
       });
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: '7-day free trial activated!',
       data: result.subscription,
     });
   } catch (error) {
     logger.error('Error starting trial:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error starting trial',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -106,31 +105,29 @@ const upgradeToPremium = async (req, res) => {
     const { planType, paymentData } = req.body;
 
     if (!['monthly', 'yearly'].includes(planType)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid plan type. Must be monthly or yearly',
-      });
+      return sendValidationError(res, [
+        { field: 'planType', message: 'Invalid plan type. Must be monthly or yearly' },
+      ]);
     }
 
     const result = await Subscription.upgradeToPremium(userId, planType, paymentData);
 
     if (!result.success) {
-      return res.status(400).json({
-        success: false,
+      return sendError(res, 400, {
         message: result.message,
+        error: 'UPGRADE_ERROR',
       });
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: `Upgraded to ${planType} plan!`,
       data: result.subscription,
     });
   } catch (error) {
     logger.error('Error upgrading to premium:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error upgrading to premium',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -144,22 +141,21 @@ const cancelSubscription = async (req, res) => {
     const result = await Subscription.cancelSubscription(userId);
 
     if (!result.success) {
-      return res.status(400).json({
-        success: false,
+      return sendError(res, 400, {
         message: result.message,
+        error: 'CANCEL_ERROR',
       });
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Subscription cancelled successfully',
       data: result.subscription,
     });
   } catch (error) {
     logger.error('Error cancelling subscription:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error cancelling subscription',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -174,19 +170,13 @@ const getReceivedLikes = async (req, res) => {
     // Check if user has premium access to this feature
     const subscription = await Subscription.findOne({ userId });
     if (!subscription?.hasFeature('seeWhoLikedYou')) {
-      return res.status(403).json({
-        success: false,
-        message: PREMIUM_MESSAGES.SEE_WHO_LIKED,
-      });
+      return sendForbidden(res, PREMIUM_MESSAGES.SEE_WHO_LIKED);
     }
 
     // Get all likes received
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: ERROR_MESSAGES.USER_NOT_FOUND,
-      });
+      return sendNotFound(res, ERROR_MESSAGES.USER_NOT_FOUND);
     }
     const receivedLikes = user?.receivedLikes || [];
 
@@ -238,8 +228,8 @@ const getReceivedLikes = async (req, res) => {
       }
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
+      message: 'Received likes retrieved successfully',
       data: {
         totalLikes: likesWithDetails.length,
         likes: likesWithDetails.sort((a, b) => {
@@ -261,9 +251,9 @@ const getReceivedLikes = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error getting received likes:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error retrieving received likes',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -279,10 +269,7 @@ const setPassportLocation = async (req, res) => {
     // Check if user has premium access to this feature
     const subscription = await Subscription.findOne({ userId });
     if (!subscription?.hasFeature('passport')) {
-      return res.status(403).json({
-        success: false,
-        message: PREMIUM_MESSAGES.PASSPORT,
-      });
+      return sendForbidden(res, PREMIUM_MESSAGES.PASSPORT);
     }
 
     // Validate coordinates
@@ -294,19 +281,15 @@ const setPassportLocation = async (req, res) => {
       latitude < -90 ||
       latitude > 90
     ) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid coordinates provided',
-      });
+      return sendValidationError(res, [
+        { field: 'coordinates', message: 'Invalid coordinates provided' },
+      ]);
     }
 
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: ERROR_MESSAGES.USER_NOT_FOUND,
-      });
+      return sendNotFound(res, ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     // Update passport mode
@@ -346,8 +329,7 @@ const setPassportLocation = async (req, res) => {
     await user.save();
 
     // PRIVACY: Only return city/country, not coordinates
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Passport location updated successfully',
       data: {
         enabled: true,
@@ -360,9 +342,9 @@ const setPassportLocation = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error setting passport location:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error updating passport location',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -375,10 +357,7 @@ const getPassportStatus = async (req, res) => {
     const userId = req.user.id;
     const user = await User.findById(userId).select('passportMode');
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
+      return sendNotFound(res, 'User not found');
     }
 
     // PRIVACY: Sanitize passport location response
@@ -390,8 +369,8 @@ const getPassportStatus = async (req, res) => {
         }
       : null;
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
+      message: 'Passport status retrieved',
       data: {
         enabled: user?.passportMode?.enabled || false,
         currentLocation,
@@ -400,9 +379,9 @@ const getPassportStatus = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error getting passport status:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error retrieving passport status',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -416,10 +395,7 @@ const disablePassport = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
+      return sendNotFound(res, 'User not found');
     }
 
     if (user.passportMode) {
@@ -428,16 +404,15 @@ const disablePassport = async (req, res) => {
 
     await user.save();
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Passport mode disabled',
       data: { enabled: false },
     });
   } catch (error) {
     logger.error('Error disabling passport:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error disabling passport',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -452,15 +427,12 @@ const getAdvancedFilterOptions = async (req, res) => {
     // Check if user has premium access
     const subscription = await Subscription.findOne({ userId });
     if (!subscription?.hasFeature('advancedFilters')) {
-      return res.status(403).json({
-        success: false,
-        message: PREMIUM_MESSAGES.ADVANCED_FILTERS,
-      });
+      return sendForbidden(res, PREMIUM_MESSAGES.ADVANCED_FILTERS);
     }
 
     // Return available filter options
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
+      message: 'Advanced filter options retrieved',
       data: {
         income: {
           min: 0,
@@ -518,9 +490,9 @@ const getAdvancedFilterOptions = async (req, res) => {
       error: error.message,
       stack: error.stack,
     });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error retrieving filter options',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -536,10 +508,7 @@ const updateAdvancedFilters = async (req, res) => {
     // Check if user has premium access
     const subscription = await Subscription.findOne({ userId });
     if (!subscription?.hasFeature('advancedFilters')) {
-      return res.status(403).json({
-        success: false,
-        message: PREMIUM_MESSAGES.ADVANCED_FILTERS,
-      });
+      return sendForbidden(res, PREMIUM_MESSAGES.ADVANCED_FILTERS);
     }
 
     const user = await User.findByIdAndUpdate(
@@ -548,22 +517,18 @@ const updateAdvancedFilters = async (req, res) => {
       { new: true, runValidators: true }
     );
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: ERROR_MESSAGES.USER_NOT_FOUND,
-      });
+      return sendNotFound(res, ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Advanced filters updated successfully',
       data: user.advancedFilters,
     });
   } catch (error) {
     logger.error('Error updating advanced filters:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error updating advanced filters',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -577,19 +542,15 @@ const sendPriorityLike = async (req, res) => {
     const { targetUserId } = req.body;
 
     if (!targetUserId) {
-      return res.status(400).json({
-        success: false,
-        message: 'targetUserId is required',
-      });
+      return sendValidationError(res, [
+        { field: 'targetUserId', message: 'targetUserId is required' },
+      ]);
     }
 
     // Check if user has premium access
     const subscription = await Subscription.findOne({ userId });
     if (!subscription?.hasFeature('priorityLikes')) {
-      return res.status(403).json({
-        success: false,
-        message: PREMIUM_MESSAGES.PRIORITY_LIKES,
-      });
+      return sendForbidden(res, PREMIUM_MESSAGES.PRIORITY_LIKES);
     }
 
     // Create a swipe with priority flag
@@ -607,16 +568,15 @@ const sendPriorityLike = async (req, res) => {
     await User.findByIdAndUpdate(userId, { $inc: { priorityLikesSent: 1 } });
     await User.findByIdAndUpdate(targetUserId, { $inc: { priorityLikesReceived: 1 } });
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Priority like sent successfully',
       data: { swipeId: swipe._id },
     });
   } catch (error) {
     logger.error('Error sending priority like:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error sending priority like',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -633,10 +593,7 @@ const updateAdsPreferences = async (req, res) => {
     if (showAds === false) {
       const subscription = await Subscription.findOne({ userId });
       if (!subscription?.hasFeature('hideAds')) {
-        return res.status(403).json({
-          success: false,
-          message: PREMIUM_MESSAGES.HIDE_ADS,
-        });
+        return sendForbidden(res, PREMIUM_MESSAGES.HIDE_ADS);
       }
     }
 
@@ -650,22 +607,18 @@ const updateAdsPreferences = async (req, res) => {
       { new: true }
     );
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: ERROR_MESSAGES.USER_NOT_FOUND,
-      });
+      return sendNotFound(res, ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Ads preferences updated successfully',
       data: user.adsPreferences,
     });
   } catch (error) {
     logger.error('Error updating ads preferences:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error updating ads preferences',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -680,22 +633,16 @@ const getBoostAnalytics = async (req, res) => {
     // Check if user has premium access
     const subscription = await Subscription.findOne({ userId });
     if (!subscription?.hasFeature('profileBoostAnalytics')) {
-      return res.status(403).json({
-        success: false,
-        message: PREMIUM_MESSAGES.BOOST_ANALYTICS,
-      });
+      return sendForbidden(res, PREMIUM_MESSAGES.BOOST_ANALYTICS);
     }
 
     const user = await User.findById(userId).select('boostAnalytics');
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: ERROR_MESSAGES.USER_NOT_FOUND,
-      });
+      return sendNotFound(res, ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
+      message: 'Boost analytics retrieved',
       data: {
         totalBoosts: user?.boostAnalytics?.totalBoosts || 0,
         totalProfileViews: user?.boostAnalytics?.totalProfileViews || 0,
@@ -707,9 +654,9 @@ const getBoostAnalytics = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error getting boost analytics:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error retrieving boost analytics',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -723,18 +670,14 @@ const recordBoostSession = async (req, res) => {
     const { duration, viewsGained, likesGained, matches } = req.body;
 
     if (!duration) {
-      return res.status(400).json({
-        success: false,
-        message: 'duration is required',
-      });
+      return sendValidationError(res, [
+        { field: 'duration', message: 'duration is required' },
+      ]);
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
+      return sendNotFound(res, 'User not found');
     }
 
     if (!user.boostAnalytics) {
@@ -776,16 +719,15 @@ const recordBoostSession = async (req, res) => {
 
     await user.save();
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Boost session recorded successfully',
       data: user.boostAnalytics,
     });
   } catch (error) {
     logger.error('Error recording boost session:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error recording boost session',
+      error: 'INTERNAL_ERROR',
     });
   }
 };

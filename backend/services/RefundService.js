@@ -407,7 +407,28 @@ class RefundService {
     };
     await transaction.save();
 
-    // TODO: Send notification to user about denial
+    // Send notification to user about refund denial
+    try {
+      const Notification = require('../models/Notification');
+      await Notification.create({
+        userId: transaction.userId,
+        type: 'system',
+        title: 'Refund Request Update',
+        message: `Your refund request has been reviewed and could not be approved. ${denialReason ? `Reason: ${denialReason}` : 'Please contact support for more information.'}`,
+        data: {
+          transactionId: transaction._id,
+          status: 'denied',
+        },
+        priority: 'high',
+      });
+    } catch (notifError) {
+      // Log but don't fail the denial
+      const { logger } = require('./LoggingService');
+      logger.error('Failed to send refund denial notification', { 
+        userId: transaction.userId, 
+        error: notifError.message 
+      });
+    }
 
     return {
       success: true,

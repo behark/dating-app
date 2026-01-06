@@ -179,6 +179,29 @@ healthCheckService.registerCheck('redis', async () => {
   }
 });
 
+// HTTPS Enforcement - Force HTTPS in production
+if (process.env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    // Check if request is already HTTPS
+    const isHttps = 
+      req.secure || 
+      req.headers['x-forwarded-proto'] === 'https' ||
+      req.protocol === 'https';
+    
+    if (!isHttps) {
+      // Redirect to HTTPS
+      const httpsUrl = `https://${req.headers.host}${req.url}`;
+      logger.info('Redirecting HTTP to HTTPS', { 
+        from: `${req.protocol}://${req.headers.host}${req.url}`,
+        to: httpsUrl,
+        ip: req.ip
+      });
+      return res.redirect(301, httpsUrl);
+    }
+    next();
+  });
+}
+
 // Sentry request handler (must be first)
 // Note: In Sentry v8+, expressIntegration handles this automatically
 // These handlers are kept for backward compatibility but may be no-ops
@@ -204,7 +227,37 @@ app.use(requestIdMiddleware); // Add request ID for tracing
 app.use(requestTimeout({ logTimeouts: true })); // Request timeout handler - must be early
 // Note: responseTimeMiddleware removed - using metricsResponseTimeMiddleware instead to avoid conflicts
 app.use(performanceHeaders); // Performance headers
-app.use(helmet()); // Security headers
+
+// Enhanced security headers with Helmet
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      connectSrc: ["'self'", "wss:", "https:"],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'", "blob:"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true,
+  },
+  frameguard: {
+    action: 'deny',
+  },
+  noSniff: true,
+  referrerPolicy: {
+    policy: 'strict-origin-when-cross-origin',
+  },
+}));
 app.use(
   compression({
     // Compress responses
@@ -240,18 +293,25 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
   ...corsOrigins,
   'https://dating-app-seven-peach.vercel.app', // Explicit Vercel frontend URL
-  'http://localhost:3000',
-  'http://localhost:8081',
-  'http://localhost:19006',
   // Allow all Vercel preview deployments for this project
   /^https:\/\/dating-app-.*\.vercel\.app$/,
   /^https:\/\/dating-.*-beharks-projects\.vercel\.app$/,
 ].filter(Boolean);
 
-// Add regex patterns only in non-production environments for development
+// Add development origins only in non-production environments
 if (process.env.NODE_ENV !== 'production') {
+  allowedOrigins.push('http://localhost:3000');
+  allowedOrigins.push('http://localhost:8081');
+  allowedOrigins.push('http://localhost:19006');
+  allowedOrigins.push('http://localhost:19000');
   allowedOrigins.push(/\.vercel\.app$/);
   allowedOrigins.push(/\.onrender\.com$/);
+} else {
+  // Production: Log the allowed origins for debugging
+  logger.info('Production CORS origins configured', {
+    origins: allowedOrigins.filter(o => typeof o === 'string'),
+    patterns: allowedOrigins.filter(o => o instanceof RegExp).map(r => r.toString())
+  });
 }
 
 // Helper function to check if origin is allowed

@@ -9,10 +9,10 @@
 
 import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
-import { API_URL as API_BASE_URL } from '../config/api';
 import { ERROR_MESSAGES } from '../constants/constants';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { handleApiResponse } from '../utils/apiResponseHandler';
 import logger from '../utils/logger';
+import api from './api';
 
 export class PaymentService {
   // ==================== SUBSCRIPTION TIERS ====================
@@ -22,17 +22,9 @@ export class PaymentService {
    */
   static async getSubscriptionTiers() {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/tiers`);
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data.data || { tiers: [], consumables: {} };
+      const response = await api.get('/payment/tiers');
+      const handled = handleApiResponse(response, 'Get subscription tiers');
+      return handled.data || { tiers: [], consumables: {} };
     } catch (error) {
       logger.error('Error getting subscription tiers:', error);
       return { tiers: [], consumables: {} };
@@ -47,20 +39,11 @@ export class PaymentService {
       if (!token || typeof token !== 'string') {
         throw new Error('Authentication token is required');
       }
-
-      const response = await fetch(`${API_BASE_URL}/payment/status`, {
+      const response = await api.get('/payment/status', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data.data || null;
+      const handled = handleApiResponse(response, 'Get payment status');
+      return handled.data || null;
     } catch (error) {
       logger.error('Error getting payment status:', error);
       return null;
@@ -72,19 +55,11 @@ export class PaymentService {
    */
   static async getBillingHistory(token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/history`, {
+      const response = await api.get('/payment/history', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data.data || { invoices: [], transactions: [] };
+      const handled = handleApiResponse(response, 'Get billing history');
+      return handled.data || { invoices: [], transactions: [] };
     } catch (error) {
       logger.error('Error getting billing history:', error);
       return { invoices: [], transactions: [] };
@@ -104,34 +79,21 @@ export class PaymentService {
       if (!['monthly', 'yearly'].includes(planType)) {
         throw new Error('Plan type must be monthly or yearly');
       }
+      const response = await api.post(
+        '/payment/stripe/checkout',
+        { planType },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Create Stripe checkout');
 
-      const response = await fetch(`${API_BASE_URL}/payment/stripe/checkout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ planType }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-
-      if (data.success && data.data?.url) {
-        // Open Stripe checkout in browser
-        await Linking.openURL(data.data.url);
+      if (handled.success && handled.data?.url) {
+        await Linking.openURL(handled.data.url);
       }
 
-      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
+      return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error creating Stripe checkout:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -140,27 +102,16 @@ export class PaymentService {
    */
   static async createStripePaymentIntent(productType, productId, quantity, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/stripe/payment-intent`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ productType, productId, quantity }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
+      const response = await api.post(
+        '/payment/stripe/payment-intent',
+        { productType, productId, quantity },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Create Stripe payment intent');
+      return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error creating payment intent:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -169,27 +120,19 @@ export class PaymentService {
    */
   static async getStripePortal(token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/stripe/portal`, {
+      const response = await api.get('/payment/stripe/portal', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
+      const handled = handleApiResponse(response, 'Get Stripe portal');
 
-      if (data.success && data.data?.url) {
-        await Linking.openURL(data.data.url);
+      if (handled.success && handled.data?.url) {
+        await Linking.openURL(handled.data.url);
       }
 
-      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
+      return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error getting Stripe portal:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -200,32 +143,21 @@ export class PaymentService {
    */
   static async createPayPalSubscription(planType, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/paypal/subscription`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ planType }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
+      const response = await api.post(
+        '/payment/paypal/subscription',
+        { planType },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Create PayPal subscription');
 
-      if (data.success && data.data?.approvalUrl) {
-        await Linking.openURL(data.data.approvalUrl);
+      if (handled.success && handled.data?.approvalUrl) {
+        await Linking.openURL(handled.data.approvalUrl);
       }
 
-      return data;
+      return handled;
     } catch (error) {
       logger.error('Error creating PayPal subscription:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -234,27 +166,16 @@ export class PaymentService {
    */
   static async activatePayPalSubscription(subscriptionId, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/paypal/subscription/activate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ subscriptionId }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
+      const response = await api.post(
+        '/payment/paypal/subscription/activate',
+        { subscriptionId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Activate PayPal subscription');
+      return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error activating PayPal subscription:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -263,32 +184,21 @@ export class PaymentService {
    */
   static async createPayPalOrder(productType, productId, quantity, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/paypal/order`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ productType, productId, quantity }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
+      const response = await api.post(
+        '/payment/paypal/order',
+        { productType, productId, quantity },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Create PayPal order');
 
-      if (data.success && data.data?.approvalUrl) {
-        await Linking.openURL(data.data.approvalUrl);
+      if (handled.success && handled.data?.approvalUrl) {
+        await Linking.openURL(handled.data.approvalUrl);
       }
 
-      return data;
+      return handled;
     } catch (error) {
       logger.error('Error creating PayPal order:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -297,27 +207,16 @@ export class PaymentService {
    */
   static async capturePayPalOrder(orderId, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/paypal/order/capture`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ orderId }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
+      const response = await api.post(
+        '/payment/paypal/order/capture',
+        { orderId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Capture PayPal order');
+      return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error capturing PayPal order:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -328,27 +227,16 @@ export class PaymentService {
    */
   static async validateAppleReceipt(receiptData, productId, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/apple/validate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ receiptData, productId }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
+      const response = await api.post(
+        '/payment/apple/validate',
+        { receiptData, productId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Validate Apple receipt');
+      return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error validating Apple receipt:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -357,27 +245,16 @@ export class PaymentService {
    */
   static async restoreApplePurchases(receiptData, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/apple/restore`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ receiptData }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
+      const response = await api.post(
+        '/payment/apple/restore',
+        { receiptData },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Restore Apple purchases');
+      return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error restoring Apple purchases:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -388,27 +265,16 @@ export class PaymentService {
    */
   static async validateGooglePurchase(purchaseToken, productId, isSubscription, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/google/validate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ purchaseToken, productId, isSubscription }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
+      const response = await api.post(
+        '/payment/google/validate',
+        { purchaseToken, productId, isSubscription },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Validate Google purchase');
+      return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error validating Google purchase:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -417,27 +283,16 @@ export class PaymentService {
    */
   static async restoreGooglePurchases(purchases, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/google/restore`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ purchases }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
+      const response = await api.post(
+        '/payment/google/restore',
+        { purchases },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Restore Google purchases');
+      return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error restoring Google purchases:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -448,27 +303,16 @@ export class PaymentService {
    */
   static async cancelSubscription(immediately, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/subscription/cancel`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ immediately }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
+      const response = await api.post(
+        '/payment/subscription/cancel',
+        { immediately },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Cancel subscription');
+      return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error cancelling subscription:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -477,26 +321,16 @@ export class PaymentService {
    */
   static async resumeSubscription(token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/subscription/resume`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
+      const response = await api.post(
+        '/payment/subscription/resume',
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Resume subscription');
+      return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error resuming subscription:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 
@@ -507,27 +341,16 @@ export class PaymentService {
    */
   static async requestRefund(transactionId, reason, amount, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/payment/refund/request`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ transactionId, reason, amount }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      return data || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
+      const response = await api.post(
+        '/payment/refund/request',
+        { transactionId, reason, amount },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const handled = handleApiResponse(response, 'Request refund');
+      return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error requesting refund:', error);
-      return { success: false, error: getUserFriendlyMessage(error.message) };
+      return { success: false, error: error.message };
     }
   }
 

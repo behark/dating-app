@@ -43,14 +43,10 @@ exports.updateOnlineStatus = async (req, res) => {
     );
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
+      return sendNotFound(res, 'User not found');
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Online status updated',
       data: {
         isOnline: user.isOnline,
@@ -61,10 +57,10 @@ exports.updateOnlineStatus = async (req, res) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Update online status error:', errorMessage);
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error updating online status',
-      error: errorMessage,
+      error: 'INTERNAL_ERROR',
+      details: { detail: errorMessage },
     });
   }
 };
@@ -80,10 +76,7 @@ exports.getOnlineStatus = async (req, res) => {
     const user = await User.findById(userId).select('isOnline lastActive lastOnlineAt').lean();
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
+      return sendNotFound(res, 'User not found');
     }
 
     // Determine activity status
@@ -105,8 +98,7 @@ exports.getOnlineStatus = async (req, res) => {
       }
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       data: {
         isOnline: user.isOnline,
         activityStatus,
@@ -117,10 +109,10 @@ exports.getOnlineStatus = async (req, res) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Get online status error:', errorMessage);
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error fetching online status',
-      error: errorMessage,
+      error: 'INTERNAL_ERROR',
+      details: { detail: errorMessage },
     });
   }
 };
@@ -149,12 +141,13 @@ exports.viewProfile = async (req, res) => {
       });
     }
 
-    if (!user.profileViewedBy) {
-      user.profileViewedBy = [];
-    }
+    const profileViews = (user.profileViewedBy || []).filter(
+      (view) => view && view.userId
+    );
+    user.profileViewedBy = profileViews;
 
-    const existingView = user.profileViewedBy.find(
-      (view) => view.userId && view.userId.toString() === viewerId.toString()
+    const existingView = profileViews.find(
+      (view) => view.userId.toString() === viewerId.toString()
     );
 
     if (existingView) {
@@ -179,17 +172,16 @@ exports.viewProfile = async (req, res) => {
 
     await user.save();
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Profile view recorded',
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('View profile error:', errorMessage);
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Error recording profile view',
-      error: errorMessage,
+      error: 'INTERNAL_ERROR',
+      details: { detail: errorMessage },
     });
   }
 };
@@ -206,16 +198,12 @@ exports.getProfileViews = async (req, res) => {
       .populate('profileViewedBy.userId', 'name photos.url');
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
+      return sendNotFound(res, 'User not found');
     }
 
     // If not premium, only return count
     if (!user.isPremium) {
-      return res.json({
-        success: true,
+      return sendSuccess(res, 200, {
         data: {
           profileViewCount: user.profileViewCount,
           message: 'Upgrade to Premium to see who viewed your profile',
@@ -225,32 +213,26 @@ exports.getProfileViews = async (req, res) => {
 
     // Return views with user details (premium only)
     const viewers = (user.profileViewedBy || [])
-      .filter((view) => view.userId != null) // Filter out null/undefined userIds
+      .filter((view) => view && view.userId)
       .sort((a, b) => {
         const dateA = a.viewedAt instanceof Date ? a.viewedAt : new Date(a.viewedAt);
         const dateB = b.viewedAt instanceof Date ? b.viewedAt : new Date(b.viewedAt);
         return dateB.getTime() - dateA.getTime();
       })
-      .slice(0, 50) // Last 50 views
+      .slice(0, 50)
       .map((view) => {
-        // view.userId is populated and filtered, so it's guaranteed to exist
-        if (!view.userId) {
-          return null;
-        }
-        // view.userId is populated with user document after the populate() call above
         /** @type {any} */
         const userDoc = view.userId;
         return {
-          userId: userDoc._id || userDoc,
-          name: userDoc.name || 'Unknown',
-          photo: userDoc.photos?.[0]?.url || null,
+          userId: userDoc._id,
+          name: userDoc.name,
+          photoUrl: Array.isArray(userDoc.photos) ? userDoc.photos[0]?.url : undefined,
           viewedAt: view.viewedAt,
         };
       })
-      .filter((viewer) => viewer != null);
+      .filter(Boolean);
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       data: {
         profileViewCount: user.profileViewCount,
         viewers,
@@ -258,11 +240,11 @@ exports.getProfileViews = async (req, res) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Get profile views error:', errorMessage);
-    res.status(500).json({
-      success: false,
+    logger.error('Get profile views error:', errorMessage);
+    return sendError(res, 500, {
       message: 'Error fetching profile views',
-      error: errorMessage,
+      error: 'INTERNAL_ERROR',
+      details: { detail: errorMessage },
     });
   }
 };
