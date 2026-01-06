@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>15/15</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/12</span>
+                <span class='fraction'>15/15</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -90,60 +90,87 @@
 <a name='L25'></a><a href='#L25'>25</a>
 <a name='L26'></a><a href='#L26'>26</a>
 <a name='L27'></a><a href='#L27'>27</a>
-<a name='L28'></a><a href='#L28'>28</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const express = <span class="cstat-no" title="statement not covered" >require('express');</span>
-const router = <span class="cstat-no" title="statement not covered" >express.Router();</span>
-const { authenticate } = <span class="cstat-no" title="statement not covered" >require('../middleware/auth');</span>
-const notificationController = <span class="cstat-no" title="statement not covered" >require('../controllers/notificationController');</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const express = require('express');
+const router = express.Router();
+const { authenticate } = require('../middleware/auth');
+const notificationController = require('../controllers/notificationController');
 &nbsp;
 // Middleware to protect routes
-<span class="cstat-no" title="statement not covered" >router.use(authenticate);</span>
+router.use(authenticate);
 &nbsp;
 // Get notification preferences
-<span class="cstat-no" title="statement not covered" >router.get('/preferences', notificationController.getNotificationPreferences);</span>
+router.get('/preferences', notificationController.getNotificationPreferences);
 &nbsp;
 // Update notification preferences
-<span class="cstat-no" title="statement not covered" >router.put('/preferences', notificationController.updateNotificationPreferences);</span>
+router.put('/preferences', notificationController.updateNotificationPreferences);
 &nbsp;
 // Send notification to a single user
-<span class="cstat-no" title="statement not covered" >router.post('/send', notificationController.sendNotification);</span>
+router.post('/send', notificationController.sendNotification);
 &nbsp;
 // Send bulk notifications to multiple users
-<span class="cstat-no" title="statement not covered" >router.post('/send-bulk', notificationController.sendBulkNotification);</span>
+router.post('/send-bulk', notificationController.sendBulkNotification);
 &nbsp;
 // Enable all notifications
-<span class="cstat-no" title="statement not covered" >router.put('/enable', notificationController.enableNotifications);</span>
+router.put('/enable', notificationController.enableNotifications);
 &nbsp;
 // Disable all notifications
-<span class="cstat-no" title="statement not covered" >router.put('/disable', notificationController.disableNotifications);</span>
+router.put('/disable', notificationController.disableNotifications);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >module.exports = router;</span>
+// Get notifications list
+router.get('/', notificationController.getNotifications);
+&nbsp;
+// Mark notification as read
+router.put('/:id/read', notificationController.markNotificationAsRead);
+&nbsp;
+// Mark all notifications as read
+router.put('/read-all', notificationController.markAllAsRead);
+&nbsp;
+module.exports = router;
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -151,7 +178,7 @@ const notificationController = <span class="cstat-no" title="statement not cover
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-01-04T22:01:49.555Z
+                at 2026-01-05T21:33:32.394Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

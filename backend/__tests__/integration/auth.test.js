@@ -29,7 +29,7 @@ describe('Authentication API', () => {
     // Create in-memory MongoDB instance
     mongoServer = await MongoMemoryServer.create();
     const mongoUri = mongoServer.getUri();
-    
+
     // Connect to in-memory database
     await mongoose.connect(mongoUri);
   });
@@ -46,10 +46,7 @@ describe('Authentication API', () => {
 
   describe('POST /api/auth/register', () => {
     it('should register a new user successfully', async () => {
-      const res = await request(app)
-        .post('/api/auth/register')
-        .send(validUser)
-        .expect(201);
+      const res = await request(app).post('/api/auth/register').send(validUser).expect(201);
 
       expect(res.body.success).toBe(true);
       expect(res.body.data).toHaveProperty('token');
@@ -60,15 +57,10 @@ describe('Authentication API', () => {
 
     it('should reject registration with existing email', async () => {
       // First registration
-      await request(app)
-        .post('/api/auth/register')
-        .send(validUser);
+      await request(app).post('/api/auth/register').send(validUser);
 
       // Second registration with same email
-      const res = await request(app)
-        .post('/api/auth/register')
-        .send(validUser)
-        .expect(400);
+      const res = await request(app).post('/api/auth/register').send(validUser).expect(400);
 
       expect(res.body.success).toBe(false);
       expect(res.body.message).toContain('already');
@@ -102,9 +94,7 @@ describe('Authentication API', () => {
     });
 
     it('should hash the password before storing', async () => {
-      await request(app)
-        .post('/api/auth/register')
-        .send(validUser);
+      await request(app).post('/api/auth/register').send(validUser);
 
       const user = await User.findOne({ email: validUser.email });
       expect(user.password).not.toBe(validUser.password);
@@ -115,9 +105,7 @@ describe('Authentication API', () => {
   describe('POST /api/auth/login', () => {
     beforeEach(async () => {
       // Create test user
-      await request(app)
-        .post('/api/auth/register')
-        .send(validUser);
+      await request(app).post('/api/auth/register').send(validUser);
     });
 
     it('should login with valid credentials', async () => {
@@ -132,7 +120,7 @@ describe('Authentication API', () => {
       expect(res.body.success).toBe(true);
       expect(res.body.data).toHaveProperty('token');
       expect(res.body.data).toHaveProperty('refreshToken');
-      
+
       authToken = res.body.data.token;
       refreshToken = res.body.data.refreshToken;
     });
@@ -163,13 +151,11 @@ describe('Authentication API', () => {
 
     it('should update lastActive on login', async () => {
       const beforeLogin = new Date();
-      
-      await request(app)
-        .post('/api/auth/login')
-        .send({
-          email: validUser.email,
-          password: validUser.password,
-        });
+
+      await request(app).post('/api/auth/login').send({
+        email: validUser.email,
+        password: validUser.password,
+      });
 
       const user = await User.findOne({ email: validUser.email });
       expect(new Date(user.lastActive).getTime()).toBeGreaterThanOrEqual(beforeLogin.getTime());
@@ -178,17 +164,13 @@ describe('Authentication API', () => {
 
   describe('POST /api/auth/refresh-token', () => {
     beforeEach(async () => {
-      await request(app)
-        .post('/api/auth/register')
-        .send(validUser);
-      
-      const loginRes = await request(app)
-        .post('/api/auth/login')
-        .send({
-          email: validUser.email,
-          password: validUser.password,
-        });
-      
+      await request(app).post('/api/auth/register').send(validUser);
+
+      const loginRes = await request(app).post('/api/auth/login').send({
+        email: validUser.email,
+        password: validUser.password,
+      });
+
       authToken = loginRes.body.data.token;
       refreshToken = loginRes.body.data.refreshToken;
     });
@@ -216,17 +198,13 @@ describe('Authentication API', () => {
 
   describe('POST /api/auth/logout', () => {
     beforeEach(async () => {
-      await request(app)
-        .post('/api/auth/register')
-        .send(validUser);
-      
-      const loginRes = await request(app)
-        .post('/api/auth/login')
-        .send({
-          email: validUser.email,
-          password: validUser.password,
-        });
-      
+      await request(app).post('/api/auth/register').send(validUser);
+
+      const loginRes = await request(app).post('/api/auth/login').send({
+        email: validUser.email,
+        password: validUser.password,
+      });
+
       authToken = loginRes.body.data.token;
       refreshToken = loginRes.body.data.refreshToken;
     });
@@ -241,9 +219,7 @@ describe('Authentication API', () => {
     });
 
     it('should invalidate token after logout', async () => {
-      await request(app)
-        .post('/api/auth/logout')
-        .set('Authorization', `Bearer ${authToken}`);
+      await request(app).post('/api/auth/logout').set('Authorization', `Bearer ${authToken}`);
 
       // Try to access protected route with old token
       const res = await request(app)
@@ -257,9 +233,7 @@ describe('Authentication API', () => {
 
   describe('Password Reset Flow', () => {
     beforeEach(async () => {
-      await request(app)
-        .post('/api/auth/register')
-        .send(validUser);
+      await request(app).post('/api/auth/register').send(validUser);
     });
 
     it('should send password reset email', async () => {
@@ -286,21 +260,17 @@ describe('Authentication API', () => {
     it('should rate limit login attempts', async () => {
       // Make multiple failed login attempts
       for (let i = 0; i < 6; i++) {
-        await request(app)
-          .post('/api/auth/login')
-          .send({
-            email: validUser.email,
-            password: 'WrongPassword123!',
-          });
-      }
-
-      // Next attempt should be rate limited
-      const res = await request(app)
-        .post('/api/auth/login')
-        .send({
+        await request(app).post('/api/auth/login').send({
           email: validUser.email,
           password: 'WrongPassword123!',
         });
+      }
+
+      // Next attempt should be rate limited
+      const res = await request(app).post('/api/auth/login').send({
+        email: validUser.email,
+        password: 'WrongPassword123!',
+      });
 
       // Should be either 401 (wrong password) or 429 (rate limited)
       expect([401, 429]).toContain(res.status);

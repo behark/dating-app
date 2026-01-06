@@ -202,7 +202,10 @@ const generateIcebreakers = async (req, res) => {
       try {
         icebreakers = await generateIcebreakersOpenAI(interests, bio);
       } catch (error) {
-        logger.error('OpenAI generation failed, falling back to mock:', { error: error.message, stack: error.stack });
+        logger.error('OpenAI generation failed, falling back to mock:', {
+          error: error.message,
+          stack: error.stack,
+        });
         icebreakers = generateIcebreakersMock(interests, bio);
       }
     } else {
@@ -579,7 +582,10 @@ const getConversationStarters = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error getting conversation starters:', { error: error.message, stack: error.stack });
+    logger.error('Error getting conversation starters:', {
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({
       success: false,
       message: 'Failed to get conversation starters',
@@ -719,7 +725,10 @@ const getPersonalizedMatches = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error getting personalized matches:', { error: error.message, stack: error.stack });
+    logger.error('Error getting personalized matches:', {
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({
       success: false,
       message: 'Failed to get personalized matches',
@@ -1096,7 +1105,10 @@ Example format: {"icebreakers": ["First icebreaker...", "Second icebreaker...", 
 
     return generateMatchIcebreakersMock(currentUser, matchUser);
   } catch (error) {
-    logger.error('OpenAI API error for match icebreakers:', { error: error.message, stack: error.stack });
+    logger.error('OpenAI API error for match icebreakers:', {
+      error: error.message,
+      stack: error.stack,
+    });
     return generateMatchIcebreakersMock(currentUser, matchUser);
   }
 };
@@ -1177,7 +1189,10 @@ const generateMatchIcebreakers = async (req, res) => {
           );
         }
       } catch (error) {
-        logger.error('OpenAI generation failed, falling back to mock:', { error: error.message, stack: error.stack });
+        logger.error('OpenAI generation failed, falling back to mock:', {
+          error: error.message,
+          stack: error.stack,
+        });
         if (currentUser) {
           icebreakers = generateMatchIcebreakersMock(currentUser, matchUser);
         } else {
@@ -1217,7 +1232,10 @@ const generateMatchIcebreakers = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error generating match icebreakers:', { error: error.message, stack: error.stack });
+    logger.error('Error generating match icebreakers:', {
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({
       success: false,
       message: 'Failed to generate icebreakers',

@@ -1,13 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { io } from 'socket.io-client';
+// io import removed - using SocketContext
 import { SOCKET_URL } from '../config/api';
 import api from '../services/api';
 import logger from '../utils/logger';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import { sanitizeString } from '../utils/sanitize';
 import { useAuth } from './AuthContext';
+import { useSocketContext } from '../contexts/SocketContext';
 import OfflineService from '../services/OfflineService';
 
 const ChatContext = createContext();
@@ -22,16 +23,16 @@ export const useChat = () => {
 
 export const ChatProvider = ({ children }) => {
   const { user } = useAuth();
-  const [socket, setSocket] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isReconnecting, setIsReconnecting] = useState(false);
-  const [connectionError, setConnectionError] = useState(null);
+  // Use SocketContext for connection management
+  const { socket, isConnected, connect, error: connectionError } = useSocketContext();
+
   const [conversations, setConversations] = useState([]);
   const [currentMatchId, setCurrentMatchId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false); // UI state, logic handled by SocketContext
 
   // Refs to store latest values for use in event handlers
   const conversationsRef = useRef(conversations);
@@ -40,9 +41,23 @@ export const ChatProvider = ({ children }) => {
 
   // Queue for messages sent during disconnection
   const messageQueueRef = useRef([]);
-  const heartbeatIntervalRef = useRef(null);
-  const reconnectAttemptsRef = useRef(0);
-  const MAX_RECONNECT_ATTEMPTS = 10;
+
+  // Persist messages to AsyncStorage
+  const persistMessagesToStorage = useCallback(async (matchId, messages) => {
+    try {
+      const key = `@messages_${matchId}`;
+      await AsyncStorage.setItem(
+        key,
+        JSON.stringify({
+          matchId,
+          messages,
+          lastUpdated: Date.now(),
+        })
+      );
+    } catch (error) {
+      logger.error('Error persisting messages to storage', error);
+    }
+  }, []);
 
   // Update refs when state changes
   useEffect(() => {
@@ -57,201 +72,102 @@ export const ChatProvider = ({ children }) => {
     currentMatchIdRef.current = currentMatchId;
   }, [currentMatchId]);
 
-  // Heartbeat helpers
-  const startHeartbeat = useCallback((socketInstance) => {
-    stopHeartbeat();
-    heartbeatIntervalRef.current = setInterval(() => {
-      if (socketInstance && socketInstance.connected) {
-        socketInstance.emit('heartbeat');
-      }
-    }, 30000); // Send heartbeat every 30s
-  }, []);
-
-  const stopHeartbeat = useCallback(() => {
-    if (heartbeatIntervalRef.current) {
-      clearInterval(heartbeatIntervalRef.current);
-      heartbeatIntervalRef.current = null;
-    }
-  }, []);
-
-  // Initialize Socket.io connection
+  // Connect to socket when user logs in
   useEffect(() => {
-    const initSocket = async () => {
-      if (!user?.uid) return;
+    if (user?.uid) {
+      connect(user.uid);
+    }
+  }, [user?.uid, connect]);
 
-      const serverUrl = SOCKET_URL;
-      const authToken = await api.getAuthToken();
+  // Set up socket event listeners
+  useEffect(() => {
+    if (!socket) return;
 
-      const newSocket = io(serverUrl, {
-        auth: {
-          userId: user.uid,
-          token: authToken, // Include token for socket auth
-        },
-        transports: ['websocket', 'polling'],
-        timeout: 20000,
-        // ===== RECONNECTION CONFIG =====
-        reconnection: true,
-        reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
-        reconnectionDelay: 1000, // Start with 1s delay
-        reconnectionDelayMax: 10000, // Max 10s between attempts
-        randomizationFactor: 0.5, // Add jitter to prevent thundering herd
-        // ===== HEARTBEAT/PING CONFIG =====
-        pingTimeout: 60000, // Wait 60s for pong before disconnect
-        pingInterval: 25000, // Send ping every 25s
+    // Flush queued messages when connected
+    if (isConnected && messageQueueRef.current.length > 0) {
+      logger.info(`Flushing ${messageQueueRef.current.length} queued messages`);
+      messageQueueRef.current.forEach((msg) => {
+        socket.emit('send_message', msg);
       });
+      messageQueueRef.current = [];
+    }
 
-      // ===== CONNECTION EVENTS =====
-      newSocket.on('connect', () => {
-        logger.info('Connected to chat server');
-        setIsConnected(true);
-        setIsReconnecting(false);
-        setConnectionError(null);
-        reconnectAttemptsRef.current = 0;
+    // Rejoin current room if we were in one
+    if (isConnected && currentMatchIdRef.current) {
+      socket.emit('join_room', currentMatchIdRef.current);
+    }
 
-        // Flush queued messages
-        if (messageQueueRef.current.length > 0) {
-          logger.info(`Flushing ${messageQueueRef.current.length} queued messages`);
-          messageQueueRef.current.forEach((msg) => {
-            newSocket.emit('send_message', msg);
-          });
-          messageQueueRef.current = [];
-        }
+    const handleNewMessage = async (data) => {
+      const { message } = data;
 
-        // Rejoin current room if we were in one
-        if (currentMatchIdRef.current) {
-          newSocket.emit('join_room', currentMatchIdRef.current);
-        }
-
-        // Start heartbeat
-        startHeartbeat(newSocket);
-      });
-
-      newSocket.on('disconnect', (reason) => {
-        logger.info('Disconnected from chat server:', reason);
-        setIsConnected(false);
-        stopHeartbeat();
-
-        // If server disconnected us, try to reconnect manually
-        if (reason === 'io server disconnect') {
-          newSocket.connect();
-        }
-      });
-
-      // ===== RECONNECTION EVENTS =====
-      newSocket.on('reconnect_attempt', (attemptNumber) => {
-        logger.info(`Reconnection attempt ${attemptNumber}/${MAX_RECONNECT_ATTEMPTS}`);
-        setIsReconnecting(true);
-        reconnectAttemptsRef.current = attemptNumber;
-      });
-
-      newSocket.on('reconnect', (attemptNumber) => {
-        logger.info(`Reconnected after ${attemptNumber} attempts`);
-        setIsReconnecting(false);
-        setConnectionError(null);
-      });
-
-      newSocket.on('reconnect_error', (error) => {
-        logger.error('Reconnection error:', error.message);
-        setConnectionError('Connection lost. Retrying...');
-      });
-
-      newSocket.on('reconnect_failed', () => {
-        logger.error('Failed to reconnect after max attempts');
-        setIsReconnecting(false);
-        setConnectionError('Unable to connect to chat server. Please check your connection.');
-      });
-
-      // Message events
-      newSocket.on('new_message', async (data) => {
-        const { message } = data;
-
-        // Add message to current conversation if it's for the active match
-        if (currentMatchIdRef.current === message.matchId.toString()) {
-          setMessages((prevMessages) => {
-            // Check if message already exists (to prevent duplicates)
-            const exists = prevMessages.some((m) => m._id === message._id);
-            if (!exists) {
-              const newMessages = [...prevMessages, message];
-              // Persist updated messages to storage
-              persistMessagesToStorage(message.matchId, newMessages).catch((err) => {
-                logger.error('Error persisting new message', err);
-              });
-              return newMessages;
-            }
-            return prevMessages;
-          });
-        }
-
-        // Update conversations list
-        setConversations((prevConversations) => {
-          return prevConversations.map((conv) => {
-            if (conv.matchId === message.matchId) {
-              return {
-                ...conv,
-                latestMessage: {
-                  content: message.content,
-                  type: message.type,
-                  createdAt: message.createdAt,
-                  senderId: message.senderId,
-                  imageUrl: message.imageUrl,
-                },
-                unreadCount: conv.matchId === currentMatchIdRef.current ? 0 : conv.unreadCount + 1,
-              };
-            }
-            return conv;
-          });
+      // Add message to current conversation if it's for the active match
+      if (currentMatchIdRef.current === message.matchId.toString()) {
+        setMessages((prevMessages) => {
+          // Check if message already exists (to prevent duplicates)
+          const exists = prevMessages.some((m) => m._id === message._id);
+          if (!exists) {
+            const newMessages = [...prevMessages, message];
+            // Persist updated messages to storage
+            persistMessagesToStorage(message.matchId, newMessages).catch((err) => {
+              logger.error('Error persisting new message', err);
+            });
+            return newMessages;
+          }
+          return prevMessages;
         });
+      }
 
-        // Update total unread count
-        setUnreadCount((prev) => prev + 1);
+      // Update conversations list
+      setConversations((prevConversations) => {
+        return prevConversations.map((conv) => {
+          if (conv.matchId === message.matchId) {
+            return {
+              ...conv,
+              latestMessage: {
+                content: message.content,
+                type: message.type,
+                createdAt: message.createdAt,
+                senderId: message.senderId,
+                imageUrl: message.imageUrl,
+              },
+              unreadCount: conv.matchId === currentMatchIdRef.current ? 0 : conv.unreadCount + 1,
+            };
+          }
+          return conv;
+        });
       });
 
-      // Read receipt events
-      newSocket.on('message_read_receipt', (data) => {
-        const { messageId, readBy, readAt } = data;
-
-        // Update message with read receipt
-        setMessages((prevMessages) =>
-          prevMessages.map((msg) =>
-            msg._id === messageId ? { ...msg, isRead: true, readAt, readBy } : msg
-          )
-        );
-      });
-
-      // Typing events
-      newSocket.on('user_typing', (data) => {
-        if (data.userId !== user.uid) {
-          setOtherUserTyping(data.isTyping);
-        }
-      });
-
-      // Error handling
-      newSocket.on('error', (error) => {
-        logger.error('Socket error:', error);
-        setConnectionError(error.message || 'Socket error occurred');
-      });
-
-      // Connection error (different from reconnection error)
-      newSocket.on('connect_error', (error) => {
-        logger.error('Socket connection error:', error.message);
-        setConnectionError('Failed to connect to chat server');
-      });
-
-      setSocket(newSocket);
-
-      return () => {
-        stopHeartbeat();
-        newSocket.disconnect();
-      };
+      // Update total unread count
+      setUnreadCount((prev) => prev + 1);
     };
 
-    initSocket();
+    const handleReadReceipt = (data) => {
+      const { messageId, readBy, readAt } = data;
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg._id === messageId ? { ...msg, isRead: true, readAt, readBy } : msg
+        )
+      );
+    };
 
-    // Cleanup on unmount
+    const handleUserTyping = (data) => {
+      if (data.userId !== user?.uid) {
+        setOtherUserTyping(data.isTyping);
+      }
+    };
+
+    // Attach listeners
+    socket.on('new_message', handleNewMessage);
+    socket.on('message_read_receipt', handleReadReceipt);
+    socket.on('user_typing', handleUserTyping);
+
+    // Cleanup listeners
     return () => {
-      stopHeartbeat();
+      socket.off('new_message', handleNewMessage);
+      socket.off('message_read_receipt', handleReadReceipt);
+      socket.off('user_typing', handleUserTyping);
     };
-  }, [user?.uid, startHeartbeat, stopHeartbeat]);
+  }, [socket, isConnected, user?.uid, persistMessagesToStorage]);
 
   // Load conversations
   const loadConversations = useCallback(async () => {
@@ -278,7 +194,7 @@ export const ChatProvider = ({ children }) => {
 
       if (response.data?.conversations) {
         setConversations(response.data.conversations);
-        
+
         // Cache conversations for offline use
         await OfflineService.cacheConversations(response.data.conversations);
 
@@ -291,7 +207,7 @@ export const ChatProvider = ({ children }) => {
       }
     } catch (error) {
       logger.error('Error loading conversations:', error);
-      
+
       // Try to load from cache on error
       const cachedConversations = await OfflineService.getCachedConversations();
       if (cachedConversations) {
@@ -325,7 +241,9 @@ export const ChatProvider = ({ children }) => {
         if (!isOnline || page === 1) {
           const cachedMessages = await OfflineService.getCachedMessages(matchId);
           if (cachedMessages && cachedMessages.length > 0) {
-            logger.info(`Loading ${cachedMessages.length} messages from cache for match ${matchId}`);
+            logger.info(
+              `Loading ${cachedMessages.length} messages from cache for match ${matchId}`
+            );
             if (page === 1) {
               setMessages(cachedMessages);
               // Also persist to AsyncStorage for persistence
@@ -360,16 +278,18 @@ export const ChatProvider = ({ children }) => {
         }
       } catch (error) {
         logger.error('Error loading messages:', error);
-        
+
         // Try to load from cache on error
         if (page === 1) {
           const cachedMessages = await OfflineService.getCachedMessages(matchId);
           const persistedMessages = await loadMessagesFromStorage(matchId);
-          
+
           // Use persisted messages if available (more complete than cache)
           const fallbackMessages = persistedMessages || cachedMessages;
           if (fallbackMessages && fallbackMessages.length > 0) {
-            logger.info(`Loading ${fallbackMessages.length} messages from storage (error fallback)`);
+            logger.info(
+              `Loading ${fallbackMessages.length} messages from storage (error fallback)`
+            );
             setMessages(fallbackMessages);
             return fallbackMessages;
           }
@@ -387,20 +307,6 @@ export const ChatProvider = ({ children }) => {
     },
     [user?.uid]
   );
-
-  // Persist messages to AsyncStorage
-  const persistMessagesToStorage = useCallback(async (matchId, messages) => {
-    try {
-      const key = `@messages_${matchId}`;
-      await AsyncStorage.setItem(key, JSON.stringify({
-        matchId,
-        messages,
-        lastUpdated: Date.now(),
-      }));
-    } catch (error) {
-      logger.error('Error persisting messages to storage', error);
-    }
-  }, []);
 
   // Load messages from AsyncStorage
   const loadMessagesFromStorage = useCallback(async (matchId) => {
@@ -600,11 +506,11 @@ export const ChatProvider = ({ children }) => {
 
   // Manual reconnect function
   const reconnect = useCallback(() => {
-    if (socket && !isConnected) {
+    if (user?.uid && !isConnected) {
       logger.info('Manual reconnect triggered');
-      socket.connect();
+      connect(user.uid);
     }
-  }, [socket, isConnected]);
+  }, [user?.uid, isConnected, connect]);
 
   const value = {
     // State

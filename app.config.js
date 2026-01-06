@@ -42,10 +42,14 @@ export default {
           },
         ],
         // Required permission usage descriptions for App Store submission
-        NSPhotoLibraryUsageDescription: 'We need access to your photos to upload profile pictures and share images in chats.',
-        NSCameraUsageDescription: 'We need camera access to take photos for your profile and verify your identity.',
-        NSLocationWhenInUseUsageDescription: 'We use your location to show you people nearby and enable distance-based matching. Your exact location is never shared with other users.',
-        NSUserTrackingUsageDescription: 'We use this to personalize your experience, show you relevant matches, and improve our service. You can change this in Settings at any time.',
+        NSPhotoLibraryUsageDescription:
+          'We need access to your photos to upload profile pictures and share images in chats.',
+        NSCameraUsageDescription:
+          'We need camera access to take photos for your profile and verify your identity.',
+        NSLocationWhenInUseUsageDescription:
+          'We use your location to show you people nearby and enable distance-based matching. Your exact location is never shared with other users.',
+        NSUserTrackingUsageDescription:
+          'We use this to personalize your experience, show you relevant matches, and improve our service. You can change this in Settings at any time.',
       },
       config: {
         usesNonExemptEncryption: false,

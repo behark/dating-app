@@ -10,6 +10,8 @@
     "web:build": "npx expo export -p web --output-dir web-build",
     "build": "npx expo export -p web --output-dir web-build",
     "vercel-build": "npx expo export -p web --output-dir web-build",
+    "start:backend": "node backend/server.js",
+    "seed": "node backend/scripts/seedLocal.js",
     "test": "jest",
     "test:backend": "jest -c backend/jest.config.js",
     "test:watch": "jest --watch",

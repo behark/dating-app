@@ -24,11 +24,13 @@ The frontend has implemented multiple services that **directly access Firebase F
 **Location:** `src/services/SafetyService.js`
 
 **Problem:**
+
 - Some methods use backend API (`blockUser`, `reportUser`, `getBlockedUsers`)
 - Other methods use direct Firestore (`unblockUser`, `submitPhotoVerification`, `flagContent`, `shareDatePlan`, `sendEmergencySOS`)
 - Inconsistent data storage and validation
 
 **Backend API Available (Unused):**
+
 ```
 POST   /api/safety/report              - Report user
 POST   /api/safety/block               - Block user
@@ -69,6 +71,7 @@ static async sendEmergencySOS(userId, location = {}, emergencyMessage = '') {
 ```
 
 **Impact:**
+
 - User can unblock themselves without server validation
 - Date plans not validated on server
 - Emergency SOS not logged on server
@@ -82,12 +85,14 @@ static async sendEmergencySOS(userId, location = {}, emergencyMessage = '') {
 **Location:** `src/services/SwipeController.js`
 
 **Problem:**
+
 - Uses direct Firestore for all swipe operations
 - Backend has fully implemented swipe API at `/api/swipes/*`
 - No server-side swipe limit enforcement
 - Race conditions in match creation
 
 **Backend API Available (Unused):**
+
 ```
 POST   /api/swipes                 - Create swipe
 GET    /api/swipes/matches         - Get matches
@@ -139,6 +144,7 @@ static async checkSwipeLimit(userId, isPremium = false) {
 ```
 
 **Impact:**
+
 - Free users can swipe unlimited times (revenue loss)
 - Duplicate matches possible
 - No server-side validation
@@ -152,12 +158,14 @@ static async checkSwipeLimit(userId, isPremium = false) {
 **Location:** `src/services/NotificationService.js`
 
 **Problem:**
+
 - Writes directly to Firestore for notification preferences
 - Backend has `/api/notifications/*` routes
 - No server-side preference sync
 - Preferences can be modified without backend knowledge
 
 **Backend API Available (Unused):**
+
 ```
 GET    /api/notifications/preferences    - Get preferences
 POST   /api/notifications/preferences    - Update preferences
@@ -199,6 +207,7 @@ static async registerForPushNotifications(userId) {
 ```
 
 **Impact:**
+
 - Preferences not synced with backend
 - Push tokens stored in Firestore (security risk)
 - No server-side validation
@@ -245,6 +254,7 @@ Database (MongoDB/Firestore)
 ```
 
 **Never:**
+
 ```
 Frontend Service
     ↓
@@ -258,10 +268,12 @@ Database (Firestore) ❌ WRONG!
 ### FIX 1: SafetyService - Migrate to Backend API
 
 **Current State:**
+
 - Hybrid implementation (some API, some Firestore)
 - Inconsistent data storage
 
 **Target State:**
+
 - All operations use backend API
 - Consistent server-side validation
 - Audit trail for all operations
@@ -332,10 +344,10 @@ export class SafetyService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      logger.info('Report created', { 
-        reportId: response.data?.reportId, 
-        reportedUserId, 
-        category 
+      logger.info('Report created', {
+        reportId: response.data?.reportId,
+        reportedUserId,
+        category,
       });
       return response.data;
     } catch (error) {
@@ -361,14 +373,14 @@ export class SafetyService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      logger.info('Date plan shared', { 
+      logger.info('Date plan shared', {
         datePlanId: response.data?.datePlanId,
-        matchUserId: datePlanData.matchUserId 
+        matchUserId: datePlanData.matchUserId,
       });
       return response.data;
     } catch (error) {
-      logger.error('Error sharing date plan', error, { 
-        matchUserId: datePlanData.matchUserId 
+      logger.error('Error sharing date plan', error, {
+        matchUserId: datePlanData.matchUserId,
       });
       throw error;
     }
@@ -386,9 +398,9 @@ export class SafetyService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      logger.info('SOS alert created', { 
+      logger.info('SOS alert created', {
         sosAlertId: response.data?.sosAlertId,
-        location 
+        location,
       });
       return response.data;
     } catch (error) {
@@ -407,10 +419,10 @@ export class SafetyService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      logger.info('Check-in timer started', { 
+      logger.info('Check-in timer started', {
         checkInId: response.data?.checkInId,
         datePlanId,
-        duration 
+        duration,
       });
       return response.data;
     } catch (error) {
@@ -551,9 +563,9 @@ export class SafetyService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      logger.info('Verification submitted', { 
+      logger.info('Verification submitted', {
         verificationId: response.data?.verificationId,
-        method: livenessCheck.method || 'basic'
+        method: livenessCheck.method || 'basic',
       });
       return response.data;
     } catch (error) {
@@ -588,11 +600,11 @@ export class SafetyService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      logger.info('Content flagged', { 
+      logger.info('Content flagged', {
         flagId: response.data?.flagId,
         contentType,
         contentId,
-        reason 
+        reason,
       });
       return response.data;
     } catch (error) {
@@ -652,6 +664,7 @@ export class SafetyService {
 ```
 
 **Benefits:**
+
 - ✅ All operations go through backend API
 - ✅ Server-side validation enforced
 - ✅ Audit trail for all operations
@@ -664,11 +677,13 @@ export class SafetyService {
 ### FIX 2: SwipeController - Migrate to Backend API
 
 **Current State:**
+
 - All operations use direct Firestore
 - No server-side validation
 - Race conditions in match creation
 
 **Target State:**
+
 - All operations use backend API
 - Server-side swipe limit enforcement
 - Atomic match creation
@@ -692,11 +707,11 @@ export class SwipeService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      logger.info('Swipe created', { 
+      logger.info('Swipe created', {
         swipeId: response.data?.swipeId,
         targetId,
         action,
-        isMatch: response.data?.isMatch 
+        isMatch: response.data?.isMatch,
       });
       return response.data;
     } catch (error) {
@@ -752,7 +767,7 @@ export class SwipeService {
   static async getUserSwipes(limit = 50, skip = 0) {
     try {
       const response = await api.get('/swipes/user', {
-        params: { limit, skip }
+        params: { limit, skip },
       });
       if (!response.success) {
         throw new Error(response.message);
@@ -768,7 +783,7 @@ export class SwipeService {
   static async getReceivedSwipes(limit = 50, skip = 0) {
     try {
       const response = await api.get('/swipes/received', {
-        params: { limit, skip }
+        params: { limit, skip },
       });
       if (!response.success) {
         throw new Error(response.message);
@@ -784,7 +799,7 @@ export class SwipeService {
   static async getMatches(status = 'active', limit = 50, skip = 0) {
     try {
       const response = await api.get('/swipes/matches', {
-        params: { status, limit, skip }
+        params: { status, limit, skip },
       });
       if (!response.success) {
         throw new Error(response.message);
@@ -815,7 +830,7 @@ export class SwipeService {
   static async getPendingLikes(limit = 50, skip = 0) {
     try {
       const response = await api.get('/swipes/pending-likes', {
-        params: { limit, skip }
+        params: { limit, skip },
       });
       if (!response.success) {
         throw new Error(response.message);
@@ -844,6 +859,7 @@ export class SwipeService {
 ```
 
 **Benefits:**
+
 - ✅ All operations go through backend API
 - ✅ Server-side swipe limit enforcement
 - ✅ Atomic match creation (no race conditions)
@@ -856,11 +872,13 @@ export class SwipeService {
 ### FIX 3: NotificationService - Migrate to Backend API
 
 **Current State:**
+
 - Preferences stored in Firestore
 - Push tokens stored in Firestore
 - No server-side sync
 
 **Target State:**
+
 - All preferences managed via backend API
 - Push tokens stored on backend
 - Server-side preference sync
@@ -965,12 +983,10 @@ export class NotificationService {
 
   // ✅ Send like notification via API
   static async sendLikeNotification(likedUserId, likerName) {
-    await this.sendNotification(
-      likedUserId,
-      '💗 New Like!',
-      `${likerName} liked your profile!`,
-      { type: 'like', likerName }
-    );
+    await this.sendNotification(likedUserId, '💗 New Like!', `${likerName} liked your profile!`, {
+      type: 'like',
+      likerName,
+    });
   }
 
   // ✅ Send message notification via API
@@ -1065,14 +1081,16 @@ export class NotificationService {
       if (!response.success) {
         throw new Error(response.message);
       }
-      return response.data || {
-        matchNotifications: true,
-        messageNotifications: true,
-        likeNotifications: true,
-        systemNotifications: true,
-        notificationFrequency: 'instant',
-        quietHours: { enabled: false, start: '22:00', end: '08:00' },
-      };
+      return (
+        response.data || {
+          matchNotifications: true,
+          messageNotifications: true,
+          likeNotifications: true,
+          systemNotifications: true,
+          notificationFrequency: 'instant',
+          quietHours: { enabled: false, start: '22:00', end: '08:00' },
+        }
+      );
     } catch (error) {
       logger.error('Error getting notification preferences', error);
       return {
@@ -1090,7 +1108,7 @@ export class NotificationService {
   static async getNotifications(limit = 50, skip = 0) {
     try {
       const response = await api.get('/notifications', {
-        params: { limit, skip }
+        params: { limit, skip },
       });
       if (!response.success) {
         throw new Error(response.message);
@@ -1169,6 +1187,7 @@ export class NotificationService {
 ```
 
 **Benefits:**
+
 - ✅ All preferences managed via backend API
 - ✅ Push tokens stored securely on backend
 - ✅ Server-side preference sync
@@ -1181,6 +1200,7 @@ export class NotificationService {
 ## MIGRATION CHECKLIST
 
 ### Phase 1: SafetyService (Week 1)
+
 - [ ] Create new SafetyService using backend API
 - [ ] Update all components using SafetyService
 - [ ] Add unit tests for SafetyService
@@ -1188,6 +1208,7 @@ export class NotificationService {
 - [ ] Deploy and monitor
 
 ### Phase 2: SwipeService (Week 2)
+
 - [ ] Rename SwipeController to SwipeService
 - [ ] Migrate all operations to backend API
 - [ ] Update all components using SwipeService
@@ -1196,6 +1217,7 @@ export class NotificationService {
 - [ ] Deploy and monitor
 
 ### Phase 3: NotificationService (Week 3)
+
 - [ ] Update NotificationService to use backend API
 - [ ] Migrate all preference operations
 - [ ] Update all components using NotificationService
@@ -1204,6 +1226,7 @@ export class NotificationService {
 - [ ] Deploy and monitor
 
 ### Phase 4: Verification (Week 4)
+
 - [ ] Audit all frontend services for Firestore access
 - [ ] Verify all operations use backend API
 - [ ] Add integration tests for all services
@@ -1255,11 +1278,14 @@ describe('SafetyService', () => {
 
       const result = await SafetyService.shareDatePlan(datePlanData, ['friend1', 'friend2']);
 
-      expect(api.post).toHaveBeenCalledWith('/safety/date-plan', expect.objectContaining({
-        matchUserId: 'match123',
-        location: 'Coffee Shop',
-        sharedWith: ['friend1', 'friend2'],
-      }));
+      expect(api.post).toHaveBeenCalledWith(
+        '/safety/date-plan',
+        expect.objectContaining({
+          matchUserId: 'match123',
+          location: 'Coffee Shop',
+          sharedWith: ['friend1', 'friend2'],
+        })
+      );
       expect(result.datePlanId).toBe('plan123');
     });
   });
@@ -1272,11 +1298,14 @@ describe('SafetyService', () => {
       const location = { latitude: 37.7749, longitude: -122.4194 };
       const result = await SafetyService.sendEmergencySOS(location, 'Help!');
 
-      expect(api.post).toHaveBeenCalledWith('/safety/sos', expect.objectContaining({
-        latitude: 37.7749,
-        longitude: -122.4194,
-        message: 'Help!',
-      }));
+      expect(api.post).toHaveBeenCalledWith(
+        '/safety/sos',
+        expect.objectContaining({
+          latitude: 37.7749,
+          longitude: -122.4194,
+          message: 'Help!',
+        })
+      );
       expect(result.sosAlertId).toBe('sos123');
     });
   });
@@ -1331,6 +1360,7 @@ describe('SafetyService Integration', () => {
 ## DEPLOYMENT STRATEGY
 
 ### Pre-Deployment Checklist
+
 - [ ] All tests passing
 - [ ] Code review completed
 - [ ] Backend API endpoints verified
@@ -1339,6 +1369,7 @@ describe('SafetyService Integration', () => {
 - [ ] Rollback plan prepared
 
 ### Deployment Steps
+
 1. Deploy backend API changes first
 2. Deploy frontend service changes
 3. Monitor error rates and performance
@@ -1346,6 +1377,7 @@ describe('SafetyService Integration', () => {
 5. Gradual rollout (5% → 25% → 50% → 100%)
 
 ### Rollback Plan
+
 - If errors detected, revert to previous frontend version
 - Verify data consistency
 - Investigate root cause
@@ -1355,14 +1387,15 @@ describe('SafetyService Integration', () => {
 
 ## SUMMARY
 
-| Service | Current | Target | Effort | Timeline |
-|---------|---------|--------|--------|----------|
-| SafetyService | Hybrid | API-only | Medium | 1 week |
-| SwipeService | Firestore | API-only | Medium | 1 week |
-| NotificationService | Firestore | API-only | Low | 1 week |
-| **Total** | **Hybrid** | **API-only** | **Medium** | **3 weeks** |
+| Service             | Current    | Target       | Effort     | Timeline    |
+| ------------------- | ---------- | ------------ | ---------- | ----------- |
+| SafetyService       | Hybrid     | API-only     | Medium     | 1 week      |
+| SwipeService        | Firestore  | API-only     | Medium     | 1 week      |
+| NotificationService | Firestore  | API-only     | Low        | 1 week      |
+| **Total**           | **Hybrid** | **API-only** | **Medium** | **3 weeks** |
 
 **Benefits:**
+
 - ✅ Consistent data storage
 - ✅ Server-side validation
 - ✅ Audit trail for all operations
@@ -1370,4 +1403,3 @@ describe('SafetyService Integration', () => {
 - ✅ Scalable architecture
 - ✅ Better security
 - ✅ Compliance ready
-

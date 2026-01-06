@@ -48,7 +48,8 @@ const SuperLikeScreen = ({ route, navigation }) => {
       logger.error('Error fetching quota:', error);
       Alert.alert(
         'Error Loading Quota',
-        error.message || 'Failed to load your super like quota. You can still try to send a super like.',
+        error.message ||
+          'Failed to load your super like quota. You can still try to send a super like.',
         [
           {
             text: 'Retry',

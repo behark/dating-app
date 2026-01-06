@@ -113,7 +113,8 @@ const buildCursorQuery = (cursor, sortDirection = -1) => {
  * // Returns: { page, limit, cursor, skip, sortBy, sortOrder }
  */
 const parsePaginationParams = (req, defaults = {}) => {
-  const defaultCursor = defaults && typeof defaults === 'object' && 'cursor' in defaults ? defaults.cursor : undefined;
+  const defaultCursor =
+    defaults && typeof defaults === 'object' && 'cursor' in defaults ? defaults.cursor : undefined;
   const {
     page = defaults.page || 1,
     limit = defaults.limit || 20,

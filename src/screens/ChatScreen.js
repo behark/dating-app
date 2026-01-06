@@ -3,17 +3,17 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
@@ -78,25 +78,21 @@ const ChatScreen = ({ route, navigation }) => {
         }
       } catch (error) {
         logger.error('Error loading messages:', error);
-        
+
         if (!loadMore) {
           // Initial load failure - show alert with retry option
           const message = getUserFriendlyMessage(error, 'load');
-          Alert.alert(
-            'Unable to Load Messages',
-            message,
-            [
-              {
-                text: 'Retry',
-                onPress: () => loadMessages(false),
-              },
-              {
-                text: 'Go Back',
-                style: 'cancel',
-                onPress: () => navigation.goBack(),
-              },
-            ]
-          );
+          Alert.alert('Unable to Load Messages', message, [
+            {
+              text: 'Retry',
+              onPress: () => loadMessages(false),
+            },
+            {
+              text: 'Go Back',
+              style: 'cancel',
+              onPress: () => navigation.goBack(),
+            },
+          ]);
         } else {
           // Load more failure - show less intrusive message
           showStandardError(error, 'load', 'Unable to Load');
@@ -266,6 +262,10 @@ const ChatScreen = ({ route, navigation }) => {
       minute: '2-digit',
     });
 
+    const isDecryptionFailed = item._decryptionFailed === true;
+    const displayContent = isDecryptionFailed ? '🔒 Message could not be decrypted' : item.content;
+    const textStyle = isDecryptionFailed ? { fontStyle: 'italic', opacity: 0.8 } : {};
+
     // Send read receipt when message is rendered for non-sender
     // Use ref-based approach instead of useEffect in render function
     if (!isMe && !item.isRead && matchId) {
@@ -290,9 +290,9 @@ const ChatScreen = ({ route, navigation }) => {
         {item.type === 'image' || item.type === 'gif' ? (
           <View style={styles.imageMessageWrapper}>
             <Image source={{ uri: item.imageUrl }} style={styles.messageImage} resizeMode="cover" />
-            {item.content && (
-              <Text style={isMe ? styles.myMessageText : styles.theirMessageText}>
-                {item.content}
+            {displayContent && (
+              <Text style={[isMe ? styles.myMessageText : styles.theirMessageText, textStyle]}>
+                {displayContent}
               </Text>
             )}
             <Text style={isMe ? styles.myTimestamp : styles.theirTimestamp}>{time}</Text>
@@ -308,7 +308,7 @@ const ChatScreen = ({ route, navigation }) => {
           </View>
         ) : isMe ? (
           <LinearGradient colors={Colors.gradient.primary} style={styles.myMessage}>
-            <Text style={styles.myMessageText}>{item.content}</Text>
+            <Text style={[styles.myMessageText, textStyle]}>{displayContent}</Text>
             <View style={styles.messageFooter}>
               <Text style={styles.myTimestamp}>{time}</Text>
               {item.isRead ? (
@@ -330,7 +330,7 @@ const ChatScreen = ({ route, navigation }) => {
           </LinearGradient>
         ) : (
           <View style={styles.theirMessage}>
-            <Text style={styles.theirMessageText}>{item.content}</Text>
+            <Text style={[styles.theirMessageText, textStyle]}>{displayContent}</Text>
             <Text style={styles.theirTimestamp}>{time}</Text>
           </View>
         )}

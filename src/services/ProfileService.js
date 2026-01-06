@@ -35,12 +35,12 @@ export class ProfileService {
       }
 
       const profile = data.data?.user || null;
-      
+
       // Cache profile for offline use
       if (profile) {
-        const cachedProfiles = await OfflineService.getCachedProfiles() || [];
-        const updatedProfiles = cachedProfiles.filter((p) => 
-          (p._id || p.uid) !== (profile._id || profile.uid)
+        const cachedProfiles = (await OfflineService.getCachedProfiles()) || [];
+        const updatedProfiles = cachedProfiles.filter(
+          (p) => (p._id || p.uid) !== (profile._id || profile.uid)
         );
         updatedProfiles.push(profile);
         await OfflineService.cacheProfiles(updatedProfiles);
@@ -49,7 +49,7 @@ export class ProfileService {
       return profile;
     } catch (error) {
       logger.error('Error fetching profile:', error);
-      
+
       // Try cache on error
       const cachedProfiles = await OfflineService.getCachedProfiles();
       if (cachedProfiles) {
@@ -59,7 +59,7 @@ export class ProfileService {
           return cachedProfile;
         }
       }
-      
+
       throw error;
     }
   }
@@ -84,7 +84,7 @@ export class ProfileService {
       }
 
       const profile = data.data?.user || null;
-      
+
       // Cache profile for offline use
       if (profile) {
         await OfflineService.cacheUserProfile(profile);
@@ -93,14 +93,14 @@ export class ProfileService {
       return profile;
     } catch (error) {
       logger.error('Error fetching my profile:', error);
-      
+
       // Try cache on error
       const cachedProfile = await OfflineService.getCachedUserProfile();
       if (cachedProfile) {
         logger.info('Loading my profile from cache (error fallback)');
         return cachedProfile;
       }
-      
+
       throw error;
     }
   }

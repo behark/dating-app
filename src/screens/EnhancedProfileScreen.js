@@ -3,13 +3,13 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-    Alert,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
@@ -21,8 +21,8 @@ import InteractivePhotoGallery from '../components/Profile/InteractivePhotoGalle
 import ProfileCompletionProgress from '../components/Profile/ProfileCompletionProgress';
 import ProfileVideoIntroduction from '../components/Profile/ProfileVideoIntroduction';
 import {
-    VerificationBadgeGroup,
-    VerificationStatus,
+  VerificationBadgeGroup,
+  VerificationStatus,
 } from '../components/Profile/VerificationBadge';
 
 // Gamification Components
@@ -135,15 +135,17 @@ const EnhancedProfileScreen = () => {
   const handleVideoChange = async (videoUrl) => {
     try {
       // Use backend API to update profile
-      const response = await api.put('/profile/update', { 
-        videoIntro: videoUrl 
+      const response = await api.put('/profile/update', {
+        videoIntro: videoUrl,
       });
-      
+
       if (response.success) {
         setProfileData((prev) => ({ ...prev, videoIntro: videoUrl }));
 
         // Award XP for adding video
-        await GamificationService.trackAction(currentUser.uid, 'update_profile', { field: 'video' });
+        await GamificationService.trackAction(currentUser.uid, 'update_profile', {
+          field: 'video',
+        });
         Alert.alert('Success', 'Video introduction updated!');
       } else {
         throw new Error(response.message || 'Failed to update video');
@@ -157,10 +159,10 @@ const EnhancedProfileScreen = () => {
   const handlePhotosChange = async (newPhotos) => {
     try {
       // Use backend API to update photos
-      const response = await api.put('/profile/update', { 
-        photos: newPhotos 
+      const response = await api.put('/profile/update', {
+        photos: newPhotos,
       });
-      
+
       if (response.success) {
         setProfileData((prev) => ({ ...prev, photos: newPhotos }));
       }

@@ -2,14 +2,14 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import {
-    Alert,
-    Dimensions,
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import api from '../services/api';
@@ -32,7 +32,7 @@ const ViewProfileScreen = ({ route, navigation }) => {
       setLoading(true);
       // Use backend API to get profile
       const response = await api.get(`/profile/${userId}`);
-      
+
       if (response.success && response.data) {
         setProfile({ id: userId, ...response.data });
       } else {

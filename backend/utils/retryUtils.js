@@ -158,10 +158,7 @@ const retryWithBackoff = async (fn, options = {}) => {
       // Don't retry on the last attempt
       if (attempt === maxRetries) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.error(
-          `[RETRY] All ${maxRetries + 1} attempts failed for ${context}:`,
-          errorMessage
-        );
+        logger.error(`[RETRY] All ${maxRetries + 1} attempts failed for ${context}:`, errorMessage);
         throw error;
       }
 

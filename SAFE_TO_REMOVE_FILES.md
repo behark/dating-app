@@ -1,6 +1,7 @@
 # 🗑️ FILES SAFE TO REMOVE - NO RISK
 
 **Rules Applied:**
+
 - ✅ Do NOT remove tests
 - ✅ Do NOT remove configs
 - ✅ Do NOT remove migrations
@@ -16,6 +17,7 @@
 These files are automatically generated and can be recreated:
 
 ### Coverage Reports
+
 ```
 coverage/
 ├── clover.xml
@@ -25,6 +27,7 @@ coverage/
 ```
 
 **Why Safe to Delete:**
+
 - ✅ **Not a test file** - It's a generated report of test results, not the tests themselves
 - ✅ **Not a config** - Generated output, not configuration
 - ✅ **Not a migration** - Pure generated content
@@ -43,6 +46,7 @@ coverage/
 These are static HTML preview files, not used in the app:
 
 ### Preview HTML Files
+
 ```
 preview-ChatScreen.html
 preview-ExploreScreen.html
@@ -52,6 +56,7 @@ preview-TopPicksScreen.html
 ```
 
 **Why Safe to Delete:**
+
 - ✅ **Not a test file** - Static HTML previews, not test files
 - ✅ **Not a config** - Design preview files, not configuration
 - ✅ **Not a migration** - Static HTML, not database/code migration
@@ -70,6 +75,7 @@ preview-TopPicksScreen.html
 These scripts were used for one-time code transformations/fixes and are no longer needed:
 
 ### Color Fix Scripts (Already Applied)
+
 ```
 scripts/fix-color-syntax.js
 scripts/fix-colors-import-paths.js
@@ -79,6 +85,7 @@ scripts/replace-colors.js
 ```
 
 **Why Safe to Delete:**
+
 - ✅ **Not a test file** - Code transformation utilities, not tests
 - ✅ **Not a config** - One-time fix scripts, not configuration files
 - ✅ **Not a migration** - Code transformation scripts (find/replace operations), NOT database migrations
@@ -95,12 +102,14 @@ scripts/replace-colors.js
 **Size:** ~7 files, ~50 KB total
 
 ### Console Replacement Scripts (Already Applied)
+
 ```
 scripts/replace-console-statements.js
 scripts/replace-console.js
 ```
 
 **Why Safe to Delete:**
+
 - ✅ **Not a test file** - Code transformation utilities, not tests
 - ✅ **Not a config** - One-time fix scripts, not configuration files
 - ✅ **Not a migration** - Code transformation scripts (find/replace operations), NOT database migrations
@@ -120,12 +129,14 @@ scripts/replace-console.js
 These are temporary check files, not used in production:
 
 ### Temporary Environment Check Files
+
 ```
 .env.check-current
 .env.vercel-check
 ```
 
 **Why Safe to Delete:**
+
 - ✅ **Not a test file** - Temporary check files, not tests
 - ✅ **Not a config** - Temporary files, not actual configuration (`.env.example` is the real config)
 - ✅ **Not a migration** - Temporary check files, not migrations
@@ -142,11 +153,13 @@ These are temporary check files, not used in production:
 ## ✅ CATEGORY 5: TEMPORARY DIRECTORIES (100% Safe)
 
 ### Temporary Directories
+
 ```
 temp/ (if exists and empty/old)
 ```
 
 **Why Safe to Delete:**
+
 - ✅ **Not a test file** - Temporary directory, not tests
 - ✅ **Not a config** - Temporary directory, not configuration
 - ✅ **Not a migration** - Temporary directory, not migrations
@@ -161,6 +174,7 @@ temp/ (if exists and empty/old)
 ## ⚠️ FILES TO KEEP (DO NOT REMOVE)
 
 ### Tests (Keep All)
+
 ```
 backend/__tests__/ (all test files)
 tests/ (all test files)
@@ -170,6 +184,7 @@ e2e/ (all test files)
 ```
 
 ### Configs (Keep All)
+
 ```
 .env.example
 .gitignore
@@ -185,6 +200,7 @@ All config files in backend/config/
 ```
 
 ### Migrations (Keep All)
+
 ```
 backend/scripts/migrate-api-responses.sh (database/code migration)
 backend/scripts/add-retention-indexes.js (database migration)
@@ -192,6 +208,7 @@ Any other migration scripts
 ```
 
 ### Documentation (Keep All)
+
 ```
 All *.md files (README.md, ARCHITECTURE.md, etc.)
 All documentation in any format
@@ -209,6 +226,7 @@ bash scripts/cleanup-safe-files.sh
 ```
 
 This script will safely remove:
+
 - ✅ Coverage reports (~9.4MB)
 - ✅ Preview HTML files (5 files)
 - ✅ One-time fix scripts (7 files)
@@ -246,20 +264,21 @@ rm -rf temp/  # Only if empty/old
 
 ## 📊 SUMMARY
 
-| Category | Files | Size | Why Safe |
-|----------|-------|------|----------|
-| Coverage Reports | ~100 files | **9.4 MB** | Generated, not tests/configs/migrations/docs |
-| Preview HTML | 5 files | ~50-100 KB | Static previews, not used in code |
-| One-time Scripts | 7 files | ~50 KB | Code transformations (not migrations), already applied |
-| Temp Files | 2 files | ~1 KB | Temporary check files |
-| Temp Directory | 1 dir | Variable | Temporary storage |
-| **Total** | **~134 files** | **~10 MB** | ✅ All verified safe |
+| Category         | Files          | Size       | Why Safe                                               |
+| ---------------- | -------------- | ---------- | ------------------------------------------------------ |
+| Coverage Reports | ~100 files     | **9.4 MB** | Generated, not tests/configs/migrations/docs           |
+| Preview HTML     | 5 files        | ~50-100 KB | Static previews, not used in code                      |
+| One-time Scripts | 7 files        | ~50 KB     | Code transformations (not migrations), already applied |
+| Temp Files       | 2 files        | ~1 KB      | Temporary check files                                  |
+| Temp Directory   | 1 dir          | Variable   | Temporary storage                                      |
+| **Total**        | **~134 files** | **~10 MB** | ✅ All verified safe                                   |
 
 ---
 
 ## ✅ VERIFICATION CHECKLIST
 
 Before removing any file, verified:
+
 - [x] File is not a test file
 - [x] File is not a config file
 - [x] File is not a migration file
@@ -274,11 +293,13 @@ Before removing any file, verified:
 ## 🎯 RECOMMENDED ACTION
 
 **Run the cleanup script:**
+
 ```bash
 bash scripts/cleanup-safe-files.sh
 ```
 
 This will safely remove all verified safe files while preserving:
+
 - ✅ All tests
 - ✅ All configs
 - ✅ All migrations

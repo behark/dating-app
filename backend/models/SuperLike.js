@@ -56,7 +56,7 @@ superLikeSchema.index({ recipientId: 1, isViewed: 1, createdAt: -1 });
 // Prevent duplicate super likes between same users
 superLikeSchema.pre('save', async function (next) {
   if (this.isNew) {
-    const existingSuper = await (/** @type {any} */ (this.constructor)).findOne({
+    const existingSuper = await /** @type {any} */ (this.constructor).findOne({
       senderId: this.senderId,
       recipientId: this.recipientId,
     });

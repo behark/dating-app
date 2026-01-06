@@ -125,7 +125,10 @@ export class VerificationService {
     try {
       // Note: This would need a backend endpoint like DELETE /safety/verification/:requestId
       // For now, log a warning and return success to not break existing flows
-      logger.warn('cancelVerificationRequest: Backend endpoint not available', { requestId, userId });
+      logger.warn('cancelVerificationRequest: Backend endpoint not available', {
+        requestId,
+        userId,
+      });
       return { success: true };
     } catch (error) {
       logger.error('Error cancelling verification request', error, { requestId, userId });
@@ -148,7 +151,11 @@ export class VerificationService {
   static async reviewVerification(requestId, reviewerId, approved, reviewNotes = '') {
     try {
       // This would need an admin endpoint like PUT /admin/verifications/:requestId/review
-      logger.warn('reviewVerification: Admin endpoint not available', { requestId, reviewerId, approved });
+      logger.warn('reviewVerification: Admin endpoint not available', {
+        requestId,
+        reviewerId,
+        approved,
+      });
       return { success: false, error: 'Admin endpoint not available' };
     } catch (error) {
       logger.error('Error reviewing verification', error, { requestId, reviewerId, approved });

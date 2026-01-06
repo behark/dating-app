@@ -108,9 +108,7 @@ describe('Chat & Messaging API', () => {
     });
 
     it('should require authentication', async () => {
-      const res = await request(app)
-        .get('/api/conversations')
-        .expect(401);
+      const res = await request(app).get('/api/conversations').expect(401);
 
       expect(res.body.success).toBe(false);
     });

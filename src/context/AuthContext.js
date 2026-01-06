@@ -14,11 +14,11 @@ import { getUserFriendlyMessage } from '../utils/errorMessages';
 import { decodeJWT, extractGoogleUserInfo } from '../utils/jwt';
 import logger from '../utils/logger';
 import {
-    clearAllTokens,
-    getAuthToken,
-    getRefreshToken,
-    storeAuthToken,
-    storeRefreshToken
+  clearAllTokens,
+  getAuthToken,
+  getRefreshToken,
+  storeAuthToken,
+  storeRefreshToken,
 } from '../utils/secureStorage';
 import { clearUser as clearSentryUser, setUser as setSentryUser } from '../utils/sentry';
 
@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }) => {
           try {
             // Try to get current user profile to validate token
             const response = await api.get('/profile/me');
-            
+
             if (response.success && response.data?.user) {
               // Token is valid - restore user session
               const userData = response.data.user;
@@ -99,14 +99,14 @@ export const AuthProvider = ({ children }) => {
                 ...userData,
                 uid: userData._id || userData.uid,
               };
-              
+
               setCurrentUser(normalizedUser);
               setAuthToken(storedAuthToken);
               setRefreshToken(storedRefreshToken);
-              
+
               // Update stored user data with fresh data from backend
               await AsyncStorage.setItem('currentUser', JSON.stringify(normalizedUser));
-              
+
               logger.info('User session restored - token validated');
             } else {
               // Token validation failed - try to refresh
@@ -119,26 +119,26 @@ export const AuthProvider = ({ children }) => {
               try {
                 logger.debug('Attempting token refresh on app start...');
                 const newToken = await api.refreshAuthToken();
-                
+
                 if (newToken) {
                   // Refresh successful - get fresh user data
                   const response = await api.get('/profile/me');
-                  
+
                   if (response.success && response.data?.user) {
                     const userData = response.data.user;
                     const normalizedUser = {
                       ...userData,
                       uid: userData._id || userData.uid,
                     };
-                    
+
                     setCurrentUser(normalizedUser);
                     setAuthToken(newToken);
-                    
+
                     // Update stored tokens and user data
                     await AsyncStorage.setItem('currentUser', JSON.stringify(normalizedUser));
                     // CRITICAL FIX: Store token in secure storage
                     await storeAuthToken(newToken);
-                    
+
                     logger.info('Token refreshed and user session restored');
                   } else {
                     throw new Error('Failed to get user data after refresh');
@@ -211,9 +211,9 @@ export const AuthProvider = ({ children }) => {
         // Warn user 5 minutes before expiry
         if (timeUntilExpiry > 0 && timeUntilExpiry <= fiveMinutes && !sessionWarningShown) {
           setSessionWarningShown(true);
-          
+
           const minutesRemaining = Math.round(timeUntilExpiry / 60000);
-          
+
           // Show alert with option to refresh
           Alert.alert(
             'Session Expiring Soon',
@@ -259,30 +259,24 @@ export const AuthProvider = ({ children }) => {
             const newToken = await refreshSession();
             if (!newToken) {
               // Auto-refresh failed, show warning
-              Alert.alert(
-                'Session Expired',
-                'Your session has expired. Please login again.',
-                [{ text: 'OK', onPress: () => logout() }]
-              );
+              Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
+                { text: 'OK', onPress: () => logout() },
+              ]);
             }
           } catch (error) {
             logger.error('Error auto-refreshing token', error);
-            Alert.alert(
-              'Session Expired',
-              'Your session has expired. Please login again.',
-              [{ text: 'OK', onPress: () => logout() }]
-            );
+            Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
+              { text: 'OK', onPress: () => logout() },
+            ]);
           }
         }
 
         // If token already expired, logout
         if (timeUntilExpiry <= 0) {
           logger.warn('Token expired, logging out');
-          Alert.alert(
-            'Session Expired',
-            'Your session has expired. Please login again.',
-            [{ text: 'OK', onPress: () => logout() }]
-          );
+          Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
+            { text: 'OK', onPress: () => logout() },
+          ]);
         }
       } catch (error) {
         logger.error('Error checking token expiry', error);
@@ -337,7 +331,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // CRITICAL FIX: Make location optional - use default if not provided
       let finalLocation = location;
-      
+
       if (!location || !location.coordinates || !Array.isArray(location.coordinates)) {
         // Use default location (San Francisco) if not provided
         logger.warn('Location not provided during signup, using default location');
@@ -363,12 +357,12 @@ export const AuthProvider = ({ children }) => {
         apiUrl: API_URL,
         fullUrl: `${API_URL}/auth/register`,
       });
-      
+
       // CRITICAL FIX: Add timeout (15 seconds) and retry logic
       let response;
       let lastError;
       const maxRetries = 2;
-      
+
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
           response = await fetchWithTimeout(
@@ -392,16 +386,21 @@ export const AuthProvider = ({ children }) => {
           break; // Success - exit retry loop
         } catch (error) {
           lastError = error;
-          if (attempt < maxRetries && (error.message?.includes('timeout') || error.message?.includes('Network'))) {
-            logger.warn(`Signup attempt ${attempt + 1} failed, retrying...`, { error: error.message });
+          if (
+            attempt < maxRetries &&
+            (error.message?.includes('timeout') || error.message?.includes('Network'))
+          ) {
+            logger.warn(`Signup attempt ${attempt + 1} failed, retrying...`, {
+              error: error.message,
+            });
             // Wait before retry (exponential backoff)
-            await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+            await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
             continue;
           }
           throw error;
         }
       }
-      
+
       if (!response) {
         throw lastError || new Error('Network error. Please check your connection and try again.');
       }
@@ -471,7 +470,7 @@ export const AuthProvider = ({ children }) => {
   const fetchWithTimeout = async (url, options, timeoutMs = 15000) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-    
+
     try {
       const response = await fetch(url, {
         ...options,
@@ -492,12 +491,12 @@ export const AuthProvider = ({ children }) => {
     try {
       // Log API URL for debugging
       logger.debug('Login attempt', { email, apiUrl: API_URL, fullUrl: `${API_URL}/auth/login` });
-      
+
       // CRITICAL FIX: Add timeout (15 seconds) and retry logic
       let response;
       let lastError;
       const maxRetries = 2;
-      
+
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
           response = await fetchWithTimeout(
@@ -514,16 +513,21 @@ export const AuthProvider = ({ children }) => {
           break; // Success - exit retry loop
         } catch (error) {
           lastError = error;
-          if (attempt < maxRetries && (error.message?.includes('timeout') || error.message?.includes('Network'))) {
-            logger.warn(`Login attempt ${attempt + 1} failed, retrying...`, { error: error.message });
+          if (
+            attempt < maxRetries &&
+            (error.message?.includes('timeout') || error.message?.includes('Network'))
+          ) {
+            logger.warn(`Login attempt ${attempt + 1} failed, retrying...`, {
+              error: error.message,
+            });
             // Wait before retry (exponential backoff)
-            await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+            await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
             continue;
           }
           throw error;
         }
       }
-      
+
       if (!response) {
         throw lastError || new Error('Network error. Please check your connection and try again.');
       }
@@ -614,10 +618,10 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.removeItem('currentUser');
       // CRITICAL FIX: Remove tokens from secure storage
       await clearAllTokens();
-      
+
       // CRITICAL FIX: Clear user from Sentry
       clearSentryUser();
-      
+
       logger.info('User logged out successfully');
     } catch (error) {
       logger.error('Logout error:', error);
@@ -693,9 +697,9 @@ export const AuthProvider = ({ children }) => {
         // Warn user 5 minutes before expiry
         if (timeUntilExpiry > 0 && timeUntilExpiry <= fiveMinutes && !sessionWarningShown) {
           setSessionWarningShown(true);
-          
+
           const minutesRemaining = Math.round(timeUntilExpiry / 60000);
-          
+
           // Show alert with option to refresh
           Alert.alert(
             'Session Expiring Soon',
@@ -741,30 +745,24 @@ export const AuthProvider = ({ children }) => {
             const newToken = await refreshSession();
             if (!newToken) {
               // Auto-refresh failed, show warning
-              Alert.alert(
-                'Session Expired',
-                'Your session has expired. Please login again.',
-                [{ text: 'OK', onPress: () => logout() }]
-              );
+              Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
+                { text: 'OK', onPress: () => logout() },
+              ]);
             }
           } catch (error) {
             logger.error('Error auto-refreshing token', error);
-            Alert.alert(
-              'Session Expired',
-              'Your session has expired. Please login again.',
-              [{ text: 'OK', onPress: () => logout() }]
-            );
+            Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
+              { text: 'OK', onPress: () => logout() },
+            ]);
           }
         }
 
         // If token already expired, logout
         if (timeUntilExpiry <= 0) {
           logger.warn('Token expired, logging out');
-          Alert.alert(
-            'Session Expired',
-            'Your session has expired. Please login again.',
-            [{ text: 'OK', onPress: () => logout() }]
-          );
+          Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
+            { text: 'OK', onPress: () => logout() },
+          ]);
         }
       } catch (error) {
         logger.error('Error checking token expiry', error);
@@ -983,9 +981,7 @@ export const AuthProvider = ({ children }) => {
     // Fail fast with a helpful message instead of sending users into
     // Google's "invalid_client" screen when client IDs aren't configured.
     if (!isGoogleSignInConfigured) {
-      throw new Error(
-        'Google Sign-In is coming soon. Please use email and password to sign in.'
-      );
+      throw new Error('Google Sign-In is coming soon. Please use email and password to sign in.');
     }
 
     await promptAsync();

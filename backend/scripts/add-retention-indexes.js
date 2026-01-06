@@ -192,8 +192,8 @@ async function createIndexes() {
         if (collections.length === 0) continue;
 
         const collection = db.collection(collectionDef.collection);
-      const indexes = await collection.indexes();
-      console.log(`📁 ${collectionDef.collection}:`);
+        const indexes = await collection.indexes();
+        console.log(`📁 ${collectionDef.collection}:`);
         indexes.forEach((idx) => {
           if (idx.name !== '_id_') {
             console.log(`   - ${idx.name}: ${JSON.stringify(idx.key)}`);

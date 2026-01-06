@@ -20,15 +20,20 @@ export class PhotoVerificationService {
       });
 
       if (!response.success) {
-        logger.error('Error submitting verification photo via API', new Error(response.message), { userId });
+        logger.error('Error submitting verification photo via API', new Error(response.message), {
+          userId,
+        });
         return { success: false, error: response.message || 'Failed to submit verification' };
       }
 
-      logger.info('Verification photo submitted via API', { userId, verificationId: response.data?.verificationId });
-      return { 
-        success: true, 
+      logger.info('Verification photo submitted via API', {
+        userId,
         verificationId: response.data?.verificationId,
-        photoUrl: response.data?.photoUrl 
+      });
+      return {
+        success: true,
+        verificationId: response.data?.verificationId,
+        photoUrl: response.data?.photoUrl,
       };
     } catch (error) {
       logger.error('Error submitting verification photo', error, { userId });

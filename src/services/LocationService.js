@@ -1,4 +1,5 @@
 import * as Location from 'expo-location';
+import { Platform } from 'react-native';
 import { calculateDistance as calcDist } from '../utils/distanceCalculator';
 import logger from '../utils/logger';
 import api from './api';
@@ -40,6 +41,16 @@ export class LocationService {
     try {
       const hasPermission = await this.requestLocationPermission();
       if (!hasPermission) {
+        // Fallback for development/demo: NYC Coordinates
+        // This ensures the app works immediately with seeded data
+        if (__DEV__) {
+             logger.info('Using mock location (NYC) for development');
+             return {
+                latitude: 40.730610,
+                longitude: -73.935242,
+                accuracy: 100,
+             };
+        }
         return null;
       }
 
@@ -55,6 +66,15 @@ export class LocationService {
       };
     } catch (error) {
       logger.error('Error getting current location', error);
+      
+      // Fallback on error too
+      if (__DEV__) {
+         return {
+            latitude: 40.730610,
+            longitude: -73.935242,
+            accuracy: 100,
+         };
+      }
       return null;
     }
   }
@@ -104,7 +124,7 @@ export class LocationService {
     try {
       // Get privacy setting from user profile via API
       const response = await api.get('/profile');
-      
+
       if (response.success && response.data) {
         return response.data.locationPrivacy || 'visible_to_matches';
       }
@@ -164,18 +184,23 @@ export class LocationService {
       });
 
       if (!response.success) {
-        logger.warn('Failed to get nearby users from API', { currentUserId, error: response.message });
+        logger.warn('Failed to get nearby users from API', {
+          currentUserId,
+          error: response.message,
+        });
         return [];
       }
 
       // Backend returns profiles array with distance calculated
       const profiles = response.data?.profiles || response.profiles || [];
-      
-      return profiles.map(profile => ({
-        id: profile._id || profile.id,
-        ...profile,
-        distance: profile.distance != null ? Math.round(profile.distance * 10) / 10 : null,
-      })).sort((a, b) => (a.distance || 0) - (b.distance || 0));
+
+      return profiles
+        .map((profile) => ({
+          id: profile._id || profile.id,
+          ...profile,
+          distance: profile.distance != null ? Math.round(profile.distance * 10) / 10 : null,
+        }))
+        .sort((a, b) => (a.distance || 0) - (b.distance || 0));
     } catch (error) {
       logger.error('Error getting nearby users', error, { currentUserId, maxDistanceKm });
       return [];

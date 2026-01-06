@@ -257,9 +257,7 @@ describe('Safety API', () => {
 
   describe('GET /api/safety/tips', () => {
     it('should return safety tips without authentication', async () => {
-      const res = await request(app)
-        .get('/api/safety/tips')
-        .expect(200);
+      const res = await request(app).get('/api/safety/tips').expect(200);
 
       expect(res.body.success).toBe(true);
       expect(res.body.data).toBeInstanceOf(Array);

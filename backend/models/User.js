@@ -514,6 +514,20 @@ const userSchema = new mongoose.Schema(
       totalSwipesAllTime: { type: Number, default: 0 },
     },
 
+    // Notifications
+    expoPushToken: {
+      type: String,
+      sparse: true,
+      select: false, // Don't return by default for security
+    },
+    notificationPreferences: {
+      matchNotifications: { type: Boolean, default: true },
+      messageNotifications: { type: Boolean, default: true },
+      likeNotifications: { type: Boolean, default: true },
+      systemNotifications: { type: Boolean, default: true },
+      updatedAt: Date,
+    },
+
     // ========== PRIVACY & COMPLIANCE (GDPR/CCPA) ==========
     privacySettings: {
       // Data sharing preferences

@@ -1,6 +1,7 @@
 # App Store Compliance Guide
 
 ## Table of Contents
+
 1. [Apple App Store Requirements](#apple-app-store-requirements)
 2. [Google Play Store Requirements](#google-play-store-requirements)
 3. [Privacy Policy Requirements](#privacy-policy-requirements)
@@ -17,34 +18,40 @@
 ### App Store Review Guidelines Compliance
 
 #### 1.1 Safety - User Generated Content
+
 - [x] Report/block functionality implemented (`/api/safety/report`, `/api/safety/block`)
 - [x] Content moderation for photos (admin approval flow)
 - [x] Message content filtering
 - [ ] **Action Required**: Ensure 24-hour response to user reports
 
 #### 1.2 Safety - Dating Apps Specific (Guideline 5.1.1)
+
 - [ ] Users must be 18+ (age verification required)
 - [ ] Clear explanation of dating app purpose
 - [ ] Photo verification optional but recommended
 - [ ] Safety tips for meeting in person
 
 #### 1.3 Privacy (Guideline 5.1.1)
+
 - [x] Privacy Policy URL in app
 - [x] Data collection disclosure
 - [x] Account deletion functionality
 - [x] Data export capability (GDPR)
 
 #### 1.4 Performance (Guideline 2.1)
+
 - [x] App completeness - no placeholder content
 - [x] No crashes (memory leaks fixed)
 - [x] Proper error handling
 
 #### 1.5 Business (Guideline 3.1.1)
+
 - [x] In-App Purchases using Apple's system
 - [ ] Subscription management through Apple
 - [ ] Clear subscription terms displayed
 
 #### 1.6 Design (Guideline 4.0)
+
 - [ ] Human Interface Guidelines compliance
 - [ ] Accessibility support (VoiceOver)
 - [ ] Appropriate use of system features
@@ -74,6 +81,7 @@
 ### Play Store Policy Compliance
 
 #### Dating Apps Policy
+
 1. **Age Requirement**: Must be rated for users 18+
 2. **Safety Features Required**:
    - Block and report functionality ✅
@@ -81,6 +89,7 @@
    - Photo verification (recommended)
 
 #### User Generated Content Policy
+
 - Content moderation system in place ✅
 - Ability to report inappropriate content ✅
 - Clear community guidelines
@@ -107,9 +116,9 @@ Data Collected:
 Data Sharing:
   - No data shared with third parties for advertising
   - Data may be shared with service providers for:
-    - Analytics
-    - Payment processing
-    - Cloud storage
+      - Analytics
+      - Payment processing
+      - Cloud storage
 
 Security Practices:
   - Data encrypted in transit: Yes (TLS 1.2+)
@@ -186,28 +195,28 @@ Content Descriptors:
 
 ### GDPR Requirements (EU Users)
 
-| Requirement | Status | Implementation |
-|-------------|--------|----------------|
-| Lawful basis for processing | ✅ | Consent + Contract |
-| Data minimization | ✅ | Only necessary data collected |
-| Purpose limitation | ✅ | Data used only for stated purposes |
-| Accuracy | ✅ | Users can update profile |
-| Storage limitation | ✅ | Data deleted with account |
-| Integrity & confidentiality | ✅ | Encryption + access controls |
-| Right to access | ✅ | `/api/profile/export` |
-| Right to rectification | ✅ | Profile editing |
-| Right to erasure | ✅ | Account deletion |
-| Right to data portability | ✅ | Data export feature |
-| Right to object | ✅ | Marketing opt-out |
+| Requirement                 | Status | Implementation                     |
+| --------------------------- | ------ | ---------------------------------- |
+| Lawful basis for processing | ✅     | Consent + Contract                 |
+| Data minimization           | ✅     | Only necessary data collected      |
+| Purpose limitation          | ✅     | Data used only for stated purposes |
+| Accuracy                    | ✅     | Users can update profile           |
+| Storage limitation          | ✅     | Data deleted with account          |
+| Integrity & confidentiality | ✅     | Encryption + access controls       |
+| Right to access             | ✅     | `/api/profile/export`              |
+| Right to rectification      | ✅     | Profile editing                    |
+| Right to erasure            | ✅     | Account deletion                   |
+| Right to data portability   | ✅     | Data export feature                |
+| Right to object             | ✅     | Marketing opt-out                  |
 
 ### CCPA Requirements (California Users)
 
-| Requirement | Status | Implementation |
-|-------------|--------|----------------|
-| Right to know | ✅ | Privacy policy disclosure |
-| Right to delete | ✅ | Account deletion |
-| Right to opt-out of sale | ✅ | No data selling |
-| Non-discrimination | ✅ | Equal service regardless of choices |
+| Requirement              | Status | Implementation                      |
+| ------------------------ | ------ | ----------------------------------- |
+| Right to know            | ✅     | Privacy policy disclosure           |
+| Right to delete          | ✅     | Account deletion                    |
+| Right to opt-out of sale | ✅     | No data selling                     |
+| Non-discrimination       | ✅     | Equal service regardless of choices |
 
 ### Implementation Checklist
 
@@ -216,16 +225,16 @@ Content Descriptors:
 const complianceEndpoints = {
   // Data access request
   'GET /api/privacy/data-request': 'Returns user data package',
-  
+
   // Account deletion
   'DELETE /api/profile': 'Deletes user account and data',
-  
+
   // Data export
   'GET /api/profile/export': 'Exports user data in JSON format',
-  
+
   // Consent management
   'PUT /api/privacy/consent': 'Updates user consent preferences',
-  
+
   // Marketing opt-out
   'PUT /api/privacy/marketing': 'Manages marketing preferences',
 };
@@ -237,13 +246,13 @@ const complianceEndpoints = {
 
 ### Age Rating Justification
 
-| Category | Rating | Reason |
-|----------|--------|--------|
-| Violence | None | No violent content |
-| Sexual Content | Mild | Dating/romantic context |
-| Language | None | Moderated chat |
-| Controlled Substances | None | Not applicable |
-| Mature Themes | Moderate | Dating/relationships |
+| Category              | Rating   | Reason                  |
+| --------------------- | -------- | ----------------------- |
+| Violence              | None     | No violent content      |
+| Sexual Content        | Mild     | Dating/romantic context |
+| Language              | None     | Moderated chat          |
+| Controlled Substances | None     | Not applicable          |
+| Mature Themes         | Moderate | Dating/relationships    |
 
 ### Recommended Rating
 

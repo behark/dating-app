@@ -397,9 +397,7 @@ export default function SocialMediaConnectionScreen() {
                     handleInstagramConnect(inputValue);
                   }
                 }}
-                disabled={
-                  loadingConnection[inputType || 'spotify'] || !inputValue.trim()
-                }
+                disabled={loadingConnection[inputType || 'spotify'] || !inputValue.trim()}
               >
                 {loadingConnection[inputType || 'spotify'] ? (
                   <ActivityIndicator size="small" color={Colors.background.white} />

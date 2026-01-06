@@ -393,7 +393,10 @@ const initiateBackgroundCheck = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error initiating background check:', { error: error.message, stack: error.stack });
+    logger.error('Error initiating background check:', {
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({
       success: false,
       message: 'Failed to initiate background check',
@@ -435,7 +438,10 @@ const getBackgroundCheckStatus = async (req, res) => {
       data: status,
     });
   } catch (error) {
-    logger.error('Error getting background check status:', { error: error.message, stack: error.stack });
+    logger.error('Error getting background check status:', {
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({
       success: false,
       message: 'Failed to get background check status',
@@ -607,7 +613,10 @@ const submitAdvancedPhotoVerification = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error submitting photo verification:', { error: error.message, stack: error.stack });
+    logger.error('Error submitting photo verification:', {
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({
       success: false,
       message: 'Failed to submit photo verification',
@@ -769,7 +778,7 @@ const getPhotoVerificationStatus = async (req, res) => {
     // In production, fetch from database
     // Check user's verification status
     const user = await User.findById(userId);
-    
+
     const verificationStatus = {
       verified: user?.isVerified || false,
       status: user?.isVerified ? 'verified' : 'not_submitted',
@@ -782,7 +791,10 @@ const getPhotoVerificationStatus = async (req, res) => {
       data: verificationStatus,
     });
   } catch (error) {
-    logger.error('Error getting photo verification status:', { error: error.message, stack: error.stack });
+    logger.error('Error getting photo verification status:', {
+      error: error.message,
+      stack: error.stack,
+    });
     return res.status(500).json({
       success: false,
       message: 'Failed to get verification status',

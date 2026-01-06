@@ -86,9 +86,7 @@ const seedUser = async (userData) => {
   const User = require('../../models/User');
   const bcrypt = require('bcryptjs');
 
-  const hashedPassword = userData.password
-    ? await bcrypt.hash(userData.password, 10)
-    : undefined;
+  const hashedPassword = userData.password ? await bcrypt.hash(userData.password, 10) : undefined;
 
   const user = new User({
     ...userData,

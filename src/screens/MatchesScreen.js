@@ -3,14 +3,14 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCallback, useRef, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Image,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  FlatList,
+  Image,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
@@ -29,7 +29,7 @@ const MatchesScreen = () => {
   const [isPremium, setIsPremium] = useState(false);
   const [receivedLikes, setReceivedLikes] = useState([]);
   const [showLikes, setShowLikes] = useState(false);
-  
+
   // Track current request to prevent race conditions
   const requestIdRef = useRef(0);
 
@@ -38,7 +38,7 @@ const MatchesScreen = () => {
       // Increment request ID on each focus
       const currentRequestId = ++requestIdRef.current;
       loadConversationsList(currentRequestId);
-      
+
       // Cleanup: invalidate the request if screen loses focus
       return () => {
         requestIdRef.current++;
@@ -50,24 +50,50 @@ const MatchesScreen = () => {
     try {
       setLoading(true);
       await loadConversations();
-      
+
       // Check if this request is still valid (not stale)
       if (requestId !== requestIdRef.current) {
         logger.info('Stale request ignored in MatchesScreen');
         return;
       }
-      
+
       // Load premium status
+      let userIsPremium = false;
       try {
         const premiumStatus = await PremiumService.checkPremiumStatus(currentUser.uid, authToken);
         // Check again after async operation
         if (requestId !== requestIdRef.current) return;
-        setIsPremium(premiumStatus.isPremium);
+        userIsPremium = premiumStatus.isPremium;
+        setIsPremium(userIsPremium);
       } catch (error) {
         // Silently fail for premium status, don't break the app
         logger.error('Error loading premium status:', error);
       }
-      
+
+      // Load received likes for premium users (See Who Liked You feature)
+      if (userIsPremium) {
+        try {
+          const likes = await SwipeController.getReceivedSwipes(currentUser.uid);
+          if (requestId !== requestIdRef.current) return;
+          // Transform swipes to user-friendly format for display
+          const formattedLikes = likes.map((swipe) => ({
+            _id: swipe.id || swipe._id,
+            user: {
+              id: swipe.swiper || swipe.swiperId,
+              name: swipe.swiperInfo?.name || 'Unknown',
+              photoURL: swipe.swiperInfo?.photos?.[0]?.url || swipe.swiperInfo?.photoURL,
+              age: swipe.swiperInfo?.age,
+            },
+            timestamp: swipe.createdAt,
+            type: swipe.type,
+          }));
+          setReceivedLikes(formattedLikes);
+        } catch (error) {
+          logger.error('Error loading received likes:', error);
+          // Don't fail the whole load, just log the error
+        }
+      }
+
       // Final check before updating state
       if (requestId !== requestIdRef.current) return;
       setLoading(false);
@@ -75,7 +101,7 @@ const MatchesScreen = () => {
     } catch (error) {
       // Check if request is still valid before showing error
       if (requestId !== requestIdRef.current) return;
-      
+
       logger.error('Error loading conversations:', error);
       setLoading(false);
       setRefreshing(false);

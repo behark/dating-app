@@ -106,14 +106,16 @@ const EventDetailScreen = ({ navigation, route }) => {
             <View style={styles.detailRow}>
               <Ionicons name="calendar" size={20} color={Colors.primary} />
               <Text style={styles.detailText}>
-                {startDate.toLocaleDateString()} at {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {startDate.toLocaleDateString()} at{' '}
+                {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </Text>
             </View>
             {spotsAvailable !== null && (
               <View style={styles.detailRow}>
                 <Ionicons name="people" size={20} color={Colors.primary} />
                 <Text style={styles.detailText}>
-                  {spotsAvailable} spots available ({event.currentAttendeeCount || 0}/{event.maxAttendees} registered)
+                  {spotsAvailable} spots available ({event.currentAttendeeCount || 0}/
+                  {event.maxAttendees} registered)
                 </Text>
               </View>
             )}

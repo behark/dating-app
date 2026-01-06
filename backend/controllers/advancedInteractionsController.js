@@ -461,7 +461,9 @@ const getBoostQuota = async (req, res) => {
           activeBoost: {
             endsAt: activeBoost.endsAt,
             visibilityMultiplier: activeBoost.visibilityMultiplier,
-            remainingMinutes: activeBoost.endsAt ? Math.ceil((activeBoost.endsAt.getTime() - new Date().getTime()) / 60000) : 0,
+            remainingMinutes: activeBoost.endsAt
+              ? Math.ceil((activeBoost.endsAt.getTime() - new Date().getTime()) / 60000)
+              : 0,
           },
         },
       });

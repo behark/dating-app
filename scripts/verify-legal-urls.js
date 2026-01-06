@@ -15,12 +15,12 @@ const requiredUrls = {
 
 async function verifyLegalUrls() {
   console.log('🔍 Verifying Legal Document URLs...\n');
-  
+
   let hasErrors = false;
-  
+
   for (const [envVar, documentName] of Object.entries(requiredUrls)) {
     const url = process.env[envVar];
-    
+
     if (!url) {
       console.log(`❌ ${documentName}`);
       console.log(`   ${envVar} is not set`);
@@ -28,7 +28,7 @@ async function verifyLegalUrls() {
       hasErrors = true;
       continue;
     }
-    
+
     // Validate URL format
     try {
       new URL(url);
@@ -38,28 +38,32 @@ async function verifyLegalUrls() {
       hasErrors = true;
       continue;
     }
-    
+
     // Test URL accessibility
     console.log(`\n📄 ${documentName}`);
     console.log(`   URL: ${url}`);
-    
+
     try {
       const response = await axios.get(url, {
         timeout: 10000,
         validateStatus: (status) => status < 500, // Accept 4xx but not 5xx
       });
-      
+
       if (response.status === 200) {
         console.log(`   ✅ URL is accessible (Status: ${response.status})`);
-        
+
         // Check if it's HTML
         const contentType = response.headers['content-type'] || '';
         if (contentType.includes('text/html')) {
           console.log(`   ✅ Content type: HTML`);
-          
+
           // Check for basic content
           const content = response.data.toLowerCase();
-          if (content.includes('privacy') || content.includes('terms') || content.includes('policy')) {
+          if (
+            content.includes('privacy') ||
+            content.includes('terms') ||
+            content.includes('policy')
+          ) {
             console.log(`   ✅ Content appears to be a legal document`);
           } else {
             console.log(`   ⚠️  Warning: Content may not be a legal document`);
@@ -89,7 +93,7 @@ async function verifyLegalUrls() {
       }
     }
   }
-  
+
   // Summary
   console.log('\n' + '='.repeat(60));
   if (hasErrors) {

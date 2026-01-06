@@ -34,7 +34,7 @@ const users = {
     gender: 'male',
     bio: 'A test user for API testing',
   },
-  
+
   validUser2: {
     email: 'testuser2@example.com',
     password: 'SecurePass456!',
@@ -43,7 +43,7 @@ const users = {
     gender: 'female',
     bio: 'Another test user',
   },
-  
+
   adminUser: {
     _id: STATIC_IDS.ADMIN,
     email: 'admin@example.com',
@@ -53,7 +53,7 @@ const users = {
     age: 30,
     gender: 'other',
   },
-  
+
   premiumUser: {
     email: 'premium@example.com',
     password: 'PremiumPass123!',
@@ -65,47 +65,47 @@ const users = {
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     },
   },
-  
+
   invalidUserNoEmail: {
     password: 'SecurePass123!',
     name: 'No Email User',
     age: 25,
   },
-  
+
   invalidUserNoPassword: {
     email: 'nopassword@example.com',
     name: 'No Password User',
     age: 25,
   },
-  
+
   invalidUserShortPassword: {
     email: 'shortpass@example.com',
     password: 'short',
     name: 'Short Password User',
     age: 25,
   },
-  
+
   invalidUserBadEmail: {
     email: 'notanemail',
     password: 'SecurePass123!',
     name: 'Bad Email User',
     age: 25,
   },
-  
+
   invalidUserUnderage: {
     email: 'underage@example.com',
     password: 'SecurePass123!',
     name: 'Underage User',
     age: 17,
   },
-  
+
   invalidUserOverage: {
     email: 'overage@example.com',
     password: 'SecurePass123!',
     name: 'Overage User',
     age: 150,
   },
-  
+
   userWithLocation: {
     email: 'location@example.com',
     password: 'SecurePass123!',
@@ -113,10 +113,10 @@ const users = {
     age: 26,
     location: {
       type: 'Point',
-      coordinates: [-73.935242, 40.730610], // NYC
+      coordinates: [-73.935242, 40.73061], // NYC
     },
   },
-  
+
   completeUser: {
     email: 'complete@example.com',
     password: 'SecurePass123!',
@@ -131,7 +131,7 @@ const users = {
     ],
     location: {
       type: 'Point',
-      coordinates: [-73.935242, 40.730610],
+      coordinates: [-73.935242, 40.73061],
     },
     preferences: {
       ageRange: { min: 22, max: 35 },
@@ -148,48 +148,48 @@ const profiles = {
     bio: 'Updated bio for testing',
     age: 26,
   },
-  
+
   invalidProfileUpdate: {
     name: '',
     bio: 'a'.repeat(600), // Exceeds max length
     age: 15,
   },
-  
+
   photoUpload: {
     photos: [
       { url: 'https://example.com/new-photo1.jpg' },
       { url: 'https://example.com/new-photo2.jpg' },
     ],
   },
-  
+
   photoReorder: {
     photoIds: [generateObjectId(), generateObjectId()],
   },
-  
+
   validPrompts: {
     prompts: [
       { promptId: 'prompt_1', answer: 'My ideal first date' },
       { promptId: 'prompt_2', answer: 'What makes me unique' },
     ],
   },
-  
+
   invalidPrompts: {
     prompts: 'not an array',
   },
-  
+
   education: {
     school: 'MIT',
     degree: 'Bachelor',
     fieldOfStudy: 'Computer Science',
     graduationYear: 2020,
   },
-  
+
   occupation: {
     jobTitle: 'Software Engineer',
     company: 'Tech Corp',
     industry: 'Technology',
   },
-  
+
   height: {
     value: 180,
     unit: 'cm',
@@ -202,36 +202,36 @@ const swipes = {
     targetId: generateObjectId(),
     action: 'like',
   },
-  
+
   validPass: {
     targetId: generateObjectId(),
     action: 'pass',
   },
-  
+
   validSuperLike: {
     targetId: generateObjectId(),
     action: 'superlike',
   },
-  
+
   priorityLike: {
     targetId: generateObjectId(),
     action: 'like',
     isPriority: true,
   },
-  
+
   invalidNoTarget: {
     action: 'like',
   },
-  
+
   invalidNoAction: {
     targetId: generateObjectId(),
   },
-  
+
   invalidAction: {
     targetId: generateObjectId(),
     action: 'invalid',
   },
-  
+
   undoSwipe: {
     swipeId: generateObjectId(),
   },
@@ -243,29 +243,29 @@ const messages = {
     matchId: generateObjectId(),
     content: 'Hello, how are you?',
   },
-  
+
   encryptedMessage: {
     matchId: generateObjectId(),
     content: 'encrypted_content_here',
     isEncrypted: true,
   },
-  
+
   emptyMessage: {
     matchId: generateObjectId(),
     content: '',
   },
-  
+
   longMessage: {
     matchId: generateObjectId(),
     content: 'a'.repeat(10000),
   },
-  
+
   gifMessage: {
     matchId: generateObjectId(),
     gifUrl: 'https://giphy.com/test-gif.gif',
     gifId: 'gif123',
   },
-  
+
   voiceMessage: {
     matchId: generateObjectId(),
     audioUrl: 'https://example.com/voice.mp3',
@@ -276,34 +276,34 @@ const messages = {
 // Discovery fixtures
 const discovery = {
   validLocationQuery: {
-    lat: 40.730610,
+    lat: 40.73061,
     lng: -73.935242,
     radius: 10000,
   },
-  
+
   invalidLatitude: {
     lat: 100,
     lng: -73.935242,
     radius: 10000,
   },
-  
+
   invalidLongitude: {
-    lat: 40.730610,
+    lat: 40.73061,
     lng: -200,
     radius: 10000,
   },
-  
+
   invalidRadius: {
-    lat: 40.730610,
+    lat: 40.73061,
     lng: -73.935242,
     radius: 100000,
   },
-  
+
   locationUpdate: {
-    latitude: 40.730610,
+    latitude: 40.73061,
     longitude: -73.935242,
   },
-  
+
   advancedFilters: {
     ageRange: { min: 22, max: 35 },
     distance: 30,
@@ -319,21 +319,21 @@ const payments = {
     successUrl: 'https://example.com/success',
     cancelUrl: 'https://example.com/cancel',
   },
-  
+
   stripePaymentIntent: {
     amount: 1999,
     currency: 'usd',
   },
-  
+
   paypalSubscription: {
     planId: 'gold_monthly',
   },
-  
+
   appleReceipt: {
     receiptData: 'base64_encoded_receipt',
     productId: 'com.app.gold_monthly',
   },
-  
+
   googlePurchase: {
     purchaseToken: 'google_purchase_token',
     productId: 'gold_monthly',
@@ -349,13 +349,13 @@ const notifications = {
     body: 'You have a new match',
     data: { matchId: generateObjectId() },
   },
-  
+
   bulkNotification: {
     userIds: [generateObjectId(), generateObjectId()],
     title: 'App Update',
     body: 'Check out our new features',
   },
-  
+
   preferences: {
     matches: true,
     messages: true,
@@ -372,17 +372,17 @@ const safety = {
     description: 'User sent inappropriate messages',
     evidence: ['screenshot1.jpg'],
   },
-  
+
   blockUser: {
     blockedUserId: generateObjectId(),
   },
-  
+
   flagContent: {
     contentType: 'message',
     contentId: generateObjectId(),
     reason: 'spam',
   },
-  
+
   datePlan: {
     matchId: generateObjectId(),
     venue: 'Coffee Shop',
@@ -390,16 +390,16 @@ const safety = {
     dateTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     emergencyContacts: ['+1234567890'],
   },
-  
+
   emergencyContact: {
     name: 'Emergency Contact',
     phone: '+1234567890',
     relationship: 'friend',
   },
-  
+
   sosAlert: {
     location: {
-      latitude: 40.730610,
+      latitude: 40.73061,
       longitude: -73.935242,
     },
     message: 'Need help immediately',
@@ -414,12 +414,12 @@ const privacy = {
     showDistance: false,
     shareReadReceipts: true,
   },
-  
+
   consentUpdate: {
     consentType: 'marketing',
     granted: true,
   },
-  
+
   rectifyData: {
     fields: {
       name: 'Corrected Name',
@@ -434,13 +434,13 @@ const gamification = {
     action: 'swipe',
     direction: 'right',
   },
-  
+
   addXP: {
     userId: generateObjectId(),
     amount: 100,
     reason: 'daily_login',
   },
-  
+
   challengeProgress: {
     challengeId: generateObjectId(),
     progress: 1,
@@ -459,19 +459,19 @@ const socialFeatures = {
     },
     dateTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
   },
-  
+
   friendReview: {
     targetUserId: generateObjectId(),
     rating: 5,
     text: 'Great friend, highly recommend!',
   },
-  
+
   event: {
     title: 'Singles Mixer',
     description: 'Meet new people',
     location: {
       name: 'Downtown Bar',
-      coordinates: [-73.935242, 40.730610],
+      coordinates: [-73.935242, 40.73061],
     },
     dateTime: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
     capacity: 50,
@@ -486,14 +486,14 @@ const oauth = {
     name: 'Google User',
     picture: 'https://lh3.googleusercontent.com/test',
   },
-  
+
   facebook: {
     facebookId: 'facebook_user_123',
     email: 'fbuser@facebook.com',
     name: 'Facebook User',
     picture: 'https://graph.facebook.com/test',
   },
-  
+
   apple: {
     appleId: 'apple_user_123',
     email: 'appleuser@icloud.com',
@@ -509,14 +509,14 @@ const premium = {
       coordinates: [2.3522, 48.8566],
     },
   },
-  
+
   advancedFilters: {
     verifiedOnly: true,
     hasVideo: true,
     recentlyActive: true,
     heightRange: { min: 160, max: 190 },
   },
-  
+
   adsPreferences: {
     showAds: false,
   },
@@ -527,16 +527,16 @@ const ai = {
   icebreakerRequest: {
     matchId: generateObjectId(),
   },
-  
+
   bioSuggestions: {
     interests: ['hiking', 'music', 'travel'],
     personality: 'outgoing',
   },
-  
+
   photoAnalysis: {
     photoUrl: 'https://example.com/photo.jpg',
   },
-  
+
   conversationStarters: {
     targetUserId: generateObjectId(),
     context: 'first_message',

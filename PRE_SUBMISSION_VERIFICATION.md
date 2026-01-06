@@ -28,6 +28,7 @@ npm run verify:env
 **Expected Result**: ✅ All variables set
 
 **If errors occur**:
+
 - Set missing variables in your production environment
 - Update `.env` files if needed
 - Re-run verification
@@ -45,6 +46,7 @@ npm run verify:legal
 **Expected Result**: ✅ URLs accessible and valid
 
 **If errors occur**:
+
 - Ensure URLs are publicly accessible
 - Check URLs are correct in environment variables
 - Test URLs in browser manually
@@ -62,6 +64,7 @@ npm run test:deletion
 **Expected Result**: ✅ Account deletion successful
 
 **If errors occur**:
+
 - Check backend deletion endpoint
 - Verify database cleanup
 - Review deletion logs
@@ -79,6 +82,7 @@ npm run test:monitoring
 **Expected Result**: ✅ Sentry configured and working
 
 **If errors occur**:
+
 - Check Sentry DSN is set
 - Verify Sentry initialization
 - Check Sentry dashboard
@@ -126,6 +130,7 @@ npm run test:monitoring
 ### Store Setup
 
 #### App Store Connect (iOS)
+
 - [ ] App created in App Store Connect
 - [ ] App information completed
 - [ ] App icon uploaded
@@ -136,6 +141,7 @@ npm run test:monitoring
 - [ ] Review notes added
 
 #### Play Console (Android)
+
 - [ ] App created in Play Console
 - [ ] Store listing completed
 - [ ] App icon uploaded
@@ -161,12 +167,14 @@ npm run test:monitoring
 ### 2. Test on Physical Devices
 
 **iOS**:
+
 - [ ] Install on iPhone
 - [ ] Test app launch
 - [ ] Test all core flows
 - [ ] Verify no crashes
 
 **Android**:
+
 - [ ] Install on Android device
 - [ ] Test app launch
 - [ ] Test all core flows
@@ -192,6 +200,7 @@ npm run test:monitoring
 ### 5. Complete Store Information
 
 **App Store Connect**:
+
 - [ ] App name (30 chars)
 - [ ] Subtitle (30 chars)
 - [ ] Promotional text (170 chars)
@@ -200,6 +209,7 @@ npm run test:monitoring
 - [ ] Marketing URL (optional)
 
 **Play Console**:
+
 - [ ] App name (50 chars)
 - [ ] Short description (80 chars)
 - [ ] Full description (4000 chars)
@@ -211,6 +221,7 @@ npm run test:monitoring
 ## 🎉 Ready for Submission?
 
 ### All Items Complete?
+
 - ✅ Creative tasks done
 - ✅ Technical verification passed
 - ✅ Store information completed
@@ -226,6 +237,7 @@ npm run test:monitoring
 ## 📞 Support
 
 If you encounter any issues:
+
 1. Check script output for specific errors
 2. Review environment variables
 3. Test URLs manually in browser

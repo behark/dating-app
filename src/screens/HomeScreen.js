@@ -3,15 +3,15 @@ import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Alert,
-    Dimensions,
-    InteractionManager,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  InteractionManager,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import SkeletonCard from '../components/Card/SkeletonCard';
 import SwipeCard from '../components/Card/SwipeCard';
@@ -640,6 +640,18 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.headerRightSection}>
+          <TouchableOpacity
+            style={styles.discoveryButton}
+            onPress={() => navigation.navigate('TopPicks')}
+          >
+            <Ionicons name="trophy" size={18} color={Colors.accent.gold} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.discoveryButton}
+            onPress={() => navigation.navigate('Explore')}
+          >
+            <Ionicons name="compass" size={18} color={Colors.accent.teal} />
+          </TouchableOpacity>
           {userLocation && (
             <View style={styles.locationBadge}>
               <Ionicons name="location" size={14} color={Colors.accent.red} />
@@ -967,6 +979,15 @@ const getStyles = (theme) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
+    },
+    discoveryButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 6,
     },
     superLikeCounter: {
       flexDirection: 'row',

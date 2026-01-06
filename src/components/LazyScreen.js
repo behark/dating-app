@@ -78,7 +78,9 @@ export function createLazyScreen(importFn, options = {}) {
   }
 
   const LazyComponent = (props) => {
-    const [Component, setComponent] = useState(cachedComponent);
+    // FIX: Pass a function that returns cachedComponent to avoid useState executing 
+    // cachedComponent if it's a functional component (which useState treats as a lazy initializer)
+    const [Component, setComponent] = useState(() => cachedComponent);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(!cachedComponent);
 
@@ -101,6 +103,12 @@ export function createLazyScreen(importFn, options = {}) {
         // Use existing promise if preloading, otherwise create new
         const promise = loadPromise || importFn();
         const module = await promise;
+        
+        logger.debug(`LazyScreen loaded module for ${options.displayName}`, {
+          hasDefault: !!module.default,
+          isModule: typeof module,
+          keys: Object.keys(module)
+        });
 
         // Ensure minimum loading time for smooth UX
         const elapsed = Date.now() - startTime;
@@ -109,6 +117,13 @@ export function createLazyScreen(importFn, options = {}) {
         }
 
         cachedComponent = module.default || module;
+        
+        if (typeof cachedComponent === 'object' && cachedComponent !== null && !cachedComponent.$$typeof) {
+             logger.warn(`LazyScreen: Component is an object but not a React element/type for ${options.displayName}`, {
+                 keys: Object.keys(cachedComponent)
+             });
+        }
+
         setComponent(() => cachedComponent);
       } catch (err) {
         logger.error('Lazy loading error', err);
@@ -156,6 +171,10 @@ export function createLazyScreen(importFn, options = {}) {
   LazyComponent.preload = () => {
     if (!cachedComponent && !loadPromise) {
       loadPromise = importFn().then((module) => {
+        logger.debug(`LazyScreen preloaded module for ${options.displayName}`, {
+          hasDefault: !!module.default,
+          keys: Object.keys(module)
+        });
         cachedComponent = module.default || module;
         return cachedComponent;
       });

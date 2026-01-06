@@ -174,7 +174,10 @@ const EditProfileScreen = ({ navigation, route }) => {
             <View key={photo._id || index} style={styles.photoContainer}>
               <Image source={{ uri: photo.url }} style={styles.photo} />
               <TouchableOpacity
-                style={[styles.photoDeleteBtn, deletingPhoto === photo._id && styles.photoDeleteBtnDisabled]}
+                style={[
+                  styles.photoDeleteBtn,
+                  deletingPhoto === photo._id && styles.photoDeleteBtnDisabled,
+                ]}
                 onPress={() => removePhoto(photo._id)}
                 disabled={deletingPhoto === photo._id}
               >

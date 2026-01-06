@@ -1,14 +1,17 @@
 # Firebase Storage CORS Configuration Fix
 
 ## Problem
+
 When uploading profile pictures from the web app (Vercel), you're getting CORS errors:
+
 ```
-Access to XMLHttpRequest at 'https://firebasestorage.googleapis.com/...' 
-from origin 'https://dating-app-seven-peach.vercel.app' 
+Access to XMLHttpRequest at 'https://firebasestorage.googleapis.com/...'
+from origin 'https://dating-app-seven-peach.vercel.app'
 has been blocked by CORS policy
 ```
 
 ## Solution
+
 Firebase Storage needs to be configured to allow requests from your Vercel domain. This must be done in the Firebase Console.
 
 ## Steps to Fix
@@ -26,6 +29,7 @@ Firebase Storage needs to be configured to allow requests from your Vercel domai
 ### Option 2: Using Google Cloud Console (Required for CORS) ⭐ RECOMMENDED
 
 **Quick Steps:**
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Make sure you're in the correct project (top dropdown) - select `my-project-de65d`
 3. In the left sidebar menu (☰), navigate to **"Cloud Storage"** > **"Buckets"**
@@ -42,17 +46,9 @@ Firebase Storage needs to be configured to allow requests from your Vercel domai
 ```json
 [
   {
-    "origin": [
-      "https://dating-app-seven-peach.vercel.app",
-      "https://*.vercel.app"
-    ],
+    "origin": ["https://dating-app-seven-peach.vercel.app", "https://*.vercel.app"],
     "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-    "responseHeader": [
-      "Content-Type",
-      "Authorization",
-      "Content-Length",
-      "x-goog-resumable"
-    ],
+    "responseHeader": ["Content-Type", "Authorization", "Content-Length", "x-goog-resumable"],
     "maxAgeSeconds": 3600
   }
 ]
@@ -65,26 +61,20 @@ Firebase Storage needs to be configured to allow requests from your Vercel domai
 If you have `gsutil` installed, you can create a CORS configuration file:
 
 1. Create a file named `cors.json`:
+
 ```json
 [
   {
-    "origin": [
-      "https://dating-app-seven-peach.vercel.app",
-      "https://*.vercel.app"
-    ],
+    "origin": ["https://dating-app-seven-peach.vercel.app", "https://*.vercel.app"],
     "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
-    "responseHeader": [
-      "Content-Type",
-      "Authorization",
-      "Content-Length",
-      "x-goog-resumable"
-    ],
+    "responseHeader": ["Content-Type", "Authorization", "Content-Length", "x-goog-resumable"],
     "maxAgeSeconds": 3600
   }
 ]
 ```
 
 2. Run the command:
+
 ```bash
 gsutil cors set cors.json gs://my-project-de65d.firebasestorage.app
 ```
@@ -108,11 +98,13 @@ After configuring CORS, test by:
 ## Troubleshooting
 
 ### Still getting CORS errors?
+
 1. Wait a few minutes - CORS changes can take time to propagate
 2. Clear browser cache and hard refresh (Ctrl+Shift+R or Cmd+Shift+R)
 3. Verify the bucket name matches exactly
 4. Check that the origin URL matches exactly (including https://)
 
 ### Can't find CORS settings?
+
 - Make sure you're in **Google Cloud Console**, not Firebase Console
 - The bucket name might be different - check Firebase Console > Storage > Files tab for the bucket URL

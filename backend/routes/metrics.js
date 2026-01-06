@@ -23,7 +23,10 @@ router.get('/dashboard', isAdmin, async (req, res) => {
     const start = startDate ? new Date(startDate) : null;
     const end = endDate ? new Date(endDate) : new Date();
 
-    const dashboard = await analyticsMetricsService.getDashboardMetrics(/** @type {any} */ (start), end);
+    const dashboard = await analyticsMetricsService.getDashboardMetrics(
+      /** @type {any} */ (start),
+      end
+    );
 
     res.json({
       success: true,
@@ -331,7 +334,10 @@ router.get('/export', isAdmin, async (req, res) => {
     const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = endDate ? new Date(endDate) : new Date();
 
-    const dashboard = await analyticsMetricsService.getDashboardMetrics(/** @type {any} */ (start), end);
+    const dashboard = await analyticsMetricsService.getDashboardMetrics(
+      /** @type {any} */ (start),
+      end
+    );
 
     // Convert to CSV format
     const csvRows = [

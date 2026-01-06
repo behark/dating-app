@@ -212,12 +212,14 @@ class OfflineServiceClass {
     try {
       const api = require('./api').default;
       const response = await api.post('/sync/execute', {
-        actions: [{
-          id: action.id,
-          type: action.type,
-          timestamp: action.timestamp,
-          data: action.data,
-        }],
+        actions: [
+          {
+            id: action.id,
+            type: action.type,
+            timestamp: action.timestamp,
+            data: action.data,
+          },
+        ],
       });
 
       if (response.success) {

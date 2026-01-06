@@ -161,16 +161,16 @@ const AIInsightsScreen = ({ navigation }) => {
                             suggestion.priority === 'high'
                               ? 'alert-circle'
                               : suggestion.priority === 'medium'
-                              ? 'information-circle'
-                              : 'checkmark-circle'
+                                ? 'information-circle'
+                                : 'checkmark-circle'
                           }
                           size={20}
                           color={
                             suggestion.priority === 'high'
                               ? Colors.accent.red
                               : suggestion.priority === 'medium'
-                              ? Colors.accent.orange
-                              : Colors.accent.teal
+                                ? Colors.accent.orange
+                                : Colors.accent.teal
                           }
                         />
                         <Text style={styles.suggestionTitle}>{suggestion.title}</Text>

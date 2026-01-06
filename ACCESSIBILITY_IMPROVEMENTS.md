@@ -7,12 +7,14 @@ This document outlines accessibility improvements made to the app for better scr
 ## ✅ Improvements Made
 
 ### 1. Consent Banner Component
+
 - ✅ Added `accessibilityLabel` to all interactive elements
 - ✅ Added `accessibilityRole` for checkboxes and buttons
 - ✅ Added `accessibilityState` for checkbox states
 - ✅ Added `accessibilityViewIsModal` for modal dialog
 
 ### 2. Image Service Moderation
+
 - ✅ Improved error messages with clear descriptions
 - ✅ Added fallback handling for moderation failures
 
@@ -23,9 +25,11 @@ This document outlines accessibility improvements made to the app for better scr
 ### High Priority Components to Update
 
 #### 1. LoginScreen & RegisterScreen
+
 **Location:** `src/screens/LoginScreen.js`, `src/screens/RegisterScreen.js`
 
 **Required Updates:**
+
 ```javascript
 // Add to TextInput components
 <TextInput
@@ -45,9 +49,11 @@ This document outlines accessibility improvements made to the app for better scr
 ```
 
 #### 2. HomeScreen (Swipe Cards)
+
 **Location:** `src/screens/HomeScreen.js`
 
 **Required Updates:**
+
 ```javascript
 // Add to swipe card
 <Animated.View
@@ -59,9 +65,11 @@ This document outlines accessibility improvements made to the app for better scr
 ```
 
 #### 3. ChatScreen
+
 **Location:** `src/screens/ChatScreen.js`
 
 **Required Updates:**
+
 ```javascript
 // Add to message bubbles
 <View
@@ -80,9 +88,11 @@ This document outlines accessibility improvements made to the app for better scr
 ```
 
 #### 4. ProfileScreen
+
 **Location:** `src/screens/ProfileScreen.js`
 
 **Required Updates:**
+
 ```javascript
 // Add to edit button
 <TouchableOpacity
@@ -101,17 +111,19 @@ This document outlines accessibility improvements made to the app for better scr
 ```
 
 #### 5. Navigation Components
+
 **Location:** `src/navigation/AppNavigator.js`
 
 **Required Updates:**
+
 ```javascript
 // Add to tab bar items
 <Tab.Screen
   name="Discover"
   component={HomeScreen}
   options={{
-    tabBarAccessibilityLabel: "Discover tab",
-    tabBarAccessibilityHint: "Browse potential matches",
+    tabBarAccessibilityLabel: 'Discover tab',
+    tabBarAccessibilityHint: 'Browse potential matches',
     // ... existing options
   }}
 />
@@ -122,6 +134,7 @@ This document outlines accessibility improvements made to the app for better scr
 ## 🧪 Testing Accessibility
 
 ### iOS Testing (VoiceOver)
+
 1. Enable VoiceOver: Settings → Accessibility → VoiceOver
 2. Navigate through app using:
    - Swipe right: Next element
@@ -130,6 +143,7 @@ This document outlines accessibility improvements made to the app for better scr
 3. Verify all interactive elements are announced correctly
 
 ### Android Testing (TalkBack)
+
 1. Enable TalkBack: Settings → Accessibility → TalkBack
 2. Navigate through app using:
    - Swipe right: Next element
@@ -138,6 +152,7 @@ This document outlines accessibility improvements made to the app for better scr
 3. Verify all interactive elements are announced correctly
 
 ### Automated Testing
+
 ```bash
 # Install accessibility testing tools
 npm install --save-dev @axe-core/react-native
@@ -151,16 +166,19 @@ npm run test:accessibility
 ## 📚 Accessibility Best Practices
 
 ### 1. Labels
+
 - ✅ Use descriptive `accessibilityLabel` for all interactive elements
 - ✅ Include context (e.g., "Send message button" not just "Button")
 - ✅ Keep labels concise but informative
 
 ### 2. Hints
+
 - ✅ Use `accessibilityHint` for complex interactions
 - ✅ Explain what will happen when activated
 - ✅ Don't repeat information already in the label
 
 ### 3. Roles
+
 - ✅ Use appropriate `accessibilityRole`:
   - `button` for buttons
   - `textbox` for text inputs
@@ -169,6 +187,7 @@ npm run test:accessibility
   - `link` for links
 
 ### 4. States
+
 - ✅ Use `accessibilityState` for dynamic states:
   - `checked` for checkboxes/radio buttons
   - `disabled` for disabled elements
@@ -176,11 +195,13 @@ npm run test:accessibility
   - `expanded`/`collapsed` for expandable content
 
 ### 5. Images
+
 - ✅ Always provide `accessibilityLabel` for images
 - ✅ Describe what the image shows, not that it's an image
 - ✅ Use empty string for decorative images: `accessibilityLabel=""`
 
 ### 6. Color Contrast
+
 - ✅ Ensure text meets WCAG AA contrast ratios:
   - Normal text: 4.5:1
   - Large text: 3:1
@@ -208,10 +229,12 @@ grep -r "<Image" src/ --include="*.js" | grep -v "accessibilityLabel"
 ## 📊 Progress Tracking
 
 ### Completed
+
 - [x] Consent Banner accessibility
 - [x] Error handling improvements
 
 ### In Progress
+
 - [ ] Login/Register screens
 - [ ] Home screen (swipe cards)
 - [ ] Chat screen
@@ -219,6 +242,7 @@ grep -r "<Image" src/ --include="*.js" | grep -v "accessibilityLabel"
 - [ ] Navigation components
 
 ### Pending
+
 - [ ] Settings screens
 - [ ] Premium screens
 - [ ] Safety screens

@@ -218,9 +218,7 @@ const PrivacySettingsScreen = ({ navigation }) => {
               <Ionicons name="download-outline" size={24} color={Colors.primary} />
               <View style={styles.actionTextContainer}>
                 <Text style={styles.actionTitle}>Export Your Data</Text>
-                <Text style={styles.actionDescription}>
-                  Download all your data in JSON format
-                </Text>
+                <Text style={styles.actionDescription}>Download all your data in JSON format</Text>
               </View>
             </View>
             {exporting ? (
@@ -284,9 +282,7 @@ const PrivacySettingsScreen = ({ navigation }) => {
               <Ionicons name="shield-checkmark-outline" size={24} color={Colors.primary} />
               <View style={styles.actionTextContainer}>
                 <Text style={styles.actionTitle}>Do Not Sell My Information</Text>
-                <Text style={styles.actionDescription}>
-                  Opt out of data selling practices
-                </Text>
+                <Text style={styles.actionDescription}>Opt out of data selling practices</Text>
               </View>
             </View>
             <Ionicons name="chevron-forward" size={20} color={Colors.text.tertiary} />

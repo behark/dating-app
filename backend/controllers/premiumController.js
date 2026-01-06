@@ -57,7 +57,10 @@ const getSubscriptionStatus = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error getting subscription status:', { error: error.message, stack: error.stack });
+    logger.error('Error getting subscription status:', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: 'Error retrieving subscription status',
@@ -511,7 +514,10 @@ const getAdvancedFilterOptions = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error getting advanced filter options:', { error: error.message, stack: error.stack });
+    logger.error('Error getting advanced filter options:', {
+      error: error.message,
+      stack: error.stack,
+    });
     res.status(500).json({
       success: false,
       message: 'Error retrieving filter options',

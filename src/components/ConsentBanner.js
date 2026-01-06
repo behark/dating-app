@@ -1,6 +1,6 @@
 /**
  * Consent Banner Component
- * 
+ *
  * GDPR-compliant consent banner shown on first app launch.
  * Records user consent preferences for data collection, analytics, and marketing.
  */
@@ -119,8 +119,8 @@ const ConsentBanner = ({ visible, onConsentComplete }) => {
 
           <View style={styles.content}>
             <Text style={styles.description}>
-              Before you continue, please review and choose your privacy preferences. You can
-              change these settings anytime in your profile.
+              Before you continue, please review and choose your privacy preferences. You can change
+              these settings anytime in your profile.
             </Text>
 
             <View style={styles.section}>
@@ -227,9 +227,7 @@ const ConsentBanner = ({ visible, onConsentComplete }) => {
             accessibilityLabel="Accept and continue"
             accessibilityRole="button"
           >
-            <Text style={styles.buttonText}>
-              {loading ? 'Processing...' : 'Accept & Continue'}
-            </Text>
+            <Text style={styles.buttonText}>{loading ? 'Processing...' : 'Accept & Continue'}</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>

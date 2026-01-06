@@ -8,9 +8,11 @@
 ## 🔴 CRITICAL FIX #1: Logout Now Invalidates Tokens ✅
 
 ### Issue
+
 Frontend `logout()` function did NOT call backend `/api/auth/logout` endpoint, leaving tokens valid after logout.
 
 ### Fix Applied
+
 **File:** `src/context/AuthContext.js:263-310`
 
 - Added backend API call to `/auth/logout` before clearing local state
@@ -18,6 +20,7 @@ Frontend `logout()` function did NOT call backend `/api/auth/logout` endpoint, l
 - Graceful error handling: if backend fails, still clears local state (token expires naturally)
 
 ### Code Changes
+
 ```javascript
 const logout = async () => {
   // Call backend to blacklist token
@@ -38,9 +41,11 @@ const logout = async () => {
 ## 🔴 CRITICAL FIX #2: Token Validation on App Restart ✅
 
 ### Issue
+
 App restored tokens from AsyncStorage without validating them with backend, leading to stale authentication state.
 
 ### Fix Applied
+
 **File:** `src/context/AuthContext.js:47-150`
 
 - Added token validation using `/api/profile/me` endpoint on app start
@@ -49,6 +54,7 @@ App restored tokens from AsyncStorage without validating them with backend, lead
 - Updates stored user data with fresh data from backend
 
 ### Code Changes
+
 ```javascript
 // Validate token with backend
 const response = await api.get('/profile/me');
@@ -66,9 +72,11 @@ if (response.success && response.data?.user) {
 ## 🔴 CRITICAL FIX #3: Token Refresh on App Restart ✅
 
 ### Issue
+
 App didn't attempt to refresh expired tokens on startup, forcing users to manually re-login.
 
 ### Fix Applied
+
 **File:** `src/context/AuthContext.js:47-150`
 
 - If token validation fails, automatically attempts refresh using stored refresh token
@@ -76,6 +84,7 @@ App didn't attempt to refresh expired tokens on startup, forcing users to manual
 - Only clears session if both validation and refresh fail
 
 ### Code Changes
+
 ```javascript
 // If validation fails, try refresh
 if (storedRefreshToken) {
@@ -93,10 +102,13 @@ if (storedRefreshToken) {
 ## 🔴 CRITICAL FIX #4: Network Timeout & Retry Logic ✅
 
 ### Issue
+
 Login/signup requests could hang indefinitely on slow networks with no timeout or retry logic.
 
 ### Fix Applied
-**Files:** 
+
+**Files:**
+
 - `src/context/AuthContext.js:190-260` (login)
 - `src/context/AuthContext.js:94-188` (signup)
 
@@ -105,6 +117,7 @@ Login/signup requests could hang indefinitely on slow networks with no timeout o
 - Clear error messages distinguishing network vs authentication failures
 
 ### Code Changes
+
 ```javascript
 const fetchWithTimeout = async (url, options, timeoutMs = 15000) => {
   const controller = new AbortController();
@@ -119,7 +132,7 @@ for (let attempt = 0; attempt <= maxRetries; attempt++) {
     break;
   } catch (error) {
     if (attempt < maxRetries) {
-      await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+      await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
       continue;
     }
     throw error;
@@ -132,10 +145,13 @@ for (let attempt = 0; attempt <= maxRetries; attempt++) {
 ## 🔴 CRITICAL FIX #5: Location Optional for Signup ✅
 
 ### Issue
+
 Signup required location permission, blocking users who denied it from creating accounts.
 
 ### Fix Applied
+
 **Files:**
+
 - `src/context/AuthContext.js:94-188` (signup function)
 - `src/screens/RegisterScreen.js:91-127` (UI)
 
@@ -144,6 +160,7 @@ Signup required location permission, blocking users who denied it from creating 
 - Users can now signup without location permission
 
 ### Code Changes
+
 ```javascript
 // In signup function
 if (!location || !location.coordinates) {
@@ -154,14 +171,10 @@ if (!location || !location.coordinates) {
 }
 
 // In RegisterScreen
-Alert.alert(
-  'Location Not Available',
-  'You can still sign up...',
-  [
-    { text: 'Continue Without Location', /* ... */ },
-    { text: 'Retry Location', /* ... */ },
-  ]
-);
+Alert.alert('Location Not Available', 'You can still sign up...', [
+  { text: 'Continue Without Location' /* ... */ },
+  { text: 'Retry Location' /* ... */ },
+]);
 ```
 
 ---
@@ -169,9 +182,11 @@ Alert.alert(
 ## 🔴 CRITICAL FIX #6: Password Reset Token Invalidation ✅
 
 ### Issue
+
 Password reset tokens were not invalidated after use, allowing reuse.
 
 ### Status
+
 **Already Implemented** - Verified working correctly.
 
 **File:** `backend/controllers/authController.js:403-407`
@@ -191,10 +206,13 @@ await user.save();
 ## 🔴 CRITICAL FIX #7: MongoDB Fallback for Token Blacklist ✅
 
 ### Issue
+
 If Redis was unavailable, token blacklist check failed silently, allowing logged-out tokens to remain valid.
 
 ### Fix Applied
+
 **Files:**
+
 - `backend/models/BlacklistedToken.js` (NEW - MongoDB model)
 - `backend/middleware/auth.js:31-60` (auth middleware)
 - `backend/controllers/authController.js:437-480` (logout controller)
@@ -205,6 +223,7 @@ If Redis was unavailable, token blacklist check failed silently, allowing logged
 - Both systems work together: Redis (fast) + MongoDB (reliable fallback)
 
 ### Code Changes
+
 ```javascript
 // New Model: backend/models/BlacklistedToken.js
 const blacklistedTokenSchema = new mongoose.Schema({
@@ -251,10 +270,12 @@ catch (redisError) {
 ### Files Modified
 
 **Frontend:**
+
 - `src/context/AuthContext.js` - Logout, token validation, refresh, timeout handling
 - `src/screens/RegisterScreen.js` - Location optional UI
 
 **Backend:**
+
 - `backend/models/BlacklistedToken.js` - NEW - MongoDB model for token blacklist
 - `backend/middleware/auth.js` - MongoDB fallback for blacklist check
 - `backend/controllers/authController.js` - MongoDB fallback for logout, password reset comment

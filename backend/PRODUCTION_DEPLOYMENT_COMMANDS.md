@@ -3,6 +3,7 @@
 ## 🔒 Security Audit Commands
 
 ### Run Complete Security Audit
+
 ```bash
 cd /home/behar/dating-app
 ./backend/scripts/security-audit.sh
@@ -11,6 +12,7 @@ cd /home/behar/dating-app
 ### Individual Security Checks
 
 #### 1. Security Headers (Helmet)
+
 ```bash
 # Verify Helmet is configured
 grep -n "helmet\|app.use(helmet" backend/server.js
@@ -18,6 +20,7 @@ grep -n "require.*helmet" backend/server.js
 ```
 
 #### 2. Rate Limiting
+
 ```bash
 # Check if rate limiting middleware exists
 ls -la backend/middleware/rateLimiter.js
@@ -30,6 +33,7 @@ grep -r "rateLimiter\|apiLimiter" backend/routes/ --include="*.js"
 ```
 
 #### 3. CORS Configuration
+
 ```bash
 # Verify CORS is configured
 grep -A 30 "CORS configuration" backend/server.js
@@ -39,6 +43,7 @@ grep -n "origin.*:" backend/server.js | grep -v "process.env"
 ```
 
 #### 4. Hardcoded Secrets Check
+
 ```bash
 # Check for hardcoded MongoDB URIs
 grep -r "mongodb://.*@" backend/ --include="*.js" --exclude-dir=node_modules | grep -v "localhost" | grep -v "example"
@@ -54,6 +59,7 @@ grep -r "password.*=.*['\"][^'\"]\{8,\}" backend/ --include="*.js" --exclude-dir
 ```
 
 #### 5. Error Handling Audit
+
 ```bash
 # Check for stack trace leaks (should be empty)
 grep -r "res\.status.*json.*error.*stack" backend/ --include="*.js" --exclude-dir=node_modules | grep -v "process.env.NODE_ENV.*development"
@@ -66,6 +72,7 @@ grep -A 20 "Global error handler" backend/server.js
 ```
 
 #### 6. Environment Variables Check
+
 ```bash
 # Check if .env is in .gitignore
 grep "\.env$" .gitignore backend/.gitignore
@@ -82,6 +89,7 @@ grep -roh "process\.env\.[A-Z_]*" backend/ --include="*.js" | sort -u
 ## 🚀 PM2 Process Management Commands
 
 ### Installation
+
 ```bash
 # Install PM2 globally
 npm install -g pm2
@@ -91,6 +99,7 @@ pm2 --version
 ```
 
 ### Basic PM2 Commands
+
 ```bash
 # Start application with PM2 (production)
 cd backend
@@ -142,6 +151,7 @@ pm2 delete all
 ```
 
 ### PM2 Persistence & Startup
+
 ```bash
 # Save current PM2 process list
 pm2 save
@@ -157,6 +167,7 @@ pm2 unstartup
 ```
 
 ### PM2 Advanced Commands
+
 ```bash
 # View process metrics
 pm2 describe dating-app-backend
@@ -178,6 +189,7 @@ pm2 kill
 ```
 
 ### PM2 Log Management
+
 ```bash
 # View logs with lines limit
 pm2 logs dating-app-backend --lines 100
@@ -195,12 +207,14 @@ pm2 reloadLogs
 ## 📋 Pre-Deployment Checklist Commands
 
 ### 1. Run Security Audit
+
 ```bash
 cd /home/behar/dating-app
 ./backend/scripts/security-audit.sh
 ```
 
 ### 2. Check Dependencies
+
 ```bash
 # Check for vulnerabilities
 cd backend
@@ -214,6 +228,7 @@ npm outdated
 ```
 
 ### 3. Verify Environment Variables
+
 ```bash
 # List required environment variables
 grep -roh "process\.env\.[A-Z_]*" backend/ --include="*.js" | sort -u
@@ -226,6 +241,7 @@ grep "\.env$" .gitignore backend/.gitignore
 ```
 
 ### 4. Test Application
+
 ```bash
 # Run tests
 cd backend
@@ -239,6 +255,7 @@ npm run lint
 ```
 
 ### 5. Build/Prepare for Production
+
 ```bash
 # Install production dependencies only
 cd backend
@@ -251,6 +268,7 @@ npm ci
 ## 🔍 Production Health Check Commands
 
 ### After Deployment
+
 ```bash
 # Test health endpoint
 curl https://your-api-domain.com/health
@@ -271,6 +289,7 @@ curl -H "Origin: https://your-frontend.com" -H "Access-Control-Request-Method: G
 ## 📊 Monitoring Commands
 
 ### PM2 Monitoring
+
 ```bash
 # Real-time monitoring
 pm2 monit
@@ -283,6 +302,7 @@ pm2 logs dating-app-backend --lines 50
 ```
 
 ### System Monitoring
+
 ```bash
 # Check Node.js process
 ps aux | grep node
@@ -300,6 +320,7 @@ uptime
 ## 🛠️ Troubleshooting Commands
 
 ### Application Issues
+
 ```bash
 # View recent errors
 pm2 logs dating-app-backend --err --lines 100
@@ -317,6 +338,7 @@ pm2 status
 ```
 
 ### Database Connection
+
 ```bash
 # Test MongoDB connection (if mongosh is installed)
 mongosh "your-mongodb-uri"
@@ -328,6 +350,7 @@ redis-cli -u "your-redis-url" ping
 ## 📝 Quick Reference
 
 ### Most Common Commands
+
 ```bash
 # Start application
 pm2 start ecosystem.config.js --env production
@@ -346,11 +369,13 @@ pm2 save && pm2 startup
 ```
 
 ### Security Audit
+
 ```bash
 ./backend/scripts/security-audit.sh
 ```
 
 ### Full Deployment Workflow
+
 ```bash
 # 1. Security audit
 ./backend/scripts/security-audit.sh

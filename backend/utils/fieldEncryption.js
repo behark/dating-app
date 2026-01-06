@@ -33,44 +33,50 @@ const fieldEncryptionPlugin = (schema, options = {}) => {
   }
 
   // Pre-save middleware: encrypt fields before saving
-  schema.pre('save', /** @this {any} */ function (next) {
-    try {
-      for (const field of fieldsToEncrypt) {
-        const value = this.get(field);
-        if (value && typeof value === 'string' && !isEncrypted(value)) {
-          this.set(field, encrypt(value));
-          // Store flag that field is encrypted
-          this.set(`_${field}Encrypted`, true);
+  schema.pre(
+    'save',
+    /** @this {any} */ function (next) {
+      try {
+        for (const field of fieldsToEncrypt) {
+          const value = this.get(field);
+          if (value && typeof value === 'string' && !isEncrypted(value)) {
+            this.set(field, encrypt(value));
+            // Store flag that field is encrypted
+            this.set(`_${field}Encrypted`, true);
+          }
         }
+        next();
+      } catch (error) {
+        next(/** @type {import('mongoose').CallbackError} */ (error));
       }
-      next();
-    } catch (error) {
-      next(/** @type {import('mongoose').CallbackError} */ (error));
     }
-  });
+  );
 
   // Pre-findOneAndUpdate middleware: encrypt fields in updates
-  schema.pre('findOneAndUpdate', /** @this {any} */ function (next) {
-    try {
-      const update = this.getUpdate();
+  schema.pre(
+    'findOneAndUpdate',
+    /** @this {any} */ function (next) {
+      try {
+        const update = this.getUpdate();
 
-      for (const field of fieldsToEncrypt) {
-        // Handle direct field updates
-        if (update[field] && !isEncrypted(update[field])) {
-          update[field] = encrypt(update[field]);
+        for (const field of fieldsToEncrypt) {
+          // Handle direct field updates
+          if (update[field] && !isEncrypted(update[field])) {
+            update[field] = encrypt(update[field]);
+          }
+
+          // Handle $set updates
+          if (update.$set && update.$set[field] && !isEncrypted(update.$set[field])) {
+            update.$set[field] = encrypt(update.$set[field]);
+          }
         }
 
-        // Handle $set updates
-        if (update.$set && update.$set[field] && !isEncrypted(update.$set[field])) {
-          update.$set[field] = encrypt(update.$set[field]);
-        }
+        next();
+      } catch (error) {
+        next(/** @type {import('mongoose').CallbackError} */ (error));
       }
-
-      next();
-    } catch (error) {
-      next(/** @type {import('mongoose').CallbackError} */ (error));
     }
-  });
+  );
 
   // Post-find middleware: decrypt fields after reading
   schema.post('find', (docs) => {

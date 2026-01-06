@@ -191,7 +191,12 @@ exports.register = async (req, res) => {
     return sendError(res, 500, {
       message: 'Error during registration',
       error: 'REGISTRATION_ERROR',
-      details: process.env.NODE_ENV === 'production' ? null : (error instanceof Error ? error.message : String(error)),
+      details:
+        process.env.NODE_ENV === 'production'
+          ? null
+          : error instanceof Error
+            ? error.message
+            : String(error),
     });
   }
 };
@@ -447,7 +452,7 @@ exports.logout = async (req, res) => {
         // Calculate TTL (time until token expires)
         const exp = decoded.exp; // TypeScript now knows exp is defined
         const ttl = exp - Math.floor(Date.now() / 1000);
-        
+
         if (ttl > 0) {
           // Try Redis first (faster)
           try {
@@ -462,7 +467,7 @@ exports.logout = async (req, res) => {
             logger.warn('Redis unavailable for token blacklisting, using MongoDB fallback', {
               error: redisError instanceof Error ? redisError.message : String(redisError),
             });
-            
+
             // CRITICAL FIX: Store in MongoDB as fallback
             try {
               const BlacklistedToken = require('../models/BlacklistedToken');

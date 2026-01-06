@@ -54,7 +54,7 @@ class BetaTestingService {
       throw new Error(response.message || 'Failed to enroll in beta');
     } catch (error) {
       logger.error('Error enrolling user in beta:', error);
-      
+
       // Fall back to local enrollment if API fails
       const enrollment = {
         userId,
@@ -154,7 +154,7 @@ class BetaTestingService {
       throw new Error(response.message || 'Failed to submit feedback');
     } catch (error) {
       logger.error('Error submitting feedback:', error);
-      
+
       // Store locally if API fails (will sync later)
       const feedback = {
         id: `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -216,7 +216,7 @@ class BetaTestingService {
       throw new Error(response.message || 'Failed to record session');
     } catch (error) {
       logger.warn('Error recording beta session:', error.message);
-      
+
       // Store locally if API fails
       const session = {
         id: `session_${Date.now()}`,
@@ -376,8 +376,8 @@ class BetaTestingService {
 
   // Sync pending feedback to API (call this when coming online)
   async syncPendingFeedback() {
-    const pendingFeedback = this.feedback.filter(f => f.status === 'pending_sync');
-    
+    const pendingFeedback = this.feedback.filter((f) => f.status === 'pending_sync');
+
     for (const feedback of pendingFeedback) {
       try {
         const response = await api.post('/beta/feedback', feedback);

@@ -1,13 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 import { ActivityService } from '../services/ActivityService';

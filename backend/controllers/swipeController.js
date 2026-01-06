@@ -4,6 +4,7 @@ const Match = require('../models/Match');
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const SwipeService = require('../services/SwipeService');
+const QueueService = require('../services/QueueService');
 const {
   sendSuccess,
   sendError,
@@ -17,10 +18,10 @@ const {
  */
 const sendNotificationInternal = async (toUserId, type, title, message, data) => {
   try {
-    const user = await User.findById(toUserId);
-    if (!user || !user.notificationPreferences) return;
+    const user = await User.findById(toUserId).select('notificationPreferences expoPushToken');
+    if (!user || !user.expoPushToken) return;
 
-    const prefs = user.notificationPreferences;
+    const prefs = user.notificationPreferences || {};
     let shouldSend = false;
 
     switch (type) {
@@ -30,11 +31,17 @@ const sendNotificationInternal = async (toUserId, type, title, message, data) =>
       case 'like':
         shouldSend = prefs.likeNotifications !== false;
         break;
+      default:
+        shouldSend = true;
     }
 
     if (shouldSend) {
-      console.log(`[NOTIFICATION] To: ${toUserId}, Type: ${type}, Title: ${title}`);
-      // In production, integrate with Expo push notification service
+      // Send real push notification via QueueService
+      await QueueService.sendPushNotification(toUserId, title, message, {
+        type,
+        ...data,
+      });
+      logger.info(`[NOTIFICATION] Queued notification for user ${toUserId}`);
     }
   } catch (error) {
     logger.error('Error sending notification:', { error: error.message, stack: error.stack });
