@@ -36,6 +36,7 @@ export const AuthProvider = ({ children }) => {
   const [authToken, setAuthToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
   const [sessionWarningShown, setSessionWarningShown] = useState(false);
+  const [loginInProgress, setLoginInProgress] = useState(false);
   const sessionCheckIntervalRef = useRef(null);
 
   const googleWebClientId = Constants.expoConfig?.extra?.googleWebClientId;
@@ -81,43 +82,53 @@ export const AuthProvider = ({ children }) => {
         const storedRefreshToken = await getRefreshToken();
 
         if (storedUser && storedAuthToken) {
-          // Set tokens in api service temporarily for validation
-          api.setAuthToken(storedAuthToken);
-          if (storedRefreshToken) {
-            api.setRefreshToken(storedRefreshToken);
-          }
-
-          // CRITICAL FIX: Validate token with backend
+          // CRITICAL FIX: Validate token BEFORE mutating api state to avoid race conditions
           try {
-            // Try to get current user profile to validate token
-            const response = await api.get('/profile/me');
+            // Validate using a one-off request without setting global auth state yet
+            const validateResponse = await fetch(`${API_URL}/profile/me`, {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${storedAuthToken}`,
+              },
+            });
 
-            if (response.success && response.data?.user) {
-              // Token is valid - restore user session
-              const userData = response.data.user;
-              const normalizedUser = {
-                ...userData,
-                uid: userData._id || userData.uid,
-              };
+            if (validateResponse.ok) {
+              const response = await validateResponse.json();
 
-              setCurrentUser(normalizedUser);
-              setAuthToken(storedAuthToken);
-              setRefreshToken(storedRefreshToken);
+              if (response.success && response.data?.user) {
+                // Token is valid - now set it in api service
+                api.setAuthToken(storedAuthToken);
+                if (storedRefreshToken) {
+                  api.setRefreshToken(storedRefreshToken);
+                }
 
-              // Update stored user data with fresh data from backend
-              await AsyncStorage.setItem('currentUser', JSON.stringify(normalizedUser));
+                // Token is valid - restore user session
+                const userData = response.data.user;
+                const normalizedUser = {
+                  ...userData,
+                  uid: userData._id || userData.uid,
+                };
 
-              logger.info('User session restored - token validated');
-            } else {
-              // Token validation failed - try to refresh
-              logger.warn('Token validation failed, attempting refresh...');
-              throw new Error('Token validation failed');
+                setCurrentUser(normalizedUser);
+                setAuthToken(storedAuthToken);
+                setRefreshToken(storedRefreshToken);
+
+                // Update stored user data with fresh data from backend
+                await AsyncStorage.setItem('currentUser', JSON.stringify(normalizedUser));
+
+                logger.info('User session restored - token validated');
+              } else {
+                // Token validation failed - try to refresh
+                logger.warn('Token validation failed, attempting refresh...');
+                throw new Error('Token validation failed');
+              }
             }
           } catch (validationError) {
             // Token may be expired - try to refresh if refresh token exists
             if (storedRefreshToken) {
               try {
                 logger.debug('Attempting token refresh on app start...');
+                api.setRefreshToken(storedRefreshToken);
                 const newToken = await api.refreshAuthToken();
 
                 if (newToken) {
@@ -321,8 +332,9 @@ export const AuthProvider = ({ children }) => {
         response.error?.message || 'An error occurred during Google sign-in.',
         [{ text: 'OK' }]
       );
-    } else if (response?.type === 'cancel') {
-      logger.debug('Google sign-in cancelled by user');
+    } else if (response?.type === 'cancel' || response?.type === 'dismiss') {
+      logger.debug('Google sign-in cancelled/dismissed by user');
+      Alert.alert('Sign-In Cancelled', 'Google sign-in was cancelled. Please try again.');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
@@ -488,6 +500,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
+    if (loginInProgress) {
+      return Promise.reject(new Error('Login already in progress. Please wait.'));
+    }
+
+    setLoginInProgress(true);
     try {
       // Log API URL for debugging
       logger.debug('Login attempt', { email, apiUrl: API_URL, fullUrl: `${API_URL}/auth/login` });
@@ -590,6 +607,8 @@ export const AuthProvider = ({ children }) => {
         throw error;
       }
       throw new Error(error.message || 'Login failed. Please try again.');
+    } finally {
+      setLoginInProgress(false);
     }
   };
 

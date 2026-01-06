@@ -313,12 +313,19 @@ const MatchesScreen = () => {
         receivedLikes.length === 0 ? (
           <View style={styles.emptyContainer}>
             <LinearGradient colors={Colors.gradient.primary} style={styles.emptyCard}>
-              <Ionicons name="star-outline" size={80} color={Colors.text.white} />
-              <Text style={styles.emptyTitle}>No likes yet</Text>
+              <Ionicons name="star" size={80} color={Colors.text.white} />
+              <Text style={styles.emptyTitle}>No Likes Yet</Text>
               <Text style={styles.emptyText}>
-                When someone super likes you, they&apos;ll appear here!{'\n'}
-                Keep your profile updated to attract more likes.
+                Stand out from the crowd!{/* eslint-disable-line react/no-unescaped-entities */}
+                Boost your profile to get more visibility.
               </Text>
+              <TouchableOpacity
+                style={styles.ctaButton}
+                onPress={() => navigation.navigate('Premium')}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.ctaButtonText}>Boost Profile 🚀</Text>
+              </TouchableOpacity>
             </LinearGradient>
           </View>
         ) : (
@@ -388,12 +395,20 @@ const MatchesScreen = () => {
       ) : conversations.length === 0 ? (
         <View style={styles.emptyContainer}>
           <LinearGradient colors={Colors.gradient.primary} style={styles.emptyCard}>
-            <Ionicons name="heart-outline" size={80} color={Colors.text.white} />
-            <Text style={styles.emptyTitle}>No conversations yet</Text>
+            <Ionicons name="heart-dislike-outline" size={80} color={Colors.text.white} />
+            <Text style={styles.emptyTitle}>No Matches Yet</Text>
             <Text style={styles.emptyText}>
-              Start chatting with your matches!{'\n'}
-              When you both like each other, you can start a conversation here.
+              Don't worry, your perfect match is out there!
+              {/* eslint-disable-line react/no-unescaped-entities */}
+              Keep swiping to find them.
             </Text>
+            <TouchableOpacity
+              style={styles.ctaButton}
+              onPress={() => navigation.navigate('Discover')}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.ctaButtonText}>Start Swiping 🔥</Text>
+            </TouchableOpacity>
           </LinearGradient>
         </View>
       ) : (
@@ -641,6 +656,25 @@ const styles = StyleSheet.create({
     color: Colors.text.white90,
     textAlign: 'center',
     lineHeight: 24,
+    marginBottom: 25,
+  },
+  ctaButton: {
+    backgroundColor: Colors.background.white,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 30,
+    shadowColor: Colors.background.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+    marginTop: 10,
+  },
+  ctaButtonText: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
 });
 

@@ -1,7 +1,5 @@
-import { API_URL } from '../config/api';
 import { ERROR_MESSAGES } from '../constants/constants';
 import { handleApiResponse, isValidationError } from '../utils/apiResponseHandler';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
 import { validateUserId } from '../utils/validators';
 import api from './api';
@@ -53,32 +51,9 @@ export class ActivityService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
-      }
-
-      const response = await fetch(`${API_URL}/activity/online-status/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch online status'));
-      }
-
-      return data.data || {};
+      const response = await api.get(`/activity/online-status/${userId}`);
+      const handled = handleApiResponse(response, 'Get online status');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error fetching online status:', error);
       throw error;
@@ -97,34 +72,9 @@ export class ActivityService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
-      }
-
-      const response = await fetch(`${API_URL}/activity/view-profile/${userId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to record profile view'));
-      }
-
-      return data.data || {};
+      const response = await api.post(`/activity/view-profile/${userId}`, {});
+      const handled = handleApiResponse(response, 'Record profile view');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error recording profile view:', error);
       throw error;
@@ -138,32 +88,9 @@ export class ActivityService {
    */
   static async getProfileViews() {
     try {
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
-      }
-
-      const response = await fetch(`${API_URL}/activity/profile-views`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch profile views'));
-      }
-
-      return data.data || {};
+      const response = await api.get('/activity/profile-views');
+      const handled = handleApiResponse(response, 'Get profile views');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error fetching profile views:', error);
       throw error;
@@ -184,36 +111,9 @@ export class ActivityService {
       if (!userIds.every((id) => validateUserId(id))) {
         throw new Error('One or more invalid user IDs provided');
       }
-
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
-      }
-
-      const response = await fetch(`${API_URL}/activity/status`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ userIds }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch user statuses'));
-      }
-
-      return data.data?.statuses || [];
+      const response = await api.post('/activity/status', { userIds });
+      const handled = handleApiResponse(response, 'Get user statuses');
+      return handled.data?.statuses || [];
     } catch (error) {
       logger.error('Error fetching user statuses:', error);
       throw error;
@@ -228,34 +128,9 @@ export class ActivityService {
    */
   static async sendHeartbeat() {
     try {
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
-      }
-
-      const response = await fetch(`${API_URL}/activity/heartbeat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to send heartbeat'));
-      }
-
-      return data.data || {};
+      const response = await api.post('/activity/heartbeat', {});
+      const handled = handleApiResponse(response, 'Send heartbeat');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error sending heartbeat:', error);
       throw error;

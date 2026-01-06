@@ -233,10 +233,7 @@ const ProfileScreen = () => {
         </View>
 
         <View
-          style={[
-            styles.card,
-            Platform.OS === 'web' ? shadowToWebBoxShadow(styles.card) : null,
-          ]}
+          style={[styles.card, Platform.OS === 'web' ? shadowToWebBoxShadow(styles.card) : null]}
         >
           <TouchableOpacity
             onPress={() => navigation.navigate('PhotoGallery')}

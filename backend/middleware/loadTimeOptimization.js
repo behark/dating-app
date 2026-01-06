@@ -5,6 +5,7 @@
 
 const compression = require('compression');
 const { COMPRESSION_CONFIG, HTTP_CONFIG } = require('../config/performance');
+const { logger } = require('../services/LoggingService');
 
 /**
  * Response compression middleware
@@ -43,7 +44,7 @@ const performanceHeaders = (req, res, next) => {
     // Just log for monitoring purposes
     if (duration > 1000) {
       setImmediate(() => {
-        console.log(`[PERF] ${req.method} ${req.path} - ${duration.toFixed(2)}ms`);
+        logger.info('Performance warning', { method: req.method, path: req.path, durationMs: duration.toFixed(2) });
       });
     }
   });
@@ -87,7 +88,7 @@ const etagMiddleware = (req, res, next) => {
         }
       } catch (error) {
         // If ETag generation fails, just continue with normal response
-        console.error('ETag generation error:', error);
+        logger.error('ETag generation error:', { error: error.message || error });
       }
     }
 
@@ -117,7 +118,7 @@ const responseTimeMiddleware = (req, res, next) => {
     // Log slow requests (>500ms) - async to avoid blocking
     if (duration > 500) {
       setImmediate(() => {
-        console.warn(`[SLOW] ${method} ${route} - ${duration}ms`);
+        logger.warn('Slow request detected', { method, route, durationMs: duration });
       });
     }
 
@@ -228,24 +229,24 @@ const gracefulShutdown = (server, cleanupFn) => {
     if (isShuttingDown) return;
     isShuttingDown = true;
 
-    console.log(`\n${signal} received. Graceful shutdown starting...`);
+    logger.info('Graceful shutdown starting', { signal });
 
     // Stop accepting new connections
     server.close(async () => {
-      console.log('HTTP server closed');
+      logger.info('HTTP server closed');
 
       // Run cleanup (close DB connections, etc.)
       if (cleanupFn) {
         await cleanupFn();
       }
 
-      console.log('Graceful shutdown complete');
+      logger.info('Graceful shutdown complete');
       process.exit(0);
     });
 
     // Force shutdown after 30 seconds
     setTimeout(() => {
-      console.error('Forced shutdown after timeout');
+      logger.error('Forced shutdown after timeout');
       process.exit(1);
     }, 30000);
   };

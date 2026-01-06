@@ -664,7 +664,26 @@ class StripeService {
         failureReason: invoice.last_payment_error?.message,
       });
 
-      // TODO: Send payment failure notification
+      // Send payment failure notification
+      try {
+        const Notification = require('../models/Notification');
+        await Notification.create({
+          userId: user._id,
+          type: 'system',
+          title: 'Payment Failed',
+          message: 'Your recent payment could not be processed. Please update your payment method to continue enjoying premium features.',
+          data: {
+            invoiceId: invoice.id,
+            amount: invoice.amount_due / 100,
+            currency: invoice.currency,
+            actionUrl: '/settings/payment',
+          },
+          priority: 'high',
+        });
+      } catch (notifError) {
+        // Log but don't fail the handler
+        console.error('Failed to send payment failure notification:', notifError.message);
+      }
     }
   }
 
@@ -673,8 +692,33 @@ class StripeService {
    */
   static async handleInvoiceUpcoming(invoice, event) {
     // Send reminder notification about upcoming charge
-    console.log('Upcoming invoice:', invoice.id);
-    // TODO: Send notification
+    const customerId = invoice.customer;
+    
+    try {
+      const User = require('../models/User');
+      const user = await User.findOne({ stripeCustomerId: customerId });
+      
+      if (user) {
+        const Notification = require('../models/Notification');
+        const dueDate = new Date(invoice.due_date * 1000);
+        
+        await Notification.create({
+          userId: user._id,
+          type: 'system',
+          title: 'Upcoming Payment',
+          message: `Your subscription payment of ${(invoice.amount_due / 100).toFixed(2)} ${invoice.currency.toUpperCase()} will be processed on ${dueDate.toLocaleDateString()}.`,
+          data: {
+            invoiceId: invoice.id,
+            amount: invoice.amount_due / 100,
+            currency: invoice.currency,
+            dueDate: dueDate.toISOString(),
+          },
+          priority: 'normal',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to send upcoming invoice notification:', error.message);
+    }
   }
 
   /**

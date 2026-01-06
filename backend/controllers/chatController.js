@@ -66,21 +66,29 @@ const getMessages = async (req, res) => {
             : match.swiperId.toString();
         const conversationKey = generateConversationKey(userId, otherUserId);
 
-        // @ts-ignore - Type mismatch after mapping with decrypted content
-        messages = messages.map((msg) => {
+        // CRITICAL FIX: Skip corrupted messages and log failures instead of returning unusable payloads
+        const decryptedMessages = [];
+        messages.forEach((msg) => {
           if (msg.isEncrypted && msg.content) {
             try {
-              return {
+              decryptedMessages.push({
                 ...msg,
                 content: decryptMessage(msg.content, conversationKey),
                 _decrypted: true,
-              };
+              });
             } catch (e) {
-              return { ...msg, _decryptionFailed: true };
+              logger.error('Message decryption failed', {
+                messageId: msg._id,
+                error: e instanceof Error ? e.message : String(e),
+                conversationId: matchId,
+              });
+              // Skip message to avoid leaking encrypted payloads
             }
+          } else {
+            decryptedMessages.push(msg);
           }
-          return msg;
         });
+        messages = decryptedMessages;
       }
     }
 
@@ -319,25 +327,21 @@ const deleteMessage = async (req, res) => {
     });
 
     if (!message) {
-      return res.status(404).json({
-        success: false,
-        message: 'Message not found or access denied',
-      });
+      return sendNotFound(res, 'Message not found or access denied');
     }
 
     // For now, we'll actually delete the message
     // In production, you might want to implement soft delete
     await Message.findByIdAndDelete(messageId);
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Message deleted successfully',
     });
   } catch (error) {
     logger.error('Delete message error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Internal server error',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -353,9 +357,9 @@ const markMessageAsRead = async (req, res) => {
     }
 
     if (!messageId || !require('mongoose').Types.ObjectId.isValid(messageId)) {
-      return res.status(400).json({
-        success: false,
+      return sendError(res, 400, {
         message: 'Invalid message ID',
+        error: 'VALIDATION_ERROR',
       });
     }
 
@@ -365,18 +369,15 @@ const markMessageAsRead = async (req, res) => {
     });
 
     if (!message) {
-      return res.status(404).json({
-        success: false,
-        message: 'Message not found or access denied',
-      });
+      return sendNotFound(res, 'Message not found or access denied');
     }
 
     // Mark as read with timestamp
     const readTimestamp = new Date();
     await message.markAsRead(readTimestamp);
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
+      message: 'Message marked as read',
       data: {
         messageId: message._id,
         isRead: message.isRead,
@@ -385,9 +386,9 @@ const markMessageAsRead = async (req, res) => {
     });
   } catch (error) {
     logger.error('Mark message as read error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Internal server error',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -403,9 +404,9 @@ const getReadReceipts = async (req, res) => {
     }
 
     if (!matchId || !require('mongoose').Types.ObjectId.isValid(matchId)) {
-      return res.status(400).json({
-        success: false,
+      return sendError(res, 400, {
         message: 'Invalid match ID',
+        error: 'VALIDATION_ERROR',
       });
     }
 
@@ -415,17 +416,17 @@ const getReadReceipts = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
+      message: 'Read receipts retrieved successfully',
       data: {
         messages,
       },
     });
   } catch (error) {
     logger.error('Get read receipts error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Internal server error',
+      error: 'INTERNAL_ERROR',
     });
   }
 };
@@ -441,10 +442,9 @@ const sendEncryptedMessage = async (req, res) => {
     }
 
     if (!matchId || !content) {
-      return res.status(400).json({
-        success: false,
-        message: 'Match ID and content are required',
-      });
+      return sendValidationError(res, [
+        { field: !matchId ? 'matchId' : 'content', message: 'Match ID and content are required' },
+      ]);
     }
 
     // Verify user has access to this match
@@ -455,10 +455,7 @@ const sendEncryptedMessage = async (req, res) => {
     });
 
     if (!match) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied to this conversation',
-      });
+      return sendForbidden(res, 'Access denied to this conversation');
     }
 
     // Determine recipient
@@ -484,8 +481,8 @@ const sendEncryptedMessage = async (req, res) => {
 
     await message.save();
 
-    res.status(201).json({
-      success: true,
+    return sendSuccess(res, 201, {
+      message: 'Encrypted message sent successfully',
       data: {
         message: {
           _id: message._id,
@@ -501,9 +498,9 @@ const sendEncryptedMessage = async (req, res) => {
     });
   } catch (error) {
     logger.error('Send encrypted message error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
+    return sendError(res, 500, {
       message: 'Internal server error',
+      error: 'INTERNAL_ERROR',
     });
   }
 };

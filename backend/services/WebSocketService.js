@@ -21,6 +21,9 @@ const connectedUsers = new Map();
 // Room subscriptions
 const userRooms = new Map();
 
+// Store io instance for access from other services
+let ioInstance = null;
+
 /**
  * Initialize WebSocket server
  */
@@ -117,6 +120,9 @@ const initializeWebSocket = (httpServer) => {
     }
   });
 
+  // Store io instance
+  ioInstance = io;
+
   // Connection handling
   io.on('connection', async (socket) => {
     // @ts-ignore - userId is set in auth middleware
@@ -184,6 +190,16 @@ const initializeWebSocket = (httpServer) => {
 
     socket.on('subscribe_notifications', () => {
       socket.join(`notifications:${userId}`);
+    });
+
+    // ============= Event Room Management =============
+
+    socket.on('join_event_room', async (data) => {
+      await handleJoinEventRoom(socket, data);
+    });
+
+    socket.on('leave_event_room', (data) => {
+      handleLeaveEventRoom(socket, data);
     });
 
     // ============= Disconnect =============
@@ -563,9 +579,133 @@ const getConnectedUserCount = () => connectedUsers.size;
  */
 const isUserConnected = (userId) => connectedUsers.has(userId);
 
+/**
+ * Handle joining an event room
+ */
+const handleJoinEventRoom = async (socket, data) => {
+  try {
+    const { eventId } = data;
+    const userId = socket.userId;
+
+    if (!eventId) {
+      socket.emit('error', { message: 'Event ID is required' });
+      return;
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      socket.emit('error', { message: 'Invalid event ID format' });
+      return;
+    }
+
+    // Verify event exists and user can access it
+    const Event = require('../models/Event');
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+      socket.emit('error', { message: 'Event not found' });
+      return;
+    }
+
+    // Check if user can access event (basic check - can be enhanced)
+    if (event.visibility === 'private' && event.organizerId.toString() !== userId) {
+      socket.emit('error', { message: 'Access denied to this event' });
+      return;
+    }
+
+    // Join event room
+    socket.join(`event:${eventId}`);
+
+    // Track room subscription
+    if (!userRooms.has(socket.id)) {
+      userRooms.set(socket.id, []);
+    }
+    const rooms = userRooms.get(socket.id);
+    if (!rooms.includes(`event:${eventId}`)) {
+      rooms.push(`event:${eventId}`);
+    }
+
+    socket.emit('joined_event_room', {
+      eventId,
+      message: 'Successfully subscribed to event updates',
+    });
+
+    console.log(`[WS] User ${userId} joined event room ${eventId}`);
+  } catch (error) {
+    console.error('[WS] Error joining event room:', error);
+    socket.emit('error', { message: 'Failed to join event room' });
+  }
+};
+
+/**
+ * Handle leaving an event room
+ */
+const handleLeaveEventRoom = (socket, data) => {
+  try {
+    const { eventId } = data;
+    const userId = socket.userId;
+
+    if (!eventId) {
+      socket.emit('error', { message: 'Event ID is required' });
+      return;
+    }
+
+    socket.leave(`event:${eventId}`);
+
+    // Remove from tracked rooms
+    const rooms = userRooms.get(socket.id);
+    if (rooms) {
+      const index = rooms.indexOf(`event:${eventId}`);
+      if (index > -1) {
+        rooms.splice(index, 1);
+      }
+    }
+
+    socket.emit('left_event_room', {
+      eventId,
+      message: 'Successfully unsubscribed from event updates',
+    });
+
+    console.log(`[WS] User ${userId} left event room ${eventId}`);
+  } catch (error) {
+    console.error('[WS] Error leaving event room:', error);
+    socket.emit('error', { message: 'Failed to leave event room' });
+  }
+};
+
+/**
+ * Emit event update to all users in event room
+ * @param {string} eventId - Event ID
+ * @param {string} eventType - Event type (user_joined, user_left, capacity_updated, status_changed)
+ * @param {Object} data - Event data
+ */
+const emitEventUpdate = (eventId, eventType, data) => {
+  if (!ioInstance) {
+    console.warn('[WS] Cannot emit event update: Socket.io not initialized');
+    return;
+  }
+
+  try {
+    ioInstance.to(`event:${eventId}`).emit(`event:${eventType}`, {
+      eventId,
+      ...data,
+      timestamp: new Date(),
+    });
+  } catch (error) {
+    console.error('[WS] Error emitting event update:', error);
+  }
+};
+
+/**
+ * Get Socket.io instance (for use in other services)
+ * @returns {Server|null} Socket.io server instance
+ */
+const getIO = () => ioInstance;
+
 module.exports = {
   initializeWebSocket,
   sendNotification,
   getConnectedUserCount,
   isUserConnected,
+  emitEventUpdate,
+  getIO,
 };

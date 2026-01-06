@@ -78,7 +78,7 @@ export function createLazyScreen(importFn, options = {}) {
   }
 
   const LazyComponent = (props) => {
-    // FIX: Pass a function that returns cachedComponent to avoid useState executing 
+    // FIX: Pass a function that returns cachedComponent to avoid useState executing
     // cachedComponent if it's a functional component (which useState treats as a lazy initializer)
     const [Component, setComponent] = useState(() => cachedComponent);
     const [error, setError] = useState(null);
@@ -103,11 +103,11 @@ export function createLazyScreen(importFn, options = {}) {
         // Use existing promise if preloading, otherwise create new
         const promise = loadPromise || importFn();
         const module = await promise;
-        
+
         logger.debug(`LazyScreen loaded module for ${options.displayName}`, {
           hasDefault: !!module.default,
           isModule: typeof module,
-          keys: Object.keys(module)
+          keys: Object.keys(module),
         });
 
         // Ensure minimum loading time for smooth UX
@@ -117,11 +117,18 @@ export function createLazyScreen(importFn, options = {}) {
         }
 
         cachedComponent = module.default || module;
-        
-        if (typeof cachedComponent === 'object' && cachedComponent !== null && !cachedComponent.$$typeof) {
-             logger.warn(`LazyScreen: Component is an object but not a React element/type for ${options.displayName}`, {
-                 keys: Object.keys(cachedComponent)
-             });
+
+        if (
+          typeof cachedComponent === 'object' &&
+          cachedComponent !== null &&
+          !cachedComponent.$$typeof
+        ) {
+          logger.warn(
+            `LazyScreen: Component is an object but not a React element/type for ${options.displayName}`,
+            {
+              keys: Object.keys(cachedComponent),
+            }
+          );
         }
 
         setComponent(() => cachedComponent);
@@ -173,7 +180,7 @@ export function createLazyScreen(importFn, options = {}) {
       loadPromise = importFn().then((module) => {
         logger.debug(`LazyScreen preloaded module for ${options.displayName}`, {
           hasDefault: !!module.default,
-          keys: Object.keys(module)
+          keys: Object.keys(module),
         });
         cachedComponent = module.default || module;
         return cachedComponent;

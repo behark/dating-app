@@ -66,7 +66,7 @@ const EventsScreen = ({ navigation }) => {
 
   const handleRegisterEvent = async (eventId) => {
     try {
-      await SocialFeaturesService.registerForEvent(eventId, getUserId(currentUser));
+      await SocialFeaturesService.registerForEvent(eventId);
       fetchEvents();
       Alert.alert('Success', 'Successfully registered for event!');
     } catch (error) {

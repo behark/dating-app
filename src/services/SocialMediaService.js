@@ -1,51 +1,14 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_URL } from '../config/api';
-import { ERROR_MESSAGES } from '../constants/constants';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { handleApiResponse } from '../utils/apiResponseHandler';
 import logger from '../utils/logger';
+import api from './api';
 
 export class SocialMediaService {
-  static async getAuthToken() {
-    try {
-      return await AsyncStorage.getItem('authToken');
-    } catch (error) {
-      logger.error('Error retrieving auth token:', error);
-      return null;
-    }
-  }
-
   // Connect Spotify account
   static async connectSpotify(spotifyData) {
     try {
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
-      }
-
-      const response = await fetch(`${API_URL}/social-media/connect-spotify`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(spotifyData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to connect Spotify'));
-      }
-
-      return data.data;
+      const response = await api.post('/social-media/connect-spotify', spotifyData);
+      const handled = handleApiResponse(response, 'Connect Spotify');
+      return handled.data;
     } catch (error) {
       logger.error('Error connecting Spotify:', error);
       throw error;
@@ -55,35 +18,9 @@ export class SocialMediaService {
   // Connect Instagram account
   static async connectInstagram(instagramData) {
     try {
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
-      }
-
-      const response = await fetch(`${API_URL}/social-media/connect-instagram`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify(instagramData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to connect Instagram'));
-      }
-
-      return data.data;
+      const response = await api.post('/social-media/connect-instagram', instagramData);
+      const handled = handleApiResponse(response, 'Connect Instagram');
+      return handled.data;
     } catch (error) {
       logger.error('Error connecting Instagram:', error);
       throw error;
@@ -93,33 +30,9 @@ export class SocialMediaService {
   // Disconnect Spotify
   static async disconnectSpotify() {
     try {
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
-      }
-
-      const response = await fetch(`${API_URL}/social-media/disconnect-spotify`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to disconnect Spotify'));
-      }
-
-      return data.data;
+      const response = await api.delete('/social-media/disconnect-spotify');
+      const handled = handleApiResponse(response, 'Disconnect Spotify');
+      return handled.data;
     } catch (error) {
       logger.error('Error disconnecting Spotify:', error);
       throw error;
@@ -129,33 +42,9 @@ export class SocialMediaService {
   // Disconnect Instagram
   static async disconnectInstagram() {
     try {
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
-      }
-
-      const response = await fetch(`${API_URL}/social-media/disconnect-instagram`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to disconnect Instagram'));
-      }
-
-      return data.data;
+      const response = await api.delete('/social-media/disconnect-instagram');
+      const handled = handleApiResponse(response, 'Disconnect Instagram');
+      return handled.data;
     } catch (error) {
       logger.error('Error disconnecting Instagram:', error);
       throw error;
@@ -165,32 +54,9 @@ export class SocialMediaService {
   // Get social media profiles for a user (public view)
   static async getSocialMedia(userId) {
     try {
-      const authToken = await this.getAuthToken();
-      if (!authToken) {
-        throw new Error(ERROR_MESSAGES.NO_AUTH_TOKEN);
-      }
-
-      const response = await fetch(`${API_URL}/social-media/${userId}/social-media`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch social media'));
-      }
-
-      return data.data;
+      const response = await api.get(`/social-media/${userId}/social-media`);
+      const handled = handleApiResponse(response, 'Get social media');
+      return handled.data;
     } catch (error) {
       logger.error('Error fetching social media:', error);
       throw error;

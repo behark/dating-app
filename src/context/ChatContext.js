@@ -7,9 +7,9 @@ import api from '../services/api';
 import logger from '../utils/logger';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import { sanitizeString } from '../utils/sanitize';
-import { useAuth } from './AuthContext';
 import { useSocketContext } from '../contexts/SocketContext';
 import OfflineService from '../services/OfflineService';
+import { useAuth } from './AuthContext';
 
 const ChatContext = createContext();
 

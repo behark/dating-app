@@ -1,13 +1,11 @@
-import { API_BASE_URL } from '../config/api';
 import { ERROR_MESSAGES } from '../constants/constants';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { handleApiResponse } from '../utils/apiResponseHandler';
 import logger from '../utils/logger';
 import { validateUserId } from '../utils/validators';
+import api from './api';
 
 class AdvancedInteractionsService {
-  constructor(authToken) {
-    this.authToken = authToken;
-  }
+  constructor(_authToken) {}
 
   /**
    * Send a super like
@@ -18,32 +16,12 @@ class AdvancedInteractionsService {
         throw new Error('Invalid recipient ID provided');
       }
 
-      const response = await fetch(`${API_BASE_URL}/interactions/super-like`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: JSON.stringify({
-          recipientId,
-          message,
-        }),
+      const response = await api.post('/interactions/super-like', {
+        recipientId,
+        message,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const handled = handleApiResponse(response, 'Send super like');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error sending super like:', error);
       throw error;
@@ -55,24 +33,9 @@ class AdvancedInteractionsService {
    */
   async getSuperLikeQuota() {
     try {
-      const response = await fetch(`${API_BASE_URL}/interactions/super-like-quota`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const response = await api.get('/interactions/super-like-quota');
+      const handled = handleApiResponse(response, 'Get super like quota');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error getting super like quota:', error);
       throw error;
@@ -84,29 +47,9 @@ class AdvancedInteractionsService {
    */
   async rewindLastSwipe() {
     try {
-      const response = await fetch(`${API_BASE_URL}/interactions/rewind`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: JSON.stringify({}),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const response = await api.post('/interactions/rewind', {});
+      const handled = handleApiResponse(response, 'Rewind swipe');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error rewinding swipe:', error);
       throw error;
@@ -118,24 +61,9 @@ class AdvancedInteractionsService {
    */
   async getRewindQuota() {
     try {
-      const response = await fetch(`${API_BASE_URL}/interactions/rewind-quota`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const response = await api.get('/interactions/rewind-quota');
+      const handled = handleApiResponse(response, 'Get rewind quota');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error getting rewind quota:', error);
       throw error;
@@ -147,31 +75,11 @@ class AdvancedInteractionsService {
    */
   async boostProfile(durationMinutes = 30) {
     try {
-      const response = await fetch(`${API_BASE_URL}/interactions/boost`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.authToken}`,
-        },
-        body: JSON.stringify({
-          durationMinutes,
-        }),
+      const response = await api.post('/interactions/boost', {
+        durationMinutes,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const handled = handleApiResponse(response, 'Boost profile');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error boosting profile:', error);
       throw error;
@@ -183,24 +91,9 @@ class AdvancedInteractionsService {
    */
   async getBoostQuota() {
     try {
-      const response = await fetch(`${API_BASE_URL}/interactions/boost-quota`, {
-        headers: { Authorization: `Bearer ${this.authToken}` },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || {};
+      const response = await api.get('/interactions/boost-quota');
+      const handled = handleApiResponse(response, 'Get boost quota');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error getting boost quota:', error);
       throw error;

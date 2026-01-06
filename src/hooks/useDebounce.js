@@ -14,7 +14,7 @@ import { useRef, useCallback } from 'react';
 export const useDebounce = (fn, delay = 300) => {
   const timeoutRef = useRef(null);
 
-  const debouncedFn = useCallback(
+  return useCallback(
     (...args) => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -26,8 +26,6 @@ export const useDebounce = (fn, delay = 300) => {
     },
     [fn, delay]
   );
-
-  return debouncedFn;
 };
 
 /**

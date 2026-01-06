@@ -78,7 +78,7 @@ function checkEnvironment() {
       // Mask sensitive values
       const displayValue =
         varName.includes('SECRET') || varName.includes('KEY') || varName.includes('PASSWORD')
-          ? '***' + value.slice(-4)
+          ? `***${value.slice(-4)}`
           : value;
       console.log(`  ✅ ${varName} = ${displayValue}`);
 
@@ -134,7 +134,7 @@ function checkEnvironment() {
   }
 
   // Summary
-  console.log('\n' + '='.repeat(60));
+  console.log(`\n${'='.repeat(60)}`);
   if (hasErrors) {
     console.log('❌ VERIFICATION FAILED');
     console.log('   Please set all required environment variables before launch.');

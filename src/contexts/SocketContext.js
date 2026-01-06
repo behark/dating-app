@@ -48,6 +48,15 @@ export const SocketProvider = ({ children }) => {
 
       // Clean up existing connection if any
       if (socketRef.current) {
+        // Remove specific listeners we tracked to avoid leaks across reconnects
+        if (eventListenersRef.current.size > 0) {
+          eventListenersRef.current.forEach((handlers, event) => {
+            handlers.forEach((handler) => {
+              socketRef.current.off(event, handler);
+            });
+          });
+          eventListenersRef.current.clear();
+        }
         socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
       }
@@ -263,6 +272,14 @@ export const SocketProvider = ({ children }) => {
         clearTimeout(reconnectTimeoutRef.current);
       }
       if (socketRef.current) {
+        if (eventListenersRef.current.size > 0) {
+          eventListenersRef.current.forEach((handlers, event) => {
+            handlers.forEach((handler) => {
+              socketRef.current.off(event, handler);
+            });
+          });
+          eventListenersRef.current.clear();
+        }
         socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
       }

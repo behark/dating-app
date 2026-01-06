@@ -334,9 +334,9 @@ class ProductionChecker {
 
   // Generate Summary
   generateSummary() {
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${'='.repeat(60)}`);
     console.log('📊 PRODUCTION READINESS SUMMARY');
-    console.log('='.repeat(60) + '\n');
+    console.log(`${'='.repeat(60)}\n`);
 
     console.log(`${CHECK} Passed: ${this.results.passed.length}`);
     console.log(`${FAIL} Failed: ${this.results.failed.length}`);
@@ -358,14 +358,14 @@ class ProductionChecker {
       this.results.warnings.forEach((msg) => console.log(`   ${WARN} ${msg}`));
     }
 
-    console.log('\n' + '='.repeat(60));
+    console.log(`\n${'='.repeat(60)}`);
 
     if (this.results.failed.length === 0) {
       console.log('✅ READY FOR PRODUCTION DEPLOYMENT');
     } else {
       console.log('❌ NOT READY - Fix critical issues before deploying');
     }
-    console.log('='.repeat(60) + '\n');
+    console.log(`${'='.repeat(60)}\n`);
 
     return {
       passed: this.results.passed.length,
@@ -379,7 +379,7 @@ class ProductionChecker {
   // Run all checks
   run() {
     console.log('\n🔍 PRODUCTION READINESS CHECK');
-    console.log('=' + '='.repeat(59) + '\n');
+    console.log(`=${'='.repeat(59)}\n`);
 
     this.checkEnvVariables();
     this.checkSecurityConfig();

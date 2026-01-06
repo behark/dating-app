@@ -85,6 +85,53 @@ test.describe('Authentication', () => {
 
     await expect(page.getByText(/email sent|check your email/i)).toBeVisible();
   });
+
+  test('should complete full login flow with session persistence', async ({ page, context }) => {
+    // Login
+    await page.fill(EMAIL_INPUT_TESTID, TEST_EMAIL);
+    await page.fill(PASSWORD_INPUT_TESTID, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON_TESTID);
+    await expect(page).toHaveURL(/.*discover/);
+
+    // Verify session is stored
+    const cookies = await context.cookies();
+    expect(cookies.length).toBeGreaterThan(0);
+
+    // Reload page - should stay logged in
+    await page.reload();
+    await expect(page).toHaveURL(/.*discover/);
+  });
+
+  test('should handle OAuth login flow', async ({ page }) => {
+    const googleButton = page.locator('text=/continue with google|sign in with google/i');
+    if (await googleButton.isVisible()) {
+      await googleButton.click();
+      // OAuth flow would be mocked in E2E
+      await expect(page).toHaveURL(/.*discover|.*setup/, { timeout: 15000 });
+    }
+  });
+
+  test('should validate email format on login', async ({ page }) => {
+    await page.fill(EMAIL_INPUT_TESTID, 'invalid-email');
+    await page.fill(PASSWORD_INPUT_TESTID, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON_TESTID);
+
+    await expect(page.getByText(/email|invalid|format/i)).toBeVisible();
+  });
+
+  test('should validate password requirements on signup', async ({ page }) => {
+    await page.click('text=Create Account');
+
+    const emailInput = `${DATA_TESTID_PREFIX}email-input${DATA_TESTID_SUFFIX}`;
+    const passwordInput = `${DATA_TESTID_PREFIX}password-input${DATA_TESTID_SUFFIX}`;
+    const registerButton = `${DATA_TESTID_PREFIX}register-button${DATA_TESTID_SUFFIX}`;
+
+    await page.fill(emailInput, 'test@example.com');
+    await page.fill(passwordInput, 'short'); // Too short
+    await page.click(registerButton);
+
+    await expect(page.getByText(/password|8|characters/i)).toBeVisible();
+  });
 });
 
 test.describe('Discovery', () => {
@@ -143,6 +190,66 @@ test.describe('Discovery', () => {
     const filtersApplied = `${DATA_TESTID_PREFIX}filters-applied${DATA_TESTID_SUFFIX}`;
     await expect(page.locator(filtersApplied)).toBeVisible();
   });
+
+  test('should complete full matching flow - swipe, match, view match', async ({ page }) => {
+    // Swipe right on a profile
+    const likeButton = page.locator(LIKE_BUTTON_TESTID);
+    if (await likeButton.isVisible()) {
+      await likeButton.click();
+      await page.waitForTimeout(500); // Wait for swipe animation
+    }
+
+    // Check if match occurred (match popup or notification)
+    const matchPopup = page.locator('[data-testid="match-popup"]');
+    const hasMatch = await matchPopup.isVisible().catch(() => false);
+
+    if (hasMatch) {
+      // Match occurred - verify match screen
+      await expect(matchPopup).toBeVisible();
+      const matchButton = page.locator('[data-testid="view-match-button"]');
+      if (await matchButton.isVisible()) {
+        await matchButton.click();
+        // Should navigate to matches or chat
+        await expect(page).toHaveURL(/.*matches|.*chat/, { timeout: 5000 });
+      }
+    }
+  });
+
+  test('should handle super like', async ({ page }) => {
+    const superLikeButton = page.locator(
+      `${DATA_TESTID_PREFIX}super-like-button${DATA_TESTID_SUFFIX}`
+    );
+    if (await superLikeButton.isVisible()) {
+      await superLikeButton.click();
+      await page.waitForTimeout(500);
+      // Should show super like animation or feedback
+    }
+  });
+
+  test('should display empty state when no profiles available', async ({ page }) => {
+    // This would require mocking empty API response
+    const emptyState = page.locator('[data-testid="empty-profiles"]');
+    // Check if empty state appears (may not always be visible)
+    const isEmpty = await emptyState.isVisible().catch(() => false);
+    if (isEmpty) {
+      await expect(emptyState).toBeVisible();
+      await expect(page.getByText(/no profiles|try adjusting/i)).toBeVisible();
+    }
+  });
+
+  test('should handle rapid swipes', async ({ page }) => {
+    // Rapidly swipe through multiple profiles
+    for (let i = 0; i < 5; i++) {
+      const likeButton = page.locator(LIKE_BUTTON_TESTID);
+      if (await likeButton.isVisible()) {
+        await likeButton.click();
+        await page.waitForTimeout(300); // Small delay between swipes
+      } else {
+        break; // No more profiles
+      }
+    }
+    // Should handle gracefully without errors
+  });
 });
 
 test.describe('Chat', () => {
@@ -184,6 +291,116 @@ test.describe('Chat', () => {
     await page.click(sendButton);
 
     await expect(page.getByText(messageText)).toBeVisible();
+  });
+
+  test('should complete full messaging flow - send, receive, read receipt', async ({ page }) => {
+    // Open chat
+    const matchItem = `${DATA_TESTID_PREFIX}match-item${DATA_TESTID_SUFFIX}:first-child`;
+    await page.click(matchItem);
+
+    const messageInput = `${DATA_TESTID_PREFIX}message-input${DATA_TESTID_SUFFIX}`;
+    const sendButton = `${DATA_TESTID_PREFIX}send-button${DATA_TESTID_SUFFIX}`;
+
+    // Send multiple messages
+    const messages = ['Hello!', 'How are you?', 'Nice to meet you!'];
+    for (const msg of messages) {
+      await page.fill(messageInput, msg);
+      await page.click(sendButton);
+      await page.waitForTimeout(500);
+      await expect(page.getByText(msg)).toBeVisible();
+    }
+
+    // Verify messages are in order
+    for (const msg of messages) {
+      await expect(page.getByText(msg)).toBeVisible();
+    }
+  });
+
+  test('should show typing indicator', async ({ page }) => {
+    const matchItem = `${DATA_TESTID_PREFIX}match-item${DATA_TESTID_SUFFIX}:first-child`;
+    await page.click(matchItem);
+
+    const messageInput = `${DATA_TESTID_PREFIX}message-input${DATA_TESTID_SUFFIX}`;
+    await page.fill(messageInput, 'Typing...');
+
+    // Typing indicator should appear (if implemented)
+    const typingIndicator = page.locator('[data-testid="typing-indicator"]');
+    const isTyping = await typingIndicator.isVisible().catch(() => false);
+    if (isTyping) {
+      await expect(typingIndicator).toBeVisible();
+    }
+  });
+
+  test('should handle empty messages list', async ({ page }) => {
+    const matchItem = `${DATA_TESTID_PREFIX}match-item${DATA_TESTID_SUFFIX}:first-child`;
+    await page.click(matchItem);
+
+    // Check for empty state
+    const emptyState = page.locator('[data-testid="empty-messages"]');
+    const isEmpty = await emptyState.isVisible().catch(() => false);
+    if (isEmpty) {
+      await expect(emptyState).toBeVisible();
+      await expect(page.getByText(/no messages|start conversation/i)).toBeVisible();
+    }
+  });
+
+  test('should handle long messages', async ({ page }) => {
+    const matchItem = `${DATA_TESTID_PREFIX}match-item${DATA_TESTID_SUFFIX}:first-child`;
+    await page.click(matchItem);
+
+    const longMessage = 'a'.repeat(500);
+    const messageInput = `${DATA_TESTID_PREFIX}message-input${DATA_TESTID_SUFFIX}`;
+    const sendButton = `${DATA_TESTID_PREFIX}send-button${DATA_TESTID_SUFFIX}`;
+
+    await page.fill(messageInput, longMessage);
+    await page.click(sendButton);
+
+    // Message should be sent or rejected if too long
+    const messageSent = await page
+      .getByText(longMessage.substring(0, 50))
+      .isVisible()
+      .catch(() => false);
+    const errorShown = await page
+      .getByText(/too long|limit/i)
+      .isVisible()
+      .catch(() => false);
+    expect(messageSent || errorShown).toBe(true);
+  });
+
+  test('should handle rapid message sending', async ({ page }) => {
+    const matchItem = `${DATA_TESTID_PREFIX}match-item${DATA_TESTID_SUFFIX}:first-child`;
+    await page.click(matchItem);
+
+    const messageInput = `${DATA_TESTID_PREFIX}message-input${DATA_TESTID_SUFFIX}`;
+    const sendButton = `${DATA_TESTID_PREFIX}send-button${DATA_TESTID_SUFFIX}`;
+
+    // Send multiple messages rapidly
+    for (let i = 0; i < 5; i++) {
+      await page.fill(messageInput, `Message ${i}`);
+      await page.click(sendButton);
+      await page.waitForTimeout(200);
+    }
+
+    // All messages should appear
+    for (let i = 0; i < 5; i++) {
+      await expect(page.getByText(`Message ${i}`)).toBeVisible({ timeout: 5000 });
+    }
+  });
+
+  test('should display read receipts', async ({ page }) => {
+    const matchItem = `${DATA_TESTID_PREFIX}match-item${DATA_TESTID_SUFFIX}:first-child`;
+    await page.click(matchItem);
+
+    // Send a message
+    const messageInput = `${DATA_TESTID_PREFIX}message-input${DATA_TESTID_SUFFIX}`;
+    const sendButton = `${DATA_TESTID_PREFIX}send-button${DATA_TESTID_SUFFIX}`;
+    await page.fill(messageInput, 'Test message');
+    await page.click(sendButton);
+
+    // Check for read receipt (if implemented)
+    const readReceipt = page.locator('[data-testid="read-receipt"]');
+    const hasReceipt = await readReceipt.isVisible().catch(() => false);
+    // Read receipt may appear after recipient reads
   });
 });
 

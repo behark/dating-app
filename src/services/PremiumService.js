@@ -1,6 +1,5 @@
-import { API_URL as API_BASE_URL } from '../config/api';
 import { ERROR_MESSAGES } from '../constants/constants';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { handleApiResponse } from '../utils/apiResponseHandler';
 import logger from '../utils/logger';
 import {
   validateCoordinates,
@@ -8,6 +7,7 @@ import {
   validateNumberRange,
   validateUserId,
 } from '../utils/validators';
+import api from './api';
 
 export class PremiumService {
   static PREMIUM_FEATURES = {
@@ -31,41 +31,11 @@ export class PremiumService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      if (!token) {
-        logger.warn('PremiumService: No token provided, returning free tier');
-        return { isPremium: false, features: {} };
-      }
-
-      const response = await fetch(`${API_BASE_URL}/premium/subscription/status`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get('/premium/subscription/status', {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
-      if (!response.ok) {
-        // For 401 (unauthorized), return free tier instead of throwing
-        if (response.status === 401) {
-          logger.warn('PremiumService: Unauthorized (401), returning free tier');
-          return { isPremium: false, features: {} };
-        }
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        // Return default free tier on error
-        return {
-          isPremium: false,
-          features: {},
-        };
-      }
-      return (
-        data.data || {
-          isPremium: false,
-          features: {},
-        }
-      );
+      const handled = handleApiResponse(response, 'Check premium status');
+      return handled.data || { isPremium: false, features: {} };
     } catch (error) {
       logger.error('Error checking premium status:', error);
       return { isPremium: false, features: {} };
@@ -81,23 +51,13 @@ export class PremiumService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_BASE_URL}/premium/subscription/trial/start`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || { success: true };
+      const response = await api.post(
+        '/premium/subscription/trial/start',
+        {},
+        { headers: token ? { Authorization: `Bearer ${token}` } : undefined }
+      );
+      const handled = handleApiResponse(response, 'Start trial subscription');
+      return handled.data || { success: true };
     } catch (error) {
       logger.error('Error starting trial:', error);
       return { success: false, error: error.message };
@@ -116,27 +76,13 @@ export class PremiumService {
         throw new Error('Plan type must be monthly or yearly');
       }
 
-      const response = await fetch(`${API_BASE_URL}/premium/subscription/upgrade`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ planType }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || { success: true };
+      const response = await api.post(
+        '/premium/subscription/upgrade',
+        { planType },
+        { headers: token ? { Authorization: `Bearer ${token}` } : undefined }
+      );
+      const handled = handleApiResponse(response, 'Upgrade to premium');
+      return handled.data || { success: true };
     } catch (error) {
       logger.error('Error upgrading to premium:', error);
       return { success: false, error: error.message };
@@ -152,23 +98,13 @@ export class PremiumService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_BASE_URL}/premium/subscription/cancel`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || { success: true };
+      const response = await api.post(
+        '/premium/subscription/cancel',
+        {},
+        { headers: token ? { Authorization: `Bearer ${token}` } : undefined }
+      );
+      const handled = handleApiResponse(response, 'Cancel subscription');
+      return handled.data || { success: true };
     } catch (error) {
       logger.error('Error cancelling subscription:', error);
       return { success: false, error: error.message };
@@ -184,22 +120,11 @@ export class PremiumService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_BASE_URL}/premium/likes/received`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get('/premium/likes/received', {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        return { likes: [] };
-      }
-      return data.data || { likes: [] };
+      const handled = handleApiResponse(response, 'Get received likes');
+      return handled.data || { likes: [] };
     } catch (error) {
       logger.error('Error getting received likes:', error);
       return { likes: [] };
@@ -218,27 +143,13 @@ export class PremiumService {
         throw new Error('City and country are required');
       }
 
-      const response = await fetch(`${API_BASE_URL}/premium/passport/location`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ longitude, latitude, city, country }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || { success: true };
+      const response = await api.post(
+        '/premium/passport/location',
+        { longitude, latitude, city, country },
+        { headers: token ? { Authorization: `Bearer ${token}` } : undefined }
+      );
+      const handled = handleApiResponse(response, 'Set passport location');
+      return handled.data || { success: true };
     } catch (error) {
       logger.error('Error setting passport location:', error);
       return { success: false, error: error.message };
@@ -254,22 +165,11 @@ export class PremiumService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_BASE_URL}/premium/passport/status`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get('/premium/passport/status', {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        return { enabled: false };
-      }
-      return data.data || { enabled: false };
+      const handled = handleApiResponse(response, 'Get passport status');
+      return handled.data || { enabled: false };
     } catch (error) {
       logger.error('Error getting passport status:', error);
       return { enabled: false };
@@ -285,23 +185,13 @@ export class PremiumService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_BASE_URL}/premium/passport/disable`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || { success: true };
+      const response = await api.post(
+        '/premium/passport/disable',
+        {},
+        { headers: token ? { Authorization: `Bearer ${token}` } : undefined }
+      );
+      const handled = handleApiResponse(response, 'Disable passport');
+      return handled.data || { success: true };
     } catch (error) {
       logger.error('Error disabling passport:', error);
       return { success: false, error: error.message };
@@ -317,22 +207,11 @@ export class PremiumService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_BASE_URL}/premium/filters/options`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get('/premium/filters/options', {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        return {};
-      }
-      return data.data || {};
+      const handled = handleApiResponse(response, 'Get advanced filter options');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error getting filter options:', error);
       return {};
@@ -344,27 +223,11 @@ export class PremiumService {
    */
   static async updateAdvancedFilters(filters, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/premium/filters/update`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(filters),
+      const response = await api.post('/premium/filters/update', filters, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || { success: true };
+      const handled = handleApiResponse(response, 'Update advanced filters');
+      return handled.data || { success: true };
     } catch (error) {
       logger.error('Error updating filters:', error);
       return { success: false, error: error.message };
@@ -380,27 +243,13 @@ export class PremiumService {
         throw new Error('Invalid target user ID provided');
       }
 
-      const response = await fetch(`${API_BASE_URL}/premium/likes/priority`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ targetUserId }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || { success: true };
+      const response = await api.post(
+        '/premium/likes/priority',
+        { targetUserId },
+        { headers: token ? { Authorization: `Bearer ${token}` } : undefined }
+      );
+      const handled = handleApiResponse(response, 'Send priority like');
+      return handled.data || { success: true };
     } catch (error) {
       logger.error('Error sending priority like:', error);
       return { success: false, error: error.message };
@@ -412,27 +261,13 @@ export class PremiumService {
    */
   static async updateAdsPreferences(showAds, adCategories, token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/premium/ads/preferences`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ showAds, adCategories }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || { success: true };
+      const response = await api.post(
+        '/premium/ads/preferences',
+        { showAds, adCategories },
+        { headers: token ? { Authorization: `Bearer ${token}` } : undefined }
+      );
+      const handled = handleApiResponse(response, 'Update ads preferences');
+      return handled.data || { success: true };
     } catch (error) {
       logger.error('Error updating ads preferences:', error);
       return { success: false, error: error.message };
@@ -448,22 +283,11 @@ export class PremiumService {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);
       }
 
-      const response = await fetch(`${API_BASE_URL}/premium/analytics/boosts`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await api.get('/premium/analytics/boosts', {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        return {};
-      }
-      return data.data || {};
+      const handled = handleApiResponse(response, 'Get boost analytics');
+      return handled.data || {};
     } catch (error) {
       logger.error('Error getting boost analytics:', error);
       return {};
@@ -489,27 +313,13 @@ export class PremiumService {
         throw new Error('Matches must be a non-negative integer');
       }
 
-      const response = await fetch(`${API_BASE_URL}/premium/analytics/boost-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ duration, viewsGained, likesGained, matches }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          getUserFriendlyMessage(
-            errorData.message || `HTTP ${response.status}: ${response.statusText}`
-          )
-        );
-      }
-      const data = await response.json();
-      if (!data.success) {
-        throw new Error(getUserFriendlyMessage(data.message || ERROR_MESSAGES.REQUEST_FAILED));
-      }
-      return data.data || { success: true };
+      const response = await api.post(
+        '/premium/analytics/boost-session',
+        { duration, viewsGained, likesGained, matches },
+        { headers: token ? { Authorization: `Bearer ${token}` } : undefined }
+      );
+      const handled = handleApiResponse(response, 'Record boost session');
+      return handled.data || { success: true };
     } catch (error) {
       logger.error('Error recording boost session:', error);
       return { success: false, error: error.message };

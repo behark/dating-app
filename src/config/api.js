@@ -64,7 +64,18 @@ const getEnvApiUrl = () => {
   if (envUrl) {
     const isDev = isDevelopmentMode();
     if (isDev || !envUrl.includes('localhost')) {
-      return normalizeApiUrl(envUrl);
+      let normalizedUrl = normalizeApiUrl(envUrl);
+
+      // CRITICAL: Enforce HTTPS in production
+      if (!isDev && normalizedUrl.startsWith('http://')) {
+        normalizedUrl = normalizedUrl.replace('http://', 'https://');
+        logger.warn('HTTP URL detected in production, forcing HTTPS', {
+          originalUrl: envUrl,
+          correctedUrl: normalizedUrl,
+        });
+      }
+
+      return normalizedUrl;
     }
   }
   return null;

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
+import { getTokenSecurely, storeTokenSecurely, removeTokenSecurely } from '../utils/secureStorage';
 import { getUserFriendlyMessage, STANDARD_ERROR_MESSAGES } from '../utils/errorMessages';
 import rateLimiter from '../utils/rateLimiter';
 import requestDeduplicator from '../utils/requestDeduplication';
@@ -26,6 +27,12 @@ const api = {
    */
   setAuthToken(token) {
     this._authToken = token;
+    // Persist for future sessions
+    if (token) {
+      storeTokenSecurely(AUTH_TOKEN_KEY, token).catch((error) =>
+        logger.error('Error persisting auth token', error)
+      );
+    }
   },
 
   /**
@@ -34,6 +41,11 @@ const api = {
    */
   setRefreshToken(token) {
     this._refreshToken = token;
+    if (token) {
+      storeTokenSecurely(REFRESH_TOKEN_KEY, token).catch((error) =>
+        logger.error('Error persisting refresh token', error)
+      );
+    }
   },
 
   /**
@@ -45,7 +57,7 @@ const api = {
       return this._authToken;
     }
     try {
-      const token = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
+      const token = await getTokenSecurely(AUTH_TOKEN_KEY);
       if (token) {
         this._authToken = token;
       }
@@ -65,7 +77,7 @@ const api = {
       return this._refreshToken;
     }
     try {
-      const token = await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+      const token = await getTokenSecurely(REFRESH_TOKEN_KEY);
       if (token) {
         this._refreshToken = token;
       }
@@ -82,6 +94,12 @@ const api = {
   clearAuthToken() {
     this._authToken = null;
     this._refreshToken = null;
+    removeTokenSecurely(AUTH_TOKEN_KEY).catch((error) =>
+      logger.error('Error clearing auth token', error)
+    );
+    removeTokenSecurely(REFRESH_TOKEN_KEY).catch((error) =>
+      logger.error('Error clearing refresh token', error)
+    );
   },
 
   /**
@@ -132,11 +150,11 @@ const api = {
       if (newAuthToken) {
         // Update tokens in memory and storage
         this._authToken = newAuthToken;
-        await AsyncStorage.setItem(AUTH_TOKEN_KEY, newAuthToken);
+        await storeTokenSecurely(AUTH_TOKEN_KEY, newAuthToken);
 
         if (newRefreshToken) {
           this._refreshToken = newRefreshToken;
-          await AsyncStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
+          await storeTokenSecurely(REFRESH_TOKEN_KEY, newRefreshToken);
         }
 
         logger.debug('Auth token refreshed successfully');
@@ -256,17 +274,19 @@ const api = {
     // Get auth token
     const authToken = await this.getAuthToken();
 
+    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+
     const requestOptions = {
       method,
       headers: {
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         ...(authToken && { Authorization: `Bearer ${authToken}` }),
         ...options.headers,
       },
     };
 
     if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-      requestOptions.body = JSON.stringify(data);
+      requestOptions.body = isFormData ? data : JSON.stringify(data);
     }
 
     try {

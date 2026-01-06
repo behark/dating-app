@@ -5,6 +5,7 @@
 
 const { analyticsMetricsService } = require('../services/AnalyticsMetricsService');
 const { datadogService } = require('../services/MonitoringService');
+const { logger } = require('../services/LoggingService');
 
 /**
  * Response time tracking middleware
@@ -40,7 +41,7 @@ const responseTimeMiddleware = (req, res, next) => {
       );
     } catch (error) {
       // Silently fail metrics tracking to avoid blocking response
-      console.error('Error tracking metrics:', error);
+      logger.error('Error tracking metrics:', { error: error.message || error });
     }
 
     // Add timing header for debugging (only if headers haven't been sent)
@@ -55,7 +56,7 @@ const responseTimeMiddleware = (req, res, next) => {
     // Log slow requests (> 1000ms) - async to avoid blocking
     if (durationMs > 1000) {
       setImmediate(() => {
-        console.warn(`Slow request: ${req.method} ${baseRoute} - ${durationMs.toFixed(2)}ms`);
+        logger.warn('Slow request detected', { method: req.method, route: baseRoute, durationMs: durationMs.toFixed(2) });
       });
     }
 

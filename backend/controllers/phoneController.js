@@ -13,15 +13,75 @@ const {
   asyncHandler,
 } = require('../utils/responseHelpers');
 
-// Initialize SMS service (using Twilio as an example)
+/**
+ * SMS Service - Twilio integration with fallback for development
+ * Configure Twilio credentials in environment variables:
+ * - TWILIO_ACCOUNT_SID
+ * - TWILIO_AUTH_TOKEN
+ * - TWILIO_PHONE_NUMBER
+ */
 const smsService = {
+  client: null,
+  
+  /**
+   * Initialize Twilio client if credentials are available
+   */
+  init: function() {
+    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+      try {
+        const twilio = require('twilio');
+        this.client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        logger.info('Twilio SMS service initialized');
+      } catch (error) {
+        logger.warn('Twilio not available, using mock SMS service', { error: error.message });
+      }
+    } else {
+      logger.warn('Twilio credentials not configured, using mock SMS service');
+    }
+  },
+
+  /**
+   * Send SMS verification code
+   * @param {string} phoneNumber - E.164 formatted phone number
+   * @param {string} code - Verification code to send
+   * @returns {Promise<boolean>} - Success status
+   */
   sendSMS: async function (phoneNumber, code) {
-    // TODO: Implement SMS sending with Twilio or another provider
-    // For now, this is a placeholder
-    console.log(`Sending SMS to ${phoneNumber}: Your verification code is ${code}`);
-    return true;
+    const message = `Your dating app verification code is: ${code}. Valid for 15 minutes.`;
+    
+    // Use Twilio if configured
+    if (this.client && process.env.TWILIO_PHONE_NUMBER) {
+      try {
+        await this.client.messages.create({
+          body: message,
+          to: phoneNumber,
+          from: process.env.TWILIO_PHONE_NUMBER,
+        });
+        logger.info('SMS sent via Twilio', { phoneNumber: phoneNumber.slice(-4) }); // Log last 4 digits only
+        return true;
+      } catch (error) {
+        logger.error('Twilio SMS send failed', { error: error.message, code: error.code });
+        throw new Error('Failed to send SMS verification');
+      }
+    }
+    
+    // Development fallback - log the code (DO NOT USE IN PRODUCTION)
+    if (process.env.NODE_ENV !== 'production') {
+      logger.info('DEV MODE: SMS verification code', { 
+        phoneLastFour: phoneNumber.slice(-4), 
+        code 
+      });
+      return true;
+    }
+    
+    // Production without Twilio configured
+    logger.error('SMS service not configured in production');
+    throw new Error('SMS service not configured');
   },
 };
+
+// Initialize SMS service on module load
+smsService.init();
 
 // @route   POST /api/auth/send-phone-verification
 // @desc    Send phone verification code

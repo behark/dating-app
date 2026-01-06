@@ -95,7 +95,7 @@ async function verifyLegalUrls() {
   }
 
   // Summary
-  console.log('\n' + '='.repeat(60));
+  console.log(`\n${'='.repeat(60)}`);
   if (hasErrors) {
     console.log('❌ VERIFICATION FAILED');
     console.log('   Please fix the issues above before App Store submission.');

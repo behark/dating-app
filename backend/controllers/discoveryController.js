@@ -23,6 +23,7 @@ const QUERY_TIMEOUT_MS = 30000; // 30 seconds for MongoDB queries
 const SWIPE_LOOKUP_TIMEOUT_MS = 15000; // 15 seconds for swipe lookup
 const DEFAULT_LIMIT = 25; // Reduced default for faster responses
 const MAX_LIMIT = 50; // Maximum results per page
+const MAX_PAGE = 1000; // Safety cap to prevent large skips
 
 // Discovery endpoint to find users within radius
 const discoverUsers = async (req, res) => {
@@ -45,7 +46,7 @@ const discoverUsers = async (req, res) => {
     const longitude = parseFloat(lng);
     const searchRadius = parseInt(radius);
     const resultLimit = Math.min(parseInt(limit) || DEFAULT_LIMIT, MAX_LIMIT);
-    const pageNum = parseInt(page) || 1;
+    const pageNum = Math.min(parseInt(page) || 1, MAX_PAGE);
     const skip = (pageNum - 1) * resultLimit;
 
     if (isNaN(latitude) || latitude < -90 || latitude > 90) {

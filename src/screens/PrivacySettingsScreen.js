@@ -17,7 +17,7 @@ import {
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import PrivacyService from '../services/PrivacyService';
-import { showStandardError, STANDARD_ERROR_MESSAGES } from '../utils/errorHandler';
+import { showStandardError } from '../utils/errorHandler';
 import logger from '../utils/logger';
 
 const PrivacySettingsScreen = ({ navigation }) => {

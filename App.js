@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect } from 'react';
 import { Linking, Platform } from 'react-native';
+import Constants from 'expo-constants';
 import AppErrorBoundary from './src/components/AppErrorBoundary';
 import NetworkStatusBanner from './src/components/NetworkStatusBanner';
 import { AppProvider } from './src/context/AppContext';
@@ -11,9 +12,10 @@ import { SocketProvider } from './src/contexts/SocketContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { AnalyticsService } from './src/services/AnalyticsService';
 import { PWAService } from './src/services/PWAService';
+import { UpdateService } from './src/services/UpdateService';
 import { UserBehaviorAnalytics } from './src/services/UserBehaviorAnalytics';
 import { initSentry } from './src/utils/sentry';
-import Constants from 'expo-constants';
+import IAPService from './src/services/IAPService';
 
 // Vercel Analytics and Speed Insights (web only)
 // Using dynamic imports for web platform to avoid breaking native builds
@@ -79,12 +81,10 @@ function AppWithErrorHandling() {
 
   const handleNavigate = useCallback((screen) => {
     // Navigation will be handled by retry resetting state
-    console.log(`[ErrorBoundary] Navigation requested to: ${screen}`);
   }, []);
 
   const handleOfflineMode = useCallback(() => {
     // Enable offline mode
-    console.log('[ErrorBoundary] Offline mode enabled');
   }, []);
 
   return (
@@ -110,7 +110,7 @@ export default function App() {
         environment: __DEV__ ? 'development' : 'production',
         release: Constants.expoConfig?.version || '1.0.0',
       });
-      console.log('✅ Sentry error tracking initialized');
+      if (__DEV__) console.log('✅ Sentry error tracking initialized');
     } else {
       console.warn('⚠️  Sentry DSN not configured - error tracking disabled');
     }
@@ -146,12 +146,37 @@ export default function App() {
     // Initialize user behavior analytics
     UserBehaviorAnalytics.initialize();
 
+    // Initialize IAP service (only on native platforms)
+    if (Platform.OS !== 'web') {
+      IAPService.initialize().catch((error) => {
+        console.error('Failed to initialize IAP:', error);
+      });
+    }
+
     // Track registration funnel start
     UserBehaviorAnalytics.trackFunnelStep('registration', 'app_opened');
 
     // Initialize PWA features for web
     if (Platform.OS === 'web') {
       PWAService.initialize();
+    }
+
+    // Initialize OTA update service for native platforms
+    if (Platform.OS !== 'web') {
+      UpdateService.initialize().then(async () => {
+        // Check for updates and show dialog if available
+        const updateResult = await UpdateService.checkForUpdates();
+        if (updateResult.status === 'update_available') {
+          UpdateService.showUpdateDialog(false);
+        } else if (updateResult.status === 'update_critical') {
+          UpdateService.showUpdateDialog(true);
+        }
+
+        // Log version info
+        if (__DEV__) {
+          console.log('📱 App Version:', UpdateService.getDisplayVersion());
+        }
+      });
     }
 
     // Register A/B tests
@@ -162,6 +187,11 @@ export default function App() {
     UserBehaviorAnalytics.registerABTest('premium_cta', ['control', 'urgency', 'social_proof'], {
       distribution: [0.34, 0.33, 0.33],
     });
+
+    // Cleanup on unmount
+    return () => {
+      UpdateService.cleanup();
+    };
   }, []);
 
   return (
