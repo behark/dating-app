@@ -1,22 +1,38 @@
-import * as InAppPurchases from 'expo-in-app-purchases';
 import { Platform } from 'react-native';
+
+// Conditionally import IAP - not available on web
+let InAppPurchases = null;
+if (Platform.OS !== 'web') {
+  try {
+    InAppPurchases = require('expo-in-app-purchases');
+  } catch (error) {
+    console.warn('expo-in-app-purchases not available:', error);
+  }
+}
 
 /**
  * In-App Purchase Service
  *
  * Handles subscriptions and consumable purchases for iOS and Android
+ * Note: Not available on web platform
  */
 class IAPService {
   constructor() {
     this.isConnected = false;
     this.products = [];
     this.purchaseHistory = [];
+    this.isAvailable = Platform.OS !== 'web' && InAppPurchases !== null;
   }
 
   /**
    * Initialize IAP connection
    */
   async initialize() {
+    if (!this.isAvailable) {
+      console.warn('IAP not available on web platform');
+      return;
+    }
+
     try {
       if (this.isConnected) return;
 
@@ -39,6 +55,11 @@ class IAPService {
    * Get available products
    */
   async getProducts(productIds) {
+    if (!this.isAvailable) {
+      console.warn('IAP not available on web platform');
+      return [];
+    }
+
     try {
       await this.initialize();
 
@@ -60,6 +81,10 @@ class IAPService {
    * Purchase a product
    */
   async purchaseProduct(productId, options = {}) {
+    if (!this.isAvailable) {
+      throw new Error('IAP not available on web platform');
+    }
+
     try {
       await this.initialize();
 
@@ -74,6 +99,11 @@ class IAPService {
    * Restore purchases (for subscriptions)
    */
   async restorePurchases() {
+    if (!this.isAvailable) {
+      console.warn('IAP not available on web platform');
+      return [];
+    }
+
     try {
       await this.initialize();
 
@@ -111,6 +141,10 @@ class IAPService {
    * Finish transaction (acknowledge purchase)
    */
   async finishTransaction(purchase) {
+    if (!this.isAvailable) {
+      return;
+    }
+
     try {
       await InAppPurchases.finishTransactionAsync(purchase, false);
       console.log('Transaction finished:', purchase.productId);
@@ -144,6 +178,10 @@ class IAPService {
    * Disconnect IAP
    */
   async disconnect() {
+    if (!this.isAvailable) {
+      return;
+    }
+
     try {
       if (this.isConnected) {
         await InAppPurchases.disconnectAsync();
