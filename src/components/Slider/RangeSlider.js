@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, PanResponder, Animated, Text } from 'react-native';
+import { Platform, View, StyleSheet, PanResponder, Animated, Text } from 'react-native';
 import { Colors } from '../../constants/colors';
 
 const RangeSlider = ({
@@ -61,9 +61,14 @@ const RangeSlider = ({
             {
               left: `${minPercentage}%`,
               backgroundColor: color,
+              ...Platform.select({
+                web: { pointerEvents: 'box-none' },
+              }),
             },
           ]}
-          pointerEvents="box-none"
+          {...Platform.select({
+            native: { pointerEvents: 'box-none' },
+          })}
         >
           <Text style={styles.thumbLabel}>{Math.round(minValue)}</Text>
         </View>
@@ -75,9 +80,14 @@ const RangeSlider = ({
             {
               left: `${maxPercentage}%`,
               backgroundColor: color,
+              ...Platform.select({
+                web: { pointerEvents: 'box-none' },
+              }),
             },
           ]}
-          pointerEvents="box-none"
+          {...Platform.select({
+            native: { pointerEvents: 'box-none' },
+          })}
         >
           <Text style={styles.thumbLabel}>{Math.round(maxValue)}</Text>
         </View>

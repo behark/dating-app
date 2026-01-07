@@ -505,6 +505,101 @@ const sendEncryptedMessage = async (req, res) => {
   }
 };
 
+// Add reaction to a message
+const addReaction = async (req, res) => {
+  try {
+    const { messageId, reactionId } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return sendUnauthorized(res, 'Authentication required');
+    }
+
+    if (!messageId || !reactionId) {
+      return sendValidationError(res, [
+        { field: !messageId ? 'messageId' : 'reactionId', message: 'Message ID and reaction ID are required' },
+      ]);
+    }
+
+    // Validate message exists and user has access
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return sendNotFound(res, 'Message not found');
+    }
+
+    // Verify user has access to this conversation
+    const match = await Swipe.findOne({
+      _id: message.matchId,
+      $or: [{ swiperId: userId }, { swipedId: userId }],
+      action: 'like',
+    });
+
+    if (!match) {
+      return sendForbidden(res, 'Access denied to this conversation');
+    }
+
+    // Add reaction to message
+    await message.addReaction(userId, reactionId);
+
+    return sendSuccess(res, 200, {
+      message: 'Reaction added successfully',
+      data: {
+        messageId: message._id,
+        reactionId,
+        userId,
+      },
+    });
+  } catch (error) {
+    logger.error('Add reaction error:', { error: error.message, stack: error.stack });
+    return sendError(res, 500, {
+      message: 'Internal server error',
+      error: 'INTERNAL_ERROR',
+    });
+  }
+};
+
+// Remove reaction from a message
+const removeReaction = async (req, res) => {
+  try {
+    const { messageId, reactionId } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return sendUnauthorized(res, 'Authentication required');
+    }
+
+    if (!messageId || !reactionId) {
+      return sendValidationError(res, [
+        { field: !messageId ? 'messageId' : 'reactionId', message: 'Message ID and reaction ID are required' },
+      ]);
+    }
+
+    // Find message and remove reaction
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return sendNotFound(res, 'Message not found');
+    }
+
+    // Remove reaction from message
+    await message.removeReaction(userId, reactionId);
+
+    return sendSuccess(res, 200, {
+      message: 'Reaction removed successfully',
+      data: {
+        messageId: message._id,
+        reactionId,
+        userId,
+      },
+    });
+  } catch (error) {
+    logger.error('Remove reaction error:', { error: error.message, stack: error.stack });
+    return sendError(res, 500, {
+      message: 'Internal server error',
+      error: 'INTERNAL_ERROR',
+    });
+  }
+};
+
 module.exports = {
   getMessages,
   getConversations,
@@ -514,4 +609,6 @@ module.exports = {
   markMessageAsRead,
   getReadReceipts,
   sendEncryptedMessage,
+  addReaction,
+  removeReaction,
 };

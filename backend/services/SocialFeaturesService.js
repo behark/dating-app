@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const qrcode = require('qrcode');
 const GroupDate = require('../models/GroupDate');
 const FriendReview = require('../models/FriendReview');
 const Event = require('../models/Event');
@@ -785,9 +786,30 @@ class SocialFeaturesService {
   }
 
   // Helper methods
-  static generateQRCode(url) {
-    // TODO: Implement QR code generation using a library like 'qrcode'
-    return null;
+  static async generateQRCode(url) {
+    try {
+      if (!url) {
+        throw new Error('URL is required for QR code generation');
+      }
+
+      // Generate QR code as data URL (base64 encoded PNG)
+      const qrCodeDataURL = await qrcode.toDataURL(url, {
+        errorCorrectionLevel: 'M', // Medium error correction
+        type: 'image/png',
+        quality: 0.92,
+        margin: 1,
+        color: {
+          dark: '#000000',  // Black squares
+          light: '#FFFFFF'  // White background
+        },
+        width: 256, // Standard size
+      });
+
+      return qrCodeDataURL;
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      return null;
+    }
   }
 }
 

@@ -366,12 +366,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   scrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 20,
     paddingBottom: 100,
   },
   cardWrapper: {
     position: 'relative',
     marginBottom: 15,
+    width: '100%',
+    alignItems: 'center',
   },
   demoOverlay: {
     position: 'absolute',

@@ -95,6 +95,7 @@ export const API_ENDPOINTS = {
     CONVERSATIONS: '/chat/conversations',
     MESSAGES: '/chat/messages',
     SEND: '/chat/send',
+    REACTIONS: '/chat/messages/reactions',
     MEDIA: {
       GIF: '/chat/media/gif',
       STICKER: '/chat/media/sticker',
@@ -135,6 +136,7 @@ export const API_ENDPOINTS = {
     UNREAD: '/notifications/unread',
     MARK_READ: '/notifications/mark-read',
     SETTINGS: '/notifications/settings',
+    PUSH_TOKEN: '/notifications/push-token',
   },
 };
 

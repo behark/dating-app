@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Screen - Dating App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Guest Banner */
+        .guest-banner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            padding-top: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #ddd;
+        }
+
+        .guest-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .guest-banner-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .guest-banner-count {
+            font-size: 12px;
+            color: #666;
+            margin-left: 8px;
+        }
+
+        .guest-sign-up-button {
+            background: #667eea;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .guest-sign-up-button:hover {
+            transform: scale(1.05);
+        }
+
+        .guest-sign-up-button.urgent {
+            background: #FF6B6B;
+        }
+
+        /* Premium Header */
+        .premium-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            padding-top: 50px;
+        }
+
+        .header-left-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .premium-badge {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            padding: 6px 12px;
+            border-radius: 15px;
+            color: white;
+            font-size: 12px;
+            font-weight: 800;
+            box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+        }
+
+        .upgrade-prompt {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 215, 0, 0.1);
+            padding: 6px 12px;
+            border-radius: 15px;
+            border: 1px solid #FFD700;
+            color: #FFD700;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .swipe-limit-badge {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 6px 10px;
+            border-radius: 12px;
+            border: 1px solid #FF6B6B;
+            color: #FF6B6B;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .header-right-section {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .discovery-button {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 6px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .location-badge {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 4px 10px;
+            border-radius: 12px;
+            margin-right: 8px;
+            color: #FF6B6B;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .super-like-counter {
+            display: flex;
+            align-items: center;
+            background: rgba(78, 205, 196, 0.1);
+            padding: 4px 10px;
+            border-radius: 12px;
+            color: #4ECDC4;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* AI Quick Access */
+        .ai-quick-access {
+            background: white;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 12px 16px;
+        }
+
+        .ai-header-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .ai-quick-access-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-left: 8px;
+        }
+
+        .ai-buttons-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .ai-quick-button {
+            flex: 1;
+            padding: 10px 8px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .ai-quick-button:hover {
+            transform: scale(1.05);
+        }
+
+        .ai-button-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #333;
+            margin-top: 6px;
+            text-align: center;
+        }
+
+        /* Scroll Content */
+        .scroll-content {
+            padding: 20px;
+            padding-bottom: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: calc(100vh - 200px);
+        }
+
+        .cards-container {
+            width: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .swipe-card {
+            width: 100%;
+            max-width: 400px;
+            height: 600px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            background: white;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 70%;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 20px;
+            height: 30%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .card-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .card-age {
+            font-size: 24px;
+            color: #666;
+        }
+
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #4ECDC4;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .card-bio {
+            font-size: 14px;
+            color: #666;
+            line-height: 20px;
+            margin-bottom: 10px;
+        }
+
+        .card-interests {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .interest-tag {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .distance-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        /* Skeleton Loading */
+        .skeleton-card {
+            width: 100%;
+            max-width: 400px;
+            height: 600px;
+            border-radius: 20px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Empty State */
+        .empty-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 80px;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .empty-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .empty-text {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+            line-height: 24px;
+        }
+
+        .empty-button {
+            background: white;
+            color: #667eea;
+            padding: 16px 32px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+
+        .empty-button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Action Buttons */
+        .action-buttons-container {
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 20px;
+            gap: 15px;
+        }
+
+        .undo-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            margin-right: 10px;
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .action-button {
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .action-button:hover {
+            transform: scale(1.1);
+        }
+
+        .dislike-button {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #EE5A6F 100%);
+        }
+
+        .super-like-button {
+            width: 55px;
+            height: 55px;
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+        }
+
+        .super-like-button.disabled {
+            opacity: 0.6;
+            background: linear-gradient(135deg, #ccc 0%, #bbb 100%);
+        }
+
+        .like-button {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .limit-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #FF6B6B;
+            border-radius: 10px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            font-size: 12px;
+        }
+
+        /* Login Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            z-index: 2000;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-header {
+            padding: 50px 20px 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .close-button {
+            align-self: flex-end;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 28px;
+            color: #333;
+        }
+
+        .modal-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #333;
+            margin-top: 10px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .modal-subtitle {
+            font-size: 15px;
+            color: #666;
+            text-align: center;
+            line-height: 22px;
+        }
+
+        .modal-content {
+            padding: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            .swipe-card {
+                height: 500px;
+            }
+            
+            .premium-header {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Guest Banner (shown when not logged in) -->
+        <div class="guest-banner" id="guestBanner" style="display: none;">
+            <div class="guest-banner-content">
+                <span>👁️</span>
+                <span class="guest-banner-text">Browsing as Guest</span>
+                <span class="guest-banner-count">10 free views left</span>
+            </div>
+            <div class="guest-sign-up-button" onclick="showLoginModal('banner')">Join Free</div>
+        </div>
+
+        <!-- Premium Header (shown when logged in) -->
+        <div class="premium-header" id="premiumHeader">
+            <div class="header-left-section">
+                <div class="upgrade-prompt" onclick="navigateToPremium()">
+                    <span>💎</span>
+                    <span style="margin-left: 4px;">Upgrade</span>
+                </div>
+                <div class="swipe-limit-badge">
+                    <span>🔥</span>
+                    <span style="margin-left: 4px;">45/50</span>
+                </div>
+            </div>
+            <div class="header-right-section">
+                <div class="discovery-button" title="Top Picks">🏆</div>
+                <div class="discovery-button" title="Explore">🧭</div>
+                <div class="location-badge">
+                    <span>📍</span>
+                    <span style="margin-left: 4px;">40.71°</span>
+                </div>
+                <div class="super-like-counter">
+                    <span>⭐</span>
+                    <span style="margin-left: 4px;">1 left</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Quick Access (Premium only) -->
+        <div class="ai-quick-access" id="aiQuickAccess" style="display: none;">
+            <div class="ai-header-row">
+                <span>✨</span>
+                <span class="ai-quick-access-title">AI Insights</span>
+            </div>
+            <div class="ai-buttons-grid">
+                <div class="ai-quick-button">
+                    <span style="font-size: 20px; color: #FF6B6B;">♥</span>
+                    <span class="ai-button-label">Compatibility</span>
+                </div>
+                <div class="ai-quick-button">
+                    <span style="font-size: 20px; color: #4ECDC4;">💬</span>
+                    <span class="ai-button-label">Talk Tips</span>
+                </div>
+                <div class="ai-quick-button">
+                    <span style="font-size: 20px; color: #FFD700;">✏️</span>
+                    <span class="ai-button-label">Bio Ideas</span>
+                </div>
+                <div class="ai-quick-button">
+                    <span style="font-size: 20px; color: #667eea;">📷</span>
+                    <span class="ai-button-label">Photo Tips</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards -->
+        <div class="scroll-content">
+            <!-- Loading State -->
+            <div id="loadingState" style="display: none;">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            </div>
+
+            <!-- Cards State -->
+            <div class="cards-container" id="cardsContainer">
+                <div class="card-wrapper">
+                    <div class="swipe-card">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400" alt="Profile" class="card-image">
+                        <div class="card-content">
+                            <div class="card-header">
+                                <div>
+                                    <span class="card-name">Alex</span>
+                                    <span class="card-age">, 28</span>
+                                    <span class="verified-badge">✓ Verified</span>
+                                    <span class="distance-badge">📍 5 km</span>
+                                </div>
+                            </div>
+                            <p class="card-bio">Love hiking, coffee, and good conversations. Looking for someone to explore the city with!</p>
+                            <div class="card-interests">
+                                <span class="interest-tag">hiking</span>
+                                <span class="interest-tag">coffee</span>
+                                <span class="interest-tag">travel</span>
+                                <span class="interest-tag">photography</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-container" id="emptyState" style="display: none;">
+                <div class="empty-icon">👥</div>
+                <h2 class="empty-title">No Profiles Yet 🌟</h2>
+                <p class="empty-text">Check back soon for new profiles, or adjust your preferences to see more matches!</p>
+                <div>
+                    <button class="empty-button" onclick="adjustPreferences()">Adjust Preferences</button>
+                    <button class="empty-button" onclick="refresh()">Refresh</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons-container" id="actionButtons">
+            <div class="undo-button" onclick="undoSwipe()" style="display: none;" id="undoButton">↶</div>
+            <div class="action-button dislike-button" onclick="handleSwipe('left')">✕</div>
+            <div class="action-button super-like-button" onclick="handleSwipe('superlike')">
+                ⭐
+                <div class="limit-badge" id="superLikeLimit" style="display: none;">🔒</div>
+            </div>
+            <div class="action-button like-button" onclick="handleSwipe('right')">♥</div>
+        </div>
+
+        <!-- Login Modal -->
+        <div class="modal" id="loginModal">
+            <div class="modal-header">
+                <div class="close-button" onclick="hideLoginModal()">✕</div>
+                <h2 class="modal-title" id="modalTitle">Join Our Community!</h2>
+                <p class="modal-subtitle" id="modalSubtitle">Create a free account to unlock all features and start matching!</p>
+            </div>
+            <div class="modal-content">
+                <p style="color: #666; margin-bottom: 20px;">Login form would appear here</p>
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; border-radius: 15px; color: white; font-weight: 700; cursor: pointer;" onclick="hideLoginModal()">
+                    Continue
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isGuest = false;
+        let isPremium = false;
+        let guestViewCount = 0;
+
+        function showLoginModal(reason) {
+            const messages = {
+                'swipe': { title: '💕 Ready to Match?', subtitle: 'Create a free account to start swiping and find your match!' },
+                'like': { title: '❤️ Like This Person?', subtitle: 'Sign up to let them know you\'re interested!' },
+                'superlike': { title: '⭐ Super Like?', subtitle: 'Create an account to send Super Likes and stand out!' },
+                'view': { title: '👀 Want to See More?', subtitle: 'Sign up to view full profiles and photos!' },
+                'limit': { title: '🔥 You\'re on Fire!', subtitle: 'You\'ve viewed 10 profiles! Sign up free to see unlimited matches and start connecting.' },
+                'banner': { title: '💕 Ready to Match?', subtitle: 'Join thousands of singles and start your dating journey today!' }
+            };
+            
+            const msg = messages[reason] || messages['banner'];
+            document.getElementById('modalTitle').textContent = msg.title;
+            document.getElementById('modalSubtitle').textContent = msg.subtitle;
+            document.getElementById('loginModal').classList.add('show');
+        }
+
+        function hideLoginModal() {
+            document.getElementById('loginModal').classList.remove('show');
+        }
+
+        function handleSwipe(direction) {
+            if (isGuest) {
+                if (direction === 'left') {
+                    guestViewCount++;
+                    if (guestViewCount >= 10) {
+                        showLoginModal('limit');
+                    }
+                } else {
+                    showLoginModal(direction === 'superlike' ? 'superlike' : 'like');
+                }
+                return;
+            }
+
+            // Authenticated user swipe logic
+            console.log('Swipe:', direction);
+            // Show undo button
+            document.getElementById('undoButton').style.display = 'flex';
+        }
+
+        function undoSwipe() {
+            console.log('Undo last swipe');
+            document.getElementById('undoButton').style.display = 'none';
+        }
+
+        function navigateToPremium() {
+            console.log('Navigate to Premium');
+        }
+
+        function adjustPreferences() {
+            console.log('Adjust preferences');
+        }
+
+        function refresh() {
+            console.log('Refresh profiles');
+        }
+
+        // Toggle between guest and authenticated views
+        function toggleView() {
+            isGuest = !isGuest;
+            document.getElementById('guestBanner').style.display = isGuest ? 'flex' : 'none';
+            document.getElementById('premiumHeader').style.display = isGuest ? 'none' : 'flex';
+            document.getElementById('aiQuickAccess').style.display = (isGuest || !isPremium) ? 'none' : 'block';
+        }
+
+        // Initialize view
+        // Uncomment to show guest mode by default:
+        // toggleView();
+    </script>
+</body>
+</html>

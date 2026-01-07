@@ -197,6 +197,34 @@ messageSchema.statics.markMatchAsRead = function (matchId, userId) {
   );
 };
 
+// Method to add a reaction to the message
+/** @this {import('../types/index').MessageDocument} */
+messageSchema.methods.addReaction = function (userId, emoji) {
+  // Remove existing reaction from this user for this emoji if it exists
+  this.reactions = this.reactions.filter(
+    (reaction) => !(reaction.userId.toString() === userId.toString() && reaction.emoji === emoji)
+  );
+
+  // Add new reaction
+  this.reactions.push({
+    emoji,
+    userId,
+    createdAt: new Date(),
+  });
+
+  return this.save();
+};
+
+// Method to remove a reaction from the message
+/** @this {import('../types/index').MessageDocument} */
+messageSchema.methods.removeReaction = function (userId, emoji) {
+  this.reactions = this.reactions.filter(
+    (reaction) => !(reaction.userId.toString() === userId.toString() && reaction.emoji === emoji)
+  );
+
+  return this.save();
+};
+
 // Pre-save middleware to ensure sender and receiver are different
 messageSchema.pre('save', function (next) {
   if (this.senderId.toString() === this.receiverId.toString()) {

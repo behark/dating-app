@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
-import { API_BASE_URL } from '../config/api';
+import api from '../services/api';
 import logger from '../utils/logger';
 import { useAuth } from '../context/AuthContext';
 
@@ -31,9 +31,7 @@ const SuperLikeScreen = ({ route, navigation }) => {
   const fetchQuota = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/interactions/super-like-quota`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-      });
+      const response = await api.get('/interactions/super-like-quota');
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
@@ -82,16 +80,9 @@ const SuperLikeScreen = ({ route, navigation }) => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/interactions/super-like`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({
-          recipientId: userId,
-          message: message || null,
-        }),
+      const response = await api.post('/interactions/super-like', {
+        recipientId: userId,
+        message: message || null,
       });
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

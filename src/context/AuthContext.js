@@ -345,18 +345,18 @@ export const AuthProvider = ({ children }) => {
       let finalLocation = location;
 
       if (!location || !location.coordinates || !Array.isArray(location.coordinates)) {
-        // Use default location (San Francisco) if not provided
+        // Use default location (London - more neutral global default) if not provided
         logger.warn('Location not provided during signup, using default location');
         finalLocation = {
           type: 'Point',
-          coordinates: [-122.4194, 37.7749], // San Francisco default
+          coordinates: [-0.1278, 51.5074], // London default - more neutral than SF
         };
       } else if (location.type !== 'Point' || location.coordinates.length !== 2) {
         // Validate location format if provided
         logger.warn('Invalid location format, using default location');
         finalLocation = {
           type: 'Point',
-          coordinates: [-122.4194, 37.7749], // San Francisco default
+          coordinates: [-0.1278, 51.5074], // London default - more neutral than SF
         };
       }
 
@@ -688,120 +688,7 @@ export const AuthProvider = ({ children }) => {
     await logout();
   };
 
-  // Session timeout warning - Check token expiry and warn user 5 minutes before
-  // Must be after logout and refreshSession are defined
-  useEffect(() => {
-    if (!authToken) {
-      // Clear interval if no token
-      if (sessionCheckIntervalRef.current) {
-        clearInterval(sessionCheckIntervalRef.current);
-        sessionCheckIntervalRef.current = null;
-      }
-      setSessionWarningShown(false);
-      return;
-    }
 
-    const checkTokenExpiry = async () => {
-      try {
-        const decoded = decodeJWT(authToken);
-        if (!decoded || !decoded.exp) {
-          return;
-        }
-
-        const expiryTime = decoded.exp * 1000; // Convert to milliseconds
-        const currentTime = Date.now();
-        const timeUntilExpiry = expiryTime - currentTime;
-        const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-        // Warn user 5 minutes before expiry
-        if (timeUntilExpiry > 0 && timeUntilExpiry <= fiveMinutes && !sessionWarningShown) {
-          setSessionWarningShown(true);
-
-          const minutesRemaining = Math.round(timeUntilExpiry / 60000);
-
-          // Show alert with option to refresh
-          Alert.alert(
-            'Session Expiring Soon',
-            `Your session will expire in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}. Would you like to stay logged in?`,
-            [
-              {
-                text: 'Stay Logged In',
-                onPress: async () => {
-                  try {
-                    const newToken = await refreshSession();
-                    if (newToken) {
-                      Alert.alert('Success', 'Your session has been extended.');
-                    } else {
-                      Alert.alert('Error', 'Failed to refresh session. Please login again.');
-                      await logout();
-                    }
-                  } catch (error) {
-                    logger.error('Error refreshing session from warning', error);
-                    Alert.alert('Error', 'Failed to refresh session. Please login again.');
-                    await logout();
-                  }
-                },
-              },
-              {
-                text: 'Later',
-                style: 'cancel',
-                onPress: () => {
-                  // Reset warning after 1 minute to show again if still close to expiry
-                  setTimeout(() => {
-                    setSessionWarningShown(false);
-                  }, 60000);
-                },
-              },
-            ],
-            { cancelable: false }
-          );
-        }
-
-        // Auto-refresh if less than 1 minute remaining
-        if (timeUntilExpiry > 0 && timeUntilExpiry <= 60000 && !sessionWarningShown) {
-          logger.info('Auto-refreshing token - less than 1 minute remaining');
-          try {
-            const newToken = await refreshSession();
-            if (!newToken) {
-              // Auto-refresh failed, show warning
-              Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
-                { text: 'OK', onPress: () => logout() },
-              ]);
-            }
-          } catch (error) {
-            logger.error('Error auto-refreshing token', error);
-            Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
-              { text: 'OK', onPress: () => logout() },
-            ]);
-          }
-        }
-
-        // If token already expired, logout
-        if (timeUntilExpiry <= 0) {
-          logger.warn('Token expired, logging out');
-          Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
-            { text: 'OK', onPress: () => logout() },
-          ]);
-        }
-      } catch (error) {
-        logger.error('Error checking token expiry', error);
-      }
-    };
-
-    // Check immediately
-    checkTokenExpiry();
-
-    // Check every 30 seconds
-    sessionCheckIntervalRef.current = setInterval(checkTokenExpiry, 30000);
-
-    return () => {
-      if (sessionCheckIntervalRef.current) {
-        clearInterval(sessionCheckIntervalRef.current);
-        sessionCheckIntervalRef.current = null;
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authToken, sessionWarningShown]); // refreshSession and logout are stable functions
 
   const signInWithGoogle = async (idToken) => {
     try {

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { memo, useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Animated, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Platform, StyleSheet, Text, View } from 'react-native';
 import { Colors } from '../constants/colors';
 import logger from '../utils/logger';
 
@@ -22,17 +22,18 @@ const LoadingPlaceholder = memo(({ message = 'Loading...' }) => {
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    const nativeDriver = Platform.OS !== 'web';
     Animated.loop(
       Animated.sequence([
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 800,
-          useNativeDriver: true,
+          useNativeDriver: nativeDriver,
         }),
         Animated.timing(fadeAnim, {
           toValue: 0.3,
           duration: 800,
-          useNativeDriver: true,
+          useNativeDriver: nativeDriver,
         }),
       ])
     ).start();

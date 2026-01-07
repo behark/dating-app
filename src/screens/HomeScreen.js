@@ -7,11 +7,13 @@ import {
   Dimensions,
   InteractionManager,
   Modal,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import SkeletonCard from '../components/Card/SkeletonCard';
@@ -129,6 +131,7 @@ const HomeScreen = ({ navigation }) => {
   const { currentUser, authToken } = useAuth();
   const { theme } = useTheme();
   const { isOnline } = useNetworkStatus();
+  const { width: windowWidth } = useWindowDimensions();
   const styles = getStyles(theme);
 
   // Guest mode state
@@ -169,7 +172,12 @@ const HomeScreen = ({ navigation }) => {
   const userId = currentUser?.uid || currentUser?._id;
 
   // Guest mode: Show login prompt helper
+  const lastPromptRef = useRef(0);
   const promptLogin = useCallback((reason) => {
+    if (showLoginModal) return;
+    const now = Date.now();
+    if (now - lastPromptRef.current < 2000) return;
+    lastPromptRef.current = now;
     setLoginPromptReason(reason);
     setShowLoginModal(true);
     AnalyticsService.logEvent('guest_login_prompt', { 
@@ -177,7 +185,7 @@ const HomeScreen = ({ navigation }) => {
       viewCount: guestViewCount,
       profilesViewed: guestViewCount 
     });
-  }, [guestViewCount]);
+  }, [guestViewCount, showLoginModal]);
 
   // Guest mode: Get prompt message based on action
   const getLoginPromptMessage = () => {
@@ -217,21 +225,30 @@ const HomeScreen = ({ navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
+      let isActive = true;
       // Track screen view for analytics
       AnalyticsService.logScreenView('Home');
-      
-      if (isGuest) {
-        // Guest mode: Load demo profiles
-        setCards(GUEST_DEMO_PROFILES);
-        setLoading(false);
-      } else if (userId) {
-        // Authenticated: Initialize location first, then load cards after location is available
-        initializeLocation().then(() => {
-          loadCards();
-        });
-        loadPremiumStatus();
-        loadGamificationData();
-      }
+
+      (async () => {
+        if (isGuest) {
+          // Guest mode: Load demo profiles
+          setCards(GUEST_DEMO_PROFILES);
+          setLoading(false);
+          return;
+        }
+        if (userId) {
+          const loc = await initializeLocation();
+          if (!isActive) return;
+          await loadCards(loc);
+          if (!isActive) return;
+          loadPremiumStatus();
+          loadGamificationData();
+        }
+      })();
+
+      return () => {
+        isActive = false;
+      };
     }, [userId, isGuest])
   );
 
@@ -295,6 +312,7 @@ const HomeScreen = ({ navigation }) => {
       }
 
       setUserLocation(location);
+      return location;
     } catch (error) {
       logger.error('Error initializing location:', error);
       // Use NYC as default location on error (better than 0,0)
@@ -304,6 +322,7 @@ const HomeScreen = ({ navigation }) => {
         accuracy: null,
       };
       setUserLocation(defaultLocation);
+      return defaultLocation;
     } finally {
       setLocationUpdating(false);
     }
@@ -350,7 +369,7 @@ const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
-  const loadCards = async () => {
+  const loadCards = async (loc) => {
     if (!userId) {
       setLoading(false);
       return;
@@ -373,8 +392,8 @@ const HomeScreen = ({ navigation }) => {
       // Use repository to get discoverable users - returns empty array on error
       const availableUsers = await userRepository.getDiscoverableUsers(userId, {
         limit: 50,
-        lat: userLocation?.latitude,
-        lng: userLocation?.longitude,
+        lat: (loc?.latitude ?? userLocation?.latitude),
+        lng: (loc?.longitude ?? userLocation?.longitude),
         radius: discoveryRadius * 1000, // Convert km to meters
       });
 
@@ -414,15 +433,39 @@ const HomeScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
+  const applySwipeUIOptimistic = useCallback((direction, card) => {
+    startTransition(() => {
+      setLastSwipedCard({ card, direction, swipeId: null });
+      setCurrentIndex((prev) => prev + 1);
+      const newCount = swipesUsedToday + 1;
+      setSwipesUsedToday(newCount);
+      if (!isPremium) {
+        setSwipesRemaining(Math.max(0, 50 - newCount));
+      }
+    });
+  }, [isPremium, swipesUsedToday]);
+
+  const reconcileSwipeCounters = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const count = await SwipeController.getSwipesCountToday(userId);
+      startTransition(() => {
+        setSwipesUsedToday(count);
+        if (!isPremium) {
+          setSwipesRemaining(Math.max(0, 50 - count));
+        }
+      });
+    } catch (e) {
+      logger.error('Error reconciling swipe counters', e);
+    }
+  }, [userId, isPremium]);
+
   const handleSwipeRight = useCallback(
     async (card) => {
       // Guest mode: Prompt login on swipe
       if (isGuest) {
-        // Increment view count for guest
         const newViewCount = guestViewCount + 1;
         setGuestViewCount(newViewCount);
-        
-        // Show login prompt
         promptLogin('like');
         return;
       }
@@ -431,37 +474,21 @@ const HomeScreen = ({ navigation }) => {
       const cardId = card.id || card._id;
       const now = Date.now();
       const lastSwipeTime = swipeTimestampsRef.current.get(cardId) || 0;
-
       if (now - lastSwipeTime < SWIPE_DEBOUNCE_MS) {
         logger.info('Swipe debounced - too rapid');
-        return; // Ignore rapid duplicate swipe
+        return;
       }
-
-      // Also check if any swipe is in progress
       if (isSwipingRef.current) {
         logger.info('Swipe ignored - another swipe in progress');
         return;
       }
 
-      // Mark this card as being swiped
       swipeTimestampsRef.current.set(cardId, now);
       isSwipingRef.current = true;
 
-      // Immediately update UI (non-blocking)
-      startTransition(() => {
-        setLastSwipedCard({ card, direction: 'right', swipeId: null });
-        setCurrentIndex((prev) => prev + 1);
-        const newCount = swipesUsedToday + 1;
-        setSwipesUsedToday(newCount);
-        if (!isPremium) {
-          setSwipesRemaining(Math.max(0, 50 - newCount));
-        }
-      });
-
-      // Haptic feedback for like action
+      // Optimistic UI
+      applySwipeUIOptimistic('right', card);
       HapticFeedback.swipeFeedback('right');
-
-      // Show heart animation immediately
       setShowHeartAnimation(true);
 
       // Defer heavy async work to avoid blocking UI
@@ -470,7 +497,6 @@ const HomeScreen = ({ navigation }) => {
           // Check swipe limit
           const limitCheck = await SwipeController.checkSwipeLimit(userId, isPremium);
           if (!limitCheck.canSwipe) {
-            isSwipingRef.current = false;
             setTimeout(() => {
               Alert.alert(
                 UI_MESSAGES.DAILY_LIMIT_REACHED,
@@ -484,14 +510,9 @@ const HomeScreen = ({ navigation }) => {
             return;
           }
 
-          // Use SwipeController to save the swipe and check for matches
+          // Save the swipe and check for matches
           const result = await SwipeController.saveSwipe(userId, cardId, 'like', isPremium);
-
-          // Track swipe analytics
           AnalyticsService.logSwipe('like', cardId);
-
-          // Reset swiping flag
-          isSwipingRef.current = false;
 
           if (!result.success) {
             if (result.limitExceeded) {
@@ -502,7 +523,6 @@ const HomeScreen = ({ navigation }) => {
                 );
               }, 0);
             } else if (!result.alreadyProcessed) {
-              // Only show error if it's not a duplicate (already processed is OK)
               setTimeout(() => {
                 Alert.alert('Error', result.error || 'Failed to save swipe');
               }, 0);
@@ -514,9 +534,6 @@ const HomeScreen = ({ navigation }) => {
           startTransition(() => {
             setLastSwipedCard({ card, direction: 'right', swipeId: result.swipeId });
           });
-
-          // Show heart animation for successful like
-          setShowHeartAnimation(true);
 
           // Track swipe for gamification (deferred, non-critical)
           setTimeout(async () => {
@@ -535,7 +552,6 @@ const HomeScreen = ({ navigation }) => {
 
           // If it's a match, show the success animation (deferred)
           if (result.match && result.matchId) {
-            // Celebratory haptic pattern for match
             HapticFeedback.matchCelebration();
             setTimeout(() => {
               setSuccessMessage(`🎉 Match with ${card.name}!`);
@@ -547,10 +563,13 @@ const HomeScreen = ({ navigation }) => {
           setTimeout(() => {
             Alert.alert('Error', 'Failed to process swipe');
           }, 0);
+        } finally {
+          isSwipingRef.current = false;
+          await reconcileSwipeCounters();
         }
       });
     },
-    [userId, isPremium, swipesUsedToday, navigation, isGuest, guestViewCount, promptLogin]
+    [userId, isPremium, navigation, isGuest, guestViewCount, promptLogin, applySwipeUIOptimistic, reconcileSwipeCounters]
   );
 
   const handleSwipeLeft = useCallback(
@@ -560,8 +579,6 @@ const HomeScreen = ({ navigation }) => {
         const newViewCount = guestViewCount + 1;
         setGuestViewCount(newViewCount);
         setCurrentIndex((prev) => prev + 1);
-        
-        // Prompt login after viewing several profiles
         if (newViewCount >= GUEST_FREE_VIEWS) {
           promptLogin('limit');
         }
@@ -572,12 +589,10 @@ const HomeScreen = ({ navigation }) => {
       const cardId = card.id || card._id;
       const now = Date.now();
       const lastSwipeTime = swipeTimestampsRef.current.get(cardId) || 0;
-
       if (now - lastSwipeTime < SWIPE_DEBOUNCE_MS) {
         logger.info('Swipe debounced - too rapid');
         return;
       }
-
       if (isSwipingRef.current) {
         logger.info('Swipe ignored - another swipe in progress');
         return;
@@ -586,18 +601,8 @@ const HomeScreen = ({ navigation }) => {
       swipeTimestampsRef.current.set(cardId, now);
       isSwipingRef.current = true;
 
-      // Immediately update UI (non-blocking)
-      startTransition(() => {
-        setLastSwipedCard({ card, direction: 'left', swipeId: null });
-        setCurrentIndex((prev) => prev + 1);
-        const newCount = swipesUsedToday + 1;
-        setSwipesUsedToday(newCount);
-        if (!isPremium) {
-          setSwipesRemaining(Math.max(0, 50 - newCount));
-        }
-      });
-
-      // Haptic feedback for pass action
+      // Optimistic UI
+      applySwipeUIOptimistic('left', card);
       HapticFeedback.swipeFeedback('left');
 
       // Defer heavy async work to avoid blocking UI
@@ -606,7 +611,6 @@ const HomeScreen = ({ navigation }) => {
           // Check swipe limit
           const limitCheck = await SwipeController.checkSwipeLimit(userId, isPremium);
           if (!limitCheck.canSwipe) {
-            isSwipingRef.current = false;
             setTimeout(() => {
               Alert.alert(
                 UI_MESSAGES.DAILY_LIMIT_REACHED,
@@ -620,14 +624,9 @@ const HomeScreen = ({ navigation }) => {
             return;
           }
 
-          // Use SwipeController to save the dislike
+          // Save the dislike
           const result = await SwipeController.saveSwipe(userId, cardId, 'dislike', isPremium);
-
-          // Track swipe analytics
           AnalyticsService.logSwipe('pass', cardId);
-
-          // Reset swiping flag
-          isSwipingRef.current = false;
 
           if (!result.success) {
             if (result.limitExceeded) {
@@ -640,20 +639,20 @@ const HomeScreen = ({ navigation }) => {
             } else if (!result.alreadyProcessed) {
               logger.error('Error saving swipe:', result.error);
             }
-            // Continue anyway to update UI
           }
 
-          // Update lastSwipedCard with swipeId for undo functionality (non-blocking)
           startTransition(() => {
             setLastSwipedCard({ card, direction: 'left', swipeId: result.swipeId });
           });
         } catch (error) {
-          isSwipingRef.current = false;
           logger.error('Error handling swipe:', error);
+        } finally {
+          isSwipingRef.current = false;
+          await reconcileSwipeCounters();
         }
       });
     },
-    [userId, isPremium, swipesUsedToday, navigation, isGuest, guestViewCount, promptLogin]
+    [userId, isPremium, navigation, isGuest, guestViewCount, promptLogin, applySwipeUIOptimistic, reconcileSwipeCounters]
   );
 
   const handleSuperLike = useCallback(
@@ -663,11 +662,6 @@ const HomeScreen = ({ navigation }) => {
         promptLogin('superlike');
         return;
       }
-
-      // Immediately update UI
-      startTransition(() => {
-        setSuperLikesUsed((prev) => prev + 1);
-      });
 
       // Heavy haptic for super like
       HapticFeedback.heavyImpact();
@@ -699,13 +693,21 @@ const HomeScreen = ({ navigation }) => {
             return;
           }
 
+          // Increment used super likes on success
+          startTransition(() => {
+            setSuperLikesUsed((prev) => prev + 1);
+          });
+
           // Track super like analytics
           AnalyticsService.logSwipe('superlike', targetId);
 
-          // It's automatically a like, so handle as a right swipe
-          await handleSwipeRight(card);
+          // Apply optimistic like UI without double-calling like
+          applySwipeUIOptimistic('right', card);
+          startTransition(() => {
+            setLastSwipedCard({ card, direction: 'right', swipeId: result.swipeId || null });
+          });
 
-          // Show super like feedback (deferred)
+          // Feedback
           setTimeout(() => {
             Alert.alert('💎 Super Liked!', `${card.name} will definitely see your interest!`, [
               { text: 'Awesome!', style: 'default' },
@@ -716,10 +718,12 @@ const HomeScreen = ({ navigation }) => {
           setTimeout(() => {
             Alert.alert('Error', 'Failed to use super like');
           }, 0);
+        } finally {
+          await reconcileSwipeCounters();
         }
       });
     },
-    [userId, premiumFeatures.superLikesPerDay, handleSwipeRight, isGuest, promptLogin]
+    [userId, premiumFeatures.superLikesPerDay, authToken, isGuest, promptLogin, navigation, applySwipeUIOptimistic, reconcileSwipeCounters]
   );
 
   // Guest mode: Handle view profile
@@ -781,12 +785,8 @@ const HomeScreen = ({ navigation }) => {
   // Update swipe counter when undoing
   const undoLastSwipeWithCounter = async () => {
     if (lastSwipedCard) {
-      const prevCount = swipesUsedToday > 0 ? swipesUsedToday - 1 : 0;
       await undoLastSwipe();
-      setSwipesUsedToday(prevCount);
-      if (!isPremium) {
-        setSwipesRemaining(Math.max(0, 50 - prevCount));
-      }
+      await reconcileSwipeCounters();
     }
   };
 
@@ -823,7 +823,7 @@ const HomeScreen = ({ navigation }) => {
             buttonText="Complete Profile"
             onButtonPress={() => {
               HapticFeedback.lightImpact();
-              navigation.navigate('Main', { screen: 'Profile' });
+              navigation.navigate('Profile');
             }}
             variant="gradient"
             iconSize={80}
@@ -1012,18 +1012,22 @@ const HomeScreen = ({ navigation }) => {
             ))
           : cards.length > 0 && (
               <View style={styles.cardsContainer}>
-                {cards
-                  .slice(currentIndex, currentIndex + 3)
-                  .map((card, index) => (
-                    <SwipeCard
-                      key={card.id || card._id}
-                      card={card}
-                      index={currentIndex + index}
-                      onSwipeLeft={handleSwipeLeft}
-                      onSwipeRight={handleSwipeRight}
-                      onViewProfile={() => navigation.navigate('ViewProfile', { userId: card.id || card._id })}
-                    />
-                  ))}
+                <View 
+                  style={styles.cardsWrapper}
+                >
+                  {cards
+                    .slice(currentIndex, currentIndex + 3)
+                    .map((card, index) => (
+                      <SwipeCard
+                        key={card.id || card._id}
+                        card={card}
+                        index={currentIndex + index}
+                        onSwipeLeft={handleSwipeLeft}
+                        onSwipeRight={handleSwipeRight}
+                        onViewProfile={() => navigation.navigate('ViewProfile', { userId: card.id || card._id })}
+                      />
+                    ))}
+                </View>
               </View>
             )}
 
@@ -1193,6 +1197,13 @@ const getStyles = (theme) =>
     container: {
       flex: 1,
       backgroundColor: theme.background.primary,
+      ...Platform.select({
+        web: {
+          // Ensure no padding on web that could affect centering
+          paddingHorizontal: 0,
+          marginHorizontal: 0,
+        },
+      }),
     },
     // Guest mode styles
     guestBanner: {
@@ -1385,12 +1396,48 @@ const getStyles = (theme) =>
       justifyContent: 'center',
       paddingTop: 20,
       paddingBottom: 100,
+      width: '100%', // Ensure full width on web
+      ...Platform.select({
+        web: {
+          // Remove any horizontal padding that could affect centering
+          paddingHorizontal: 0,
+          marginHorizontal: 0,
+        },
+      }),
     },
     cardsContainer: {
-      width: SCREEN_WIDTH,
+      width: '100%',
       position: 'relative',
       alignItems: 'center',
+      justifyContent: 'center',
       minHeight: SCREEN_HEIGHT * 0.75,
+      ...Platform.select({
+        web: {
+          maxWidth: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          // No marginHorizontal - let flexbox handle centering
+        },
+      }),
+    },
+    cardsWrapper: {
+      // On web, use 100% width and let flexbox center the cards
+      width: Platform.OS === 'web' ? '100%' : SCREEN_WIDTH,
+      position: 'relative',
+      alignItems: 'center', // This centers the absolutely positioned cards
+      justifyContent: 'center', // This centers the absolutely positioned cards
+      minHeight: SCREEN_HEIGHT * 0.75,
+      ...Platform.select({
+        web: {
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          // Remove fixed pixel widths - let flexbox handle centering
+        },
+      }),
     },
     loadingContainer: {
       flex: 1,
@@ -1459,10 +1506,19 @@ const getStyles = (theme) =>
       left: 0,
       right: 0,
       flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: 'center', // Centers buttons horizontally
+      alignItems: 'center', // Centers buttons vertically
       paddingHorizontal: 20,
       gap: 15,
+      ...Platform.select({
+        web: {
+          // Ensure perfect centering on web
+          display: 'flex',
+          width: '100%',
+          marginLeft: 0,
+          marginRight: 0,
+        },
+      }),
     },
     undoButton: {
       width: 50,

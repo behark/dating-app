@@ -19,18 +19,19 @@ export const ErrorNotification = ({
   const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    const nativeDriver = Platform.OS !== 'web';
     if (visible) {
       // Slide in
       Animated.parallel([
         Animated.timing(slideAnim, {
           toValue: 0,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver: nativeDriver,
         }),
         Animated.timing(opacityAnim, {
           toValue: 1,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver: nativeDriver,
         }),
       ]).start();
 
@@ -49,16 +50,17 @@ export const ErrorNotification = ({
   }, [visible, autoHideDuration, position]);
 
   const handleDismiss = () => {
+    const nativeDriver = Platform.OS !== 'web';
     Animated.parallel([
       Animated.timing(slideAnim, {
         toValue: position === 'top' ? -100 : 100,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver: nativeDriver,
       }),
       Animated.timing(opacityAnim, {
         toValue: 0,
         duration: 200,
-        useNativeDriver: true,
+        useNativeDriver: nativeDriver,
       }),
     ]).start(() => {
       onDismiss?.();

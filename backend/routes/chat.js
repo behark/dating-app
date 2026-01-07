@@ -9,6 +9,8 @@ const {
   markMessageAsRead,
   getReadReceipts,
   sendEncryptedMessage,
+  addReaction,
+  removeReaction,
 } = require('../controllers/chatController');
 const { authenticate } = require('../middleware/auth');
 
@@ -88,5 +90,27 @@ router.post(
 
 // DELETE /api/chat/messages/:messageId - Delete a message
 router.delete('/messages/:messageId', deleteMessage);
+
+// POST /api/chat/messages/reactions - Add reaction to message
+router.post(
+  '/messages/reactions',
+  [
+    body('messageId').isMongoId().withMessage('Invalid message ID format'),
+    body('reactionId').isString().notEmpty().withMessage('Reaction ID is required'),
+  ],
+  handleValidationErrors,
+  addReaction
+);
+
+// DELETE /api/chat/messages/reactions - Remove reaction from message
+router.delete(
+  '/messages/reactions',
+  [
+    body('messageId').isMongoId().withMessage('Invalid message ID format'),
+    body('reactionId').isString().notEmpty().withMessage('Reaction ID is required'),
+  ],
+  handleValidationErrors,
+  removeReaction
+);
 
 module.exports = router;

@@ -39,9 +39,11 @@ export class SwipeController {
       }
 
       // Use backend API to create swipe
+      // Backend expects 'action' not 'type', and 'dislike' should be 'pass'
+      const action = type === 'dislike' ? 'pass' : type; // Map 'dislike' to 'pass' for backend
       const response = await api.post('/swipes', {
         targetId,
-        type, // 'like' or 'dislike'
+        action, // 'like', 'pass', or 'superlike' (backend expects 'action' not 'type')
       });
 
       if (!response.success) {
@@ -160,29 +162,18 @@ export class SwipeController {
    */
   static async getSwipesCountToday(userId) {
     try {
-      // Use backend API instead of direct Firebase call
-      const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
-      const { API_URL } = await import('../config/api');
-      const authToken = await AsyncStorage.getItem('authToken');
-
-      if (!authToken) {
-        logger.warn('No auth token for getSwipesCountToday, returning 0');
+      // Use unified API client for consistency and error handling
+      const response = await api.get('/swipes/count/today');
+      if (!response) {
+        logger.warn('No response from API for swipes count, returning 0');
         return 0;
       }
-
-      const response = await fetch(`${API_URL}/swipes/count/today`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        logger.warn('Failed to get swipes count from API, returning 0');
+      if (response.success === false) {
+        logger.warn('Failed to get swipes count from API', new Error(response.message));
         return 0;
       }
-
-      const data = await response.json();
-      return data.data?.count || 0;
+      const count = response.data?.count ?? response.count ?? 0;
+      return Number.isFinite(count) ? count : 0;
     } catch (error) {
       logger.error('Error getting swipes count today', error, { userId });
       return 0;

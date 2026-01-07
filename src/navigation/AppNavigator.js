@@ -199,6 +199,14 @@ const RegisterScreen = createLazyScreen(
   }
 );
 
+const PhoneVerificationScreen = createLazyScreen(
+  () => import('../screens/PhoneVerificationScreen').then((module) => ({ default: module.PhoneVerificationScreen })),
+  {
+    loadingMessage: 'Loading...',
+    displayName: 'PhoneVerificationScreen',
+  }
+);
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -545,6 +553,14 @@ const AppNavigator = () => {
                 }}
               />
               <Stack.Screen
+                name="PhoneVerification"
+                component={PhoneVerificationScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
                 name="ForgotPassword"
                 component={ForgotPasswordScreen}
                 options={{
@@ -669,6 +685,22 @@ const AppNavigator = () => {
               <Stack.Screen
                 name="VerifyEmail"
                 component={EmailVerificationScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="TermsOfService"
+                component={TermsOfServiceScreen}
+                options={{
+                  headerShown: false,
+                  presentation: 'card',
+                }}
+              />
+              <Stack.Screen
+                name="PrivacyPolicy"
+                component={PrivacyPolicyScreen}
                 options={{
                   headerShown: false,
                   presentation: 'card',

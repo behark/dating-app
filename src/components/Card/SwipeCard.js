@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRef } from 'react';
+import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { Colors } from '../../constants/colors';
 import ProgressiveImage from '../Common/ProgressiveImage';
 import { LocationService } from '../../services/LocationService';
@@ -38,10 +39,22 @@ const {
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
-const CARD_HEIGHT = SCREEN_HEIGHT * 0.75;
 // CARD_SPACING removed - unused
 
 const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
+  // Use dynamic dimensions for better web support
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  // On web, use window dimensions; on native use static dimensions
+  const screenWidth = Platform.OS === 'web' ? (windowWidth || SCREEN_WIDTH) : SCREEN_WIDTH;
+  const cardHeight = (Platform.OS === 'web' ? (windowHeight || SCREEN_HEIGHT) : SCREEN_HEIGHT) * 0.75;
+  
+  // Calculate card dimensions - use actual window width
+  const cardWidth = Math.max(300, screenWidth - 40); // Ensure minimum width
+  // Calculate center position: parent is 100% width, so center is (100% - cardWidth) / 2
+  // Since parent uses 100% width, we calculate based on screenWidth but account for any padding
+  // The parent has no horizontal padding, so we can use screenWidth directly
+  const cardLeft = (screenWidth - cardWidth) / 2;
+  
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -68,7 +81,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
 
       if (shouldSwipeLeft) {
         // Smooth exit animation to the left
-        translateX.value = withSpring(-SCREEN_WIDTH * 1.5, {
+        translateX.value = withSpring(-screenWidth * 1.5, {
           damping: 10,
           mass: 1,
           overshootClamping: true,
@@ -84,7 +97,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
         runOnJS(onSwipeLeft)(card);
       } else if (shouldSwipeRight) {
         // Smooth exit animation to the right
-        translateX.value = withSpring(SCREEN_WIDTH * 1.5, {
+        translateX.value = withSpring(screenWidth * 1.5, {
           damping: 10,
           mass: 1,
           overshootClamping: true,
@@ -131,9 +144,38 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
     return { opacity };
   });
 
+  // Card dimensions for styling
+  const cardRef = useRef(null);
+
   return (
     <PanGestureHandler onGestureEvent={gestureHandler}>
-      <Animated.View style={[styles.card, cardStyle]} testID="swipe-card">
+      <Animated.View 
+        ref={cardRef}
+        style={[
+          styles.card, 
+          {
+            // Apply dimensions
+            width: cardWidth,
+            height: cardHeight,
+            // Use auto-centering approach
+            ...Platform.select({
+              web: {
+                // On web, use CSS centering: left: 50% with negative margin
+                left: '50%',
+                marginLeft: -(cardWidth / 2), // Offset by half width to center perfectly
+                marginRight: 0,
+              },
+              default: {
+                // On native, calculate left position
+                left: (screenWidth - cardWidth) / 2,
+              },
+            }),
+          },
+          // Apply animated transforms
+          cardStyle,
+        ]} 
+        testID="swipe-card"
+      >
         <ProgressiveImage
           source={{
             uri:
@@ -146,7 +188,11 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
 
         <TouchableOpacity
           style={styles.infoButton}
-          onPress={() => onViewProfile && onViewProfile()}
+          onPress={() => {
+            if (onViewProfile && typeof onViewProfile === 'function') {
+              onViewProfile();
+            }
+          }}
           activeOpacity={0.8}
           testID="info-button"
         >
@@ -219,10 +265,8 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
 
 const styles = StyleSheet.create({
   card: {
+    // Use absolute positioning for stacking cards
     position: 'absolute',
-    width: SCREEN_WIDTH - 40,
-    left: (SCREEN_WIDTH - (SCREEN_WIDTH - 40)) / 2, // Center the card: (screen width - card width) / 2
-    height: CARD_HEIGHT,
     borderRadius: 30,
     backgroundColor: Colors.background.white,
     shadowColor: Colors.text.primary,
@@ -231,6 +275,12 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 15,
     overflow: 'hidden',
+    ...Platform.select({
+      web: {
+        // Optimize for animations
+        willChange: 'transform',
+      },
+    }),
   },
   image: {
     width: '100%',

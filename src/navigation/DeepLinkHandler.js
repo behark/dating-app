@@ -104,7 +104,7 @@ export const parseDeepLink = (url) => {
 export const useDeepLinking = (navigation) => {
   useEffect(() => {
     if (!navigation) {
-      console.warn('Navigation object not provided to useDeepLinking');
+      __DEV__ && console.warn('Navigation object not provided to useDeepLinking - deep linking disabled');
       return;
     }
 
