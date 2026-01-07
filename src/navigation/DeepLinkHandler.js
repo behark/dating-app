@@ -41,7 +41,7 @@ export const parseDeepLink = (url) => {
       case 'profile':
         if (!id) return null;
         return {
-          screen: 'Profile',
+          screen: 'ViewProfile',
           params: { userId: id },
         };
 
@@ -58,25 +58,25 @@ export const parseDeepLink = (url) => {
       case 'matches':
         if (id) {
           return {
-            screen: 'Match',
-            params: { matchId: id },
+            screen: 'Main',
+            params: { screen: 'Matches' },
           };
         }
         return {
-          screen: 'Matches',
-          params: {},
+          screen: 'Main',
+          params: { screen: 'Matches' },
         };
 
       case 'discover':
       case 'swipe':
         return {
-          screen: 'Discover',
-          params: {},
+          screen: 'Main',
+          params: { screen: 'Discover' },
         };
 
       case 'settings':
         return {
-          screen: 'Settings',
+          screen: 'Preferences',
           params: {},
         };
 
@@ -167,12 +167,11 @@ export const createDeepLink = (screen, params = {}) => {
   
   // Map screen names to URL paths
   const screenPaths = {
-    Profile: 'profile',
+    ViewProfile: 'profile',
     Chat: 'chat',
-    Match: 'match',
     Matches: 'matches',
     Discover: 'discover',
-    Settings: 'settings',
+    Preferences: 'settings',
     Premium: 'premium',
   };
 
