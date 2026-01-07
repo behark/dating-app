@@ -126,10 +126,7 @@ exports.viewProfile = async (req, res) => {
     const { userId } = req.params;
 
     if (viewerId.toString() === userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot view your own profile',
-      });
+      return sendError(res, 400, { message: 'Cannot view your own profile' });
     }
 
     // Check if already viewed in last 24 hours
@@ -258,10 +255,7 @@ exports.getMultipleStatus = async (req, res) => {
     const requestingUserId = req.user._id;
 
     if (!Array.isArray(userIds) || userIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'userIds must be a non-empty array',
-      });
+      return sendError(res, 400, { message: 'userIds must be a non-empty array' });
     }
 
     // SECURITY: Only return status for users who are matched with the requesting user
@@ -332,11 +326,7 @@ exports.getMultipleStatus = async (req, res) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Get multiple status error:', errorMessage);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching status',
-      error: errorMessage,
-    });
+    sendError(res, 500, { message: 'Error fetching status', error: errorMessage, });
   }
 };
 
@@ -356,10 +346,6 @@ exports.heartbeat = async (req, res) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Heartbeat error:', errorMessage);
-    res.status(500).json({
-      success: false,
-      message: 'Error recording heartbeat',
-      error: errorMessage,
-    });
+    sendError(res, 500, { message: 'Error recording heartbeat', error: errorMessage, });
   }
 };

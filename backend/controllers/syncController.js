@@ -21,10 +21,7 @@ exports.executeSync = async (req, res) => {
     const { actions } = req.body;
 
     if (!actions || !Array.isArray(actions) || actions.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Actions array is required',
-      });
+      return sendError(res, 400, { message: 'Actions array is required' });
     }
 
     const results = [];
@@ -181,11 +178,7 @@ exports.executeSync = async (req, res) => {
     });
   } catch (error) {
     logger.error('Execute sync error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error executing sync',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error executing sync', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -481,11 +474,7 @@ exports.getConflicts = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get conflicts error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching conflicts',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error fetching conflicts', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -499,17 +488,11 @@ exports.resolveConflict = async (req, res) => {
     const { actionId, resolution, mergedData } = req.body;
 
     if (!actionId || !resolution) {
-      return res.status(400).json({
-        success: false,
-        message: 'actionId and resolution are required',
-      });
+      return sendError(res, 400, { message: 'actionId and resolution are required' });
     }
 
     if (!['use_local', 'use_server', 'merge'].includes(resolution)) {
-      return res.status(400).json({
-        success: false,
-        message: 'resolution must be one of: use_local, use_server, merge',
-      });
+      return sendError(res, 400, { message: 'resolution must be one of: use_local, use_server, merge' });
     }
 
     const action = await OfflineAction.findOne({
@@ -537,10 +520,7 @@ exports.resolveConflict = async (req, res) => {
       // Merge data and execute
       result = await executeActionByType(userId, action.type, mergedData, action.timestamp);
     } else {
-      return res.status(400).json({
-        success: false,
-        message: 'mergedData is required for merge resolution',
-      });
+      return sendError(res, 400, { message: 'mergedData is required for merge resolution' });
     }
 
     // Update action
@@ -569,11 +549,7 @@ exports.resolveConflict = async (req, res) => {
     });
   } catch (error) {
     logger.error('Resolve conflict error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error resolving conflict',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error resolving conflict', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -629,10 +605,6 @@ exports.getSyncStatus = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get sync status error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching sync status',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error fetching sync status', error: error instanceof Error ? error.message : String(error), });
   }
 };

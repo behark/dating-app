@@ -6,6 +6,16 @@
 const PerformanceMetric = require('../models/PerformanceMetric');
 const { getPerformanceMetrics } = require('../middleware/performanceMonitoring');
 const { logger } = require('../services/LoggingService');
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 
 /**
  * Get real-time performance metrics

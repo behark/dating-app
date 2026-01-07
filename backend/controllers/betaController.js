@@ -57,11 +57,7 @@ exports.enroll = async (req, res) => {
     });
   } catch (error) {
     logger.error('Beta enrollment error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error enrolling in beta program',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error enrolling in beta program', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -95,11 +91,7 @@ exports.getStatus = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get beta status error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching beta status',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error fetching beta status', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -125,18 +117,12 @@ exports.submitFeedback = async (req, res) => {
 
     // Validate required fields
     if (!type || !category || !title || !description) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields: type, category, title, description',
-      });
+      return sendError(res, 400, { message: 'Missing required fields: type, category, title, description' });
     }
 
     // Validate type
     if (!['general', 'feature', 'bug', 'suggestion'].includes(type)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid type. Must be one of: general, feature, bug, suggestion',
-      });
+      return sendError(res, 400, { message: 'Invalid type. Must be one of: general, feature, bug, suggestion' });
     }
 
     // Create feedback
@@ -189,11 +175,7 @@ exports.submitFeedback = async (req, res) => {
     });
   } catch (error) {
     logger.error('Submit feedback error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error submitting feedback',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error submitting feedback', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -244,11 +226,7 @@ exports.getFeedback = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get feedback error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching feedback',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error fetching feedback', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -303,11 +281,7 @@ exports.recordSession = async (req, res) => {
     });
   } catch (error) {
     logger.error('Record session error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error recording session',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error recording session', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -360,11 +334,7 @@ exports.getAnalytics = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get beta analytics error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching beta analytics',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error fetching beta analytics', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -407,11 +377,7 @@ exports.updateFeedbackStatus = async (req, res) => {
     });
   } catch (error) {
     logger.error('Update feedback status error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error updating feedback status',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error updating feedback status', error: error instanceof Error ? error.message : String(error), });
   }
 };
 

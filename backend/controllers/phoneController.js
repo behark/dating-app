@@ -92,18 +92,12 @@ exports.sendPhoneVerification = async (req, res) => {
     const { phoneNumber } = req.body;
 
     if (!phoneNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Phone number is required',
-      });
+      return sendError(res, 400, { message: 'Phone number is required' });
     }
 
     // Validate phone number format (basic validation)
     if (!/^\+?[1-9]\d{1,14}$/.test(phoneNumber.replace(/\D/g, ''))) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid phone number format',
-      });
+      return sendError(res, 400, { message: 'Invalid phone number format' });
     }
 
     const user = await User.findById(userId);
@@ -118,10 +112,7 @@ exports.sendPhoneVerification = async (req, res) => {
     if (phoneNumber !== user.phoneNumber) {
       const existingUser = await User.findOne({ phoneNumber });
       if (existingUser) {
-        return res.status(400).json({
-          success: false,
-          message: 'Phone number already in use',
-        });
+        return sendError(res, 400, { message: 'Phone number already in use' });
       }
     }
 
@@ -143,11 +134,7 @@ exports.sendPhoneVerification = async (req, res) => {
     });
   } catch (error) {
     logger.error('Send phone verification error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error sending verification code',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error sending verification code', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -160,10 +147,7 @@ exports.verifyPhone = async (req, res) => {
     const { code } = req.body;
 
     if (!code) {
-      return res.status(400).json({
-        success: false,
-        message: 'Verification code is required',
-      });
+      return sendError(res, 400, { message: 'Verification code is required' });
     }
 
     const user = await User.findById(userId);
@@ -176,18 +160,12 @@ exports.verifyPhone = async (req, res) => {
 
     // Check verification code
     if (user.phoneVerificationCode !== code) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid verification code',
-      });
+      return sendError(res, 400, { message: 'Invalid verification code' });
     }
 
     // Check code expiry
     if (user.phoneVerificationCodeExpiry && new Date() > user.phoneVerificationCodeExpiry) {
-      return res.status(400).json({
-        success: false,
-        message: 'Verification code has expired',
-      });
+      return sendError(res, 400, { message: 'Verification code has expired' });
     }
 
     // Mark phone as verified
@@ -202,11 +180,7 @@ exports.verifyPhone = async (req, res) => {
     });
   } catch (error) {
     logger.error('Verify phone error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error verifying phone',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error verifying phone', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -226,10 +200,7 @@ exports.resendPhoneVerification = async (req, res) => {
     }
 
     if (!user.phoneNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Phone number not set',
-      });
+      return sendError(res, 400, { message: 'Phone number not set' });
     }
 
     // Check if user requested code too recently (cooldown)
@@ -258,10 +229,6 @@ exports.resendPhoneVerification = async (req, res) => {
     });
   } catch (error) {
     logger.error('Resend phone verification error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error resending verification code',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error resending verification code', error: error instanceof Error ? error.message : String(error), });
   }
 };

@@ -521,13 +521,13 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/profile/enhanced', enhancedProfileRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/social-media', socialMediaRoutes);
+app.use('/api/discovery', discoveryEnhancementsRoutes);
 app.use('/api', discoveryRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/chat/media', mediaMessagesRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/swipes', swipeRoutes);
 app.use('/api/interactions', advancedInteractionsRoutes);
-app.use('/api/discovery', discoveryEnhancementsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/safety', safetyRoutes);
 app.use('/api/premium', premiumRoutes);
@@ -632,6 +632,7 @@ app.use((error, req, res, next) => {
         return res.status(400).json({
           success: false,
           message: 'Validation failed',
+          error: 'VALIDATION_ERROR',
           errors,
         });
       }
@@ -644,6 +645,7 @@ app.use((error, req, res, next) => {
         return res.status(409).json({
           success: false,
           message: 'Duplicate entry found',
+          error: 'DUPLICATE_ENTRY',
         });
       }
       return;
@@ -655,6 +657,7 @@ app.use((error, req, res, next) => {
         return res.status(error.statusCode).json({
           success: false,
           message: error.message,
+          error: error.code || 'CUSTOM_ERROR',
         });
       }
       return;
@@ -665,6 +668,7 @@ app.use((error, req, res, next) => {
       res.status(500).json({
         success: false,
         message: 'Internal server error',
+        error: 'INTERNAL_ERROR',
       });
     }
   });

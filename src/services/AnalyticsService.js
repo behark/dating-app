@@ -4,54 +4,74 @@ import { Platform } from 'react-native';
  * AnalyticsService
  * Handles analytics tracking and event logging
  *
- * Note: This requires installation of analytics library:
- * For Firebase: npx expo install expo-firebase-analytics @react-native-firebase/app @react-native-firebase/analytics
- * For Segment: npm install @segment/analytics-react-native
+ * Uses Firebase JS SDK Analytics (firebase/analytics) for web
+ * For React Native, analytics will gracefully degrade if not available
  */
 
 let Analytics = null;
 let analyticsLoadAttempted = false;
 
-// Lazy load analytics to ensure Firebase is initialized first on web
+// Lazy load analytics to ensure Firebase is initialized first
 const loadAnalytics = async () => {
   if (analyticsLoadAttempted) return Analytics;
   analyticsLoadAttempted = true;
   
   try {
-    // On web, ensure Firebase is initialized before importing expo-firebase-analytics
-    if (Platform.OS === 'web') {
-      const { getApps, initializeApp } = require('firebase/app');
-      const Constants = require('expo-constants').default;
-      
-      const apps = getApps();
-      if (apps.length === 0) {
-        // Firebase not initialized - try to initialize it first
-        const firebaseConfig = {
-          apiKey: Constants.expoConfig?.extra?.firebaseApiKey || process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-          authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain || process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-          projectId: Constants.expoConfig?.extra?.firebaseProjectId || process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-          storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket || process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-          messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId || process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-          appId: Constants.expoConfig?.extra?.firebaseAppId || process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-        };
-        
-        if (firebaseConfig.apiKey && firebaseConfig.projectId) {
-          initializeApp(firebaseConfig);
-          console.log('Firebase initialized for Analytics');
-        } else {
-          console.warn('Firebase config missing - skipping Analytics', {
-            hasApiKey: !!firebaseConfig.apiKey,
-            hasProjectId: !!firebaseConfig.projectId,
-          });
-          return null;
-        }
-      }
+    // Import Firebase app to check if initialized
+    const { getApps, getApp } = require('firebase/app');
+    
+    const apps = getApps();
+    if (apps.length === 0) {
+      console.warn('Firebase not initialized - Analytics unavailable');
+      return null;
     }
     
-    // Now safe to import expo-firebase-analytics
-    Analytics = require('expo-firebase-analytics');
-    console.log('Using Firebase Analytics');
-    return Analytics;
+    const app = getApp();
+    
+    // On web, use Firebase JS SDK Analytics
+    if (Platform.OS === 'web') {
+      const { getAnalytics, isSupported, logEvent, setUserId: setAnalyticsUserId, setUserProperties } = require('firebase/analytics');
+      
+      // Check if Analytics is supported (requires browser environment)
+      const supported = await isSupported();
+      if (!supported) {
+        console.warn('Firebase Analytics not supported in this environment');
+        return null;
+      }
+      
+      Analytics = {
+        analytics: getAnalytics(app),
+        logEvent: (eventName, params) => logEvent(getAnalytics(app), eventName, params),
+        setUserId: (userId) => setAnalyticsUserId(getAnalytics(app), userId),
+        setUserProperty: async (name, value) => {
+          await setUserProperties(getAnalytics(app), { [name]: value });
+        },
+        setUserProperties: async (properties) => {
+          await setUserProperties(getAnalytics(app), properties);
+        },
+      };
+      console.log('Using Firebase JS SDK Analytics (web)');
+      return Analytics;
+    } else {
+      // For React Native, gracefully degrade - Firebase Analytics JS SDK doesn't work on native
+      // In the future, you could integrate React Native Firebase here
+      console.warn('Firebase Analytics not available on native platforms - events will be logged to console only');
+      Analytics = {
+        logEvent: (eventName, params) => {
+          if (__DEV__) {
+            console.log('[Analytics]', eventName, params);
+          }
+        },
+        setUserId: (userId) => {
+          if (__DEV__) {
+            console.log('[Analytics] User ID:', userId);
+          }
+        },
+        setUserProperty: async () => {},
+        setUserProperties: async () => {},
+      };
+      return Analytics;
+    }
   } catch (error) {
     console.warn('Analytics library not available:', error.message);
     return null;
@@ -77,11 +97,6 @@ export class AnalyticsService {
       if (!Analytics) {
         console.warn('Analytics not available - skipping initialization');
         return;
-      }
-
-      // Enable debug mode in development (not available on web)
-      if (__DEV__ && Platform.OS !== 'web' && Analytics.setDebugModeEnabled) {
-        await Analytics.setDebugModeEnabled(true);
       }
 
       // Set default properties
@@ -110,11 +125,11 @@ export class AnalyticsService {
     }
 
     try {
-      if (Analytics.logEvent) {
+      if (Analytics && Analytics.logEvent) {
         await Analytics.logEvent(eventName, params);
       }
-      if (__DEV__) {
-        console.log('Analytics event:', eventName, params);
+      if (__DEV__ && !Analytics) {
+        console.log('[Analytics] Event (no analytics):', eventName, params);
       }
     } catch (error) {
       console.error('Error logging event:', error);
@@ -132,10 +147,12 @@ export class AnalyticsService {
 
     try {
       this.userId = userId;
-      if (Analytics.setUserId) {
+      if (Analytics && Analytics.setUserId) {
         await Analytics.setUserId(userId);
       }
-      console.log('Analytics user ID set:', userId);
+      if (__DEV__) {
+        console.log('Analytics user ID set:', userId);
+      }
     } catch (error) {
       console.error('Error setting user ID:', error);
     }
@@ -151,7 +168,10 @@ export class AnalyticsService {
     }
 
     try {
-      if (Analytics.setUserProperty) {
+      if (Analytics && Analytics.setUserProperties) {
+        await Analytics.setUserProperties(properties);
+      } else if (Analytics && Analytics.setUserProperty) {
+        // Fallback to individual properties
         for (const [key, value] of Object.entries(properties)) {
           await Analytics.setUserProperty(key, String(value));
         }

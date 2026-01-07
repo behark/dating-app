@@ -24,10 +24,7 @@ const sendGifMessage = async (req, res) => {
     const senderId = req.user.id;
 
     if (!matchId || !gifUrl) {
-      return res.status(400).json({
-        success: false,
-        message: 'matchId and gifUrl are required',
-      });
+      return sendError(res, 400, { message: 'matchId and gifUrl are required' });
     }
 
     // Create message
@@ -52,11 +49,7 @@ const sendGifMessage = async (req, res) => {
       messageType: 'gif',
     });
 
-    return res.status(201).json({
-      success: true,
-      message: 'GIF sent successfully',
-      data: message,
-    });
+    return sendSuccess(res, 201, { message: 'GIF sent successfully', data: message, });
   } catch (error) {
     logger.error('Error sending GIF:', { error: error.message, stack: error.stack });
     res.status(500).json({
@@ -75,10 +68,7 @@ const sendStickerMessage = async (req, res) => {
     const senderId = req.user.id;
 
     if (!matchId || !stickerUrl) {
-      return res.status(400).json({
-        success: false,
-        message: 'matchId and stickerUrl are required',
-      });
+      return sendError(res, 400, { message: 'matchId and stickerUrl are required' });
     }
 
     // Create message
@@ -103,11 +93,7 @@ const sendStickerMessage = async (req, res) => {
       messageType: 'sticker',
     });
 
-    return res.status(201).json({
-      success: true,
-      message: 'Sticker sent successfully',
-      data: message,
-    });
+    return sendSuccess(res, 201, { message: 'Sticker sent successfully', data: message, });
   } catch (error) {
     logger.error('Error sending sticker:', { error: error.message, stack: error.stack });
     res.status(500).json({
@@ -126,17 +112,11 @@ const sendVoiceMessage = async (req, res) => {
     const senderId = req.user.id;
 
     if (!matchId || !voiceUrl || !duration) {
-      return res.status(400).json({
-        success: false,
-        message: 'matchId, voiceUrl, and duration are required',
-      });
+      return sendError(res, 400, { message: 'matchId, voiceUrl, and duration are required' });
     }
 
     if (duration < 1 || duration > 300) {
-      return res.status(400).json({
-        success: false,
-        message: 'Voice message duration must be between 1 and 300 seconds',
-      });
+      return sendError(res, 400, { message: 'Voice message duration must be between 1 and 300 seconds' });
     }
 
     // Create message
@@ -163,11 +143,7 @@ const sendVoiceMessage = async (req, res) => {
       duration,
     });
 
-    return res.status(201).json({
-      success: true,
-      message: 'Voice message sent successfully',
-      data: message,
-    });
+    return sendSuccess(res, 201, { message: 'Voice message sent successfully', data: message, });
   } catch (error) {
     logger.error('Error sending voice message:', { error: error.message, stack: error.stack });
     res.status(500).json({
@@ -200,10 +176,7 @@ const transcribeVoiceMessage = async (req, res) => {
     }
 
     if (!message.voiceMessage) {
-      return res.status(400).json({
-        success: false,
-        message: 'Message does not have a voice message',
-      });
+      return sendError(res, 400, { message: 'Message does not have a voice message' });
     }
 
     // In production, integrate with speech-to-text API (Google Cloud Speech, Azure Speech, etc.)
@@ -240,10 +213,7 @@ const initiateVideoCall = async (req, res) => {
     const initiatorId = req.user.id;
 
     if (!matchId || !callId) {
-      return res.status(400).json({
-        success: false,
-        message: 'matchId and callId are required',
-      });
+      return sendError(res, 400, { message: 'matchId and callId are required' });
     }
 
     // Create video call message
@@ -295,17 +265,11 @@ const updateVideoCallStatus = async (req, res) => {
     const { messageId, status, duration } = req.body;
 
     if (!messageId || !status) {
-      return res.status(400).json({
-        success: false,
-        message: 'messageId and status are required',
-      });
+      return sendError(res, 400, { message: 'messageId and status are required' });
     }
 
     if (!['accepted', 'declined', 'missed', 'ended'].includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid status',
-      });
+      return sendError(res, 400, { message: 'Invalid status' });
     }
 
     const message = await Message.findById(messageId);
@@ -340,11 +304,7 @@ const updateVideoCallStatus = async (req, res) => {
       duration: duration || 0,
     });
 
-    return res.status(200).json({
-      success: true,
-      message: 'Video call status updated',
-      data: message.videoCall,
-    });
+    return sendSuccess(res, 200, { message: 'Video call status updated', data: message.videoCall, });
   } catch (error) {
     logger.error('Error updating video call status:', { error: error.message, stack: error.stack });
     res.status(500).json({
@@ -402,10 +362,7 @@ const searchGifs = async (req, res) => {
     const { query, limit = 20, offset = 0 } = req.query;
 
     if (!query) {
-      return res.status(400).json({
-        success: false,
-        message: 'Search query is required',
-      });
+      return sendError(res, 400, { message: 'Search query is required' });
     }
 
     // In production, call Giphy API

@@ -12,7 +12,7 @@ import {
   View,
 } from 'react-native';
 import { Colors } from '../constants/colors';
-import { EnhancedProfileService } from '../services/EnhancedProfileService';
+import { ProfileService } from '../services/ProfileService';
 import logger from '../utils/logger';
 
 const ETHNICITIES = [
@@ -302,7 +302,7 @@ export default function EnhancedProfileEditScreen() {
       setError(null);
 
       // Load prompts
-      const allPrompts = await EnhancedProfileService.getAllPrompts();
+      const allPrompts = await ProfileService.getAllPrompts();
       setAvailablePrompts(allPrompts || []);
 
       // Load existing profile data for each tab
@@ -343,7 +343,7 @@ export default function EnhancedProfileEditScreen() {
   const fetchPrompts = async () => {
     try {
       setLoading(true);
-      const allPrompts = await EnhancedProfileService.getAllPrompts();
+      const allPrompts = await ProfileService.getAllPrompts();
       setAvailablePrompts(allPrompts || []);
     } catch (error) {
       logger.error('Error fetching prompts:', error);
@@ -397,7 +397,7 @@ export default function EnhancedProfileEditScreen() {
   const saveEducation = async () => {
     try {
       setLoading(true);
-      await EnhancedProfileService.updateEducation(education);
+      await ProfileService.updateEducation(education);
       Alert.alert('Success', 'Education information saved');
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -409,7 +409,7 @@ export default function EnhancedProfileEditScreen() {
   const saveOccupation = async () => {
     try {
       setLoading(true);
-      await EnhancedProfileService.updateOccupation(occupation);
+      await ProfileService.updateOccupation(occupation);
       Alert.alert('Success', 'Occupation information saved');
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -425,7 +425,7 @@ export default function EnhancedProfileEditScreen() {
         return;
       }
       setLoading(true);
-      await EnhancedProfileService.updateHeight(height);
+      await ProfileService.updateHeight(height);
       Alert.alert('Success', 'Height saved');
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -437,7 +437,7 @@ export default function EnhancedProfileEditScreen() {
   const saveEthnicities = async () => {
     try {
       setLoading(true);
-      await EnhancedProfileService.updateEthnicity(selectedEthnicities);
+      await ProfileService.updateEthnicity(selectedEthnicities);
       Alert.alert('Success', 'Ethnicities saved');
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -471,7 +471,7 @@ export default function EnhancedProfileEditScreen() {
       }
 
       setLoading(true);
-      await EnhancedProfileService.updatePrompts(promptsToSave);
+      await ProfileService.updatePrompts(promptsToSave);
       Alert.alert('Success', 'Profile prompts saved');
     } catch (error) {
       Alert.alert('Error', error.message);

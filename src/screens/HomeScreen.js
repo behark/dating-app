@@ -33,6 +33,8 @@ import { PreferencesService } from '../services/PreferencesService';
 import { PremiumService } from '../services/PremiumService';
 import { SwipeController } from '../services/SwipeController';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { useSwipeActions } from '../hooks/useSwipeActions';
+import { GuestModeBanner, PremiumHeader, ActionButtons } from '../components/Home';
 import HapticFeedback from '../utils/haptics';
 import logger from '../utils/logger';
 import LoginScreen from './LoginScreen';
@@ -125,17 +127,751 @@ const GUEST_DEMO_PROFILES = [
     isVerified: true,
     isDemo: true,
   },
+  {
+    id: 'demo_6',
+    _id: 'demo_6',
+    name: 'Emma',
+    age: 25,
+    bio: 'Yoga instructor by day, wine enthusiast by night. Seeking meaningful connections!',
+    photoURL: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+    ],
+    interests: ['yoga', 'reading', 'cooking', 'wine'],
+    distance: 7,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_7',
+    _id: 'demo_7',
+    name: 'James',
+    age: 32,
+    bio: 'Passionate about fitness and photography. Love exploring new places and meeting new people!',
+    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['fitness', 'running', 'travel', 'photography'],
+    distance: 10,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_8',
+    _id: 'demo_8',
+    name: 'Olivia',
+    age: 24,
+    bio: 'Art lover, museum enthusiast, and theater goer. Looking for someone to share cultural experiences with.',
+    photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    ],
+    interests: ['art', 'museums', 'theater', 'concerts'],
+    distance: 6,
+    isVerified: false,
+    isDemo: true,
+  },
+  {
+    id: 'demo_9',
+    _id: 'demo_9',
+    name: 'Michael',
+    age: 35,
+    bio: 'Chef at heart, traveler by nature. Always cooking up new adventures!',
+    photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['cooking', 'wine', 'travel', 'photography'],
+    distance: 14,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_10',
+    _id: 'demo_10',
+    name: 'Sophia',
+    age: 26,
+    bio: 'Wellness coach and nature enthusiast. Seeking balance and genuine connections.',
+    photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
+    ],
+    interests: ['fitness', 'yoga', 'meditation', 'nature'],
+    distance: 9,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_11',
+    _id: 'demo_11',
+    name: 'David',
+    age: 31,
+    bio: 'Software engineer who loves gaming and coffee. Looking for my player two!',
+    photoURL: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400',
+    ],
+    interests: ['technology', 'gaming', 'coffee', 'hiking'],
+    distance: 11,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_12',
+    _id: 'demo_12',
+    name: 'Ava',
+    age: 23,
+    bio: 'Writer and bookworm. Love deep conversations over coffee and good books.',
+    photoURL: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+    ],
+    interests: ['reading', 'writing', 'coffee', 'books'],
+    distance: 5,
+    isVerified: false,
+    isDemo: true,
+  },
+  {
+    id: 'demo_13',
+    _id: 'demo_13',
+    name: 'Chris',
+    age: 29,
+    bio: 'Photographer capturing life\'s beautiful moments. Let\'s create memories together!',
+    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['photography', 'travel', 'nature', 'hiking'],
+    distance: 13,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_14',
+    _id: 'demo_14',
+    name: 'Isabella',
+    age: 27,
+    bio: 'Music producer and concert goer. Dancing through life and looking for a partner!',
+    photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    ],
+    interests: ['music', 'concerts', 'dancing', 'art'],
+    distance: 8,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_15',
+    _id: 'demo_15',
+    name: 'Daniel',
+    age: 33,
+    bio: 'Cyclist and fitness enthusiast. Always on the move and ready for adventure!',
+    photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['fitness', 'cycling', 'travel', 'photography'],
+    distance: 16,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_16',
+    _id: 'demo_16',
+    name: 'Mia',
+    age: 25,
+    bio: 'Food blogger and cooking enthusiast. Let\'s explore restaurants and cook together!',
+    photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
+    ],
+    interests: ['cooking', 'foodie', 'wine', 'travel'],
+    distance: 7,
+    isVerified: false,
+    isDemo: true,
+  },
+  {
+    id: 'demo_17',
+    _id: 'demo_17',
+    name: 'Matt',
+    age: 28,
+    bio: 'Tech startup founder. Love gaming, movies, and building cool things!',
+    photoURL: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400',
+    ],
+    interests: ['technology', 'gaming', 'coffee', 'movies'],
+    distance: 12,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_18',
+    _id: 'demo_18',
+    name: 'Emily',
+    age: 26,
+    bio: 'Yoga teacher and meditation guide. Seeking peace, love, and connection.',
+    photoURL: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+    ],
+    interests: ['yoga', 'meditation', 'nature', 'reading'],
+    distance: 9,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_19',
+    _id: 'demo_19',
+    name: 'Ryan',
+    age: 30,
+    bio: 'Travel photographer documenting the world. Looking for someone to explore with!',
+    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['photography', 'art', 'travel', 'coffee'],
+    distance: 15,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_20',
+    _id: 'demo_20',
+    name: 'Sarah',
+    age: 28,
+    bio: 'Fitness trainer and dog mom. Active lifestyle and looking for an active partner!',
+    photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    ],
+    interests: ['fitness', 'running', 'dogs', 'hiking'],
+    distance: 6,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_21',
+    _id: 'demo_21',
+    name: 'Brandon',
+    age: 27,
+    bio: 'DJ and music lover. Dancing is my language, let\'s speak it together!',
+    photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['music', 'concerts', 'dancing', 'coffee'],
+    distance: 11,
+    isVerified: false,
+    isDemo: true,
+  },
+  {
+    id: 'demo_22',
+    _id: 'demo_22',
+    name: 'Jessica',
+    age: 24,
+    bio: 'Author and book collector. Love stories, both reading and writing them.',
+    photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
+    ],
+    interests: ['reading', 'books', 'writing', 'coffee'],
+    distance: 8,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_23',
+    _id: 'demo_23',
+    name: 'Kevin',
+    age: 34,
+    bio: 'Adventure seeker and nature photographer. Mountains, beaches, and everything in between!',
+    photoURL: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400',
+    ],
+    interests: ['travel', 'photography', 'nature', 'hiking'],
+    distance: 17,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_24',
+    _id: 'demo_24',
+    name: 'Rachel',
+    age: 29,
+    bio: 'Restaurant owner and foodie. Life is too short for bad food or boring dates!',
+    photoURL: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+    ],
+    interests: ['cooking', 'foodie', 'wine', 'travel'],
+    distance: 10,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_25',
+    _id: 'demo_25',
+    name: 'Brian',
+    age: 31,
+    bio: 'Personal trainer and wellness advocate. Health is wealth, let\'s build it together!',
+    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['fitness', 'yoga', 'meditation', 'nature'],
+    distance: 13,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_26',
+    _id: 'demo_26',
+    name: 'Lauren',
+    age: 26,
+    bio: 'Art curator and museum enthusiast. Beauty is everywhere, let\'s find it together!',
+    photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    ],
+    interests: ['art', 'museums', 'theater', 'photography'],
+    distance: 7,
+    isVerified: false,
+    isDemo: true,
+  },
+  {
+    id: 'demo_27',
+    _id: 'demo_27',
+    name: 'Eric',
+    age: 28,
+    bio: 'Game developer and tech geek. Building virtual worlds and seeking real connections!',
+    photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['technology', 'gaming', 'coffee', 'movies'],
+    distance: 14,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_28',
+    _id: 'demo_28',
+    name: 'Ashley',
+    age: 25,
+    bio: 'Musician and concert enthusiast. Music brings people together, let\'s make harmony!',
+    photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
+    ],
+    interests: ['music', 'concerts', 'dancing', 'art'],
+    distance: 9,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_29',
+    _id: 'demo_29',
+    name: 'Jason',
+    age: 32,
+    bio: 'Outdoor enthusiast and camping lover. Nature is my therapy, want to join?',
+    photoURL: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400',
+    ],
+    interests: ['hiking', 'camping', 'nature', 'photography'],
+    distance: 18,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_30',
+    _id: 'demo_30',
+    name: 'Amanda',
+    age: 27,
+    bio: 'Sommelier and wine expert. Life\'s too short to drink bad wine!',
+    photoURL: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+    ],
+    interests: ['cooking', 'wine', 'foodie', 'travel'],
+    distance: 11,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_31',
+    _id: 'demo_31',
+    name: 'Andrew',
+    age: 29,
+    bio: 'Marathon runner and fitness coach. Running through life, one mile at a time!',
+    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['fitness', 'running', 'dogs', 'hiking'],
+    distance: 12,
+    isVerified: false,
+    isDemo: true,
+  },
+  {
+    id: 'demo_32',
+    _id: 'demo_32',
+    name: 'Jennifer',
+    age: 30,
+    bio: 'Meditation teacher and spiritual guide. Seeking inner peace and outer connection.',
+    photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    ],
+    interests: ['yoga', 'meditation', 'reading', 'nature'],
+    distance: 8,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_33',
+    _id: 'demo_33',
+    name: 'Nick',
+    age: 26,
+    bio: 'Travel blogger and photographer. Documenting adventures and seeking a travel partner!',
+    photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['photography', 'travel', 'art', 'coffee'],
+    distance: 15,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_34',
+    _id: 'demo_34',
+    name: 'Nicole',
+    age: 28,
+    bio: 'Coffee shop owner and barista. Life happens over coffee, let\'s share a cup!',
+    photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
+    ],
+    interests: ['coffee', 'reading', 'books', 'music'],
+    distance: 6,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_35',
+    _id: 'demo_35',
+    name: 'Ben',
+    age: 31,
+    bio: 'Film director and movie buff. Creating stories and looking for someone to share them with!',
+    photoURL: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400',
+    ],
+    interests: ['movies', 'technology', 'coffee', 'art'],
+    distance: 19,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_36',
+    _id: 'demo_36',
+    name: 'Madison',
+    age: 24,
+    bio: 'Bookstore owner and literature lover. Books, coffee, and meaningful conversations!',
+    photoURL: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+    ],
+    interests: ['reading', 'books', 'writing', 'coffee'],
+    distance: 10,
+    isVerified: false,
+    isDemo: true,
+  },
+  {
+    id: 'demo_37',
+    _id: 'demo_37',
+    name: 'Max',
+    age: 27,
+    bio: 'Adventure photographer and explorer. Capturing moments, seeking a partner for life\'s journey!',
+    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['photography', 'travel', 'nature', 'hiking'],
+    distance: 13,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_38',
+    _id: 'demo_38',
+    name: 'Hannah',
+    age: 26,
+    bio: 'Chef and food stylist. Cooking is love made visible, let\'s create together!',
+    photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    ],
+    interests: ['cooking', 'foodie', 'wine', 'travel'],
+    distance: 7,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_39',
+    _id: 'demo_39',
+    name: 'Tyler',
+    age: 29,
+    bio: 'Fitness influencer and health advocate. Strong body, strong mind, strong connection!',
+    photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['fitness', 'yoga', 'meditation', 'nature'],
+    distance: 16,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_40',
+    _id: 'demo_40',
+    name: 'Alexis',
+    age: 25,
+    bio: 'Art therapist and creative soul. Healing through art and seeking meaningful bonds!',
+    photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
+    ],
+    interests: ['art', 'museums', 'theater', 'photography'],
+    distance: 9,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_41',
+    _id: 'demo_41',
+    name: 'Morgan',
+    age: 28,
+    bio: 'Music teacher and pianist. Teaching harmony and seeking it in relationships!',
+    photoURL: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400',
+    ],
+    interests: ['music', 'concerts', 'dancing', 'art'],
+    distance: 14,
+    isVerified: false,
+    isDemo: true,
+  },
+  {
+    id: 'demo_42',
+    _id: 'demo_42',
+    name: 'Riley',
+    age: 27,
+    bio: 'Tech entrepreneur and innovator. Building the future, one connection at a time!',
+    photoURL: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+    ],
+    interests: ['technology', 'gaming', 'movies', 'coffee'],
+    distance: 11,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_43',
+    _id: 'demo_43',
+    name: 'Avery',
+    age: 26,
+    bio: 'Novelist and storyteller. Writing life\'s next chapter, want to be in it?',
+    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['reading', 'books', 'writing', 'coffee'],
+    distance: 8,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_44',
+    _id: 'demo_44',
+    name: 'Quinn',
+    age: 29,
+    bio: 'Wildlife photographer and conservationist. Protecting nature and seeking a nature-loving partner!',
+    photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    ],
+    interests: ['photography', 'nature', 'hiking', 'travel'],
+    distance: 17,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_45',
+    _id: 'demo_45',
+    name: 'Reese',
+    age: 28,
+    bio: 'Restaurant critic and food explorer. Life\'s an adventure, especially at the dinner table!',
+    photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['cooking', 'foodie', 'wine', 'travel'],
+    distance: 12,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_46',
+    _id: 'demo_46',
+    name: 'Dakota',
+    age: 30,
+    bio: 'Yoga studio owner and wellness coach. Finding balance and seeking a balanced relationship!',
+    photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
+    ],
+    interests: ['yoga', 'meditation', 'nature', 'fitness'],
+    distance: 10,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_47',
+    _id: 'demo_47',
+    name: 'Samantha',
+    age: 27,
+    bio: 'Gallery owner and art collector. Beauty, art, and meaningful connections!',
+    photoURL: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400',
+    ],
+    interests: ['art', 'museums', 'theater', 'photography'],
+    distance: 15,
+    isVerified: false,
+    isDemo: true,
+  },
+  {
+    id: 'demo_48',
+    _id: 'demo_48',
+    name: 'Jordan',
+    age: 26,
+    bio: 'Music festival organizer and DJ. Bringing people together through music and dance!',
+    photoURL: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+    ],
+    interests: ['music', 'concerts', 'dancing', 'art'],
+    distance: 6,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_49',
+    _id: 'demo_49',
+    name: 'Alex',
+    age: 28,
+    bio: 'Mountain guide and outdoor instructor. Conquering peaks and seeking a climbing partner!',
+    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['hiking', 'camping', 'nature', 'photography'],
+    distance: 19,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_50',
+    _id: 'demo_50',
+    name: 'Taylor',
+    age: 31,
+    bio: 'Wine maker and vineyard owner. Crafting fine wines and seeking fine company!',
+    photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    ],
+    interests: ['wine', 'cooking', 'travel', 'nature'],
+    distance: 13,
+    isVerified: true,
+    isDemo: true,
+  },
 ];
 
 const HomeScreen = ({ navigation }) => {
-  const { currentUser, authToken } = useAuth();
+  const { currentUser, authToken, loading: authLoading } = useAuth();
   const { theme } = useTheme();
   const { isOnline } = useNetworkStatus();
   const { width: windowWidth } = useWindowDimensions();
   const styles = getStyles(theme);
 
-  // Guest mode state
-  const isGuest = !currentUser;
+  // Swipe actions hook
+  const swipeActions = useSwipeActions({
+    userId,
+    isPremium,
+    navigation,
+    isGuest,
+    promptLogin,
+    onOptimisticUpdate: applySwipeUIOptimistic,
+    onMatchFound: (name, matchId) => {
+      setSuccessMessage(`🎉 Match with ${name}!`);
+      setShowSuccessAnimation(true);
+    },
+  });
+
+  // Guest mode state - only determine after auth loading is complete
+  const isGuest = !authLoading && !currentUser;
   const [guestViewCount, setGuestViewCount] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginPromptReason, setLoginPromptReason] = useState(null);
@@ -160,9 +896,7 @@ const HomeScreen = ({ navigation }) => {
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
-  // RACE CONDITION FIX: Track swipe timestamps to prevent rapid double-swipes
-  const swipeTimestampsRef = useRef(new Map());
-  const isSwipingRef = useRef(false);
+  // Success animation state
   const [successMessage, setSuccessMessage] = useState('');
   const [showRewardNotification, setShowRewardNotification] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
@@ -229,11 +963,19 @@ const HomeScreen = ({ navigation }) => {
       // Track screen view for analytics
       AnalyticsService.logScreenView('Home');
 
+      // Don't load anything until auth loading is complete
+      if (authLoading) {
+        setLoading(true);
+        return;
+      }
+
       (async () => {
         if (isGuest) {
-          // Guest mode: Load demo profiles
-          setCards(GUEST_DEMO_PROFILES);
-          setLoading(false);
+          // Guest mode: Load demo profiles from database (100 profiles)
+          const loc = await initializeLocation();
+          if (!isActive) return;
+          await loadCards(loc, true); // true = guest mode
+          if (!isActive) return;
           return;
         }
         if (userId) {
@@ -249,7 +991,7 @@ const HomeScreen = ({ navigation }) => {
       return () => {
         isActive = false;
       };
-    }, [userId, isGuest])
+    }, [userId, isGuest, authLoading])
   );
 
   const loadGamificationData = async () => {
@@ -369,8 +1111,8 @@ const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
-  const loadCards = async (loc) => {
-    if (!userId) {
+  const loadCards = async (loc, isGuestMode = false) => {
+    if (!isGuestMode && !userId) {
       setLoading(false);
       return;
     }
@@ -389,13 +1131,30 @@ const HomeScreen = ({ navigation }) => {
     try {
       setLoading(true);
 
-      // Use repository to get discoverable users - returns empty array on error
-      const availableUsers = await userRepository.getDiscoverableUsers(userId, {
-        limit: 50,
-        lat: (loc?.latitude ?? userLocation?.latitude),
-        lng: (loc?.longitude ?? userLocation?.longitude),
-        radius: discoveryRadius * 1000, // Convert km to meters
-      });
+      let availableUsers = [];
+      if (isGuestMode) {
+        // For guest users, use DiscoveryService to get demo profiles
+        const DiscoveryService = (await import('../services/DiscoveryService')).default;
+        const discoveryService = new DiscoveryService();
+        const result = await discoveryService.exploreUsers(
+          loc?.latitude ?? userLocation?.latitude ?? 40.7128,
+          loc?.longitude ?? userLocation?.longitude ?? -74.0060,
+          {
+            radius: discoveryRadius * 1000,
+            limit: 50,
+            guest: true,
+          }
+        );
+        availableUsers = result || [];
+      } else {
+        // For authenticated users, use repository to get discoverable users
+        availableUsers = await userRepository.getDiscoverableUsers(userId, {
+          limit: 50,
+          lat: (loc?.latitude ?? userLocation?.latitude),
+          lng: (loc?.longitude ?? userLocation?.longitude),
+          radius: discoveryRadius * 1000, // Convert km to meters
+        });
+      }
 
       // If no users found, show empty state (no error alert)
       if (availableUsers.length === 0) {
@@ -428,8 +1187,10 @@ const HomeScreen = ({ navigation }) => {
   const onRefresh = async () => {
     setRefreshing(true);
     // Clear repository cache on refresh to get fresh data
-    userRepository.clearCache();
-    await loadCards();
+    if (!isGuest) {
+      userRepository.clearCache();
+    }
+    await loadCards(null, isGuest);
     setRefreshing(false);
   };
 
@@ -460,200 +1221,28 @@ const HomeScreen = ({ navigation }) => {
     }
   }, [userId, isPremium]);
 
-  const handleSwipeRight = useCallback(
-    async (card) => {
-      // Guest mode: Prompt login on swipe
-      if (isGuest) {
-        const newViewCount = guestViewCount + 1;
-        setGuestViewCount(newViewCount);
-        promptLogin('like');
-        return;
+  // Swipe handlers using the swipe actions hook
+  const handleSwipeRight = useCallback((card) => {
+    if (isGuest) {
+      const newViewCount = guestViewCount + 1;
+      setGuestViewCount(newViewCount);
+      promptLogin('like');
+      return;
+    }
+    swipeActions.handleSwipeRight(card);
+  }, [isGuest, guestViewCount, promptLogin, swipeActions]);
+
+  const handleSwipeLeft = useCallback((card) => {
+    if (isGuest) {
+      const newViewCount = guestViewCount + 1;
+      setGuestViewCount(newViewCount);
+      if (newViewCount >= GUEST_FREE_VIEWS) {
+        promptLogin('limit');
       }
-
-      // RACE CONDITION FIX: Prevent rapid double-swipes on the same card
-      const cardId = card.id || card._id;
-      const now = Date.now();
-      const lastSwipeTime = swipeTimestampsRef.current.get(cardId) || 0;
-      if (now - lastSwipeTime < SWIPE_DEBOUNCE_MS) {
-        logger.info('Swipe debounced - too rapid');
-        return;
-      }
-      if (isSwipingRef.current) {
-        logger.info('Swipe ignored - another swipe in progress');
-        return;
-      }
-
-      swipeTimestampsRef.current.set(cardId, now);
-      isSwipingRef.current = true;
-
-      // Optimistic UI
-      applySwipeUIOptimistic('right', card);
-      HapticFeedback.swipeFeedback('right');
-      setShowHeartAnimation(true);
-
-      // Defer heavy async work to avoid blocking UI
-      InteractionManager.runAfterInteractions(async () => {
-        try {
-          // Check swipe limit
-          const limitCheck = await SwipeController.checkSwipeLimit(userId, isPremium);
-          if (!limitCheck.canSwipe) {
-            setTimeout(() => {
-              Alert.alert(
-                UI_MESSAGES.DAILY_LIMIT_REACHED,
-                `You've reached your daily swipe limit (50). Upgrade to Premium for unlimited swipes!`,
-                [
-                  { text: 'Keep Going', style: 'cancel' },
-                  { text: 'Upgrade', onPress: () => navigation.navigate('Premium') },
-                ]
-              );
-            }, 0);
-            return;
-          }
-
-          // Save the swipe and check for matches
-          const result = await SwipeController.saveSwipe(userId, cardId, 'like', isPremium);
-          AnalyticsService.logSwipe('like', cardId);
-
-          if (!result.success) {
-            if (result.limitExceeded) {
-              setTimeout(() => {
-                Alert.alert(
-                  UI_MESSAGES.DAILY_LIMIT_REACHED,
-                  `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
-                );
-              }, 0);
-            } else if (!result.alreadyProcessed) {
-              setTimeout(() => {
-                Alert.alert('Error', result.error || 'Failed to save swipe');
-              }, 0);
-            }
-            return;
-          }
-
-          // Update lastSwipedCard with swipeId for undo functionality (non-blocking)
-          startTransition(() => {
-            setLastSwipedCard({ card, direction: 'right', swipeId: result.swipeId });
-          });
-
-          // Track swipe for gamification (deferred, non-critical)
-          setTimeout(async () => {
-            try {
-              const streakResult = await GamificationService.trackSwipe(userId, 'like');
-              if (streakResult) {
-                startTransition(() => {
-                  setCurrentStreak(streakResult.currentStreak || 0);
-                  setLongestStreak(streakResult.longestStreak || 0);
-                });
-              }
-            } catch (error) {
-              logger.error('Error tracking swipe for gamification:', error);
-            }
-          }, 100);
-
-          // If it's a match, show the success animation (deferred)
-          if (result.match && result.matchId) {
-            HapticFeedback.matchCelebration();
-            setTimeout(() => {
-              setSuccessMessage(`🎉 Match with ${card.name}!`);
-              setShowSuccessAnimation(true);
-            }, 500);
-          }
-        } catch (error) {
-          logger.error('Error handling swipe:', error);
-          setTimeout(() => {
-            Alert.alert('Error', 'Failed to process swipe');
-          }, 0);
-        } finally {
-          isSwipingRef.current = false;
-          await reconcileSwipeCounters();
-        }
-      });
-    },
-    [userId, isPremium, navigation, isGuest, guestViewCount, promptLogin, applySwipeUIOptimistic, reconcileSwipeCounters]
-  );
-
-  const handleSwipeLeft = useCallback(
-    async (card) => {
-      // Guest mode: Allow pass but track views, prompt after limit
-      if (isGuest) {
-        const newViewCount = guestViewCount + 1;
-        setGuestViewCount(newViewCount);
-        setCurrentIndex((prev) => prev + 1);
-        if (newViewCount >= GUEST_FREE_VIEWS) {
-          promptLogin('limit');
-        }
-        return;
-      }
-
-      // RACE CONDITION FIX: Prevent rapid double-swipes on the same card
-      const cardId = card.id || card._id;
-      const now = Date.now();
-      const lastSwipeTime = swipeTimestampsRef.current.get(cardId) || 0;
-      if (now - lastSwipeTime < SWIPE_DEBOUNCE_MS) {
-        logger.info('Swipe debounced - too rapid');
-        return;
-      }
-      if (isSwipingRef.current) {
-        logger.info('Swipe ignored - another swipe in progress');
-        return;
-      }
-
-      swipeTimestampsRef.current.set(cardId, now);
-      isSwipingRef.current = true;
-
-      // Optimistic UI
-      applySwipeUIOptimistic('left', card);
-      HapticFeedback.swipeFeedback('left');
-
-      // Defer heavy async work to avoid blocking UI
-      InteractionManager.runAfterInteractions(async () => {
-        try {
-          // Check swipe limit
-          const limitCheck = await SwipeController.checkSwipeLimit(userId, isPremium);
-          if (!limitCheck.canSwipe) {
-            setTimeout(() => {
-              Alert.alert(
-                UI_MESSAGES.DAILY_LIMIT_REACHED,
-                `You've reached your daily swipe limit (50). Upgrade to Premium for unlimited swipes!`,
-                [
-                  { text: 'Keep Going', style: 'cancel' },
-                  { text: 'Upgrade', onPress: () => navigation.navigate('Premium') },
-                ]
-              );
-            }, 0);
-            return;
-          }
-
-          // Save the dislike
-          const result = await SwipeController.saveSwipe(userId, cardId, 'dislike', isPremium);
-          AnalyticsService.logSwipe('pass', cardId);
-
-          if (!result.success) {
-            if (result.limitExceeded) {
-              setTimeout(() => {
-                Alert.alert(
-                  UI_MESSAGES.DAILY_LIMIT_REACHED,
-                  `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
-                );
-              }, 0);
-            } else if (!result.alreadyProcessed) {
-              logger.error('Error saving swipe:', result.error);
-            }
-          }
-
-          startTransition(() => {
-            setLastSwipedCard({ card, direction: 'left', swipeId: result.swipeId });
-          });
-        } catch (error) {
-          logger.error('Error handling swipe:', error);
-        } finally {
-          isSwipingRef.current = false;
-          await reconcileSwipeCounters();
-        }
-      });
-    },
-    [userId, isPremium, navigation, isGuest, guestViewCount, promptLogin, applySwipeUIOptimistic, reconcileSwipeCounters]
-  );
+      return;
+    }
+    swipeActions.handleSwipeLeft(card);
+  }, [isGuest, guestViewCount, promptLogin, swipeActions, GUEST_FREE_VIEWS]);
 
   const handleSuperLike = useCallback(
     async (card) => {
@@ -1005,7 +1594,7 @@ const HomeScreen = ({ navigation }) => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       >
-        {loading
+        {loading || authLoading
           ? // Show skeleton cards while loading
             Array.from({ length: 3 }).map((_, index) => (
               <SkeletonCard key={`skeleton-${index}`} style={{ marginBottom: 15 }} />

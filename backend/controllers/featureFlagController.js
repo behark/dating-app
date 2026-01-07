@@ -130,11 +130,7 @@ exports.getUserFlags = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get user flags error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching feature flags',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error fetching feature flags', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -175,11 +171,7 @@ exports.getFlag = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get flag error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching feature flag',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error fetching feature flag', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -212,11 +204,7 @@ exports.getAllFlags = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get all flags error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching feature flags',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error fetching feature flags', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -230,26 +218,17 @@ exports.createOrUpdateFlag = async (req, res) => {
       req.body;
 
     if (!name) {
-      return res.status(400).json({
-        success: false,
-        message: 'Flag name is required',
-      });
+      return sendError(res, 400, { message: 'Flag name is required' });
     }
 
     // Validate rollout percentage
     if (rolloutPercentage !== undefined && (rolloutPercentage < 0 || rolloutPercentage > 100)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Rollout percentage must be between 0 and 100',
-      });
+      return sendError(res, 400, { message: 'Rollout percentage must be between 0 and 100' });
     }
 
     // Validate allowed groups
     if (allowedGroups && !Array.isArray(allowedGroups)) {
-      return res.status(400).json({
-        success: false,
-        message: 'allowedGroups must be an array',
-      });
+      return sendError(res, 400, { message: 'allowedGroups must be an array' });
     }
 
     const flag = await FeatureFlag.findOneAndUpdate(
@@ -273,11 +252,7 @@ exports.createOrUpdateFlag = async (req, res) => {
     });
   } catch (error) {
     logger.error('Create/update flag error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error saving feature flag',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error saving feature flag', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -291,10 +266,7 @@ exports.updateRollout = async (req, res) => {
     const { percentage } = req.body;
 
     if (percentage === undefined || percentage < 0 || percentage > 100) {
-      return res.status(400).json({
-        success: false,
-        message: 'Percentage must be between 0 and 100',
-      });
+      return sendError(res, 400, { message: 'Percentage must be between 0 and 100' });
     }
 
     const flag = await FeatureFlag.findOneAndUpdate(
@@ -317,11 +289,7 @@ exports.updateRollout = async (req, res) => {
     });
   } catch (error) {
     logger.error('Update rollout error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error updating rollout percentage',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error updating rollout percentage', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -335,10 +303,7 @@ exports.setUserOverride = async (req, res) => {
     const { userId, enabled, reason } = req.body;
 
     if (!userId || enabled === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: 'userId and enabled are required',
-      });
+      return sendError(res, 400, { message: 'userId and enabled are required' });
     }
 
     // Verify flag exists
@@ -378,11 +343,7 @@ exports.setUserOverride = async (req, res) => {
     });
   } catch (error) {
     logger.error('Set user override error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error setting user override',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error setting user override', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -412,10 +373,6 @@ exports.removeUserOverride = async (req, res) => {
     });
   } catch (error) {
     logger.error('Remove user override error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error removing user override',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error removing user override', error: error instanceof Error ? error.message : String(error), });
   }
 };

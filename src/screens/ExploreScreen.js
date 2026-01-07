@@ -25,7 +25,7 @@ const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 24) / 2;
 
 const ExploreScreen = ({ navigation }) => {
-  const { user, authToken } = useAuth();
+  const { user, authToken, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -125,6 +125,8 @@ const ExploreScreen = ({ navigation }) => {
           sortBy: sortBy,
           page: currentPage.toString(),
           limit: '20',
+          // Enable guest access to demo profiles
+          ...(isGuest ? { guest: 'true' } : {}),
         });
 
         const response = await api.get(`/discovery/explore?${queryParams}`);
@@ -156,18 +158,24 @@ const ExploreScreen = ({ navigation }) => {
         setLoadingMore(false);
       }
     },
-    [location, sortBy, filters, user, authToken, page, hasMore, loadingMore]
+    [location, sortBy, filters, user, authToken, page, hasMore, loadingMore, isGuest]
   );
+
+  // Don't load if user is not authenticated
+  const isGuest = !user;
 
   useEffect(() => {
     getLocation();
   }, [getLocation]);
 
   useEffect(() => {
-    if (location) {
+    if (location && user && !authLoading) {
       exploreUsers();
+    } else if (!user && !authLoading) {
+      // Guest user - show empty state
+      setLoading(false);
     }
-  }, [location, exploreUsers]);
+  }, [location, exploreUsers, user, authLoading]);
 
   const renderUserCard = ({ item }) => {
     let distance = item.distance;
@@ -284,7 +292,7 @@ const ExploreScreen = ({ navigation }) => {
       )}
 
       {/* Users Grid */}
-      {loading && users.length === 0 ? (
+      {(loading || authLoading) && users.length === 0 ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primary} />
         </View>
@@ -313,8 +321,23 @@ const ExploreScreen = ({ navigation }) => {
       ) : (
         <View style={styles.emptyContainer}>
           <Ionicons name="person-outline" size={64} color={Colors.text.light} />
-          <Text style={styles.emptyText}>No users found</Text>
-          <Text style={styles.emptySubText}>Try adjusting your filters</Text>
+          <Text style={styles.emptyText}>
+            {isGuest ? 'Sign in to explore' : 'No users found'}
+          </Text>
+          <Text style={styles.emptySubText}>
+            {isGuest
+              ? 'Create an account to discover and connect with amazing people!'
+              : 'Try adjusting your filters'
+            }
+          </Text>
+          {isGuest && (
+            <TouchableOpacity
+              style={styles.signInButton}
+              onPress={() => navigation.navigate('Login')}
+            >
+              <Text style={styles.signInButtonText}>Sign In</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </View>
@@ -504,6 +527,23 @@ const styles = StyleSheet.create({
   loadMoreContainer: {
     paddingVertical: 20,
     alignItems: 'center',
+  },
+  signInButton: {
+    marginTop: 20,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 25,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  signInButtonText: {
+    color: Colors.background.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
