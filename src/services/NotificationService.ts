@@ -112,27 +112,42 @@ export interface LocalNotificationConfig {
 
 let Notifications: ExpoNotifications | null = null;
 let Device: ExpoDevice | null = null;
+let notificationsInitialized = false;
 
-// Try to import expo-notifications if available (native platforms only)
-// Skip on web to avoid warnings about unsupported features
-if (Platform.OS !== 'web') {
+/**
+ * Lazy initialization of expo-notifications
+ * Only imports and configures on native platforms to avoid web warnings
+ */
+function initializeNotifications() {
+  if (notificationsInitialized) {
+    return;
+  }
+
+  // Skip on web to avoid warnings about unsupported features
+  if (Platform.OS === 'web') {
+    notificationsInitialized = true;
+    return;
+  }
+
   try {
     Notifications = require('expo-notifications') as ExpoNotifications;
     Device = require('expo-device') as ExpoDevice;
+
+    // Configure notification handling behavior (native only)
+    if (Notifications) {
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+        }),
+      });
+    }
   } catch (error) {
     console.warn('expo-notifications not installed. Push notifications will not work.');
   }
 
-  // Configure notification handling behavior (native only)
-  if (Notifications) {
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-      }),
-    });
-  }
+  notificationsInitialized = true;
 }
 
 export class NotificationService {
