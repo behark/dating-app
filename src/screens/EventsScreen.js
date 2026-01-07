@@ -9,10 +9,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import EmptyState from '../components/Common/EmptyState';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { SocialFeaturesService } from '../services/SocialFeaturesService';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
+import HapticFeedback from '../utils/haptics';
 import logger from '../utils/logger';
 import { getUserId, userIdsMatch } from '../utils/userIdUtils';
 
@@ -66,11 +68,14 @@ const EventsScreen = ({ navigation }) => {
 
   const handleRegisterEvent = async (eventId) => {
     try {
+      HapticFeedback.mediumImpact();
       await SocialFeaturesService.registerForEvent(eventId);
       fetchEvents();
+      HapticFeedback.successNotification();
       Alert.alert('Success', 'Successfully registered for event!');
     } catch (error) {
       logger.error('Error registering for event:', error);
+      HapticFeedback.errorNotification();
       Alert.alert(
         'Error',
         getUserFriendlyMessage(error.message || 'Failed to register for event. Please try again.')
@@ -87,7 +92,10 @@ const EventsScreen = ({ navigation }) => {
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => navigation.navigate('EventDetail', { event: item })}
+        onPress={() => {
+          HapticFeedback.lightImpact();
+          navigation.navigate('EventDetail', { event: item });
+        }}
       >
         <View style={styles.header}>
           <Text style={styles.title}>{item.title}</Text>
@@ -152,7 +160,10 @@ const EventsScreen = ({ navigation }) => {
         <Text style={styles.screenTitle}>🎉 Events</Text>
         <TouchableOpacity
           style={styles.createButton}
-          onPress={() => navigation.navigate('CreateEvent')}
+          onPress={() => {
+            HapticFeedback.lightImpact();
+            navigation.navigate('CreateEvent');
+          }}
         >
           <Text style={styles.createButtonText}>Create New</Text>
         </TouchableOpacity>
@@ -162,6 +173,7 @@ const EventsScreen = ({ navigation }) => {
         <TouchableOpacity
           style={[styles.categoryButton, !selectedCategory && styles.categoryButtonActive]}
           onPress={() => {
+            HapticFeedback.selectionChanged();
             setSelectedCategory(null);
             fetchEvents();
           }}
@@ -175,6 +187,7 @@ const EventsScreen = ({ navigation }) => {
             key={cat}
             style={[styles.categoryButton, selectedCategory === cat && styles.categoryButtonActive]}
             onPress={() => {
+              HapticFeedback.selectionChanged();
               setSelectedCategory(cat);
               fetchEvents();
             }}
@@ -189,10 +202,28 @@ const EventsScreen = ({ navigation }) => {
       </View>
 
       {events.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No events nearby</Text>
-          <Text style={styles.emptySubtext}>Check back soon!</Text>
-        </View>
+        <EmptyState
+          icon="calendar-outline"
+          title="No Events Nearby 📅"
+          description={
+            selectedCategory
+              ? `No ${selectedCategory.replace('_', ' ')} events in your area right now. Try another category or check back soon!`
+              : "There are no events in your area right now. Be the first to create one!"
+          }
+          buttonText="Create Event"
+          onButtonPress={() => {
+            HapticFeedback.lightImpact();
+            navigation.navigate('CreateEvent');
+          }}
+          secondaryButtonText="View All Categories"
+          onSecondaryButtonPress={() => {
+            HapticFeedback.lightImpact();
+            setSelectedCategory(null);
+            fetchEvents();
+          }}
+          variant="simple"
+          iconSize={64}
+        />
       ) : (
         <FlatList
           data={events}
