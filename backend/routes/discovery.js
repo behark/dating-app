@@ -4,7 +4,7 @@ const {
   discoverUsers,
   getDiscoverySettings,
   updateLocation,
-} = require('../controllers/discoveryController.ts');
+} = require('../controllers/discoveryController');
 const { apiCache, staleWhileRevalidate } = require('../middleware/apiCache');
 const { authenticate } = require('../middleware/auth');
 

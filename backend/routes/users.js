@@ -1,6 +1,6 @@
 const express = require('express');
 const { query } = require('express-validator');
-const { discoverUsers } = require('../controllers/discoveryController.ts');
+const { discoverUsers } = require('../controllers/discoveryController');
 const { apiCache } = require('../middleware/apiCache');
 const { authenticate } = require('../middleware/auth');
 const User = require('../models/User');
