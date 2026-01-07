@@ -272,6 +272,9 @@ export class NotificationService {
     onNotification?: (notification: Notification) => void,
     onNotificationResponse?: (response: NotificationResponse) => void
   ): () => void {
+    // Initialize notifications (lazy load)
+    initializeNotifications();
+
     if (!Notifications) {
       return () => {}; // Return no-op cleanup function
     }
