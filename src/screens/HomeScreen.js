@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import SkeletonCard from '../components/Card/SkeletonCard';
 import SwipeCard from '../components/Card/SwipeCard';
+import EmptyState from '../components/Common/EmptyState';
 import MicroAnimations from '../components/Common/MicroAnimations';
 import { Colors } from '../constants/colors';
 import { UI_MESSAGES } from '../constants/constants';
@@ -792,34 +793,18 @@ const HomeScreen = ({ navigation }) => {
           contentContainerStyle={styles.emptyContainer}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-          <LinearGradient
-            colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
-            style={styles.emptyCard}
-          >
-            <Ionicons name="person-add-outline" size={80} color={Colors.background.white} />
-            <Text style={styles.emptyTitle}>Complete Your Profile</Text>
-            <Text style={styles.emptyText}>
-              Add your name, photo, and bio to start matching with others!
-            </Text>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => navigation.navigate('Profile')}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={[Colors.background.white, Colors.background.light]}
-                style={styles.actionButtonGradient}
-              >
-                <Ionicons
-                  name="person"
-                  size={20}
-                  color={Colors.primary}
-                  style={{ marginRight: 8 }}
-                />
-                <Text style={styles.actionButtonText}>Go to Profile</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </LinearGradient>
+          <EmptyState
+            icon="person-add-outline"
+            title="Complete Your Profile ✨"
+            description="Add your name, photo, and bio to start matching with amazing people!"
+            buttonText="Complete Profile"
+            onButtonPress={() => {
+              HapticFeedback.lightImpact();
+              navigation.navigate('Profile');
+            }}
+            variant="gradient"
+            iconSize={80}
+          />
         </ScrollView>
       </LinearGradient>
     );
@@ -1018,55 +1003,53 @@ const HomeScreen = ({ navigation }) => {
 
         {currentIndex >= cards.length && cards.length > 0 && (
           <View style={styles.emptyContainer}>
-            <LinearGradient colors={Colors.gradient.primary} style={styles.emptyCard}>
-              <Ionicons name="checkmark-circle" size={80} color={Colors.background.white} />
-              <Text style={styles.emptyTitle}>You&apos;re all caught up!</Text>
-              <Text style={styles.emptyText}>
-                You&apos;ve seen all available profiles.{'\n'}
-                Pull down to refresh and see new matches.
-              </Text>
-              <TouchableOpacity style={styles.actionButton} onPress={onRefresh} activeOpacity={0.8}>
-                <LinearGradient
-                  colors={[Colors.background.white, Colors.background.light]}
-                  style={styles.actionButtonGradient}
-                >
-                  <Ionicons
-                    name="refresh"
-                    size={20}
-                    color={Colors.primary}
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text style={styles.actionButtonText}>Refresh</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </LinearGradient>
+            <EmptyState
+              icon="checkmark-circle"
+              title="You're All Caught Up! ✨"
+              description="You've seen all available profiles. Pull down to refresh and discover new matches!"
+              buttonText="Refresh"
+              onButtonPress={() => {
+                HapticFeedback.lightImpact();
+                onRefresh();
+              }}
+              secondaryButtonText="Adjust Filters"
+              onSecondaryButtonPress={() => {
+                HapticFeedback.lightImpact();
+                navigation.navigate('Preferences');
+              }}
+              variant="gradient"
+              iconSize={80}
+            />
           </View>
         )}
 
         {cards.length === 0 && !loading && (
           <View style={styles.emptyContainer}>
-            <LinearGradient colors={Colors.gradient.primary} style={styles.emptyCard}>
-              <Ionicons name="people-outline" size={80} color={Colors.background.white} />
-              <Text style={styles.emptyTitle}>No profiles yet</Text>
-              <Text style={styles.emptyText}>
-                Be the first to create a profile!{'\n'}
-                Tell your friends to join too.
-              </Text>
-              <TouchableOpacity style={styles.actionButton} onPress={onRefresh} activeOpacity={0.8}>
-                <LinearGradient
-                  colors={[Colors.background.white, Colors.background.light]}
-                  style={styles.actionButtonGradient}
-                >
-                  <Ionicons
-                    name="refresh"
-                    size={20}
-                    color={Colors.primary}
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text style={styles.actionButtonText}>Refresh</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </LinearGradient>
+            <EmptyState
+              icon="people-outline"
+              title={isGuest ? "Preview Mode 👋" : "No Profiles Yet 🌟"}
+              description={
+                isGuest
+                  ? "You're viewing in guest mode. Sign up to see real profiles and start matching!"
+                  : "Check back soon for new profiles, or adjust your preferences to see more matches!"
+              }
+              buttonText={isGuest ? "Sign Up Free" : "Adjust Preferences"}
+              onButtonPress={() => {
+                HapticFeedback.lightImpact();
+                if (isGuest) {
+                  promptLogin('view');
+                } else {
+                  navigation.navigate('Preferences');
+                }
+              }}
+              secondaryButtonText="Refresh"
+              onSecondaryButtonPress={() => {
+                HapticFeedback.lightImpact();
+                onRefresh();
+              }}
+              variant="gradient"
+              iconSize={80}
+            />
           </View>
         )}
       </ScrollView>
