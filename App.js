@@ -2,7 +2,13 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect } from 'react';
 import { Linking, Platform } from 'react-native';
 import Constants from 'expo-constants';
+
+// Initialize Firebase before AnalyticsService (required for expo-firebase-analytics)
+import './src/config/firebase';
+
 import AppErrorBoundary from './src/components/AppErrorBoundary';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
+import { OfflineBanner } from './src/components/OfflineBanner';
 import NetworkStatusBanner from './src/components/NetworkStatusBanner';
 import { AppProvider } from './src/context/AppContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -11,6 +17,7 @@ import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { SocketProvider } from './src/contexts/SocketContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { AnalyticsService } from './src/services/AnalyticsService';
+import NotificationService from './src/services/NotificationService';
 import { PWAService } from './src/services/PWAService';
 import { UpdateService } from './src/services/UpdateService';
 import { UserBehaviorAnalytics } from './src/services/UserBehaviorAnalytics';
@@ -52,6 +59,8 @@ function AppContent() {
     <>
       <AppNavigator />
       <NetworkStatusBanner />
+      {/* Production-ready offline banner */}
+      <OfflineBanner />
       <StatusBar style={isDark ? 'light' : 'dark'} />
       {/* Vercel Speed Insights - Web only */}
       {Platform.OS === 'web' && SpeedInsights && <SpeedInsights />}
@@ -102,18 +111,53 @@ function AppWithErrorHandling() {
 
 export default function App() {
   useEffect(() => {
-    // CRITICAL FIX: Initialize Sentry error tracking
-    const sentryDsn = Constants.expoConfig?.extra?.sentryDsn || process.env.EXPO_PUBLIC_SENTRY_DSN;
-    if (sentryDsn) {
-      initSentry({
-        dsn: sentryDsn,
-        environment: __DEV__ ? 'development' : 'production',
-        release: Constants.expoConfig?.version || '1.0.0',
-      });
-      if (__DEV__) console.log('✅ Sentry error tracking initialized');
-    } else {
-      console.warn('⚠️  Sentry DSN not configured - error tracking disabled');
-    }
+    // Initialize app services
+    const initializeApp = async () => {
+      // CRITICAL FIX: Initialize Sentry error tracking
+      const sentryDsn = Constants.expoConfig?.extra?.sentryDsn || process.env.EXPO_PUBLIC_SENTRY_DSN;
+      if (sentryDsn) {
+        initSentry({
+          dsn: sentryDsn,
+          environment: __DEV__ ? 'development' : 'production',
+          release: Constants.expoConfig?.version || '1.0.0',
+        });
+        if (__DEV__) console.log('✅ Sentry error tracking initialized');
+      } else {
+        if (__DEV__) console.warn('⚠️  Sentry DSN not configured - error tracking disabled');
+      }
+
+      // Register for push notifications (native only)
+      if (Platform.OS !== 'web') {
+        try {
+          const pushToken = await NotificationService.registerForPushNotifications();
+          if (pushToken) {
+            console.log('✅ Push token:', pushToken);
+            // TODO: Send to backend
+            // await api.post('/users/push-token', { token: pushToken });
+          }
+
+          // Setup notification listeners
+          const cleanup = NotificationService.setupNotificationListeners(
+            (notification) => {
+              console.log('📱 Notification received:', notification);
+              // Handle foreground notifications
+            },
+            (response) => {
+              const data = response.notification.request.content.data;
+              console.log('📱 Notification tapped:', data);
+              // TODO: Navigate based on data.type
+              // Example: if (data.type === 'match') navigation.navigate('Matches')
+            }
+          );
+
+          return cleanup;
+        } catch (error) {
+          console.error('❌ Error setting up push notifications:', error);
+        }
+      }
+    };
+
+    initializeApp();
 
     // Suppress known warnings on web that are expected/harmless
     if (Platform.OS === 'web' && typeof console !== 'undefined') {
@@ -195,16 +239,18 @@ export default function App() {
   }, []);
 
   return (
-    <ThemeProvider>
-      <AppProvider>
-        <AuthProvider>
-          <SocketProvider>
-            <ChatProvider>
-              <AppWithErrorHandling />
-            </ChatProvider>
-          </SocketProvider>
-        </AuthProvider>
-      </AppProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AppProvider>
+          <AuthProvider>
+            <SocketProvider>
+              <ChatProvider>
+                <AppWithErrorHandling />
+              </ChatProvider>
+            </SocketProvider>
+          </AuthProvider>
+        </AppProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
