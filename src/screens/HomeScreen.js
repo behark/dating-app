@@ -254,33 +254,53 @@ const HomeScreen = ({ navigation }) => {
     try {
       setLocationUpdating(true);
 
-      // Get current location
-      const location = await LocationService.getCurrentLocation();
-      if (location) {
-        setUserLocation(location);
+      // First, try to get location from user profile (in case GPS isn't available)
+      let location = null;
+      try {
+        const userData = await userRepository.getCurrentUser(userId);
+        if (userData?.location?.coordinates && userData.location.coordinates.length === 2) {
+          // User has saved location in profile
+          location = {
+            latitude: userData.location.coordinates[1], // MongoDB stores as [lng, lat]
+            longitude: userData.location.coordinates[0],
+            accuracy: null,
+          };
+          logger.info('Using saved location from user profile', location);
+        }
+      } catch (profileError) {
+        logger.warn('Could not get location from user profile', profileError);
+      }
 
-        // Update user location in database
-        await LocationService.updateUserLocation(userId, location);
+      // If no saved location, try to get current GPS location
+      if (!location) {
+        const gpsLocation = await LocationService.getCurrentLocation();
+        if (gpsLocation) {
+          location = gpsLocation;
+          // Update user location in database
+          await LocationService.updateUserLocation(userId, location);
+          // Start periodic location updates (every 5 minutes)
+          LocationService.startPeriodicLocationUpdates(userId);
+        }
+      }
 
-        // Start periodic location updates (every 5 minutes)
-        LocationService.startPeriodicLocationUpdates(userId);
-      } else {
-        // If location permission denied or unavailable, use a default location
-        // This allows discovery to work even without location permission
-        logger.warn('Location not available, using default location for discovery');
+      // If still no location, use a better default (NYC where many demo profiles are)
+      if (!location) {
+        logger.warn('Location not available, using NYC as default location for discovery');
         const defaultLocation = {
-          latitude: 0, // Center of world as fallback
-          longitude: 0,
+          latitude: 40.7128, // New York City (where many demo profiles are)
+          longitude: -74.0060,
           accuracy: null,
         };
-        setUserLocation(defaultLocation);
+        location = defaultLocation;
       }
+
+      setUserLocation(location);
     } catch (error) {
       logger.error('Error initializing location:', error);
-      // Set default location on error to allow discovery to work
+      // Use NYC as default location on error (better than 0,0)
       const defaultLocation = {
-        latitude: 0,
-        longitude: 0,
+        latitude: 40.7128, // New York City
+        longitude: -74.0060,
         accuracy: null,
       };
       setUserLocation(defaultLocation);
