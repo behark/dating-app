@@ -112,7 +112,7 @@ const discoverUsers = async (req, res) => {
       preferredDistance: currentUser?.preferredDistance || 50, // km
     };
 
-    // Find users within the specified radius with query timeout
+    // Find regular users within the specified radius with query timeout
     /** @type {any} */
     const nearbyUsers = await User.findNearby(longitude, latitude, searchRadius, discoveryOptions)
       .select(
@@ -124,10 +124,35 @@ const discoverUsers = async (req, res) => {
       .maxTimeMS(QUERY_TIMEOUT_MS)
       .lean();
 
-    // Check if there are more results
+    // CRITICAL FIX: Query demo profiles separately (MongoDB $near can't be in $or)
+    // Demo profiles bypass all filters (distance, age, gender)
+    const demoQuery = {
+      isActive: true,
+      suspended: { $ne: true },
+      isDemo: true,
+    };
+
+    if (discoveryOptions.excludeIds && discoveryOptions.excludeIds.length > 0) {
+      demoQuery._id = { $nin: discoveryOptions.excludeIds };
+    }
+
+    const demoProfiles = await User.find(demoQuery)
+      .select(
+        'name age gender bio photos interests location profileCompleteness lastActive locationPrivacy'
+      )
+      .limit(50) // Limit demo profiles to prevent too many
+      .sort({ profileCompleteness: -1, lastActive: -1 })
+      .maxTimeMS(QUERY_TIMEOUT_MS)
+      .lean();
+
+    // Combine: demo profiles first, then regular profiles
+    const allUsers = [...demoProfiles, ...nearbyUsers];
+
+    // Check if there are more results (only count regular users for pagination)
     const hasMore = nearbyUsers.length > resultLimit;
     /** @type {any} */
-    const users = hasMore ? nearbyUsers.slice(0, resultLimit) : nearbyUsers;
+    // Use allUsers (demo + regular), but limit regular users for pagination
+    const users = allUsers.slice(0, demoProfiles.length + (hasMore ? resultLimit : nearbyUsers.length));
 
     // Transform the response - PRIVACY: NEVER expose raw coordinates
     const usersWithDistance = users.map((user) => {

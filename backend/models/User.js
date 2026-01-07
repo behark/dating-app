@@ -739,15 +739,16 @@ userSchema.statics.findNearby = function (longitude, latitude, maxDistance, opti
     suspended: { $ne: true },
   };
 
-  // Demo profiles query - bypass ALL filters (distance, age, gender)
-  const demoQuery = {
-    ...baseQuery,
-    isDemo: true,
-  };
+  // Exclude already swiped users
+  if (options.excludeIds && options.excludeIds.length > 0) {
+    baseQuery._id = { $nin: options.excludeIds };
+  }
 
-  // Regular profiles query - apply all filters including location
+  // CRITICAL FIX: MongoDB $near cannot be inside $or
+  // Solution: Query regular profiles with location, demo profiles will be queried separately in controller
   const regularQuery = {
     ...baseQuery,
+    isDemo: { $ne: true }, // Exclude demo profiles (they're handled separately)
     location: {
       $near: {
         $geometry: {
@@ -771,22 +772,8 @@ userSchema.statics.findNearby = function (longitude, latitude, maxDistance, opti
     if (options.maxAge) regularQuery.age.$lte = options.maxAge;
   }
 
-  // Exclude already swiped users (applies to both demo and regular)
-  if (options.excludeIds && options.excludeIds.length > 0) {
-    demoQuery._id = { $nin: options.excludeIds };
-    regularQuery._id = { $nin: options.excludeIds };
-  }
-
-  // Combine: demo profiles bypass all filters, regular profiles use all filters
-  const query = {
-    $or: [
-      demoQuery, // Demo profiles visible regardless of distance, age, gender
-      regularQuery, // Regular profiles with all filters applied
-    ],
-  };
-
   // @ts-ignore - Mongoose static method context
-  return this.find(query);
+  return this.find(regularQuery);
 };
 
 /**
