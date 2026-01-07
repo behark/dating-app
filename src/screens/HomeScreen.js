@@ -39,7 +39,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SWIPE_DEBOUNCE_MS = 500;
 
 // Guest mode configuration
-const GUEST_FREE_VIEWS = 5; // Number of profiles guest can view before prompt
+const GUEST_FREE_VIEWS = 10; // Number of profiles guest can view before prompt (increased for better UX)
 const GUEST_DEMO_PROFILES = [
   {
     id: 'demo_1',
@@ -170,8 +170,12 @@ const HomeScreen = ({ navigation }) => {
   const promptLogin = useCallback((reason) => {
     setLoginPromptReason(reason);
     setShowLoginModal(true);
-    AnalyticsService.logEvent('guest_login_prompt', { reason });
-  }, []);
+    AnalyticsService.logEvent('guest_login_prompt', { 
+      reason, 
+      viewCount: guestViewCount,
+      profilesViewed: guestViewCount 
+    });
+  }, [guestViewCount]);
 
   // Guest mode: Get prompt message based on action
   const getLoginPromptMessage = () => {
@@ -185,9 +189,20 @@ const HomeScreen = ({ navigation }) => {
       case 'view':
         return { title: '👀 Want to See More?', subtitle: 'Sign up to view full profiles and photos!' };
       case 'limit':
-        return { title: '🔥 You\'re on Fire!', subtitle: `You've viewed ${GUEST_FREE_VIEWS} profiles! Sign up to see unlimited matches.` };
+        return { 
+          title: '🔥 You\'re on Fire!', 
+          subtitle: `You've viewed ${guestViewCount} profiles! Sign up free to see unlimited matches and start connecting.` 
+        };
+      case 'banner':
+        return { 
+          title: '💕 Ready to Match?', 
+          subtitle: 'Join thousands of singles and start your dating journey today!' 
+        };
       default:
-        return { title: 'Join Today!', subtitle: 'Create a free account to start matching!' };
+        return { 
+          title: 'Join Our Community!', 
+          subtitle: 'Create a free account to unlock all features and start matching!' 
+        };
     }
   };
 
@@ -819,14 +834,27 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.guestBanner}>
           <View style={styles.guestBannerContent}>
             <Ionicons name="eye-outline" size={18} color={Colors.primary} />
-            <Text style={styles.guestBannerText}>Preview Mode</Text>
-            <Text style={styles.guestBannerCount}>{Math.max(0, GUEST_FREE_VIEWS - guestViewCount)} views left</Text>
+            <Text style={styles.guestBannerText}>
+              {guestViewCount >= GUEST_FREE_VIEWS 
+                ? '🔥 Last chance!' 
+                : 'Browsing as Guest'}
+            </Text>
+            {guestViewCount < GUEST_FREE_VIEWS && (
+              <Text style={styles.guestBannerCount}>
+                {Math.max(0, GUEST_FREE_VIEWS - guestViewCount)} free views left
+              </Text>
+            )}
           </View>
           <TouchableOpacity
-            style={styles.guestSignUpButton}
+            style={[
+              styles.guestSignUpButton,
+              guestViewCount >= GUEST_FREE_VIEWS && styles.guestSignUpButtonUrgent
+            ]}
             onPress={() => promptLogin('banner')}
           >
-            <Text style={styles.guestSignUpButtonText}>Sign Up Free</Text>
+            <Text style={styles.guestSignUpButtonText}>
+              {guestViewCount >= GUEST_FREE_VIEWS ? '🚀 Sign Up Now' : 'Join Free'}
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -1177,6 +1205,15 @@ const getStyles = (theme) =>
       paddingHorizontal: 16,
       paddingVertical: 8,
       borderRadius: 20,
+      shadowColor: Colors.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    guestSignUpButtonUrgent: {
+      backgroundColor: Colors.accent.red,
+      shadowColor: Colors.accent.red,
     },
     guestSignUpButtonText: {
       color: Colors.background.white,
