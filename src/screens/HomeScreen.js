@@ -35,7 +35,7 @@ import HapticFeedback from '../utils/haptics';
 import logger from '../utils/logger';
 import LoginScreen from './LoginScreen';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Minimum time between swipes on the same card (ms) - prevents race conditions
 const SWIPE_DEBOUNCE_MS = 500;
@@ -1010,19 +1010,22 @@ const HomeScreen = ({ navigation }) => {
             Array.from({ length: 3 }).map((_, index) => (
               <SkeletonCard key={`skeleton-${index}`} style={{ marginBottom: 15 }} />
             ))
-          : cards.length > 0 &&
-            cards
-              .slice(currentIndex, currentIndex + 3)
-              .map((card, index) => (
-                <SwipeCard
-                  key={card.id || card._id}
-                  card={card}
-                  index={currentIndex + index}
-                  onSwipeLeft={handleSwipeLeft}
-                  onSwipeRight={handleSwipeRight}
-                  onViewProfile={() => navigation.navigate('ViewProfile', { userId: card.id || card._id })}
-                />
-              ))}
+          : cards.length > 0 && (
+              <View style={styles.cardsContainer}>
+                {cards
+                  .slice(currentIndex, currentIndex + 3)
+                  .map((card, index) => (
+                    <SwipeCard
+                      key={card.id || card._id}
+                      card={card}
+                      index={currentIndex + index}
+                      onSwipeLeft={handleSwipeLeft}
+                      onSwipeRight={handleSwipeRight}
+                      onViewProfile={() => navigation.navigate('ViewProfile', { userId: card.id || card._id })}
+                    />
+                  ))}
+              </View>
+            )}
 
         {currentIndex >= cards.length && cards.length > 0 && (
           <View style={styles.emptyContainer}>
@@ -1382,6 +1385,12 @@ const getStyles = (theme) =>
       justifyContent: 'center',
       paddingTop: 20,
       paddingBottom: 100,
+    },
+    cardsContainer: {
+      width: SCREEN_WIDTH,
+      position: 'relative',
+      alignItems: 'center',
+      minHeight: SCREEN_HEIGHT * 0.75,
     },
     loadingContainer: {
       flex: 1,
