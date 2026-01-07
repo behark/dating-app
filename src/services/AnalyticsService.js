@@ -43,27 +43,43 @@ export class AnalyticsService {
       // On web, ensure Firebase is initialized before using Analytics
       if (Platform.OS === 'web') {
         try {
-          // Import Firebase to ensure it's initialized
-          const { getApps } = require('firebase/app');
+          // Import Firebase to check/initialize
+          const { getApps, initializeApp } = require('firebase/app');
+          const Constants = require('expo-constants').default;
+          
           const apps = getApps();
           if (apps.length === 0) {
             // Firebase not initialized - try to initialize it
-            const { initializeApp } = require('firebase/app');
-            const Constants = require('expo-constants').default;
+            // Try both Constants.expoConfig and process.env for web builds
             const firebaseConfig = {
-              apiKey: Constants.expoConfig?.extra?.firebaseApiKey,
-              authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain,
-              projectId: Constants.expoConfig?.extra?.firebaseProjectId,
-              storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket,
-              messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId,
-              appId: Constants.expoConfig?.extra?.firebaseAppId,
+              apiKey: Constants.expoConfig?.extra?.firebaseApiKey || process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+              authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain || process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+              projectId: Constants.expoConfig?.extra?.firebaseProjectId || process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+              storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket || process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+              messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId || process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+              appId: Constants.expoConfig?.extra?.firebaseAppId || process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
             };
-            if (firebaseConfig.apiKey) {
+            
+            // Only initialize if we have required config
+            if (firebaseConfig.apiKey && firebaseConfig.projectId) {
               initializeApp(firebaseConfig);
+              console.log('Firebase initialized for Analytics');
+              // Wait a bit for initialization to complete
+              await new Promise(resolve => setTimeout(resolve, 100));
+            } else {
+              console.warn('Firebase config missing - skipping Analytics initialization', {
+                hasApiKey: !!firebaseConfig.apiKey,
+                hasProjectId: !!firebaseConfig.projectId,
+              });
+              return;
             }
+          } else {
+            console.log('Firebase already initialized');
           }
         } catch (firebaseError) {
-          console.warn('Firebase initialization check failed:', firebaseError);
+          console.warn('Firebase initialization failed:', firebaseError);
+          // Skip analytics if Firebase can't be initialized
+          return;
         }
       }
 
