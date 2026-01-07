@@ -44,12 +44,13 @@ Each demo profile includes:
 - **Use Case**: Ensures demo mode always has profiles to show
 - **UX**: Prevents frustration from "no results" scenarios in guest mode
 
-### 5. **Additional Benefits**
+### 5. **Works Offline**
+- **Benefit**: Demo profiles work completely offline, no network dependency
+- **Impact**: Reliable experience regardless of connectivity, works in poor network conditions
+- **Use Case**: Users can explore the app even without internet connection
+- **Reliability**: No network errors, no loading failures, guaranteed content availability
 
-#### **Offline Functionality**
-- Works completely offline
-- No network dependency
-- Reliable experience regardless of connectivity
+### 6. **Additional Benefits**
 
 #### **Consistent Experience**
 - Same profiles every time
