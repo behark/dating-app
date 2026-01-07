@@ -65,7 +65,7 @@ const EditProfileScreen = ({ navigation, route }) => {
         quality: 0.8,
       });
 
-      if (!result.cancelled) {
+      if (!result.canceled) {
         // Upload image to storage and get URL
         const imageUri = result.assets[0].uri;
 

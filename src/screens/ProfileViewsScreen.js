@@ -112,7 +112,10 @@ export default function ProfileViewsScreen({ navigation }) {
                   <Text style={styles.viewerName}>{item.userName || 'Unknown User'}</Text>
                   <Text style={styles.viewerTime}>Viewed {formatRelativeTime(item.viewedAt)}</Text>
                 </View>
-                <TouchableOpacity style={styles.viewButton}>
+                <TouchableOpacity
+                  style={styles.viewButton}
+                  onPress={() => navigation.navigate('ViewProfile', { userId: item.userId })}
+                >
                   <Text style={styles.viewButtonText}>View Profile</Text>
                 </TouchableOpacity>
               </View>
@@ -136,7 +139,10 @@ export default function ProfileViewsScreen({ navigation }) {
           <Text style={styles.premiumText}>
             👑 Upgrade to Premium to see who viewed your profile
           </Text>
-          <TouchableOpacity style={styles.premiumButton}>
+          <TouchableOpacity
+            style={styles.premiumButton}
+            onPress={() => navigation.navigate('Premium')}
+          >
             <Text style={styles.premiumButtonText}>Upgrade Now</Text>
           </TouchableOpacity>
         </View>

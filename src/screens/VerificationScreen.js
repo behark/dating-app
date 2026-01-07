@@ -70,11 +70,12 @@ const VerificationScreen = ({ navigation }) => {
         copyToCacheDirectory: true,
       });
 
-      if (result.type === 'success') {
+      if (!result.canceled && result.assets?.length > 0) {
+        const asset = result.assets[0];
         const newDoc = {
-          uri: result.uri,
+          uri: asset.uri,
           type: 'document',
-          name: result.name,
+          name: asset.name,
           documentType: 'government_id',
         };
         setSelectedDocuments((prev) => [...prev, newDoc]);

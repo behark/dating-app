@@ -93,7 +93,10 @@ const TopPicksScreen = ({ navigation }) => {
 
   const handleViewProfile = () => {
     if (currentPick?.userId) {
-      navigation.navigate('ViewProfile', { userId: currentPick.userId._id });
+      const targetUserId = typeof currentPick.userId === 'object'
+        ? currentPick.userId._id
+        : currentPick.userId;
+      navigation.navigate('ViewProfile', { userId: targetUserId });
     }
   };
 

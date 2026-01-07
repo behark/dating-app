@@ -18,12 +18,18 @@ import logger from '../utils/logger';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const ViewProfileScreen = ({ route, navigation }) => {
-  const { userId, showCompatibility } = route.params;
+  const { userId, showCompatibility } = route.params || {};
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showCompatibilityScore, setShowCompatibilityScore] = useState(showCompatibility || false);
 
   useEffect(() => {
+    if (!userId) {
+      Alert.alert('Error', 'Profile not found', [
+        { text: 'Go Back', onPress: () => navigation.goBack() }
+      ]);
+      return;
+    }
     loadProfile();
   }, [userId]);
 

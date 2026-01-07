@@ -369,8 +369,12 @@ const MatchesScreen = () => {
                 <TouchableOpacity
                   onPress={() =>
                     navigation.navigate('Chat', {
-                      userId: item.user?.id,
-                      userName: item.user?.name,
+                      matchId: item._id || item.matchId,
+                      otherUser: {
+                        _id: item.user?.id,
+                        name: item.user?.name,
+                        photoURL: item.user?.photoURL,
+                      },
                     })
                   }
                   activeOpacity={0.8}
