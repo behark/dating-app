@@ -22,7 +22,7 @@ export const useChat = () => {
 };
 
 export const ChatProvider = ({ children }) => {
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
   // Use SocketContext for connection management
   const { socket, isConnected, connect, error: connectionError } = useSocketContext();
 
@@ -74,10 +74,11 @@ export const ChatProvider = ({ children }) => {
 
   // Connect to socket when user logs in
   useEffect(() => {
-    if (user?.uid) {
-      connect(user.uid);
+    const userId = currentUser?.uid || currentUser?._id;
+    if (userId) {
+      connect(userId);
     }
-  }, [user?.uid, connect]);
+  }, [currentUser?.uid, currentUser?._id, connect]);
 
   // Set up socket event listeners
   useEffect(() => {

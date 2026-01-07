@@ -18,6 +18,7 @@ import { API_BASE_URL } from '../config/api';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { calculateDistance } from '../utils/distanceCalculator';
+import { showStandardError } from '../utils/errorHandler';
 import logger from '../utils/logger';
 
 const { width } = Dimensions.get('window');

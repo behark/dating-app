@@ -17,7 +17,7 @@ import logger from '../utils/logger';
 import { useAuth } from '../context/AuthContext';
 
 const SuperLikeScreen = ({ route, navigation }) => {
-  const { userId } = route.params;
+  const { userId } = route.params || {};
   const { user, authToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [quota, setQuota] = useState(null);
