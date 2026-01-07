@@ -6,6 +6,7 @@ import { useChat } from '../context/ChatContext';
 import { Colors } from '../constants/colors';
 import HapticFeedback from '../utils/haptics';
 
+import HomeScreen from '../screens/HomeScreen';
 import MatchesScreen from '../screens/MatchesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
@@ -78,7 +79,7 @@ const MainTabs = () => {
     >
       <Tab.Screen
         name="Discover"
-        component={require('../screens/HomeScreen').default}
+        component={HomeScreen}
         options={{
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="flame" size={size || 26} color={color} />

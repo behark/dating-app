@@ -170,6 +170,8 @@ matchSchema.statics.createMatch = async function (
 
   const match = new this({
     users: [userId1, userId2],
+    user1: sortedIds[0],
+    user2: sortedIds[1],
     matchInitiator: initiatorId,
     matchType: matchType,
   });

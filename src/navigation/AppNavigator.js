@@ -1,12 +1,6 @@
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AppNavigator.js:1',message:'AppNavigator module start',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'A'})}).catch(()=>{});
-// #endregion
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AppNavigator.js:5',message:'Before createLazyScreen import',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
-// #endregion
 import ConsentBanner from '../components/ConsentBanner';
 import { useAuth } from '../context/AuthContext';
 import { useDeepLinking } from './DeepLinkHandler';
@@ -23,6 +17,7 @@ const AppNavigator = () => {
   const routeNameRef = React.useRef(null);
   const [showConsentBanner, setShowConsentBanner] = useState(false);
   const [checkingConsent, setCheckingConsent] = useState(true);
+  const [navigationReady, setNavigationReady] = useState(false);
 
   // Check consent status when user logs in
   useEffect(() => {
@@ -81,21 +76,23 @@ const AppNavigator = () => {
     setShowConsentBanner(false);
   };
 
-  // Initialize deep linking
-  useDeepLinking(navigationRef.current);
-
-  // Initialize behavior analytics on mount
-  useEffect(() => {
-    UserBehaviorAnalytics.initialize();
-  }, []);
-
   // Track screen changes for analytics
   const onNavigationReady = () => {
     routeNameRef.current = navigationRef.current?.getCurrentRoute()?.name;
     if (routeNameRef.current) {
       UserBehaviorAnalytics.startScreenTracking(routeNameRef.current);
     }
+    // Mark navigation as ready so deep linking can be initialized
+    setNavigationReady(true);
   };
+
+  // Initialize deep linking - pass the ref directly (hook handles null gracefully)
+  useDeepLinking(navigationReady ? navigationRef : null);
+
+  // Initialize behavior analytics on mount
+  useEffect(() => {
+    UserBehaviorAnalytics.initialize();
+  }, []);
 
   const onNavigationStateChange = () => {
     const previousRouteName = routeNameRef.current;

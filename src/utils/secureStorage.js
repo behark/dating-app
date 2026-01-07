@@ -61,10 +61,16 @@ export const storeTokenSecurely = async (key, value) => {
  * @returns {Promise<string|null>}
  */
 export const getTokenSecurely = async (key) => {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'secureStorage.js:63',message:'getTokenSecurely called',data:{key,isSecureStorageAvailable:isSecureStorageAvailable()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+  // #endregion
   try {
     if (isSecureStorageAvailable()) {
       // Try SecureStore first on native platforms
       const value = await SecureStore.getItemAsync(key);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'secureStorage.js:67',message:'SecureStore retrieval result',data:{key,hasValue:!!value,valueLength:value?.length||0,source:'SecureStore'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
       if (value) {
         logger.debug(`Token retrieved from ${Platform.OS} secure storage`, { key });
         return value;
@@ -73,6 +79,9 @@ export const getTokenSecurely = async (key) => {
 
     // Fallback to AsyncStorage
     const value = await AsyncStorage.getItem(key);
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'secureStorage.js:75',message:'AsyncStorage retrieval result',data:{key,hasValue:!!value,valueLength:value?.length||0,source:'AsyncStorage'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
     if (value) {
       logger.debug('Token retrieved from AsyncStorage', { key });
       return value;
@@ -81,6 +90,9 @@ export const getTokenSecurely = async (key) => {
     return null;
   } catch (error) {
     logger.error('Error retrieving token', error, { key });
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'secureStorage.js:82',message:'Error retrieving token',data:{key,error:error instanceof Error?error.message:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
     // Try AsyncStorage as fallback
     try {
       return await AsyncStorage.getItem(key);

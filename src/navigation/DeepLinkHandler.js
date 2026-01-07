@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Linking } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
 
 /**
  * Deep Link Handler
@@ -99,12 +100,12 @@ export const parseDeepLink = (url) => {
 
 /**
  * Hook to handle deep linking in the app
- * @param {Object} navigation - React Navigation navigation object
+ * @param {Object} navigationRef - React Navigation container ref (from NavigationContainer)
  */
-export const useDeepLinking = (navigation) => {
+export const useDeepLinking = (navigationRef) => {
   useEffect(() => {
-    if (!navigation) {
-      __DEV__ && console.warn('Navigation object not provided to useDeepLinking - deep linking disabled');
+    if (!navigationRef || !navigationRef.current) {
+      // Navigation not ready yet - this is expected on initial mount
       return;
     }
 
@@ -123,9 +124,16 @@ export const useDeepLinking = (navigation) => {
       if (route) {
         console.log('Navigating to:', route.screen, route.params);
         
-        // Navigate to the parsed route
+        // Navigate to the parsed route using NavigationContainer ref
         try {
-          navigation.navigate(route.screen, route.params);
+          if (navigationRef.current) {
+            navigationRef.current.dispatch(
+              CommonActions.navigate({
+                name: route.screen,
+                params: route.params,
+              })
+            );
+          }
         } catch (error) {
           console.error('Error navigating to deep link:', error);
         }
@@ -153,7 +161,7 @@ export const useDeepLinking = (navigation) => {
     return () => {
       subscription.remove();
     };
-  }, [navigation]);
+  }, [navigationRef]);
 };
 
 /**

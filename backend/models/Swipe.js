@@ -75,6 +75,7 @@ swipeSchema.statics.createSwipeAtomic = async function (swipeData) {
   // Use findOneAndUpdate with upsert to atomically create or find existing swipe
   // $setOnInsert only sets fields if this is a new document (insert)
   // @ts-ignore - Mongoose static method context
+  const beforeTime = new Date();
   const result = await this.findOneAndUpdate(
     {
       swiperId: swiperId,
@@ -93,18 +94,31 @@ swipeSchema.statics.createSwipeAtomic = async function (swipeData) {
     {
       upsert: true,
       new: true,
-      rawResult: true, // Get the raw MongoDB result to check if upserted
       runValidators: true,
     }
   );
 
-  // Check if this was a new insert or existing document
-  /** @type {any} */
-  const typedResult = result;
-  const isNew = typedResult.lastErrorObject?.upserted != null;
+  // In Mongoose 8.x, result is the document directly (not wrapped in rawResult)
+  // Check if this was a new insert by comparing createdAt timestamp
+  // If createdAt is very recent (within 2 seconds of beforeTime), it's likely a new document
+  // This works because $setOnInsert only sets createdAt on insert, not on update
+  let swipe = result;
+  if (!swipe) {
+    // Fallback: if result is null, find the document
+    swipe = await this.findOne({ swiperId, swipedId });
+    if (!swipe) {
+      throw new Error('Failed to create or find swipe document');
+    }
+  }
+
+  // Determine if document was newly created
+  // Check if createdAt is very recent (within 2 seconds) - this indicates a new insert
+  const createdAt = swipe.createdAt instanceof Date ? swipe.createdAt : new Date(swipe.createdAt);
+  const timeDiff = Math.abs(beforeTime.getTime() - createdAt.getTime());
+  const isNew = timeDiff < 2000; // Within 2 seconds = likely new document
 
   return {
-    swipe: typedResult.value,
+    swipe: swipe,
     isNew: isNew,
     alreadyExists: !isNew,
   };

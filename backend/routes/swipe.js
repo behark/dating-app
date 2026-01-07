@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const swipeController = require('../controllers/swipeController');
+const { asyncHandler } = require('../utils/responseHelpers');
 
 /**
  * POST /api/swipes
@@ -9,7 +10,7 @@ const swipeController = require('../controllers/swipeController');
  * Body: { targetId, action, isPriority? }
  * Returns: { swipeId, action, isMatch, matchData?, remaining }
  */
-router.post('/', authenticate, swipeController.createSwipe);
+router.post('/', authenticate, asyncHandler(swipeController.createSwipe));
 
 /**
  * GET /api/swipes/count/today
