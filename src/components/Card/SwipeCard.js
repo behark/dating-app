@@ -154,24 +154,18 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
         style={[
           styles.card, 
           {
-            // Apply dimensions
             width: cardWidth,
             height: cardHeight,
-            // Use auto-centering approach
+            maxWidth: 500,
             ...Platform.select({
               web: {
-                // On web, use CSS centering: left: 50% with negative margin
-                left: '50%',
-                marginLeft: -(cardWidth / 2), // Offset by half width to center perfectly
-                marginRight: 0,
+                margin: '0 auto',
               },
               default: {
-                // On native, calculate left position
                 left: (screenWidth - cardWidth) / 2,
               },
             }),
           },
-          // Apply animated transforms
           cardStyle,
         ]} 
         testID="swipe-card"
@@ -267,8 +261,6 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
 
 const styles = StyleSheet.create({
   card: {
-    // Use absolute positioning for stacking cards
-    position: 'absolute',
     borderRadius: 30,
     backgroundColor: Colors.background.white,
     shadowColor: Colors.text.primary,
@@ -279,15 +271,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     ...Platform.select({
       web: {
-        // Optimize for animations
-        willChange: 'transform',
+        position: 'relative',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+      },
+      default: {
+        position: 'absolute',
       },
     }),
   },
   image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   infoButton: {
     position: 'absolute',

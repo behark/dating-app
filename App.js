@@ -5,14 +5,14 @@ import { Linking, Platform } from 'react-native';
 // Initialize Firebase before AnalyticsService (required for expo-firebase-analytics)
 import './src/config/firebase';
 
-import ErrorBoundary, { SimpleErrorBoundary } from './src/components/Common/ErrorBoundary';
-import NetworkStatusBanner from './src/components/NetworkStatusBanner';
+import ErrorBoundary, { SimpleErrorBoundary } from './src/shared/components/ErrorBoundary';
+import NetworkStatusBanner from './src/shared/components/NetworkStatusBanner';
 import { AppProvider } from './src/context/AppContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ChatProvider } from './src/context/ChatContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { SocketProvider } from './src/context/SocketContext';
-import AppNavigator from './src/navigation/AppNavigator';
+import AppNavigator from './src/app/navigation/AppNavigator';
 import AppInitializationService from './src/services/AppInitializationService';
 import { UpdateService } from './src/services/UpdateService';
 

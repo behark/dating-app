@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   photoImage: {
     width: '100%',
     height: 150,
-    resizeMode: 'cover',
+    
   },
   photoOverlay: {
     ...StyleSheet.absoluteFillObject,
