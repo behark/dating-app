@@ -38,7 +38,13 @@ Each demo profile includes:
 - **Use Case**: Users can explore profiles without sharing location
 - **Privacy**: Respects user privacy preferences from the start
 
-### 4. **Additional Benefits**
+### 4. **No Filters Applied — Always Visible**
+- **Benefit**: Demo profiles are always visible regardless of filter settings
+- **Impact**: Users always see content, no empty states, consistent experience
+- **Use Case**: Ensures demo mode always has profiles to show
+- **UX**: Prevents frustration from "no results" scenarios in guest mode
+
+### 5. **Additional Benefits**
 
 #### **Offline Functionality**
 - Works completely offline
@@ -64,6 +70,12 @@ Each demo profile includes:
 - Perfect for marketing materials
 - Consistent demo experience
 - Easy to showcase app features
+
+#### **Filter Independence**
+- Profiles always available regardless of filter settings
+- No empty states in guest mode
+- Guaranteed content for demonstration
+- Users can test filters without losing content
 
 ## 📊 Profile Distribution
 
