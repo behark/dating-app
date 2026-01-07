@@ -209,6 +209,16 @@ export class AnalyticsService {
   }
 
   /**
+   * Log app opened
+   * @param {boolean} isFirstLaunch - Whether this is the first app launch
+   */
+  static async logAppOpened(isFirstLaunch = false) {
+    await this.logEvent('app_opened', {
+      first_launch: isFirstLaunch,
+    });
+  }
+
+  /**
    * Log profile completion
    * @param {number} completionPercentage - Profile completion percentage (0-100)
    */
