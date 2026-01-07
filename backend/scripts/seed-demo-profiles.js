@@ -199,6 +199,8 @@ function generateProfile(index) {
     isVerified,
     isPremium,
     isDemo: true,
+    isActive: true, // Required for profiles to appear in discovery
+    suspended: false, // Ensure demo profiles are not suspended
     createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000), // Random date in last 30 days
     lastActive: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) // Random date in last 7 days
   };
