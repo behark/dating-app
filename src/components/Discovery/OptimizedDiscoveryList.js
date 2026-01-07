@@ -177,10 +177,10 @@ const OptimizedDiscoveryList = ({
 
   return (
     <ErrorBoundary
-      fallback={(error, retry, reset) => (
+      fallback={({ error, onRetry, onReset }) => (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Failed to load discovery list</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={retry}>
+          <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
