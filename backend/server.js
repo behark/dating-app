@@ -14,11 +14,11 @@ const cookieParser = require('cookie-parser');
 const { Server } = require('socket.io');
 
 // Validate environment variables before starting
-const { validateOrExit } = require('./utils/validateEnv');
+const { validateOrExit } = require('./src/shared/utils/validateEnv');
 validateOrExit();
 
 // Security middleware
-const { csrfProtection, getCsrfToken } = require('./middleware/csrf');
+const { csrfProtection, getCsrfToken } = require('./src/api/middleware/csrf');
 
 // Performance optimization middleware
 const {
@@ -28,11 +28,11 @@ const {
   configureKeepAlive,
   gracefulShutdown,
   preflightCache,
-} = require('./middleware/loadTimeOptimization');
-const { cdnCacheMiddleware } = require('./services/cdnService');
+} = require('./src/api/middleware/loadTimeOptimization');
+const { cdnCacheMiddleware } = require('./src/core/services/cdnService');
 
 // Request timeout middleware - prevents 504 Gateway Timeout
-const { requestTimeout } = require('./middleware/requestTimeout');
+const { requestTimeout } = require('./src/api/middleware/requestTimeout');
 
 // Monitoring and Logging
 const {
@@ -40,48 +40,48 @@ const {
   datadogService,
   metricsCollector,
   healthCheckService,
-} = require('./services/MonitoringService');
-const { logger, auditLogger, morganFormat } = require('./services/LoggingService');
+} = require('./src/infrastructure/external/MonitoringService');
+const { logger, auditLogger, morganFormat } = require('./src/infrastructure/external/LoggingService');
 
 // Database connection - use centralized connection
 const {
   connectDB: connectDatabase,
   gracefulShutdown: dbGracefulShutdown,
   createIndexes,
-} = require('./config/database');
+} = require('./src/config/database');
 
-// Import models
-const Message = require('./models/Message');
-const Swipe = require('./models/Swipe');
-const User = require('./models/User');
+// Import models (domain entities)
+const Message = require('./src/core/domain/Message');
+const Swipe = require('./src/core/domain/Swipe');
+const User = require('./src/core/domain/User');
 
 // Import routes
-const discoveryRoutes = require('./routes/discovery');
-const chatRoutes = require('./routes/chat');
-const aiRoutes = require('./routes/ai');
-const authRoutes = require('./routes/auth');
-const profileRoutes = require('./routes/profile');
-const swipeRoutes = require('./routes/swipe');
-const notificationRoutes = require('./routes/notifications');
-const enhancedProfileRoutes = require('./routes/enhancedProfile');
-const activityRoutes = require('./routes/activity');
-const socialMediaRoutes = require('./routes/socialMedia');
-const safetyRoutes = require('./routes/safety');
-const premiumRoutes = require('./routes/premium');
-const paymentRoutes = require('./routes/payment');
-const advancedInteractionsRoutes = require('./routes/advancedInteractions');
-const discoveryEnhancementsRoutes = require('./routes/discoveryEnhancements');
-const mediaMessagesRoutes = require('./routes/mediaMessages');
-const gamificationRoutes = require('./routes/gamification');
-const socialFeaturesRoutes = require('./routes/socialFeatures');
-const privacyRoutes = require('./routes/privacy');
-const metricsRoutes = require('./routes/metrics');
-const usersRoutes = require('./routes/users');
-const syncRoutes = require('./routes/sync');
-const featureFlagsRoutes = require('./routes/featureFlags');
-const betaRoutes = require('./routes/beta');
-const performanceRoutes = require('./routes/performance');
-const uploadRoutes = require('./routes/upload');
+const discoveryRoutes = require('./src/api/routes/discovery');
+const chatRoutes = require('./src/api/routes/chat');
+const aiRoutes = require('./src/api/routes/ai');
+const authRoutes = require('./src/api/routes/auth');
+const profileRoutes = require('./src/api/routes/profile');
+const swipeRoutes = require('./src/api/routes/swipe');
+const notificationRoutes = require('./src/api/routes/notifications');
+const enhancedProfileRoutes = require('./src/api/routes/enhancedProfile');
+const activityRoutes = require('./src/api/routes/activity');
+const socialMediaRoutes = require('./src/api/routes/socialMedia');
+const safetyRoutes = require('./src/api/routes/safety');
+const premiumRoutes = require('./src/api/routes/premium');
+const paymentRoutes = require('./src/api/routes/payment');
+const advancedInteractionsRoutes = require('./src/api/routes/advancedInteractions');
+const discoveryEnhancementsRoutes = require('./src/api/routes/discoveryEnhancements');
+const mediaMessagesRoutes = require('./src/api/routes/mediaMessages');
+const gamificationRoutes = require('./src/api/routes/gamification');
+const socialFeaturesRoutes = require('./src/api/routes/socialFeatures');
+const privacyRoutes = require('./src/api/routes/privacy');
+const metricsRoutes = require('./src/api/routes/metrics');
+const usersRoutes = require('./src/api/routes/users');
+const syncRoutes = require('./src/api/routes/sync');
+const featureFlagsRoutes = require('./src/api/routes/featureFlags');
+const betaRoutes = require('./src/api/routes/beta');
+const performanceRoutes = require('./src/api/routes/performance');
+const uploadRoutes = require('./src/api/routes/upload');
 
 // Analytics metrics middleware
 const {
@@ -90,10 +90,10 @@ const {
   photoUploadMetricsMiddleware,
   userActivityMiddleware,
   errorRateMiddleware,
-} = require('./middleware/metricsMiddleware');
+} = require('./src/api/middleware/metricsMiddleware');
 
 // Performance monitoring middleware
-const { performanceMonitoringMiddleware } = require('./middleware/performanceMonitoring');
+const { performanceMonitoringMiddleware } = require('./src/api/middleware/performanceMonitoring');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
