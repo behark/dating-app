@@ -219,6 +219,9 @@ export class NotificationService {
    * Setup Android notification channels
    */
   static async setupAndroidChannels(): Promise<void> {
+    // Initialize notifications (lazy load)
+    initializeNotifications();
+
     if (!Notifications || Platform.OS !== 'android') {
       return;
     }
@@ -300,6 +303,9 @@ export class NotificationService {
 
     // Return cleanup function
     return () => {
+      if (!Notifications) {
+        return;
+      }
       if (notificationListener) {
         Notifications.removeNotificationSubscription(notificationListener);
       }
@@ -328,6 +334,9 @@ export class NotificationService {
    * Set badge count
    */
   static async setBadgeCount(count: number): Promise<void> {
+    // Initialize notifications (lazy load)
+    initializeNotifications();
+
     if (!Notifications) {
       return;
     }
@@ -342,6 +351,9 @@ export class NotificationService {
    * Clear all notifications
    */
   static async clearAllNotifications(): Promise<void> {
+    // Initialize notifications (lazy load)
+    initializeNotifications();
+
     if (!Notifications) {
       return;
     }
@@ -356,6 +368,9 @@ export class NotificationService {
    * Schedule a local notification (for testing)
    */
   static async scheduleLocalNotification(notification: LocalNotificationConfig): Promise<void> {
+    // Initialize notifications (lazy load)
+    initializeNotifications();
+
     if (!Notifications) {
       console.log('Notifications not available');
       return;
