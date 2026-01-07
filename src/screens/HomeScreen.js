@@ -823,7 +823,7 @@ const HomeScreen = ({ navigation }) => {
             buttonText="Complete Profile"
             onButtonPress={() => {
               HapticFeedback.lightImpact();
-              navigation.navigate('Profile');
+              navigation.navigate('Main', { screen: 'Profile' });
             }}
             variant="gradient"
             iconSize={80}

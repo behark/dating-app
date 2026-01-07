@@ -340,7 +340,7 @@ const MatchesScreen = () => {
             title="No Likes Yet"
             description="Start swiping to like people! When you like someone, they'll appear here."
             buttonText="Start Swiping 🔥"
-            onButtonPress={() => navigation.navigate('Discover')}
+            onButtonPress={() => navigation.navigate('Main', { screen: 'Discover' })}
             secondaryButtonText="Back to Matches"
             onSecondaryButtonPress={() => setShowLikes(false)}
             variant="gradient"
@@ -430,7 +430,7 @@ const MatchesScreen = () => {
           title="No Matches Yet"
           description="Don't worry, your perfect match is out there! Start swiping to find them and make meaningful connections."
           buttonText="Start Swiping 🔥"
-          onButtonPress={() => navigation.navigate('Discover')}
+          onButtonPress={() => navigation.navigate('Main', { screen: 'Discover' })}
           secondaryButtonText={isPremium ? "View Likes" : "Get Premium"}
           onSecondaryButtonPress={() => isPremium ? setShowLikes(true) : navigation.navigate('Premium')}
           variant="gradient"

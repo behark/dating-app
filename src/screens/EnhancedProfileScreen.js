@@ -192,7 +192,7 @@ const EnhancedProfileScreen = () => {
     const sectionScreens = {
       photos: 'PhotoGallery',
       bio: 'EditProfile',
-      interests: 'EditInterests',
+      interests: 'EditProfile', // EditInterests route doesn't exist, use EditProfile
       verification: 'Verification',
       preferences: 'Preferences',
     };
