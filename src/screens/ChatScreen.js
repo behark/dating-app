@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import EmptyState from '../components/Common/EmptyState';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
@@ -22,6 +23,7 @@ import AnalyticsService from '../services/AnalyticsService';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import { showStandardError } from '../utils/errorHandler';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
+import HapticFeedback from '../utils/haptics';
 import logger from '../utils/logger';
 
 const ChatScreen = ({ route, navigation }) => {
@@ -152,6 +154,9 @@ const ChatScreen = ({ route, navigation }) => {
       );
       return;
     }
+
+    // Haptic feedback for sending message
+    HapticFeedback.mediumImpact();
 
     // Track message sent analytics
     AnalyticsService.logMessageSent(matchId, 'text');
@@ -402,6 +407,24 @@ const ChatScreen = ({ route, navigation }) => {
             <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={styles.loadingText}>Loading messages...</Text>
           </View>
+        ) : messages.length === 0 ? (
+          <EmptyState
+            icon="chatbubbles-outline"
+            title="Start the Conversation! 💬"
+            description={`Say hi to ${otherUser?.name || 'your match'}! Break the ice with a friendly message or ask about their interests.`}
+            buttonText="Send a Message"
+            onButtonPress={() => {
+              // Focus the input
+              HapticFeedback.lightImpact();
+            }}
+            secondaryButtonText="View Profile"
+            onSecondaryButtonPress={() => {
+              HapticFeedback.lightImpact();
+              navigation.navigate('ViewProfile', { userId: otherUser?._id });
+            }}
+            variant="simple"
+            iconSize={64}
+          />
         ) : (
           <FlatList
             ref={flatListRef}

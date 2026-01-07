@@ -12,6 +12,7 @@ import { useChat } from '../context/ChatContext';
 import { useDeepLinking } from './DeepLinkHandler';
 import PrivacyService from '../services/PrivacyService';
 import { UserBehaviorAnalytics } from '../services/UserBehaviorAnalytics';
+import HapticFeedback from '../utils/haptics';
 
 // Core screens - loaded immediately for fast initial render
 import HomeScreen from '../screens/HomeScreen';
@@ -232,6 +233,12 @@ const MainTabs = () => {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
+        },
+      }}
+      screenListeners={{
+        tabPress: () => {
+          // Haptic feedback on tab switch
+          HapticFeedback.lightImpact();
         },
       }}
     >

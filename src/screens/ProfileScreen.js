@@ -20,6 +20,7 @@ import { storage } from '../config/firebase';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { ProfileService } from '../services/ProfileService';
+import HapticFeedback from '../utils/haptics';
 import logger from '../utils/logger';
 import { shadowToWebBoxShadow, textShadowToWeb } from '../utils/stylePlatform';
 
@@ -113,6 +114,7 @@ const ProfileScreen = () => {
 
   const uploadImage = async (uri) => {
     try {
+      HapticFeedback.mediumImpact();
       setLoading(true);
 
       // Compress image before upload
@@ -142,6 +144,7 @@ const ProfileScreen = () => {
 
           const downloadURL = await getDownloadURL(imageRef);
           setPhotoURL(downloadURL);
+          HapticFeedback.successNotification();
           setLoading(false);
           return;
         } catch (storageError) {
@@ -165,6 +168,7 @@ const ProfileScreen = () => {
       setLoading(false);
     } catch (error) {
       logger.error('Error uploading image:', error);
+      HapticFeedback.errorNotification();
       Alert.alert('Error', 'Failed to upload image. Please try again or use an image URL.');
       setLoading(false);
     }
@@ -192,10 +196,12 @@ const ProfileScreen = () => {
 
   const saveProfile = async () => {
     if (!validateProfileData()) {
+      HapticFeedback.errorNotification();
       return;
     }
 
     try {
+      HapticFeedback.mediumImpact();
       setLoading(true);
       await ProfileService.updateProfile({
         name: name.trim(),
@@ -204,10 +210,12 @@ const ProfileScreen = () => {
         photoURL,
       });
 
+      HapticFeedback.successNotification();
       Alert.alert('Success', 'Profile updated successfully!');
       setLoading(false);
     } catch (error) {
       logger.error('Error saving profile:', error);
+      HapticFeedback.errorNotification();
       Alert.alert('Error', 'Failed to save profile');
       setLoading(false);
     }
@@ -236,7 +244,10 @@ const ProfileScreen = () => {
           style={[styles.card, Platform.OS === 'web' ? shadowToWebBoxShadow(styles.card) : null]}
         >
           <TouchableOpacity
-            onPress={() => navigation.navigate('PhotoGallery')}
+            onPress={() => {
+              HapticFeedback.lightImpact();
+              navigation.navigate('PhotoGallery');
+            }}
             style={styles.imageContainer}
           >
             {photoURL ? (
@@ -352,7 +363,10 @@ const ProfileScreen = () => {
           <View style={styles.buttonGroup}>
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => navigation.navigate('Preferences')}
+              onPress={() => {
+                HapticFeedback.lightImpact();
+                navigation.navigate('Preferences');
+              }}
               activeOpacity={0.8}
             >
               <Ionicons
@@ -366,7 +380,10 @@ const ProfileScreen = () => {
 
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => navigation.navigate('NotificationPreferences')}
+              onPress={() => {
+                HapticFeedback.lightImpact();
+                navigation.navigate('NotificationPreferences');
+              }}
               activeOpacity={0.8}
             >
               <Ionicons name="notifications" size={20} color="#FFA500" style={{ marginRight: 8 }} />
@@ -375,7 +392,10 @@ const ProfileScreen = () => {
 
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => navigation.navigate('Verification')}
+              onPress={() => {
+                HapticFeedback.lightImpact();
+                navigation.navigate('Verification');
+              }}
               activeOpacity={0.8}
             >
               <Ionicons
@@ -389,7 +409,10 @@ const ProfileScreen = () => {
 
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => navigation.navigate('PhotoGallery')}
+              onPress={() => {
+                HapticFeedback.lightImpact();
+                navigation.navigate('PhotoGallery');
+              }}
               activeOpacity={0.8}
             >
               <Ionicons
@@ -403,7 +426,10 @@ const ProfileScreen = () => {
 
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => navigation.navigate('SocialMediaConnection')}
+              onPress={() => {
+                HapticFeedback.lightImpact();
+                navigation.navigate('SocialMediaConnection');
+              }}
               activeOpacity={0.8}
             >
               <Ionicons name="share-social" size={20} color="#1DB954" style={{ marginRight: 8 }} />
@@ -412,7 +438,10 @@ const ProfileScreen = () => {
 
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => navigation.navigate('ProfileViews')}
+              onPress={() => {
+                HapticFeedback.lightImpact();
+                navigation.navigate('ProfileViews');
+              }}
               activeOpacity={0.8}
             >
               <Ionicons
@@ -426,7 +455,10 @@ const ProfileScreen = () => {
 
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => navigation.navigate('SafetyTips')}
+              onPress={() => {
+                HapticFeedback.lightImpact();
+                navigation.navigate('SafetyTips');
+              }}
               activeOpacity={0.8}
             >
               <Ionicons
@@ -440,9 +472,10 @@ const ProfileScreen = () => {
 
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() =>
-                navigation.navigate('SafetyAdvanced', { userId: currentUser.uid, isPremium: true })
-              }
+              onPress={() => {
+                HapticFeedback.lightImpact();
+                navigation.navigate('SafetyAdvanced', { userId: currentUser.uid, isPremium: true });
+              }}
               activeOpacity={0.8}
             >
               <Ionicons
@@ -459,7 +492,10 @@ const ProfileScreen = () => {
                 styles.premiumButton,
                 Platform.OS === 'web' ? shadowToWebBoxShadow(styles.premiumButton) : null,
               ]}
-              onPress={() => navigation.navigate('Premium')}
+              onPress={() => {
+                HapticFeedback.mediumImpact();
+                navigation.navigate('Premium');
+              }}
               activeOpacity={0.8}
             >
               <LinearGradient colors={Colors.gradient.gold} style={styles.premiumButtonGradient}>
@@ -474,7 +510,14 @@ const ProfileScreen = () => {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.logoutButton} onPress={logout} activeOpacity={0.8}>
+          <TouchableOpacity 
+            style={styles.logoutButton} 
+            onPress={() => {
+              HapticFeedback.warningNotification();
+              logout();
+            }} 
+            activeOpacity={0.8}
+          >
             <Ionicons
               name="log-out-outline"
               size={20}
