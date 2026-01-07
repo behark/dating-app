@@ -6,6 +6,7 @@ import {
   Alert,
   Dimensions,
   InteractionManager,
+  Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -30,17 +31,109 @@ import { PremiumService } from '../services/PremiumService';
 import { SwipeController } from '../services/SwipeController';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
 import logger from '../utils/logger';
+import LoginScreen from './LoginScreen';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Minimum time between swipes on the same card (ms) - prevents race conditions
 const SWIPE_DEBOUNCE_MS = 500;
 
+// Guest mode configuration
+const GUEST_FREE_VIEWS = 5; // Number of profiles guest can view before prompt
+const GUEST_DEMO_PROFILES = [
+  {
+    id: 'demo_1',
+    _id: 'demo_1',
+    name: 'Alex',
+    age: 28,
+    bio: 'Love hiking, coffee, and good conversations. Looking for someone to explore the city with!',
+    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
+    ],
+    interests: ['hiking', 'coffee', 'travel', 'photography'],
+    distance: 5,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_2',
+    _id: 'demo_2',
+    name: 'Jordan',
+    age: 26,
+    bio: 'Foodie, bookworm, and adventure seeker. Always up for trying something new!',
+    photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    ],
+    interests: ['food', 'books', 'yoga', 'music'],
+    distance: 12,
+    isVerified: false,
+    isDemo: true,
+  },
+  {
+    id: 'demo_3',
+    _id: 'demo_3',
+    name: 'Taylor',
+    age: 30,
+    bio: "Fitness enthusiast, dog lover, and weekend explorer. Let's make memories together!",
+    photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
+    ],
+    interests: ['fitness', 'dogs', 'travel', 'cooking'],
+    distance: 8,
+    isVerified: true,
+    isDemo: true,
+  },
+  {
+    id: 'demo_4',
+    _id: 'demo_4',
+    name: 'Sam',
+    age: 27,
+    bio: 'Creative soul, music lover, and sunset chaser. Looking for my person to share adventures with.',
+    photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
+      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
+    ],
+    interests: ['music', 'art', 'beach', 'photography'],
+    distance: 15,
+    isVerified: false,
+    isDemo: true,
+  },
+  {
+    id: 'demo_5',
+    _id: 'demo_5',
+    name: 'Casey',
+    age: 29,
+    bio: "Tech enthusiast, coffee addict, and weekend warrior. Let's build something amazing together!",
+    photoURL: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+    photos: [
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400',
+    ],
+    interests: ['technology', 'coffee', 'hiking', 'gaming'],
+    distance: 20,
+    isVerified: true,
+    isDemo: true,
+  },
+];
+
 const HomeScreen = ({ navigation }) => {
   const { currentUser, authToken } = useAuth();
   const { theme } = useTheme();
   const { isOnline } = useNetworkStatus();
   const styles = getStyles(theme);
+
+  // Guest mode state
+  const isGuest = !currentUser;
+  const [guestViewCount, setGuestViewCount] = useState(0);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginPromptReason, setLoginPromptReason] = useState(null);
 
   // Get the user repository (API or Firebase based on config)
   const userRepository = useMemo(() => getUserRepository(authToken), [authToken]);
@@ -73,20 +166,56 @@ const HomeScreen = ({ navigation }) => {
   // Get the user ID (supports both uid and _id)
   const userId = currentUser?.uid || currentUser?._id;
 
+  // Guest mode: Show login prompt helper
+  const promptLogin = useCallback((reason) => {
+    setLoginPromptReason(reason);
+    setShowLoginModal(true);
+    AnalyticsService.logEvent('guest_login_prompt', { reason });
+  }, []);
+
+  // Guest mode: Get prompt message based on action
+  const getLoginPromptMessage = () => {
+    switch (loginPromptReason) {
+      case 'swipe':
+        return { title: '💕 Ready to Match?', subtitle: 'Create a free account to start swiping and find your match!' };
+      case 'like':
+        return { title: '❤️ Like This Person?', subtitle: 'Sign up to let them know you\'re interested!' };
+      case 'superlike':
+        return { title: '⭐ Super Like?', subtitle: 'Create an account to send Super Likes and stand out!' };
+      case 'view':
+        return { title: '👀 Want to See More?', subtitle: 'Sign up to view full profiles and photos!' };
+      case 'limit':
+        return { title: '🔥 You\'re on Fire!', subtitle: `You've viewed ${GUEST_FREE_VIEWS} profiles! Sign up to see unlimited matches.` };
+      default:
+        return { title: 'Join Today!', subtitle: 'Create a free account to start matching!' };
+    }
+  };
+
+  // Close modal when user logs in
+  useEffect(() => {
+    if (currentUser && showLoginModal) {
+      setShowLoginModal(false);
+    }
+  }, [currentUser, showLoginModal]);
+
   useFocusEffect(
     useCallback(() => {
       // Track screen view for analytics
       AnalyticsService.logScreenView('Home');
       
-      if (userId) {
-        // Initialize location first, then load cards after location is available
+      if (isGuest) {
+        // Guest mode: Load demo profiles
+        setCards(GUEST_DEMO_PROFILES);
+        setLoading(false);
+      } else if (userId) {
+        // Authenticated: Initialize location first, then load cards after location is available
         initializeLocation().then(() => {
           loadCards();
         });
         loadPremiumStatus();
         loadGamificationData();
       }
-    }, [userId])
+    }, [userId, isGuest])
   );
 
   const loadGamificationData = async () => {
@@ -250,6 +379,17 @@ const HomeScreen = ({ navigation }) => {
 
   const handleSwipeRight = useCallback(
     async (card) => {
+      // Guest mode: Prompt login on swipe
+      if (isGuest) {
+        // Increment view count for guest
+        const newViewCount = guestViewCount + 1;
+        setGuestViewCount(newViewCount);
+        
+        // Show login prompt
+        promptLogin('like');
+        return;
+      }
+
       // RACE CONDITION FIX: Prevent rapid double-swipes on the same card
       const cardId = card.id || card._id;
       const now = Date.now();
@@ -368,11 +508,24 @@ const HomeScreen = ({ navigation }) => {
         }
       });
     },
-    [userId, isPremium, swipesUsedToday, navigation]
+    [userId, isPremium, swipesUsedToday, navigation, isGuest, guestViewCount, promptLogin]
   );
 
   const handleSwipeLeft = useCallback(
     async (card) => {
+      // Guest mode: Allow pass but track views, prompt after limit
+      if (isGuest) {
+        const newViewCount = guestViewCount + 1;
+        setGuestViewCount(newViewCount);
+        setCurrentIndex((prev) => prev + 1);
+        
+        // Prompt login after viewing several profiles
+        if (newViewCount >= GUEST_FREE_VIEWS) {
+          promptLogin('limit');
+        }
+        return;
+      }
+
       // RACE CONDITION FIX: Prevent rapid double-swipes on the same card
       const cardId = card.id || card._id;
       const now = Date.now();
@@ -455,11 +608,17 @@ const HomeScreen = ({ navigation }) => {
         }
       });
     },
-    [userId, isPremium, swipesUsedToday, navigation]
+    [userId, isPremium, swipesUsedToday, navigation, isGuest, guestViewCount, promptLogin]
   );
 
   const handleSuperLike = useCallback(
     async (card) => {
+      // Guest mode: Prompt login for super like
+      if (isGuest) {
+        promptLogin('superlike');
+        return;
+      }
+
       // Immediately update UI
       startTransition(() => {
         setSuperLikesUsed((prev) => prev + 1);
@@ -511,7 +670,20 @@ const HomeScreen = ({ navigation }) => {
         }
       });
     },
-    [userId, premiumFeatures.superLikesPerDay, handleSwipeRight]
+    [userId, premiumFeatures.superLikesPerDay, handleSwipeRight, isGuest, promptLogin]
+  );
+
+  // Guest mode: Handle view profile
+  const handleViewProfile = useCallback(
+    (card) => {
+      if (isGuest) {
+        promptLogin('view');
+        return;
+      }
+      // Navigate to profile view for authenticated users
+      navigation.navigate('ViewProfile', { profile: card });
+    },
+    [isGuest, promptLogin, navigation]
   );
 
   const handleButtonSwipe = useCallback(
@@ -626,6 +798,9 @@ const HomeScreen = ({ navigation }) => {
     );
   }
 
+  // Get login prompt content
+  const loginPrompt = getLoginPromptMessage();
+
   return (
     <LinearGradient colors={theme.gradient.primary} style={styles.container}>
       {/* Animations */}
@@ -639,7 +814,25 @@ const HomeScreen = ({ navigation }) => {
         onComplete={() => setShowSuccessAnimation(false)}
       />
 
-      {/* Premium Status Header */}
+      {/* Guest Mode Banner */}
+      {isGuest && (
+        <View style={styles.guestBanner}>
+          <View style={styles.guestBannerContent}>
+            <Ionicons name="eye-outline" size={18} color={Colors.primary} />
+            <Text style={styles.guestBannerText}>Preview Mode</Text>
+            <Text style={styles.guestBannerCount}>{Math.max(0, GUEST_FREE_VIEWS - guestViewCount)} views left</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.guestSignUpButton}
+            onPress={() => promptLogin('banner')}
+          >
+            <Text style={styles.guestSignUpButtonText}>Sign Up Free</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Premium Status Header - Only show for authenticated users */}
+      {!isGuest && (
       <View style={styles.premiumHeader}>
         <View style={styles.headerLeftSection}>
           {isPremium ? (
@@ -692,9 +885,10 @@ const HomeScreen = ({ navigation }) => {
           </View>
         </View>
       </View>
+      )}
 
       {/* AI Features Quick Access */}
-      {isPremium && (
+      {isPremium && !isGuest && (
         <View style={styles.aiQuickAccessContainer}>
           <View style={styles.aiHeaderRow}>
             <Ionicons name="sparkles" size={18} color={Colors.primary} style={{ marginRight: 8 }} />
@@ -913,6 +1107,34 @@ const HomeScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* Guest Login Modal */}
+      <Modal
+        visible={showLoginModal}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setShowLoginModal(false)}
+        accessibilityLabel="Sign up or login dialog"
+      >
+        <View style={styles.loginModalContainer}>
+          <View style={styles.loginModalHeader}>
+            <TouchableOpacity
+              onPress={() => setShowLoginModal(false)}
+              style={styles.loginModalCloseButton}
+            >
+              <Ionicons name="close" size={28} color={Colors.text.dark} />
+            </TouchableOpacity>
+            <Text style={styles.loginModalTitle}>{loginPrompt.title}</Text>
+            <Text style={styles.loginModalSubtitle}>{loginPrompt.subtitle}</Text>
+          </View>
+          <View style={styles.loginModalContent}>
+            <LoginScreen
+              navigation={navigation}
+              onAuthSuccess={() => setShowLoginModal(false)}
+            />
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 };
@@ -922,6 +1144,76 @@ const getStyles = (theme) =>
     container: {
       flex: 1,
       backgroundColor: theme.background.primary,
+    },
+    // Guest mode styles
+    guestBanner: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      paddingTop: 50,
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border.light,
+    },
+    guestBannerContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    guestBannerText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: Colors.primary,
+    },
+    guestBannerCount: {
+      fontSize: 12,
+      color: Colors.text.secondary,
+      marginLeft: 8,
+    },
+    guestSignUpButton: {
+      backgroundColor: Colors.primary,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+    },
+    guestSignUpButtonText: {
+      color: Colors.background.white,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    loginModalContainer: {
+      flex: 1,
+      backgroundColor: Colors.background.white,
+    },
+    loginModalHeader: {
+      paddingTop: 50,
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border.light,
+    },
+    loginModalCloseButton: {
+      alignSelf: 'flex-end',
+      padding: 10,
+    },
+    loginModalTitle: {
+      fontSize: 26,
+      fontWeight: '700',
+      color: Colors.text.dark,
+      marginTop: 10,
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    loginModalSubtitle: {
+      fontSize: 15,
+      color: Colors.text.secondary,
+      textAlign: 'center',
+      lineHeight: 22,
+    },
+    loginModalContent: {
+      flex: 1,
     },
     premiumHeader: {
       flexDirection: 'row',

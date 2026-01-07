@@ -9,13 +9,14 @@ import { createLazyScreen, usePreloadScreens } from '../components/LazyScreen';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
+import { useDeepLinking } from './DeepLinkHandler';
 import PrivacyService from '../services/PrivacyService';
 import { UserBehaviorAnalytics } from '../services/UserBehaviorAnalytics';
 
 // Core screens - loaded immediately for fast initial render
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
-import PreviewHomeScreen from '../screens/PreviewHomeScreen';
+// PreviewHomeScreen removed - HomeScreen now handles guest mode with limited access
 import ProfileScreen from '../screens/ProfileScreen';
 import MatchesScreen from '../screens/MatchesScreen';
 
@@ -339,6 +340,9 @@ const AppNavigator = () => {
     setShowConsentBanner(false);
   };
 
+  // Initialize deep linking
+  useDeepLinking(navigationRef.current);
+
   // Initialize behavior analytics on mount
   useEffect(() => {
     UserBehaviorAnalytics.initialize();
@@ -624,7 +628,14 @@ const AppNavigator = () => {
             </>
           ) : (
             <>
-              <Stack.Screen name="Preview" component={PreviewHomeScreen} />
+              {/* Guest mode: Show HomeScreen with limited access instead of PreviewHomeScreen */}
+              <Stack.Screen 
+                name="Home" 
+                component={HomeScreen}
+                options={{
+                  headerShown: false,
+                }}
+              />
               <Stack.Screen
                 name="Login"
                 component={LoginScreen}

@@ -33,7 +33,7 @@ services:
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
       SENTRY_DSN: ${SENTRY_DSN}
       DATADOG_API_KEY: ${DATADOG_API_KEY}
-      FRONTEND_URL: https://staging.your-domain.com
+      FRONTEND_URL: ${FRONTEND_URL:-https://dating-app-seven-peach.vercel.app}
     depends_on:
       mongo:
         condition: service_healthy
