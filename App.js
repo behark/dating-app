@@ -6,8 +6,7 @@ import Constants from 'expo-constants';
 // Initialize Firebase before AnalyticsService (required for expo-firebase-analytics)
 import './src/config/firebase';
 
-import AppErrorBoundary from './src/components/AppErrorBoundary';
-import { ErrorBoundary } from './src/components/ErrorBoundary';
+import ErrorBoundary, { SimpleErrorBoundary } from './src/components/Common/ErrorBoundary';
 import NetworkStatusBanner from './src/components/NetworkStatusBanner';
 import { AppProvider } from './src/context/AppContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -70,7 +69,7 @@ function AppContent() {
   );
 }
 
-// Error recovery handlers for AppErrorBoundary
+// Error recovery handlers for ErrorBoundary
 function AppWithErrorHandling() {
   const { logout } = useAuth();
 
@@ -97,15 +96,17 @@ function AppWithErrorHandling() {
   }, []);
 
   return (
-    <AppErrorBoundary
+    <ErrorBoundary
       maxRetries={3}
+      enableRecoveryActions={true}
+      enableCategorization={true}
       onLogin={handleLogin}
       onSettings={handleSettings}
       onNavigate={handleNavigate}
       onOfflineMode={handleOfflineMode}
     >
       <AppContent />
-    </AppErrorBoundary>
+    </ErrorBoundary>
   );
 }
 
@@ -266,7 +267,7 @@ export default function App() {
   }, []);
 
   return (
-    <ErrorBoundary>
+    <SimpleErrorBoundary>
       <ThemeProvider>
         <AppProvider>
           <AuthProvider>
@@ -278,6 +279,6 @@ export default function App() {
           </AuthProvider>
         </AppProvider>
       </ThemeProvider>
-    </ErrorBoundary>
+    </SimpleErrorBoundary>
   );
 }

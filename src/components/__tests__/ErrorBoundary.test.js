@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Text, View } from 'react-native';
-import ErrorBoundary from '../ErrorBoundary';
+import ErrorBoundary from '../Common/ErrorBoundary';
 
 // Component that throws an error
 const ThrowError = ({ shouldThrow }) => {
