@@ -10,8 +10,18 @@ import { getUserFriendlyMessage, STANDARD_ERROR_MESSAGES } from '../utils/errorM
 import rateLimiter from '../utils/rateLimiter';
 import requestDeduplicator from '../utils/requestDeduplication';
 import { retryWithBackoff } from '../utils/retryUtils';
-import logger from '../utils/logger';
+import loggerModule from '../utils/logger';
 import type { ApiResponse, SuccessResponse, ErrorResponse } from '../../shared/types/api';
+
+// Type assertion for logger to fix type inference from JavaScript module
+const logger = loggerModule as {
+  debug: (message: string, ...args: any[]) => void;
+  info: (message: string, ...args: any[]) => void;
+  warn: (message: string, ...args: any[]) => void;
+  error: (message: string, error?: Error | null, ...args: any[]) => void;
+  apiError: (endpoint: string, method: string, status: number | string, error?: Error | string | null) => void;
+  apiRequest: (endpoint: string, method: string) => void;
+};
 
 // Token storage keys
 const AUTH_TOKEN_KEY = 'authToken';
@@ -149,8 +159,7 @@ class ApiService {
       }
       return token;
     } catch (error) {
-      // @ts-expect-error - logger.error accepts Error | null but TypeScript infers strict type
-      logger.error('Error getting refresh token', error);
+      logger.error('Error getting refresh token', error as Error);
       return null;
     }
   }
@@ -270,8 +279,7 @@ class ApiService {
 
       return null;
     } catch (error) {
-      // @ts-expect-error - logger.error accepts Error | null but TypeScript infers strict type
-      logger.error('Error refreshing auth token', error);
+      logger.error('Error refreshing auth token', error as Error);
       // Reject all queued requests
       const err = error instanceof Error ? error : new Error(String(error));
       this._refreshQueue.forEach(({ reject }) => reject(err));
