@@ -71,24 +71,47 @@ const MatchesScreen = () => {
         logger.error('Error loading premium status:', error);
       }
 
-      // Load received likes for premium users (See Who Liked You feature)
-      if (userIsPremium) {
-        try {
-          const likes = await SwipeController.getReceivedSwipes(currentUser.uid);
-          if (requestId !== requestIdRef.current) return;
-          // Transform swipes to user-friendly format for display
-          const formattedLikes = likes.map((swipe) => ({
+      // Load sent likes (people you liked) - show for all users
+      try {
+        const sentLikes = await SwipeController.getSentSwipes(currentUser.uid);
+        if (requestId !== requestIdRef.current) return;
+        
+        // Get list of matched user IDs to filter them out from likes
+        const matchedUserIds = new Set(
+          conversations.map((conv) => conv.otherUser?._id || conv.otherUser?.id)
+        );
+        
+        // Transform swipes to user-friendly format for display
+        // Filter out people who have already matched (they show in Matches tab)
+        const formattedLikes = sentLikes
+          .filter((swipe) => {
+            const userId = swipe.target || swipe.swipedId;
+            return !matchedUserIds.has(userId);
+          })
+          .map((swipe) => ({
             _id: swipe.id || swipe._id,
             user: {
-              id: swipe.swiper || swipe.swiperId,
+              id: swipe.target || swipe.swipedId,
               name: swipe.swiperInfo?.name || 'Unknown',
-              photoURL: swipe.swiperInfo?.photos?.[0]?.url || swipe.swiperInfo?.photoURL,
+              photoURL: swipe.swiperInfo?.photoURL || swipe.swiperInfo?.photos?.[0]?.url,
               age: swipe.swiperInfo?.age,
             },
             timestamp: swipe.createdAt,
-            type: swipe.type,
+            type: swipe.type || 'like',
           }));
-          setReceivedLikes(formattedLikes);
+        setReceivedLikes(formattedLikes);
+      } catch (error) {
+        logger.error('Error loading sent likes:', error);
+        // Don't fail the whole load, just log the error
+      }
+
+      // Load received likes for premium users (See Who Liked You feature) - optional
+      if (userIsPremium) {
+        try {
+          const receivedLikes = await SwipeController.getReceivedSwipes(currentUser.uid);
+          if (requestId !== requestIdRef.current) return;
+          // Store received likes separately if needed in the future
+          // For now, we're showing sent likes in the "Likes" tab
         } catch (error) {
           logger.error('Error loading received likes:', error);
           // Don't fail the whole load, just log the error
@@ -272,11 +295,11 @@ const MatchesScreen = () => {
     <LinearGradient colors={Colors.gradient.light} style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>
-          {showLikes ? 'People Who Liked You' : 'Your Conversations'}
+          {showLikes ? 'People You Liked' : 'Your Conversations'}
         </Text>
         <Text style={styles.subtitle}>
           {showLikes
-            ? `${receivedLikes.length} likes`
+            ? `${receivedLikes.length} ${receivedLikes.length === 1 ? 'like' : 'likes'}`
             : `${conversations.length} ${conversations.length === 1 ? 'conversation' : 'conversations'}`}
         </Text>
 
@@ -313,11 +336,11 @@ const MatchesScreen = () => {
       {showLikes ? (
         receivedLikes.length === 0 ? (
           <EmptyState
-            icon="star-outline"
+            icon="heart-outline"
             title="No Likes Yet"
-            description="Stand out from the crowd! Boost your profile to get more visibility and see who's interested in you."
-            buttonText="Boost Profile 🚀"
-            onButtonPress={() => navigation.navigate('Premium')}
+            description="Start swiping to like people! When you like someone, they'll appear here."
+            buttonText="Start Swiping 🔥"
+            onButtonPress={() => navigation.navigate('Discover')}
             secondaryButtonText="Back to Matches"
             onSecondaryButtonPress={() => setShowLikes(false)}
             variant="gradient"
@@ -362,31 +385,41 @@ const MatchesScreen = () => {
                   </View>
                   <View style={styles.matchDetails}>
                     <Text style={styles.likeTime}>
-                      Super liked you {new Date(item.timestamp).toLocaleDateString()}
+                      {item.type === 'superlike' ? 'Super liked' : 'Liked'} on{' '}
+                      {new Date(item.timestamp).toLocaleDateString()}
                     </Text>
                   </View>
                 </View>
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate('Chat', {
-                      matchId: item._id || item.matchId,
-                      otherUser: {
-                        _id: item.user?.id,
-                        name: item.user?.name,
-                        photoURL: item.user?.photoURL,
-                      },
-                    })
-                  }
-                  activeOpacity={0.8}
-                >
-                  <LinearGradient colors={Colors.gradient.primary} style={styles.chatButton}>
-                    <Ionicons name="chatbubble" size={20} color={Colors.background.white} />
-                  </LinearGradient>
-                </TouchableOpacity>
+                {item.matchId ? (
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('Chat', {
+                        matchId: item.matchId,
+                        otherUser: {
+                          _id: item.user?.id,
+                          name: item.user?.name,
+                          photoURL: item.user?.photoURL,
+                        },
+                      })
+                    }
+                    activeOpacity={0.8}
+                  >
+                    <LinearGradient colors={Colors.gradient.primary} style={styles.chatButton}>
+                      <Ionicons name="chatbubble" size={20} color={Colors.background.white} />
+                    </LinearGradient>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.chatButtonDisabled}>
+                    <Ionicons name="chatbubble-outline" size={20} color={Colors.text.tertiary} />
+                  </View>
+                )}
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.user?.id || item._id}
-            contentContainerStyle={styles.list}
+            contentContainerStyle={[
+              styles.list,
+              receivedLikes.length <= 3 && styles.listCentered,
+            ]}
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           />
@@ -408,7 +441,10 @@ const MatchesScreen = () => {
           data={conversations}
           renderItem={renderConversation}
           keyExtractor={(item) => item.matchId}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[
+            styles.list,
+            conversations.length <= 3 && styles.listCentered,
+          ]}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         />
@@ -484,6 +520,10 @@ const styles = StyleSheet.create({
   list: {
     padding: 20,
     paddingTop: 10,
+    flexGrow: 1,
+  },
+  listCentered: {
+    justifyContent: 'center',
   },
   matchCard: {
     flexDirection: 'row',
@@ -537,6 +577,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
+  },
+  chatButtonDisabled: {
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background.lightest,
+    opacity: 0.5,
   },
   onlineIndicator: {
     position: 'absolute',
