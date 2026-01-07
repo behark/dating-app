@@ -10,17 +10,53 @@ import { Platform } from 'react-native';
  */
 
 let Analytics = null;
+let analyticsLoadAttempted = false;
 
-// Try to import analytics library if available
-try {
-  // Try Firebase Analytics first
-  Analytics = require('expo-firebase-analytics');
-  console.log('Using Firebase Analytics');
-} catch (error) {
-  console.warn(
-    'Analytics library not installed. Install expo-firebase-analytics or @segment/analytics-react-native'
-  );
-}
+// Lazy load analytics to ensure Firebase is initialized first on web
+const loadAnalytics = async () => {
+  if (analyticsLoadAttempted) return Analytics;
+  analyticsLoadAttempted = true;
+  
+  try {
+    // On web, ensure Firebase is initialized before importing expo-firebase-analytics
+    if (Platform.OS === 'web') {
+      const { getApps, initializeApp } = require('firebase/app');
+      const Constants = require('expo-constants').default;
+      
+      const apps = getApps();
+      if (apps.length === 0) {
+        // Firebase not initialized - try to initialize it first
+        const firebaseConfig = {
+          apiKey: Constants.expoConfig?.extra?.firebaseApiKey || process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+          authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain || process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+          projectId: Constants.expoConfig?.extra?.firebaseProjectId || process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+          storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket || process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+          messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId || process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+          appId: Constants.expoConfig?.extra?.firebaseAppId || process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+        };
+        
+        if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+          initializeApp(firebaseConfig);
+          console.log('Firebase initialized for Analytics');
+        } else {
+          console.warn('Firebase config missing - skipping Analytics', {
+            hasApiKey: !!firebaseConfig.apiKey,
+            hasProjectId: !!firebaseConfig.projectId,
+          });
+          return null;
+        }
+      }
+    }
+    
+    // Now safe to import expo-firebase-analytics
+    Analytics = require('expo-firebase-analytics');
+    console.log('Using Firebase Analytics');
+    return Analytics;
+  } catch (error) {
+    console.warn('Analytics library not available:', error.message);
+    return null;
+  }
+};
 
 export class AnalyticsService {
   static initialized = false;
@@ -34,53 +70,13 @@ export class AnalyticsService {
       return;
     }
 
-    if (!Analytics) {
-      console.warn('Analytics not available - library not installed');
-      return;
-    }
-
     try {
-      // On web, ensure Firebase is initialized before using Analytics
-      if (Platform.OS === 'web') {
-        try {
-          // Import Firebase to check/initialize
-          const { getApps, initializeApp } = require('firebase/app');
-          const Constants = require('expo-constants').default;
-          
-          const apps = getApps();
-          if (apps.length === 0) {
-            // Firebase not initialized - try to initialize it
-            // Try both Constants.expoConfig and process.env for web builds
-            const firebaseConfig = {
-              apiKey: Constants.expoConfig?.extra?.firebaseApiKey || process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-              authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain || process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-              projectId: Constants.expoConfig?.extra?.firebaseProjectId || process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-              storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket || process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-              messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId || process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-              appId: Constants.expoConfig?.extra?.firebaseAppId || process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-            };
-            
-            // Only initialize if we have required config
-            if (firebaseConfig.apiKey && firebaseConfig.projectId) {
-              initializeApp(firebaseConfig);
-              console.log('Firebase initialized for Analytics');
-              // Wait a bit for initialization to complete
-              await new Promise(resolve => setTimeout(resolve, 100));
-            } else {
-              console.warn('Firebase config missing - skipping Analytics initialization', {
-                hasApiKey: !!firebaseConfig.apiKey,
-                hasProjectId: !!firebaseConfig.projectId,
-              });
-              return;
-            }
-          } else {
-            console.log('Firebase already initialized');
-          }
-        } catch (firebaseError) {
-          console.warn('Firebase initialization failed:', firebaseError);
-          // Skip analytics if Firebase can't be initialized
-          return;
-        }
+      // Lazy load Analytics (ensures Firebase is initialized first on web)
+      Analytics = await loadAnalytics();
+      
+      if (!Analytics) {
+        console.warn('Analytics not available - skipping initialization');
+        return;
       }
 
       // Enable debug mode in development
