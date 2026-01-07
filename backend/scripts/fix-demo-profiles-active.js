@@ -22,23 +22,24 @@ async function fixDemoProfiles() {
     const demoProfiles = await User.find({ isDemo: true });
     console.log(`📊 Found ${demoProfiles.length} demo profiles\n`);
 
-    // Check how many are missing isActive
+    // Check how many are missing isActive or are suspended
     const inactiveProfiles = demoProfiles.filter(p => p.isActive !== true);
-    console.log(`⚠️  Profiles missing isActive: ${inactiveProfiles.length}\n`);
+    const suspendedProfiles = demoProfiles.filter(p => p.suspended === true);
+    console.log(`⚠️  Profiles missing isActive: ${inactiveProfiles.length}`);
+    console.log(`⚠️  Profiles that are suspended: ${suspendedProfiles.length}\n`);
 
-    if (inactiveProfiles.length === 0) {
-      console.log('✅ All demo profiles already have isActive: true');
+    if (inactiveProfiles.length === 0 && suspendedProfiles.length === 0) {
+      console.log('✅ All demo profiles already have isActive: true and are not suspended');
       console.log('   They should appear in discovery if they have valid location data.\n');
     } else {
-      console.log('🔧 Setting isActive: true for all demo profiles...');
+      console.log('🔧 Fixing demo profiles (setting isActive: true and suspended: false)...');
       
       const result = await User.updateMany(
         { isDemo: true },
         { 
           $set: { 
             isActive: true,
-            // Also ensure they're not suspended
-            suspended: false
+            suspended: false // Explicitly ensure they're not suspended
           } 
         }
       );
