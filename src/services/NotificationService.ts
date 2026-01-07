@@ -155,6 +155,9 @@ export class NotificationService {
    * Register for push notifications
    */
   static async registerForPushNotifications(): Promise<string | null> {
+    // Initialize notifications (lazy load)
+    initializeNotifications();
+
     // Push notifications don't work on web
     if (Platform.OS === 'web') {
       console.log('Push notifications not supported on web platform');
