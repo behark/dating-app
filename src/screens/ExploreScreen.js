@@ -14,7 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { API_BASE_URL } from '../config/api';
+import api from '../services/api';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { calculateDistance } from '../utils/distanceCalculator';
@@ -127,9 +127,7 @@ const ExploreScreen = ({ navigation }) => {
           limit: '20',
         });
 
-        const response = await fetch(`${API_BASE_URL}/discovery/explore?${queryParams}`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
+        const response = await api.get(`/discovery/explore?${queryParams}`);
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));

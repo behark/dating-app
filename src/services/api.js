@@ -109,6 +109,7 @@ const api = {
   async refreshAuthToken() {
     // Prevent multiple simultaneous refresh attempts
     if (this._isRefreshing) {
+      logger.debug('Token refresh already in progress, queuing request...');
       // Wait for the ongoing refresh to complete
       return new Promise((resolve, reject) => {
         this._refreshQueue.push({ resolve, reject });
@@ -116,6 +117,7 @@ const api = {
     }
 
     this._isRefreshing = true;
+    logger.debug('Starting token refresh process...');
 
     try {
       const refreshToken = await this.getRefreshToken();

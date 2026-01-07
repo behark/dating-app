@@ -146,6 +146,14 @@ export class ApiUserRepository extends UserRepository {
       });
 
       if (!response?.success || !response?.data) {
+        // Log the actual response to debug why profiles aren't showing
+        logger.warn('ApiUserRepository: Discovery API returned no data', {
+          userId,
+          success: response?.success,
+          data: response?.data,
+          message: response?.message,
+          error: response?.error,
+        });
         // Return empty array on error - allows UI to show "No users found"
         return [];
       }

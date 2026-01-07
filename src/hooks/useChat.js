@@ -317,4 +317,5 @@ export const useChat = (matchId) => {
   };
 };
 
+export { useChat as useMatchChat };
 export default useChat;

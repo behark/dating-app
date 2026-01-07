@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import Constants from 'expo-constants';
+import * as Sentry from '@sentry/react-native';
 
 /**
  * ErrorBoundary Component
@@ -32,11 +33,28 @@ export class ErrorBoundary extends React.Component {
       errorInfo,
     });
 
-    // TODO: Log to Sentry when configured
-    // import * as Sentry from '@sentry/react-native';
-    // Sentry.captureException(error, {
-    //   contexts: { react: errorInfo }
-    // });
+    // Log to Sentry for error tracking
+    try {
+      Sentry.captureException(error, {
+        contexts: {
+          react: {
+            componentStack: errorInfo.componentStack,
+            errorBoundary: true,
+          },
+          app: {
+            version: Constants.expoConfig?.version || '1.0.0',
+            platform: Constants.platform,
+          },
+        },
+        tags: {
+          component: 'ErrorBoundary',
+          platform: Constants.platform,
+        },
+        level: 'error',
+      });
+    } catch (sentryError) {
+      console.error('Failed to send error to Sentry:', sentryError);
+    }
   }
 
   handleReset = () => {

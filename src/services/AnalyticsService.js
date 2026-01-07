@@ -79,8 +79,8 @@ export class AnalyticsService {
         return;
       }
 
-      // Enable debug mode in development
-      if (__DEV__ && Analytics.setDebugModeEnabled) {
+      // Enable debug mode in development (not available on web)
+      if (__DEV__ && Platform.OS !== 'web' && Analytics.setDebugModeEnabled) {
         await Analytics.setDebugModeEnabled(true);
       }
 
@@ -325,9 +325,14 @@ export class AnalyticsService {
    * @param {string} errorMessage - Error message
    */
   static async logError(errorType, errorMessage) {
+    // Ensure errorMessage is a string
+    const message = typeof errorMessage === 'string' 
+      ? errorMessage 
+      : errorMessage?.message || errorMessage?.toString() || String(errorMessage) || 'Unknown error';
+    
     await this.logEvent('error', {
       error_type: errorType,
-      error_message: errorMessage.substring(0, 100), // Limit message length
+      error_message: message.substring(0, 100), // Limit message length
     });
   }
 

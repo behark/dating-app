@@ -38,13 +38,14 @@ const MessageReactions = ({
   ).current;
 
   useEffect(() => {
+    const nativeDriver = Platform.OS !== 'web';
     if (showPicker) {
       // Animate picker open
       Animated.spring(pickerAnim, {
         toValue: 1,
         friction: 6,
         tension: 100,
-        useNativeDriver: true,
+        useNativeDriver: nativeDriver,
       }).start();
 
       // Stagger reaction buttons
@@ -55,7 +56,7 @@ const MessageReactions = ({
             toValue: 1,
             friction: 5,
             tension: 80,
-            useNativeDriver: true,
+            useNativeDriver: nativeDriver,
           }),
         ]).start();
       });
@@ -66,6 +67,7 @@ const MessageReactions = ({
   }, [showPicker]);
 
   const triggerBurstAnimation = (_reaction) => {
+    const nativeDriver = Platform.OS !== 'web';
     burstAnims.forEach((anim, i) => {
       const angle = i * 60 * (Math.PI / 180);
 
@@ -73,29 +75,29 @@ const MessageReactions = ({
         Animated.timing(anim.scale, {
           toValue: 1,
           duration: 300,
-          useNativeDriver: true,
+          useNativeDriver: nativeDriver,
         }),
         Animated.timing(anim.x, {
           toValue: Math.cos(angle) * 40,
           duration: 400,
-          useNativeDriver: true,
+          useNativeDriver: nativeDriver,
         }),
         Animated.timing(anim.y, {
           toValue: Math.sin(angle) * 40,
           duration: 400,
-          useNativeDriver: true,
+          useNativeDriver: nativeDriver,
         }),
         Animated.sequence([
           Animated.timing(anim.opacity, {
             toValue: 1,
             duration: 100,
-            useNativeDriver: true,
+            useNativeDriver: nativeDriver,
           }),
           Animated.delay(200),
           Animated.timing(anim.opacity, {
             toValue: 0,
             duration: 200,
-            useNativeDriver: true,
+            useNativeDriver: nativeDriver,
           }),
         ]),
       ]).start(() => {

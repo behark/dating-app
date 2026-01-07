@@ -49,12 +49,13 @@ const AnimatedTypingIndicator = ({
   const colors = customColors || Colors.gradient.primary;
 
   useEffect(() => {
+    const nativeDriver = Platform.OS !== 'web';
     // Entrance animation
     Animated.spring(containerAnim, {
       toValue: 1,
       friction: 6,
       tension: 80,
-      useNativeDriver: true,
+      useNativeDriver: nativeDriver,
     }).start();
 
     // Start the appropriate animation
@@ -85,6 +86,7 @@ const AnimatedTypingIndicator = ({
   }, [animationType]);
 
   const startDotsAnimation = () => {
+    const nativeDriver = Platform.OS !== 'web';
     const animateDot = (anim, delay) => {
       return Animated.loop(
         Animated.sequence([
@@ -93,13 +95,13 @@ const AnimatedTypingIndicator = ({
             toValue: 1,
             duration: 300,
             easing: Easing.ease,
-            useNativeDriver: true,
+            useNativeDriver: nativeDriver,
           }),
           Animated.timing(anim, {
             toValue: 0,
             duration: 300,
             easing: Easing.ease,
-            useNativeDriver: true,
+            useNativeDriver: nativeDriver,
           }),
           Animated.delay(400 - delay),
         ])

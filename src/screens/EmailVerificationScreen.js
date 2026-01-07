@@ -35,7 +35,7 @@ export const EmailVerificationScreen = ({ navigation, route }) => {
       Alert.alert('Success', 'Your email has been verified!', [
         {
           text: 'OK',
-          onPress: () => navigation.navigate('Main'),
+          onPress: () => navigation.navigate('Login'),
         },
       ]);
     } catch (error) {
@@ -60,7 +60,7 @@ export const EmailVerificationScreen = ({ navigation, route }) => {
             </Text>
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Main')}>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
             <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
         </View>
@@ -106,7 +106,7 @@ export const EmailVerificationScreen = ({ navigation, route }) => {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate('Main')} disabled={loading}>
+          <TouchableOpacity onPress={() => navigation.navigate('Login')} disabled={loading}>
             <Text style={styles.skipLink}>Verify later</Text>
           </TouchableOpacity>
         </View>

@@ -8,6 +8,7 @@ const useNativeDriver = Platform.OS !== 'web';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_HEIGHT = SCREEN_HEIGHT * 0.75;
+const CARD_WIDTH = SCREEN_WIDTH - 40; // Match SwipeCard width calculation
 
 const SkeletonCard = ({ style }) => {
   const { theme } = useTheme();
@@ -59,7 +60,7 @@ const SkeletonCard = ({ style }) => {
     <View style={[styles.container, { backgroundColor: theme.background.card }, style]}>
       {/* Profile Image Skeleton */}
       <SkeletonItem
-        width={SCREEN_WIDTH - 40}
+        width={CARD_WIDTH}
         height={CARD_HEIGHT * 0.7}
         borderRadius={20}
         style={styles.imageSkeleton}
@@ -74,9 +75,9 @@ const SkeletonCard = ({ style }) => {
         </View>
 
         {/* Bio Lines */}
-        <SkeletonItem width={SCREEN_WIDTH - 80} height={16} style={styles.bioLine} />
-        <SkeletonItem width={SCREEN_WIDTH - 120} height={16} style={styles.bioLine} />
-        <SkeletonItem width={SCREEN_WIDTH - 100} height={16} style={styles.bioLine} />
+        <SkeletonItem width={CARD_WIDTH - 40} height={16} style={styles.bioLine} />
+        <SkeletonItem width={CARD_WIDTH - 80} height={16} style={styles.bioLine} />
+        <SkeletonItem width={CARD_WIDTH - 60} height={16} style={styles.bioLine} />
 
         {/* Distance */}
         <View style={styles.distanceRow}>
@@ -96,10 +97,23 @@ const SkeletonCard = ({ style }) => {
 
 const styles = StyleSheet.create({
   container: {
-    width: SCREEN_WIDTH - 20,
+    width: CARD_WIDTH, // Match SwipeCard width
     height: CARD_HEIGHT,
     borderRadius: 20,
-    marginHorizontal: 10,
+    ...Platform.select({
+      web: {
+        // On web, use same centering approach as SwipeCard
+        left: '50%',
+        marginLeft: -(CARD_WIDTH / 2), // Center it (offset by half width)
+        marginRight: 0,
+        position: 'absolute', // Match SwipeCard positioning
+      },
+      default: {
+        // On native, use margin for centering
+        marginHorizontal: 20, // (SCREEN_WIDTH - CARD_WIDTH) / 2 = 20
+        alignSelf: 'center',
+      },
+    }),
     shadowColor: Colors.text.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

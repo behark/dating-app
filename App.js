@@ -23,6 +23,8 @@ import { UpdateService } from './src/services/UpdateService';
 import { UserBehaviorAnalytics } from './src/services/UserBehaviorAnalytics';
 import { initSentry } from './src/utils/sentry';
 import IAPService from './src/services/IAPService';
+import api from './src/services/api';
+import { API_ENDPOINTS } from './src/constants/constants';
 
 // Vercel Analytics and Speed Insights (web only)
 // Using dynamic imports for web platform to avoid breaking native builds
@@ -132,8 +134,16 @@ export default function App() {
           const pushToken = await NotificationService.registerForPushNotifications();
           if (pushToken) {
             console.log('✅ Push token:', pushToken);
-            // TODO: Send to backend
-            // await api.post('/users/push-token', { token: pushToken });
+            // Send push token to backend
+            try {
+              await api.post(API_ENDPOINTS.NOTIFICATIONS.PUSH_TOKEN, {
+                expoPushToken: pushToken,
+                platform: Platform.OS,
+              });
+              console.log('✅ Push token registered with backend');
+            } catch (error) {
+              console.error('❌ Failed to register push token with backend:', error);
+            }
           }
 
           // Setup notification listeners
@@ -145,8 +155,27 @@ export default function App() {
             (response) => {
               const data = response.notification.request.content.data;
               console.log('📱 Notification tapped:', data);
-              // TODO: Navigate based on data.type
-              // Example: if (data.type === 'match') navigation.navigate('Matches')
+
+              // Navigate based on notification type
+              if (data && data.type) {
+                switch (data.type) {
+                  case 'match':
+                    // Navigate to matches screen
+                    // Note: Navigation handling would need to be implemented with navigation ref
+                    console.log('Navigate to matches screen for match:', data.matchId);
+                    break;
+                  case 'message':
+                    // Navigate to chat screen
+                    console.log('Navigate to chat screen for message:', data.matchId);
+                    break;
+                  case 'like':
+                    // Navigate to profile or matches
+                    console.log('Navigate to profile for like:', data.userId);
+                    break;
+                  default:
+                    console.log('Unknown notification type:', data.type);
+                }
+              }
             }
           );
 

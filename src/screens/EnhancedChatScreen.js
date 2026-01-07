@@ -72,6 +72,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
   const flatListRef = useRef();
   const typingTimeoutRef = useRef();
   const readReceiptTimers = useRef(new Map());
+  const messageReactionTimers = useRef(new Map());
 
   // Load messages
   const loadMessages = useCallback(
@@ -124,6 +125,24 @@ const EnhancedChatScreen = ({ route, navigation }) => {
     }
   }, [messages, loading]);
 
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      // Clear all read receipt timers
+      readReceiptTimers.current.forEach((timer) => clearTimeout(timer));
+      readReceiptTimers.current.clear();
+
+      // Clear all message reaction timers
+      messageReactionTimers.current.forEach((timer) => clearTimeout(timer));
+      messageReactionTimers.current.clear();
+
+      // Clear typing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Handle sending message
   const handleSendMessage = () => {
     if (messageText.trim() === '' || !matchId) return;
@@ -156,7 +175,8 @@ const EnhancedChatScreen = ({ route, navigation }) => {
   };
 
   // Handle message reaction
-  const handleReaction = (messageId, reactionId) => {
+  const handleReaction = async (messageId, reactionId) => {
+    // Optimistically update UI first
     setMessageReactions((prev) => ({
       ...prev,
       [messageId]: {
@@ -168,8 +188,26 @@ const EnhancedChatScreen = ({ route, navigation }) => {
     setShowReactionPicker(false);
     setSelectedMessage(null);
 
-    // TODO: Send reaction to backend
-    // chatService.addReaction(matchId, messageId, reactionId);
+    try {
+      // Send reaction to backend
+      await api.post(API_ENDPOINTS.CHAT.REACTIONS, {
+        messageId,
+        reactionId,
+      });
+      logger.info('Reaction added successfully', { messageId, reactionId });
+    } catch (error) {
+      // Revert optimistic update on error
+      setMessageReactions((prev) => ({
+        ...prev,
+        [messageId]: {
+          ...prev[messageId],
+          [reactionId]: Math.max(0, (prev[messageId]?.[reactionId] || 0) - 1),
+          myReactions: (prev[messageId]?.myReactions || []).filter((id) => id !== reactionId),
+        },
+      }));
+      logger.error('Failed to add reaction', error);
+      Alert.alert('Error', 'Failed to add reaction. Please try again.');
+    }
   };
 
   // Handle message long press

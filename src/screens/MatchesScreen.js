@@ -71,9 +71,9 @@ const MatchesScreen = () => {
         logger.error('Error loading premium status:', error);
       }
 
-      // Load sent likes (people you liked) - show for all users
+      // Load received likes (people who liked you) - show for all users
       try {
-        const sentLikes = await SwipeController.getSentSwipes(currentUser.uid);
+        const receivedSwipes = await SwipeController.getReceivedSwipes(currentUser.uid);
         if (requestId !== requestIdRef.current) return;
         
         // Get list of matched user IDs to filter them out from likes
@@ -83,15 +83,15 @@ const MatchesScreen = () => {
         
         // Transform swipes to user-friendly format for display
         // Filter out people who have already matched (they show in Matches tab)
-        const formattedLikes = sentLikes
+        const formattedLikes = receivedSwipes
           .filter((swipe) => {
-            const userId = swipe.target || swipe.swipedId;
+            const userId = swipe.swiper || swipe.userId;
             return !matchedUserIds.has(userId);
           })
           .map((swipe) => ({
             _id: swipe.id || swipe._id,
             user: {
-              id: swipe.target || swipe.swipedId,
+              id: swipe.swiper || swipe.userId,
               name: swipe.swiperInfo?.name || 'Unknown',
               photoURL: swipe.swiperInfo?.photoURL || swipe.swiperInfo?.photos?.[0]?.url,
               age: swipe.swiperInfo?.age,
@@ -295,7 +295,7 @@ const MatchesScreen = () => {
     <LinearGradient colors={Colors.gradient.light} style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>
-          {showLikes ? 'People You Liked' : 'Your Conversations'}
+          {showLikes ? 'People Who Liked You' : 'Your Conversations'}
         </Text>
         <Text style={styles.subtitle}>
           {showLikes
@@ -340,7 +340,7 @@ const MatchesScreen = () => {
             title="No Likes Yet"
             description="Start swiping to like people! When you like someone, they'll appear here."
             buttonText="Start Swiping 🔥"
-            onButtonPress={() => navigation.navigate('Main', { screen: 'Discover' })}
+            onButtonPress={() => navigation.navigate('Discover')}
             secondaryButtonText="Back to Matches"
             onSecondaryButtonPress={() => setShowLikes(false)}
             variant="gradient"
@@ -416,10 +416,7 @@ const MatchesScreen = () => {
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.user?.id || item._id}
-            contentContainerStyle={[
-              styles.list,
-              receivedLikes.length <= 3 && styles.listCentered,
-            ]}
+            contentContainerStyle={styles.list}
             showsVerticalScrollIndicator={false}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           />
@@ -430,7 +427,7 @@ const MatchesScreen = () => {
           title="No Matches Yet"
           description="Don't worry, your perfect match is out there! Start swiping to find them and make meaningful connections."
           buttonText="Start Swiping 🔥"
-          onButtonPress={() => navigation.navigate('Main', { screen: 'Discover' })}
+          onButtonPress={() => navigation.navigate('Discover')}
           secondaryButtonText={isPremium ? "View Likes" : "Get Premium"}
           onSecondaryButtonPress={() => isPremium ? setShowLikes(true) : navigation.navigate('Premium')}
           variant="gradient"
@@ -441,10 +438,7 @@ const MatchesScreen = () => {
           data={conversations}
           renderItem={renderConversation}
           keyExtractor={(item) => item.matchId}
-          contentContainerStyle={[
-            styles.list,
-            conversations.length <= 3 && styles.listCentered,
-          ]}
+          contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         />
@@ -524,6 +518,7 @@ const styles = StyleSheet.create({
   },
   listCentered: {
     justifyContent: 'center',
+    alignItems: 'center',
   },
   matchCard: {
     flexDirection: 'row',
@@ -532,6 +527,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 15,
     marginBottom: 15,
+    width: '100%',
     shadowColor: Colors.background.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,

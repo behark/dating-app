@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview Home Screen - Dating App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .preview-badge {
+            position: absolute;
+            top: 50px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 6px 12px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-badge-icon {
+            width: 14px;
+            height: 14px;
+            margin-right: 6px;
+            color: #667eea;
+        }
+
+        .preview-badge-text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .header {
+            padding-top: 80px;
+            padding: 80px 20px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid #ddd;
+        }
+
+        .header-content {
+            margin-bottom: 15px;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            color: #666;
+            line-height: 20px;
+        }
+
+        .sign-up-button {
+            margin-top: 15px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .sign-up-button-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 14px;
+            text-align: center;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .sign-up-button-gradient:hover {
+            transform: scale(1.02);
+        }
+
+        .scroll-content {
+            padding: 20px;
+            padding-bottom: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: calc(100vh - 200px);
+        }
+
+        .card-wrapper {
+            position: relative;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .swipe-card {
+            width: 100%;
+            max-width: 400px;
+            height: 600px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            background: white;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 70%;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 20px;
+            height: 30%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .card-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .card-age {
+            font-size: 24px;
+            color: #666;
+        }
+
+        .verified-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #4ECDC4;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .card-bio {
+            font-size: 14px;
+            color: #666;
+            line-height: 20px;
+            margin-bottom: 10px;
+        }
+
+        .card-interests {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .interest-tag {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .demo-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+
+        .demo-badge {
+            display: flex;
+            align-items: center;
+            background: rgba(102, 126, 234, 0.9);
+            padding: 6px 10px;
+            border-radius: 15px;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .demo-badge-icon {
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+        }
+
+        .action-buttons {
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 20px;
+            gap: 20px;
+        }
+
+        .action-button {
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid;
+        }
+
+        .action-button:hover {
+            transform: scale(1.1);
+        }
+
+        .pass-button {
+            border-color: #FF6B6B;
+            color: #FF6B6B;
+        }
+
+        .super-like-button {
+            border-color: #4ECDC4;
+            color: #4ECDC4;
+        }
+
+        .like-button {
+            border-color: #4ECDC4;
+            color: #4ECDC4;
+        }
+
+        .action-icon {
+            font-size: 32px;
+        }
+
+        .empty-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .empty-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .empty-icon {
+            font-size: 80px;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .empty-text {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 24px;
+        }
+
+        .cta-button {
+            border-radius: 15px;
+            overflow: hidden;
+            width: 100%;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .cta-button-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px;
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            z-index: 2000;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-header {
+            padding: 50px 20px 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .close-button {
+            align-self: flex-end;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 28px;
+            color: #333;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-top: 10px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            .swipe-card {
+                height: 500px;
+            }
+            
+            .header-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Preview Badge -->
+        <div class="preview-badge">
+            <svg class="preview-badge-icon" viewBox="0 0 512 512" fill="currentColor">
+                <path d="M255.8 112c-80.4 0-143.8 50-177.2 122.6C38.4 214.1 16 186.8 16 156c0-48.5 39.5-88 88-88s88 39.5 88 88c0 30.8-22.4 58.1-62.6 78.6C165.8 162 229.4 112 255.8 112zm176 0c-26.4 0-90 50-153.8 122.6C326.4 214.1 304 186.8 304 156c0-48.5 39.5-88 88-88s88 39.5 88 88c0 30.8-22.4 58.1-62.6 78.6C341.8 162 405.4 112 431.8 112zM255.8 400c-80.4 0-143.8-50-177.2-122.6C38.4 297.9 16 325.2 16 356c0 48.5 39.5 88 88 88s88-39.5 88-88c0-30.8-22.4-58.1-62.6-78.6C165.8 350 229.4 400 255.8 400zm176 0c-26.4 0-90-50-153.8-122.6C326.4 297.9 304 325.2 304 356c0 48.5 39.5 88 88 88s88-39.5 88-88c0-30.8-22.4-58.1-62.6-78.6C341.8 350 405.4 400 431.8 400z"/>
+            </svg>
+            <span class="preview-badge-text">Preview Mode</span>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <h1 class="header-title">Find Your Perfect Match</h1>
+                <p class="header-subtitle">
+                    Swipe through profiles • Match with people • Start meaningful conversations
+                </p>
+            </div>
+            <div class="sign-up-button" onclick="showLoginModal()">
+                <div class="sign-up-button-gradient">Sign Up Free</div>
+            </div>
+        </div>
+
+        <!-- Cards -->
+        <div class="scroll-content">
+            <div class="card-wrapper">
+                <div class="swipe-card">
+                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400" alt="Alex" class="card-image">
+                    <div class="card-content">
+                        <div class="card-header">
+                            <div>
+                                <span class="card-name">Alex</span>
+                                <span class="card-age">, 28</span>
+                                <span class="verified-badge">✓ Verified</span>
+                            </div>
+                        </div>
+                        <p class="card-bio">Love hiking, coffee, and good conversations. Looking for someone to explore the city with!</p>
+                        <div class="card-interests">
+                            <span class="interest-tag">hiking</span>
+                            <span class="interest-tag">coffee</span>
+                            <span class="interest-tag">travel</span>
+                            <span class="interest-tag">photography</span>
+                        </div>
+                    </div>
+                    <div class="demo-overlay">
+                        <div class="demo-badge">
+                            <svg class="demo-badge-icon" viewBox="0 0 512 512" fill="currentColor">
+                                <path d="M256 48C141.1 48 48 141.1 48 256s93.1 208 208 208 208-93.1 208-208S370.9 48 256 48zm0 374.4c-91.7 0-166.4-74.7-166.4-166.4S164.3 89.6 256 89.6 422.4 164.3 422.4 256 347.7 422.4 256 422.4zm0-281.8c-63.6 0-115.4 51.8-115.4 115.4S192.4 371.4 256 371.4 371.4 319.6 371.4 256 319.6 140.6 256 140.6z"/>
+                            </svg>
+                            Demo Profile
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <div class="action-button pass-button" onclick="handleSwipe('left')">
+                <span class="action-icon">✕</span>
+            </div>
+            <div class="action-button super-like-button" onclick="handleSwipe('superlike')">
+                <span class="action-icon">★</span>
+            </div>
+            <div class="action-button like-button" onclick="handleSwipe('right')">
+                <span class="action-icon">♥</span>
+            </div>
+        </div>
+
+        <!-- Login Modal -->
+        <div class="modal" id="loginModal">
+            <div class="modal-header">
+                <div class="close-button" onclick="hideLoginModal()">✕</div>
+                <h2 class="modal-title" id="modalTitle">Sign up to get started</h2>
+                <p class="modal-subtitle" id="modalSubtitle">Create a free account to start matching</p>
+            </div>
+            <div style="padding: 20px; text-align: center;">
+                <p style="color: #666; margin-bottom: 20px;">Login form would appear here</p>
+                <div class="sign-up-button" onclick="hideLoginModal()">
+                    <div class="sign-up-button-gradient">Continue</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.add('show');
+        }
+
+        function hideLoginModal() {
+            document.getElementById('loginModal').classList.remove('show');
+        }
+
+        function handleSwipe(direction) {
+            const messages = {
+                'left': { title: 'Sign up to start matching!', subtitle: 'Create a free account to start swiping' },
+                'right': { title: 'Join to like and match with people', subtitle: 'Create a free account to start matching' },
+                'superlike': { title: 'Sign up to send Super Likes!', subtitle: 'Create an account to send Super Likes and stand out!' }
+            };
+            
+            const msg = messages[direction] || messages['right'];
+            document.getElementById('modalTitle').textContent = msg.title;
+            document.getElementById('modalSubtitle').textContent = msg.subtitle;
+            showLoginModal();
+        }
+
+        // Close modal on outside click
+        document.getElementById('loginModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideLoginModal();
+            }
+        });
+    </script>
+</body>
+</html>

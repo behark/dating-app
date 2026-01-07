@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { Platform, View, StyleSheet, Text } from 'react-native';
 import { Colors } from '../../constants/colors';
 
 const SingleSlider = ({
@@ -58,9 +58,14 @@ const SingleSlider = ({
             {
               left: `${percentage}%`,
               backgroundColor: color,
+              ...Platform.select({
+                web: { pointerEvents: 'box-none' },
+              }),
             },
           ]}
-          pointerEvents="box-none"
+          {...Platform.select({
+            native: { pointerEvents: 'box-none' },
+          })}
         >
           <Text style={styles.thumbLabel}>{Math.round(value)}</Text>
         </View>

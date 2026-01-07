@@ -839,18 +839,28 @@ export class SafetyService {
 
   /**
    * Helper function to create notifications
-   * Note: Notifications should be created through the backend notification service
-   * This method is kept for backward compatibility but should be removed
-   * Use NotificationService instead
+   * Uses the backend notification service instead of direct Firestore access
    */
   static async createNotification(userId, notificationData) {
     try {
-      // TODO: Use NotificationService instead of direct Firestore access
-      logger.warn('createNotification: Should use NotificationService instead of direct Firestore');
-      // For now, this is a no-op - notifications should be sent via backend
-      // The backend handles notifications when date plans, SOS, etc. are created
+      const response = await api.post('/notifications/send', {
+        userId,
+        title: notificationData.title,
+        message: notificationData.message,
+        type: notificationData.type,
+        data: notificationData.data || {},
+      });
+
+      if (!response.success) {
+        logger.error('Error creating notification', new Error(response.message), { userId, type: notificationData.type });
+        return false;
+      }
+
+      logger.info('Notification created successfully', { userId, type: notificationData.type });
+      return true;
     } catch (error) {
       logger.error('Error creating notification', error, { userId, type: notificationData.type });
+      return false;
     }
   }
 
