@@ -1,2 +1,37 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+
+# Dependencies
+node_modules/
+
+# Testing
+coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build
+dist/
+build/
+
+# Uploads & temp
+uploads/
+temp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Debug
+.cursor/
+
+# Vercel & Keys
 .vercel
 keys/

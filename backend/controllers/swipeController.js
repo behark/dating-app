@@ -6,6 +6,7 @@ const Subscription = require('../models/Subscription');
 const SwipeService = require('../services/SwipeService');
 const QueueService = require('../services/QueueService');
 const mongoose = require('mongoose');
+const cache = require('../services/CacheService');
 const {
   sendSuccess,
   sendError,
@@ -70,7 +71,9 @@ const createSwipe = async (req, res) => {
     }
 
     if (!['like', 'pass', 'superlike'].includes(action)) {
-      return sendError(res, 400, { message: 'Invalid action. Must be one of: like, pass, superlike' });
+      return sendError(res, 400, {
+        message: 'Invalid action. Must be one of: like, pass, superlike',
+      });
     }
 
     // Validate ObjectId format for targetId
@@ -107,7 +110,7 @@ const createSwipe = async (req, res) => {
         error: 'VALIDATION_ERROR',
       });
     }
-    
+
     if (!targetUser) {
       logger.warn('Target user not found', { targetId, swiperId });
       return sendError(res, 404, {
@@ -166,6 +169,11 @@ const createSwipe = async (req, res) => {
 
     // Send notifications based on result
     if (result.isMatch) {
+      // Invalidate match cache for both users
+      cache.invalidate(`matches:${swiperId}:*`);
+      cache.invalidate(`matches:${targetId}:*`);
+      logger.debug('Match cache invalidated for both users', { swiperId, targetId });
+
       // Send match notifications to both users
       const swipedUser = await User.findById(targetId).select('name').lean();
 
@@ -312,9 +320,10 @@ const createSwipe = async (req, res) => {
 
     // Generic error response
     return sendError(res, 500, {
-      message: process.env.NODE_ENV === 'production'
-        ? 'Something went wrong on our end. Please try again in a moment.'
-        : `Internal server error: ${error.message}`,
+      message:
+        process.env.NODE_ENV === 'production'
+          ? 'Something went wrong on our end. Please try again in a moment.'
+          : `Internal server error: ${error.message}`,
       error: 'INTERNAL_SERVER_ERROR',
     });
   }
@@ -377,7 +386,7 @@ const undoSwipe = async (req, res) => {
 
     const result = await SwipeService.undoSwipe(swipeId, userId);
 
-    sendSuccess(res, 200, { message: 'Swipe undone successfully', data: result.undoneSwipe, });
+    sendSuccess(res, 200, { message: 'Swipe undone successfully', data: result.undoneSwipe });
   } catch (error) {
     logger.error('Error undoing swipe:', { error: error.message, stack: error.stack });
 
@@ -464,9 +473,11 @@ const getReceivedSwipes = async (req, res) => {
 };
 
 // Query timeout constant - MUST be less than Nginx proxy_read_timeout (90s)
-const MATCH_QUERY_TIMEOUT_MS = 30000;
+// Reduced from 30s to 10s for better UX
+const MATCH_QUERY_TIMEOUT_MS = 10000;
 const DEFAULT_MATCH_LIMIT = 25;
 const MAX_MATCH_LIMIT = 50;
+const MATCH_CACHE_TTL = 120; // Cache matches for 2 minutes
 
 /**
  * Get all matches for the current user
@@ -489,24 +500,83 @@ const getMatches = async (req, res) => {
     const pageNum = parseInt(page) || 1;
     const skipCount = parseInt(skip) || (pageNum - 1) * resultLimit;
 
-    // Run matches query and count in parallel for better performance
-    const [matches, totalCount] = await Promise.all([
-      Match.find({
-        users: userId,
-        status: status,
-      })
-        .populate('users', 'name photos age bio lastActive isOnline')
-        .sort({ [sortBy]: -1 })
-        .skip(skipCount)
-        .limit(resultLimit + 1) // Fetch one extra to check for more
-        .maxTimeMS(MATCH_QUERY_TIMEOUT_MS)
-        .lean(),
+    // Cache key includes all query parameters
+    const cacheKey = `matches:${userId}:${status}:${sortBy}:${pageNum}:${resultLimit}`;
 
-      Match.countDocuments({
-        users: userId,
-        status: status,
-      }).maxTimeMS(MATCH_QUERY_TIMEOUT_MS),
-    ]);
+    // Try cache first for first page only (most common request)
+    if (pageNum === 1) {
+      const cached = cache.get(cacheKey);
+      if (cached) {
+        logger.debug('Matches cache hit', { userId, cacheKey });
+        return res.json(cached);
+      }
+    }
+
+    // Optimized aggregation pipeline (faster than populate)
+    const matches = await Match.aggregate([
+      // Stage 1: Match filter (uses index: users + status)
+      {
+        $match: {
+          users: new mongoose.Types.ObjectId(userId),
+          status: status,
+        },
+      },
+
+      // Stage 2: Sort (uses index: lastActivityAt for 'active' status)
+      { $sort: sortBy === 'lastActivityAt' ? { lastActivityAt: -1 } : { createdAt: -1 } },
+
+      // Stage 3: Pagination
+      { $skip: skipCount },
+      { $limit: resultLimit + 1 }, // +1 to check for more
+
+      // Stage 4: Lookup users (only needed fields)
+      {
+        $lookup: {
+          from: 'users',
+          let: { userIds: '$users' },
+          pipeline: [
+            { $match: { $expr: { $in: ['$_id', '$$userIds'] } } },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                age: 1,
+                bio: 1,
+                lastActive: 1,
+                isOnline: 1,
+                photos: { $slice: ['$photos', 1] }, // Only first photo for list view
+              },
+            },
+          ],
+          as: 'userDetails',
+        },
+      },
+
+      // Stage 5: Project final shape
+      {
+        $project: {
+          _id: 1,
+          users: 1,
+          createdAt: 1,
+          matchType: 1,
+          status: 1,
+          conversationStarted: 1,
+          lastActivityAt: 1,
+          userDetails: 1,
+        },
+      },
+    ])
+      .maxTimeMS(MATCH_QUERY_TIMEOUT_MS)
+      .allowDiskUse(true); // Allow disk use for large result sets
+
+    // Get total count (only if needed for pagination)
+    const totalCount =
+      pageNum === 1
+        ? await Match.countDocuments({
+            users: userId,
+            status: status,
+          }).maxTimeMS(MATCH_QUERY_TIMEOUT_MS)
+        : null;
 
     // Check if there are more results
     const hasMore = matches.length > resultLimit;
@@ -514,7 +584,8 @@ const getMatches = async (req, res) => {
 
     // Transform matches to include the other user's info prominently
     const transformedMatches = resultMatches.map((match) => {
-      const otherUser = match.users.find((u) => u._id.toString() !== userId);
+      // Find the other user (not the requesting user)
+      const otherUser = match.userDetails.find((u) => u._id.toString() !== userId);
       return {
         matchId: match._id,
         matchedAt: match.createdAt,
@@ -528,12 +599,16 @@ const getMatches = async (req, res) => {
 
     const queryTime = Date.now() - startTime;
 
-    // Log slow queries
-    if (queryTime > 3000) {
-      console.warn(`[SLOW] getMatches query took ${queryTime}ms for user ${userId}`);
+    // Log slow queries (reduced threshold from 3s to 1s)
+    if (queryTime > 1000) {
+      logger.warn('Slow getMatches query', {
+        userId,
+        queryTime,
+        matchCount: transformedMatches.length,
+      });
     }
 
-    res.json({
+    const response = {
       success: true,
       data: {
         matches: transformedMatches,
@@ -547,9 +622,18 @@ const getMatches = async (req, res) => {
         },
         meta: {
           queryTimeMs: queryTime,
+          cached: false,
         },
       },
-    });
+    };
+
+    // Cache first page for 2 minutes
+    if (pageNum === 1) {
+      cache.set(cacheKey, response, MATCH_CACHE_TTL);
+      logger.debug('Matches cached', { userId, cacheKey, ttl: MATCH_CACHE_TTL });
+    }
+
+    res.json(response);
   } catch (error) {
     const queryTime = Date.now() - startTime;
     logger.error('Error getting matches', {
@@ -570,7 +654,10 @@ const getMatches = async (req, res) => {
         : String(error)
       ).includes('maxTimeMS')
     ) {
-      return sendError(res, 503, { message: 'Match query timed out. Please try again.', error: 'QUERY_TIMEOUT', });
+      return sendError(res, 503, {
+        message: 'Match query timed out. Please try again.',
+        error: 'QUERY_TIMEOUT',
+      });
     }
 
     res.status(500).json({
@@ -592,16 +679,27 @@ const unmatch = async (req, res) => {
       return sendError(res, 400, { message: 'Missing required parameter: matchId' });
     }
 
-    await Match.unmatch(matchId, userId);
+    // Get match first to know both users
     const match = await Match.findById(matchId);
-
     if (match) {
+      // Invalidate match cache for both users before unmatching
+      const userIds = match.users.map((u) => u.toString());
+      userIds.forEach((uid) => {
+        cache.invalidate(`matches:${uid}:*`);
+      });
+      logger.debug('Match cache invalidated for unmatch', { userIds });
+    }
+
+    await Match.unmatch(matchId, userId);
+    const updatedMatch = await Match.findById(matchId);
+
+    if (updatedMatch) {
       res.json({
         success: true,
         message: 'Successfully unmatched',
         data: {
-          matchId: match._id,
-          status: match.status,
+          matchId: updatedMatch._id,
+          status: updatedMatch.status,
         },
       });
     } else {
