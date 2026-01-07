@@ -23,6 +23,13 @@ const logger = loggerModule as {
   apiRequest: (endpoint: string, method: string) => void;
 };
 
+// Global callback for session expiration - will be set by AuthContext
+let onSessionExpiredCallback: (() => void) | null = null;
+
+export const setSessionExpiredCallback = (callback: (() => void) | null): void => {
+  onSessionExpiredCallback = callback;
+};
+
 // Token storage keys
 const AUTH_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
@@ -130,17 +137,26 @@ class ApiService {
    * Get the auth token (from memory or storage)
    */
   async getAuthToken(): Promise<string | null> {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:139',message:'getAuthToken called',data:{hasMemoryToken:!!this._authToken,memoryTokenLength:this._authToken?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     if (this._authToken) {
       return this._authToken;
     }
     try {
       const token = await getTokenSecurely(AUTH_TOKEN_KEY);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:144',message:'Auth token from storage',data:{hasStoredToken:!!token,storedTokenLength:token?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
       if (token) {
         this._authToken = token;
       }
       return token;
     } catch (error) {
       logger.error('Error getting auth token', error as any);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:150',message:'Error getting auth token',data:{error:error instanceof Error?error.message:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
       return null;
     }
   }
@@ -149,17 +165,26 @@ class ApiService {
    * Get the refresh token (from memory or storage)
    */
   async getRefreshToken(): Promise<string | null> {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:158',message:'getRefreshToken called',data:{hasMemoryToken:!!this._refreshToken,memoryTokenLength:this._refreshToken?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    // #endregion
     if (this._refreshToken) {
       return this._refreshToken;
     }
     try {
       const token = await getTokenSecurely(REFRESH_TOKEN_KEY);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:164',message:'Refresh token from storage',data:{hasStoredToken:!!token,storedTokenLength:token?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
       if (token) {
         this._refreshToken = token;
       }
       return token;
     } catch (error) {
       logger.error('Error getting refresh token', error as Error);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:170',message:'Error getting refresh token',data:{error:error instanceof Error?error.message:String(error)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
       return null;
     }
   }
@@ -168,6 +193,9 @@ class ApiService {
    * Clear all auth tokens (on logout)
    */
   clearAuthToken(): void {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:177',message:'clearAuthToken called',data:{hadAuthToken:!!this._authToken,hadRefreshToken:!!this._refreshToken},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     this._authToken = null;
     this._refreshToken = null;
     removeTokenSecurely(AUTH_TOKEN_KEY).catch((error) =>
@@ -196,14 +224,20 @@ class ApiService {
 
     try {
       const refreshToken = await this.getRefreshToken();
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:205',message:'Refresh token retrieved for refresh',data:{hasRefreshToken:!!refreshToken,refreshTokenLength:refreshToken?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
 
       if (!refreshToken) {
         logger.debug('No refresh token available for token refresh');
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:208',message:'No refresh token - refresh failed',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
         return null;
       }
 
-      // Validate API_URL is not localhost in production
-      if (!API_URL || API_URL.includes('localhost')) {
+      // Validate API_URL is set
+      if (!API_URL) {
         logger.error('Invalid API_URL for token refresh:', API_URL);
         throw new Error(`Invalid API_URL: ${API_URL}. Backend URL not configured correctly.`);
       }
@@ -239,6 +273,9 @@ class ApiService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         logger.debug('Token refresh failed:', (errorData as { message?: string }).message || response.status);
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:246',message:'Token refresh request failed',data:{status:response.status,statusText:response.statusText,errorMessage:(errorData as {message?:string}).message},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
         return null;
       }
 
@@ -383,6 +420,9 @@ class ApiService {
 
     // Get auth token
     const authToken = await this.getAuthToken();
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:392',message:'Request auth token retrieved',data:{hasAuthToken:!!authToken,authTokenLength:authToken?.length||0,endpoint,method},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
 
     const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
 
@@ -404,11 +444,29 @@ class ApiService {
 
       // Handle 401 Unauthorized - token may be expired, attempt refresh
       if (response.status === 401) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:413',message:'401 received - checking state',data:{endpoint,method,isRetry:_isRetry,hasAuthToken:!!authToken,authTokenLength:authToken?.length||0},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
         // Don't retry if this is already a retry or if hitting auth endpoints
         const isAuthEndpoint = endpoint.includes('/auth/');
+        // Check if this is a guest request (endpoint contains guest=true in query params)
+        const isGuestRequest = endpoint.includes('guest=true') || endpoint.includes('guest%3Dtrue');
+
+        // For guest requests without auth token, allow 401 to pass through (backend handles guest mode)
+        if (isGuestRequest && !authToken) {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:417',message:'Guest request without token - allowing 401',data:{endpoint},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
+          // #endregion
+          // Parse response normally - backend should handle guest requests
+          const rawResponse = await response.json();
+          return this.normalizeResponse<T>(rawResponse);
+        }
 
         if (!_isRetry && !isAuthEndpoint) {
           logger.debug('Received 401, attempting token refresh...');
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:424',message:'Attempting token refresh',data:{endpoint,isAuthEndpoint},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
+          // #endregion
 
           // Try to refresh the token
           const newToken = await this.refreshAuthToken();
@@ -420,8 +478,15 @@ class ApiService {
           }
         }
 
-        // Token refresh failed or not applicable - clear tokens and throw
+        // Token refresh failed or not applicable - clear tokens and notify AuthContext
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:440',message:'Token refresh failed - clearing tokens',data:{endpoint,isRetry:_isRetry,hasCallback:!!onSessionExpiredCallback},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
         this.clearAuthToken();
+        // Notify AuthContext that session has expired
+        if (onSessionExpiredCallback) {
+          onSessionExpiredCallback();
+        }
         const errorData = (await response.json().catch(() => ({}))) as { message?: string };
         logger.apiError(endpoint, method, 401, 'Unauthorized - token expired or invalid');
         throw new Error(

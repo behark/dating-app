@@ -628,11 +628,13 @@ exports.refreshToken = async (req, res) => {
     }
 
     const newAuthToken = user.generateAuthToken();
+    const newRefreshToken = user.generateRefreshToken();
 
     res.json({
       success: true,
       data: {
         authToken: newAuthToken,
+        refreshToken: newRefreshToken,
       },
     });
   } catch (error) {

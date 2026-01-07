@@ -856,21 +856,10 @@ const HomeScreen = ({ navigation }) => {
   const { width: windowWidth } = useWindowDimensions();
   const styles = getStyles(theme);
 
-  // Swipe actions hook
-  const swipeActions = useSwipeActions({
-    userId,
-    isPremium,
-    navigation,
-    isGuest,
-    promptLogin,
-    onOptimisticUpdate: applySwipeUIOptimistic,
-    onMatchFound: (name, matchId) => {
-      setSuccessMessage(`🎉 Match with ${name}!`);
-      setShowSuccessAnimation(true);
-    },
-  });
+  // Get the user ID (supports both uid and _id) - moved before useSwipeActions
+  const userId = currentUser?.uid || currentUser?._id;
 
-  // Guest mode state - only determine after auth loading is complete
+  // Guest mode state - only determine after auth loading is complete - moved before useSwipeActions
   const isGuest = !authLoading && !currentUser;
   const [guestViewCount, setGuestViewCount] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -902,9 +891,6 @@ const HomeScreen = ({ navigation }) => {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [longestStreak, setLongestStreak] = useState(0);
 
-  // Get the user ID (supports both uid and _id)
-  const userId = currentUser?.uid || currentUser?._id;
-
   // Guest mode: Show login prompt helper
   const lastPromptRef = useRef(0);
   const promptLogin = useCallback((reason) => {
@@ -920,6 +906,33 @@ const HomeScreen = ({ navigation }) => {
       profilesViewed: guestViewCount 
     });
   }, [guestViewCount, showLoginModal]);
+
+  // Optimistic UI update function - must be declared before useSwipeActions
+  const applySwipeUIOptimistic = useCallback((direction, card) => {
+    startTransition(() => {
+      setLastSwipedCard({ card, direction, swipeId: null });
+      setCurrentIndex((prev) => prev + 1);
+      const newCount = swipesUsedToday + 1;
+      setSwipesUsedToday(newCount);
+      if (!isPremium) {
+        setSwipesRemaining(Math.max(0, 50 - newCount));
+      }
+    });
+  }, [isPremium, swipesUsedToday]);
+
+  // Swipe actions hook - must be after userId, isGuest, isPremium, promptLogin, and applySwipeUIOptimistic are declared
+  const swipeActions = useSwipeActions({
+    userId,
+    isPremium,
+    navigation,
+    isGuest,
+    promptLogin,
+    onOptimisticUpdate: applySwipeUIOptimistic,
+    onMatchFound: (name, matchId) => {
+      setSuccessMessage(`🎉 Match with ${name}!`);
+      setShowSuccessAnimation(true);
+    },
+  });
 
   // Guest mode: Get prompt message based on action
   const getLoginPromptMessage = () => {
@@ -1193,18 +1206,6 @@ const HomeScreen = ({ navigation }) => {
     await loadCards(null, isGuest);
     setRefreshing(false);
   };
-
-  const applySwipeUIOptimistic = useCallback((direction, card) => {
-    startTransition(() => {
-      setLastSwipedCard({ card, direction, swipeId: null });
-      setCurrentIndex((prev) => prev + 1);
-      const newCount = swipesUsedToday + 1;
-      setSwipesUsedToday(newCount);
-      if (!isPremium) {
-        setSwipesRemaining(Math.max(0, 50 - newCount));
-      }
-    });
-  }, [isPremium, swipesUsedToday]);
 
   const reconcileSwipeCounters = useCallback(async () => {
     if (!userId) return;

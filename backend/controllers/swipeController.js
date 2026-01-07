@@ -5,6 +5,7 @@ const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const SwipeService = require('../services/SwipeService');
 const QueueService = require('../services/QueueService');
+const mongoose = require('mongoose');
 const {
   sendSuccess,
   sendError,
@@ -54,6 +55,26 @@ const sendNotificationInternal = async (toUserId, type, title, message, data) =>
  */
 const createSwipe = async (req, res) => {
   try {
+    // #region agent log
+    const fs = require('fs');
+    const logPath = '/home/behar/dating-app/.cursor/debug.log';
+    const logEntry = JSON.stringify({
+      location: 'swipeController.js:56',
+      message: 'createSwipe called',
+      data: {
+        hasUser: !!req.user,
+        userId: req.user?.id,
+        targetId: req.body?.targetId,
+        action: req.body?.action,
+        bodyKeys: Object.keys(req.body || {}),
+      },
+      timestamp: Date.now(),
+      sessionId: 'debug-session',
+      runId: 'run3',
+      hypothesisId: 'G',
+    }) + '\n';
+    fs.appendFileSync(logPath, logEntry);
+    // #endregion
     const { targetId, action } = req.body;
     const swiperId = req.user.id;
 
@@ -64,6 +85,34 @@ const createSwipe = async (req, res) => {
 
     if (!['like', 'pass', 'superlike'].includes(action)) {
       return sendError(res, 400, { message: 'Invalid action. Must be one of: like, pass, superlike' });
+    }
+
+    // Validate ObjectId format for targetId
+    if (!mongoose.Types.ObjectId.isValid(targetId)) {
+      logger.warn('Invalid ObjectId format for targetId:', { targetId, swiperId });
+      return sendError(res, 400, {
+        message: 'Invalid target user ID format',
+        error: 'INVALID_ID',
+      });
+    }
+
+    // Validate ObjectId format for swiperId
+    if (!mongoose.Types.ObjectId.isValid(swiperId)) {
+      logger.warn('Invalid ObjectId format for swiperId:', { swiperId });
+      return sendError(res, 400, {
+        message: 'Invalid user ID format',
+        error: 'INVALID_ID',
+      });
+    }
+
+    // Verify target user exists
+    const targetUser = await User.findById(targetId).select('_id').lean();
+    if (!targetUser) {
+      logger.warn('Target user not found:', { targetId, swiperId });
+      return sendError(res, 404, {
+        message: 'Target user not found',
+        error: 'USER_NOT_FOUND',
+      });
     }
 
     // Check if user is premium using Subscription model
@@ -158,10 +207,119 @@ const createSwipe = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Error creating swipe:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error while creating swipe',
+    // #region agent log
+    const fs = require('fs');
+    const logPath = '/home/behar/dating-app/.cursor/debug.log';
+    const logEntry = JSON.stringify({
+      location: 'swipeController.js:160',
+      message: 'Error creating swipe',
+      data: {
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorStack: error instanceof Error ? error.stack : undefined,
+        hasUser: !!req.user,
+        userId: req.user?.id,
+        targetId: req.body?.targetId,
+        action: req.body?.action,
+      },
+      timestamp: Date.now(),
+      sessionId: 'debug-session',
+      runId: 'run3',
+      hypothesisId: 'G',
+    }) + '\n';
+    fs.appendFileSync(logPath, logEntry);
+    // #endregion
+
+    // Handle specific error types
+    if (error.name === 'ValidationError') {
+      logger.error('Validation error creating swipe:', {
+        error: error.message,
+        errors: error.errors,
+        swiperId: req.user?.id,
+        targetId: req.body?.targetId,
+        action: req.body?.action,
+      });
+      return sendValidationError(res, error, 'Failed to create swipe: validation error');
+    }
+
+    if (error.name === 'CastError') {
+      logger.error('Invalid ID format in swipe creation:', {
+        error: error.message,
+        path: error.path,
+        value: error.value,
+        swiperId: req.user?.id,
+        targetId: req.body?.targetId,
+      });
+      return sendError(res, 400, {
+        message: 'Invalid ID format',
+        error: 'INVALID_ID',
+      });
+    }
+
+    // Handle duplicate key errors (E11000) - should be rare with atomic operations
+    if (error.code === 11000) {
+      logger.warn('Duplicate swipe detected (race condition):', {
+        error: error.message,
+        keyValue: error.keyValue,
+        swiperId: req.user?.id,
+        targetId: req.body?.targetId,
+      });
+      // Return success since the swipe was already created
+      return sendSuccess(res, 200, {
+        message: 'Swipe already recorded',
+        data: {
+          swipeId: null,
+          action: req.body?.action,
+          isMatch: false,
+          match: false,
+          matchData: null,
+          alreadyProcessed: true,
+        },
+      });
+    }
+
+    // Handle specific error messages
+    if (error.message && error.message.includes('Cannot swipe on yourself')) {
+      logger.warn('User attempted to swipe on themselves:', {
+        userId: req.user?.id,
+        targetId: req.body?.targetId,
+      });
+      return sendError(res, 400, {
+        message: 'Cannot swipe on yourself',
+        error: 'INVALID_SWIPE_TARGET',
+      });
+    }
+
+    // Log the full error for debugging with enhanced context
+    logger.error('Error creating swipe:', {
+      error: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+      swiperId: req.user?.id,
+      targetId: req.body?.targetId,
+      action: req.body?.action,
+      // Additional context for debugging
+      errorType: error.constructor?.name,
+      errorKeys: Object.keys(error),
+      // MongoDB specific error details
+      keyPattern: error.keyPattern,
+      keyValue: error.keyValue,
+      // Request context
+      requestBody: req.body,
+      requestMethod: req.method,
+      requestPath: req.path,
+      // User context
+      userAgent: req.get('user-agent'),
+      ip: req.ip || req.connection?.remoteAddress,
+    });
+
+    // Generic error response
+    return sendError(res, 500, {
+      message: process.env.NODE_ENV === 'production'
+        ? 'Something went wrong on our end. Please try again in a moment.'
+        : `Internal server error: ${error.message}`,
+      error: 'INTERNAL_SERVER_ERROR',
     });
   }
 };

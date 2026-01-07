@@ -324,6 +324,15 @@ const api = {
       if (response.status === 401) {
         // Don't retry if this is already a retry or if hitting auth endpoints
         const isAuthEndpoint = endpoint.includes('/auth/');
+        // Check if this is a guest request (endpoint contains guest=true in query params)
+        const isGuestRequest = endpoint.includes('guest=true') || endpoint.includes('guest%3Dtrue');
+
+        // For guest requests without auth token, allow 401 to pass through (backend handles guest mode)
+        if (isGuestRequest && !authToken) {
+          // Parse response normally - backend should handle guest requests
+          const rawResponse = await response.json();
+          return this.normalizeResponse(rawResponse);
+        }
 
         if (!_isRetry && !isAuthEndpoint) {
           logger.debug('Received 401, attempting token refresh...');

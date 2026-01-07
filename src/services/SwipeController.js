@@ -86,7 +86,9 @@ export class SwipeController {
       }
 
       // Transform backend response to Swipe objects if needed
-      const swipes = response.data?.pendingLikes || response.data || [];
+      const swipesData = response.data?.pendingLikes || response.data || [];
+      // Ensure swipes is an array
+      const swipes = Array.isArray(swipesData) ? swipesData : [];
       return swipes.map((swipeData) => {
         if (swipeData instanceof Swipe) {
           return swipeData;

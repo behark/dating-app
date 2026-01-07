@@ -26,6 +26,7 @@ export interface ExploreUsersOptions {
   sortBy?: string;
   limit?: number;
   skip?: number;
+  guest?: boolean;
 }
 
 /**
@@ -80,7 +81,11 @@ class DiscoveryService {
         sortBy = 'recentActivity',
         limit = 20,
         skip = 0,
+        guest = false,
       } = options;
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DiscoveryService.ts:84',message:'exploreUsers options parsed',data:{guest,hasGuestOption:'guest' in options,optionsKeys:Object.keys(options)},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
 
       // Validate options
       if (!validateNumberRange(radius, 1000, 100000)) {
@@ -105,7 +110,22 @@ class DiscoveryService {
         skip: skip.toString(),
       });
 
-      const response = await api.get<IUserProfile[]>(`/discovery/explore?${queryParams}`);
+      // Add guest parameter if guest mode is enabled
+      if (guest) {
+        queryParams.append('guest', 'true');
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DiscoveryService.ts:112',message:'Guest parameter added to query',data:{finalUrl:`/discovery/explore?${queryParams.toString()}`},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+        // #endregion
+      } else {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'DiscoveryService.ts:116',message:'Guest parameter NOT added',data:{guest,queryString:queryParams.toString()},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'F'})}).catch(()=>{});
+        // #endregion
+      }
+
+      // For guest requests, bypass authentication retry logic
+      const response = await api.get<IUserProfile[]>(`/discovery/explore?${queryParams}`, {
+        retry: !guest, // Don't retry on 401 for guest requests
+      });
       const handled = handleApiResponse(response, 'Explore users') as { data?: IUserProfile[] };
       return handled.data || [];
     } catch (error) {

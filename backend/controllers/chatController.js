@@ -1,6 +1,7 @@
 const Message = require('../models/Message');
 const { logger } = require('../services/LoggingService');
 const Swipe = require('../models/Swipe');
+const Match = require('../models/Match');
 const { ERROR_MESSAGES } = require('../constants/messages');
 const {
   sendSuccess,
@@ -124,33 +125,37 @@ const getConversations = async (req, res) => {
       return sendUnauthorized(res, 'Authentication required');
     }
 
-    // Optimized: Single aggregation pipeline instead of N+1 queries
-    const conversations = await Swipe.aggregate([
-      // Stage 1: Find all matches for this user
+    // Query Match documents to get actual matches (mutual likes only)
+    const conversations = await Match.aggregate([
+      // Stage 1: Find all active matches for this user
       {
         $match: {
-          $or: [{ swiperId: userObjectId }, { swipedId: userObjectId }],
-          action: 'like',
+          users: userObjectId,
+          status: 'active',
         },
       },
-      // Stage 2: Sort by creation date
+      // Stage 2: Sort by creation date (most recent first)
       { $sort: { createdAt: -1 } },
       // Stage 3: Lookup the other user's details
       {
         $lookup: {
           from: 'users',
           let: {
-            otherUserId: {
-              $cond: {
-                if: { $eq: ['$swiperId', userObjectId] },
-                then: '$swipedId',
-                else: '$swiperId',
-              },
-            },
+            userIds: '$users',
+            currentUserId: userObjectId,
           },
           pipeline: [
-            { $match: { $expr: { $eq: ['$_id', '$$otherUserId'] } } },
-            { $project: { name: 1, photos: { $slice: ['$photos', 3] }, lastActive: 1 } },
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $in: ['$_id', '$$userIds'] },
+                    { $ne: ['$_id', '$$currentUserId'] },
+                  ],
+                },
+              },
+            },
+            { $project: { name: 1, photos: { $slice: ['$photos', 3] }, lastActive: 1, age: 1 } },
           ],
           as: 'otherUserData',
         },
@@ -201,6 +206,7 @@ const getConversations = async (req, res) => {
             name: '$otherUserData.name',
             photos: '$otherUserData.photos',
             lastActive: '$otherUserData.lastActive',
+            age: '$otherUserData.age',
           },
           latestMessage: {
             $cond: {
@@ -217,6 +223,8 @@ const getConversations = async (req, res) => {
             },
           },
           matchDate: '$createdAt',
+          matchType: '$matchType',
+          conversationStarted: '$conversationStarted',
         },
       },
     ]);

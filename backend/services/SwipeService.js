@@ -1,6 +1,7 @@
 const Swipe = require('../models/Swipe');
 const Match = require('../models/Match');
 const User = require('../models/User');
+const mongoose = require('mongoose');
 
 /**
  * SwipeService - Handles the "Double-Opt-In" Match Transaction
@@ -31,9 +32,33 @@ class SwipeService {
   static async processSwipe(swiperId, targetId, action, options = { isPriority: false }) {
     const { isPriority = false } = options;
 
+    // Validate ObjectId format for swiperId
+    if (!mongoose.Types.ObjectId.isValid(swiperId)) {
+      throw new Error(`Invalid swiperId format: ${swiperId}`);
+    }
+
+    // Validate ObjectId format for targetId
+    if (!mongoose.Types.ObjectId.isValid(targetId)) {
+      throw new Error(`Invalid targetId format: ${targetId}`);
+    }
+
     // Validate that user isn't swiping on themselves
     if (swiperId.toString() === targetId.toString()) {
       throw new Error('Cannot swipe on yourself');
+    }
+
+    // Verify both users exist before processing
+    const [swiper, target] = await Promise.all([
+      User.findById(swiperId).select('_id').lean(),
+      User.findById(targetId).select('_id').lean(),
+    ]);
+
+    if (!swiper) {
+      throw new Error(`Swiper user not found: ${swiperId}`);
+    }
+
+    if (!target) {
+      throw new Error(`Target user not found: ${targetId}`);
     }
 
     // RACE CONDITION FIX: Use atomic createSwipeAtomic instead of find-then-save
@@ -101,15 +126,28 @@ class SwipeService {
 
     // Track received like for "See Who Liked You" feature
     if (action === 'like' || action === 'superlike') {
-      await User.findByIdAndUpdate(targetId, {
-        $push: {
-          receivedLikes: {
-            fromUserId: swiperId,
-            action: action,
-            receivedAt: new Date(),
+      try {
+        await User.findByIdAndUpdate(targetId, {
+          $push: {
+            receivedLikes: {
+              fromUserId: swiperId,
+              action: action,
+              receivedAt: new Date(),
+            },
           },
-        },
-      });
+        });
+      } catch (error) {
+        // Log error but don't fail the swipe - receivedLikes is a nice-to-have feature
+        // This can happen if user was deleted or there's a schema validation issue
+        const { logger } = require('../services/LoggingService');
+        logger.warn('Failed to update receivedLikes for user:', {
+          targetId,
+          swiperId,
+          error: error.message,
+          errorName: error.name,
+        });
+        // Continue processing - the swipe itself is more important
+      }
     }
 
     // Check for match if it's a like or superlike
@@ -123,9 +161,20 @@ class SwipeService {
     }
 
     // Update user swipe statistics
-    await User.findByIdAndUpdate(swiperId, {
-      $inc: { totalSwipes: 1 },
-    });
+    try {
+      await User.findByIdAndUpdate(swiperId, {
+        $inc: { totalSwipes: 1 },
+      });
+    } catch (error) {
+      // Log error but don't fail the swipe - statistics update is secondary
+      const { logger } = require('../services/LoggingService');
+      logger.warn('Failed to update swipe statistics for user:', {
+        swiperId,
+        error: error.message,
+        errorName: error.name,
+      });
+      // Continue processing - the swipe itself is more important
+    }
 
     return {
       swipe: {
@@ -149,62 +198,119 @@ class SwipeService {
    * @returns {Promise<Object>} Match result with isMatch flag and match data
    */
   static async checkAndCreateMatch(swiperId, targetId, action) {
-    // Check if target user has already liked the current user
-    const reverseSwipe = await Swipe.findOne({
-      swiperId: targetId,
-      swipedId: swiperId,
-      action: { $in: ['like', 'superlike'] },
-    }).lean();
+    const { logger } = require('../services/LoggingService');
+    
+    try {
+      // Check if target user has already liked the current user
+      const reverseSwipe = await Swipe.findOne({
+        swiperId: targetId,
+        swipedId: swiperId,
+        action: { $in: ['like', 'superlike'] },
+      }).lean();
 
-    // No reverse like = no match
-    if (!reverseSwipe) {
+      // No reverse like = no match
+      if (!reverseSwipe) {
+        return { isMatch: false, matchData: null };
+      }
+
+      // Mutual interest detected! Create the match
+      const matchType =
+        action === 'superlike' || reverseSwipe.action === 'superlike' ? 'superlike' : 'regular';
+
+      let match;
+      let isNew = false;
+      let reactivated = false;
+
+      try {
+        const matchResult = await Match.createMatch(
+          swiperId,
+          targetId,
+          swiperId, // The current swiper is the match initiator (they completed the match)
+          matchType
+        );
+        match = matchResult.match;
+        isNew = matchResult.isNew;
+        reactivated = matchResult.reactivated;
+      } catch (error) {
+        logger.error('Failed to create match:', {
+          swiperId,
+          targetId,
+          action,
+          error: error.message,
+          errorName: error.name,
+          stack: error.stack,
+        });
+        // If match creation fails, return no match but don't fail the swipe
+        return { isMatch: false, matchData: null };
+      }
+
+      // Update both users' match counts
+      if (isNew || reactivated) {
+        try {
+          await Promise.all([
+            User.findByIdAndUpdate(swiperId, {
+              $inc: { totalMatches: 1 },
+              $addToSet: { matches: targetId },
+            }),
+            User.findByIdAndUpdate(targetId, {
+              $inc: { totalMatches: 1 },
+              $addToSet: { matches: swiperId },
+            }),
+          ]);
+        } catch (error) {
+          // Log error but don't fail - match was created successfully
+          logger.warn('Failed to update match counts for users:', {
+            swiperId,
+            targetId,
+            error: error.message,
+            errorName: error.name,
+          });
+          // Continue - the match itself is more important than the count
+        }
+      }
+
+      // Get user info for the match response
+      let matchedUser = null;
+      try {
+        matchedUser = await User.findById(targetId).select('name photos age bio').lean();
+      } catch (error) {
+        logger.warn('Failed to get matched user info:', {
+          targetId,
+          error: error.message,
+          errorName: error.name,
+        });
+        // Continue with null user info - match is still valid
+      }
+
+      return {
+        isMatch: true,
+        matchData: {
+          matchId: match._id,
+          matchType: matchType,
+          matchedAt: match.createdAt,
+          isNewMatch: isNew,
+          wasReactivated: reactivated,
+          matchedUser: {
+            id: targetId,
+            name: matchedUser?.name || null,
+            photo: matchedUser?.photos?.[0]?.url || null,
+            age: matchedUser?.age || null,
+          },
+        },
+      };
+    } catch (error) {
+      // Catch any unexpected errors in the match checking process
+      logger.error('Unexpected error in checkAndCreateMatch:', {
+        swiperId,
+        targetId,
+        action,
+        error: error.message,
+        errorName: error.name,
+        stack: error.stack,
+      });
+      // Return no match rather than throwing - don't fail the swipe
       return { isMatch: false, matchData: null };
     }
-
-    // Mutual interest detected! Create the match
-    const matchType =
-      action === 'superlike' || reverseSwipe.action === 'superlike' ? 'superlike' : 'regular';
-
-    const { match, isNew, reactivated } = await Match.createMatch(
-      swiperId,
-      targetId,
-      swiperId, // The current swiper is the match initiator (they completed the match)
-      matchType
-    );
-
-    // Update both users' match counts
-    if (isNew || reactivated) {
-      await Promise.all([
-        User.findByIdAndUpdate(swiperId, {
-          $inc: { totalMatches: 1 },
-          $addToSet: { matches: targetId },
-        }),
-        User.findByIdAndUpdate(targetId, {
-          $inc: { totalMatches: 1 },
-          $addToSet: { matches: swiperId },
-        }),
-      ]);
-    }
-
-    // Get user info for the match response
-    const matchedUser = await User.findById(targetId).select('name photos age bio').lean();
-
-    return {
-      isMatch: true,
-      matchData: {
-        matchId: match._id,
-        matchType: matchType,
-        matchedAt: match.createdAt,
-        isNewMatch: isNew,
-        wasReactivated: reactivated,
-        matchedUser: {
-          id: targetId,
-          name: matchedUser?.name,
-          photo: matchedUser?.photos?.[0]?.url,
-          age: matchedUser?.age,
-        },
-      },
-    };
   }
 
   /**
