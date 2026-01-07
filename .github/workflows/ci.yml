@@ -169,6 +169,91 @@ jobs:
           exit-code: '0'
 
   # ============================================
+  # End-to-End Tests (Playwright)
+  # ============================================
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [frontend-test, backend-test]
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+      redis:
+        image: redis:7.2-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start backend server
+        run: npm start &
+        working-directory: backend
+        env:
+          MONGODB_URI: mongodb://localhost:27017/dating-app-test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret-key-for-e2e-testing
+          JWT_REFRESH_SECRET: test-refresh-secret-key-for-e2e
+          NODE_ENV: test
+          PORT: 3000
+
+      - name: Wait for backend
+        run: |
+          timeout 60 bash -c 'until curl -s http://localhost:3000/health > /dev/null; do sleep 2; done'
+
+      - name: Start frontend server
+        run: npm run web &
+        env:
+          EXPO_PUBLIC_API_URL: http://localhost:3000/api
+          EXPO_PUBLIC_BACKEND_URL: http://localhost:3000
+
+      - name: Wait for frontend
+        run: |
+          timeout 120 bash -c 'until curl -s http://localhost:19006 > /dev/null 2>&1; do sleep 3; done'
+
+      - name: Run Playwright tests
+        run: npx playwright test --project=chromium
+        env:
+          BASE_URL: http://localhost:19006
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 7
+
+  # ============================================
   # Build Docker Images
   # ============================================
   build-images:
@@ -247,7 +332,7 @@ jobs:
     if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/staging'
     environment:
       name: staging
-      url: https://staging.your-domain.com
+      url: ${{ vars.STAGING_URL }}
     
     steps:
       - name: Checkout code
@@ -268,7 +353,7 @@ jobs:
       - name: Run smoke tests
         run: |
           sleep 30
-          curl -f https://staging.your-domain.com/health || exit 1
+          curl -f ${{ vars.STAGING_URL }}/health || exit 1
 
       - name: Notify Slack
         if: always()
@@ -288,7 +373,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     environment:
       name: production
-      url: https://your-domain.com
+      url: ${{ vars.PRODUCTION_URL }}
     
     steps:
       - name: Checkout code
@@ -309,7 +394,7 @@ jobs:
       - name: Run health check
         run: |
           sleep 30
-          curl -f https://your-domain.com/health || exit 1
+          curl -f ${{ vars.PRODUCTION_URL }}/health || exit 1
 
       - name: Notify Sentry of release
         uses: getsentry/action-release@v1

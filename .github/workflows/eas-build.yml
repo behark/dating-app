@@ -1,0 +1,261 @@
+name: EAS Build & Submit
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+      profile:
+        description: 'Build profile'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - development
+          - preview
+          - production
+      submit:
+        description: 'Submit to app stores after build'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ============================================
+  # Build iOS
+  # ============================================
+  build-ios:
+    name: Build iOS
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'all' || github.event_name == 'push' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Determine build profile
+        id: profile
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "profile=${{ github.event.inputs.profile }}" >> $GITHUB_OUTPUT
+          else
+            echo "profile=production" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build iOS app
+        run: |
+          eas build \
+            --platform ios \
+            --profile ${{ steps.profile.outputs.profile }} \
+            --non-interactive \
+            --no-wait
+        env:
+          EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
+
+      - name: Wait for build completion
+        if: ${{ github.event.inputs.submit == 'true' || github.event_name == 'push' }}
+        run: |
+          echo "Waiting for iOS build to complete..."
+          eas build:list --platform ios --limit 1 --json | jq -r '.[0].status'
+          # Poll for build completion
+          for i in {1..60}; do
+            STATUS=$(eas build:list --platform ios --limit 1 --json | jq -r '.[0].status')
+            if [ "$STATUS" == "FINISHED" ]; then
+              echo "Build completed successfully"
+              break
+            elif [ "$STATUS" == "ERRORED" ]; then
+              echo "Build failed"
+              exit 1
+            fi
+            echo "Build status: $STATUS. Waiting..."
+            sleep 60
+          done
+        env:
+          EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
+
+      - name: Submit to App Store
+        if: ${{ (github.event.inputs.submit == 'true' || github.event_name == 'push') && steps.profile.outputs.profile == 'production' }}
+        run: |
+          eas submit \
+            --platform ios \
+            --latest \
+            --non-interactive
+        env:
+          EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          ASC_APP_ID: ${{ secrets.ASC_APP_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+  # ============================================
+  # Build Android
+  # ============================================
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.platform == 'android' || github.event.inputs.platform == 'all' || github.event_name == 'push' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Determine build profile
+        id: profile
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "profile=${{ github.event.inputs.profile }}" >> $GITHUB_OUTPUT
+          else
+            echo "profile=production" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Android app
+        run: |
+          eas build \
+            --platform android \
+            --profile ${{ steps.profile.outputs.profile }} \
+            --non-interactive \
+            --no-wait
+        env:
+          EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
+
+      - name: Wait for build completion
+        if: ${{ github.event.inputs.submit == 'true' || github.event_name == 'push' }}
+        run: |
+          echo "Waiting for Android build to complete..."
+          # Poll for build completion
+          for i in {1..60}; do
+            STATUS=$(eas build:list --platform android --limit 1 --json | jq -r '.[0].status')
+            if [ "$STATUS" == "FINISHED" ]; then
+              echo "Build completed successfully"
+              break
+            elif [ "$STATUS" == "ERRORED" ]; then
+              echo "Build failed"
+              exit 1
+            fi
+            echo "Build status: $STATUS. Waiting..."
+            sleep 60
+          done
+        env:
+          EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
+
+      - name: Submit to Google Play
+        if: ${{ (github.event.inputs.submit == 'true' || github.event_name == 'push') && steps.profile.outputs.profile == 'production' }}
+        run: |
+          # Decode service account from secret
+          echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}" | base64 -d > google-service-account.json
+          eas submit \
+            --platform android \
+            --latest \
+            --non-interactive
+        env:
+          EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
+
+  # ============================================
+  # EAS Update (OTA)
+  # ============================================
+  eas-update:
+    name: OTA Update
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Determine update branch
+        id: branch
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "branch=production" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/staging" ]; then
+            echo "branch=staging" >> $GITHUB_OUTPUT
+          else
+            echo "branch=development" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish OTA update
+        run: |
+          eas update \
+            --branch ${{ steps.branch.outputs.branch }} \
+            --message "Update from commit ${{ github.sha }}" \
+            --non-interactive
+        env:
+          EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
+
+  # ============================================
+  # Notify on Completion
+  # ============================================
+  notify:
+    name: Notify Build Status
+    runs-on: ubuntu-latest
+    needs: [build-ios, build-android]
+    if: always()
+    
+    steps:
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            EAS Build completed
+            iOS: ${{ needs.build-ios.result }}
+            Android: ${{ needs.build-android.result }}
+            Tag: ${{ github.ref_name }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
