@@ -31,33 +31,52 @@ class SwipeService {
    */
   static async processSwipe(swiperId, targetId, action, options = { isPriority: false }) {
     const { isPriority = false } = options;
+    const { logger } = require('../services/LoggingService');
+
+    logger.debug('Processing swipe', { swiperId, targetId, action, isPriority });
 
     // Validate ObjectId format for swiperId
     if (!mongoose.Types.ObjectId.isValid(swiperId)) {
+      logger.warn('Invalid swiperId format', { swiperId });
       throw new Error(`Invalid swiperId format: ${swiperId}`);
     }
 
     // Validate ObjectId format for targetId
     if (!mongoose.Types.ObjectId.isValid(targetId)) {
+      logger.warn('Invalid targetId format', { targetId });
       throw new Error(`Invalid targetId format: ${targetId}`);
     }
 
     // Validate that user isn't swiping on themselves
     if (swiperId.toString() === targetId.toString()) {
+      logger.warn('User attempting to swipe on themselves', { swiperId, targetId });
       throw new Error('Cannot swipe on yourself');
     }
 
     // Verify both users exist before processing
-    const [swiper, target] = await Promise.all([
-      User.findById(swiperId).select('_id').lean(),
-      User.findById(targetId).select('_id').lean(),
-    ]);
+    let swiper, target;
+    try {
+      [swiper, target] = await Promise.all([
+        User.findById(swiperId).select('_id').lean(),
+        User.findById(targetId).select('_id').lean(),
+      ]);
+    } catch (error) {
+      logger.error('Error checking user existence', {
+        error: error.message,
+        stack: error.stack,
+        swiperId,
+        targetId,
+      });
+      throw new Error(`Error validating users: ${error.message}`);
+    }
 
     if (!swiper) {
+      logger.warn('Swiper user not found', { swiperId });
       throw new Error(`Swiper user not found: ${swiperId}`);
     }
 
     if (!target) {
+      logger.warn('Target user not found', { targetId });
       throw new Error(`Target user not found: ${targetId}`);
     }
 
