@@ -269,9 +269,9 @@ const discoverUsers = async (req, res) => {
         ], });
     }
 
-    res.status(500).json({
-      success: false,
-      message: ERROR_MESSAGES.INTERNAL_ERROR_DISCOVERY,
+    return sendError(res, 500, {
+      message: ERROR_MESSAGES.INTERNAL_ERROR_DISCOVERY || 'Internal server error during user discovery',
+      error: 'DISCOVERY_ERROR',
     });
   }
 };
