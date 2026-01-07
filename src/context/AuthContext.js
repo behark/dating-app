@@ -1,3 +1,6 @@
+// #region agent log
+fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthContext.js:1',message:'AuthContext module start',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'C'})}).catch(()=>{});
+// #endregion
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Google from 'expo-auth-session/providers/google';
 import Constants from 'expo-constants';
@@ -24,7 +27,13 @@ import { clearUser as clearSentryUser, setUser as setSentryUser } from '../utils
 
 WebBrowser.maybeCompleteAuthSession();
 
+// #region agent log
+fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthContext.js:27',message:'Before AuthContext creation',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'C'})}).catch(()=>{});
+// #endregion
 const AuthContext = createContext({});
+// #region agent log
+fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthContext.js:28',message:'After AuthContext creation',data:{hasContext:!!AuthContext,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'C'})}).catch(()=>{});
+// #endregion
 
 export const useAuth = () => {
   return useContext(AuthContext);
