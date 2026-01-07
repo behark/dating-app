@@ -152,7 +152,8 @@ export const ChatProvider = ({ children }) => {
     };
 
     const handleUserTyping = (data) => {
-      if (data.userId !== user?.uid) {
+      const userId = currentUser?.uid || currentUser?._id;
+      if (data.userId !== userId) {
         setOtherUserTyping(data.isTyping);
       }
     };
@@ -168,11 +169,12 @@ export const ChatProvider = ({ children }) => {
       socket.off('message_read_receipt', handleReadReceipt);
       socket.off('user_typing', handleUserTyping);
     };
-  }, [socket, isConnected, user?.uid, persistMessagesToStorage]);
+  }, [socket, isConnected, currentUser?.uid, currentUser?._id, persistMessagesToStorage]);
 
   // Load conversations
   const loadConversations = useCallback(async () => {
-    if (!user?.uid) return;
+    const userId = currentUser?.uid || currentUser?._id;
+    if (!userId) return;
 
     try {
       // Try to load from cache first if offline
@@ -229,12 +231,13 @@ export const ChatProvider = ({ children }) => {
         [{ text: 'OK' }]
       );
     }
-  }, [user?.uid]);
+  }, [currentUser?.uid, currentUser?._id]);
 
   // Load messages for a specific match
   const loadMessages = useCallback(
     async (matchId, page = 1) => {
-      if (!user?.uid || !matchId) return;
+      const userId = currentUser?.uid || currentUser?._id;
+      if (!userId || !matchId) return;
 
       try {
         // Try to load from cache first if offline or on first page
@@ -306,7 +309,7 @@ export const ChatProvider = ({ children }) => {
         }
       }
     },
-    [user?.uid]
+    [currentUser?.uid, currentUser?._id]
   );
 
   // Load messages from AsyncStorage
@@ -367,7 +370,7 @@ export const ChatProvider = ({ children }) => {
       const optimisticMessage = {
         _id: `pending_${Date.now()}`,
         matchId,
-        senderId: user?.uid,
+        senderId: currentUser?.uid || currentUser?._id,
         receiverId: null, // Will be set by server
         content: sanitizedContent,
         type,
@@ -403,13 +406,14 @@ export const ChatProvider = ({ children }) => {
         }
       }
     },
-    [socket, isConnected, user?.uid, persistMessagesToStorage]
+    [socket, isConnected, currentUser?.uid, currentUser?._id, persistMessagesToStorage]
   );
 
   // Mark messages as read
   const markAsRead = useCallback(
     async (matchId) => {
-      if (!user?.uid || !matchId) return;
+      const userId = currentUser?.uid || currentUser?._id;
+      if (!userId || !matchId) return;
 
       try {
         await api.put(`/chat/messages/${matchId}/read`);
@@ -428,7 +432,7 @@ export const ChatProvider = ({ children }) => {
         logger.error('Error marking messages as read:', error);
       }
     },
-    [user?.uid, conversations]
+    [currentUser?.uid, currentUser?._id, conversations]
   );
 
   // Typing indicators
@@ -507,11 +511,12 @@ export const ChatProvider = ({ children }) => {
 
   // Manual reconnect function
   const reconnect = useCallback(() => {
-    if (user?.uid && !isConnected) {
+    const userId = currentUser?.uid || currentUser?._id;
+    if (userId && !isConnected) {
       logger.info('Manual reconnect triggered');
-      connect(user.uid);
+      connect(userId);
     }
-  }, [user?.uid, isConnected, connect]);
+  }, [currentUser?.uid, currentUser?._id, isConnected, connect]);
 
   const value = {
     // State
