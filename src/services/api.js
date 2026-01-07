@@ -125,15 +125,41 @@ const api = {
         return null;
       }
 
-      logger.debug('Attempting to refresh auth token...');
+      // Validate API_URL is not localhost in production
+      if (!API_URL || API_URL.includes('localhost')) {
+        logger.error('Invalid API_URL for token refresh:', API_URL);
+        throw new Error(`Invalid API_URL: ${API_URL}. Backend URL not configured correctly.`);
+      }
 
-      const response = await fetch(`${API_URL}/auth/refresh-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken }),
+      // API_URL should already end with /api, use it directly
+      const refreshUrl = `${API_URL}/auth/refresh-token`;
+      
+      logger.debug('Attempting to refresh auth token...', { 
+        apiUrl: API_URL, 
+        refreshUrl,
+        hasRefreshToken: !!refreshToken 
       });
+
+      let response;
+      try {
+        response = await fetch(refreshUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refreshToken }),
+        });
+      } catch (fetchError) {
+        logger.error('Network error refreshing token:', {
+          error: fetchError.message,
+          apiUrl: API_URL,
+          refreshUrl,
+          type: fetchError.name,
+          stack: fetchError.stack,
+        });
+        // Re-throw to be handled by outer catch
+        throw new Error(`Failed to connect to backend: ${fetchError.message}. Check API_URL: ${API_URL}`);
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
