@@ -104,6 +104,56 @@ export class SwipeController {
   }
 
   /**
+   * Gets all swipes sent by a user (people you liked)
+   * @param {string} userId - User ID
+   * @returns {Promise<Array<Swipe>>} Array of Swipe objects
+   */
+  static async getSentSwipes(userId) {
+    try {
+      const response = await api.get('/swipes/user');
+
+      if (!response.success) {
+        logger.error('Error getting sent swipes', new Error(response.message), { userId });
+        return [];
+      }
+
+      // Transform backend response to Swipe objects if needed
+      const swipes = response.data?.swipes || response.data || [];
+      // Filter to only show likes and superlikes (not passes)
+      const likes = swipes.filter(
+        (swipe) => swipe.action === 'like' || swipe.action === 'superlike'
+      );
+      
+      return likes.map((swipeData) => {
+        if (swipeData instanceof Swipe) {
+          return swipeData;
+        }
+        // Convert backend format to Swipe object if needed
+        // swipedId is populated with user data from backend
+        const swipedUser = swipeData.swipedId || {};
+        const userIdValue = swipedUser._id || swipedUser.id || swipeData.swipedId;
+        
+        return {
+          id: swipeData._id || swipeData.id,
+          swiper: userId,
+          target: userIdValue,
+          type: swipeData.action || 'like',
+          createdAt: swipeData.createdAt,
+          swiperInfo: {
+            name: swipedUser.name || 'Unknown',
+            photos: swipedUser.photos || [],
+            photoURL: swipedUser.photoURL || swipedUser.photos?.[0]?.url,
+            age: swipedUser.age,
+          },
+        };
+      });
+    } catch (error) {
+      logger.error('Error getting sent swipes', error, { userId });
+      return [];
+    }
+  }
+
+  /**
    * Gets swipe count for today for a user (freemium feature)
    * @param {string} userId - User ID
    * @returns {Promise<number>} Number of swipes made today
