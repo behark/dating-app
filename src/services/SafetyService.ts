@@ -4,8 +4,18 @@
  */
 
 import { Colors } from '../constants/colors';
-import logger from '../utils/logger';
+import loggerModule from '../utils/logger';
 import api from './api';
+
+// Type assertion for logger to fix type inference from JavaScript module
+const logger = loggerModule as {
+  debug: (message: string, ...args: any[]) => void;
+  info: (message: string, ...args: any[]) => void;
+  warn: (message: string, ...args: any[]) => void;
+  error: (message: string, error?: Error | null, ...args: any[]) => void;
+  apiError: (endpoint: string, method: string, status: number, error?: Error | null) => void;
+  apiRequest: (endpoint: string, method: string) => void;
+};
 
 // ==================== TYPES ====================
 
@@ -880,7 +890,7 @@ export class SafetyService {
         };
       }
 
-      const statusData = response.data || response;
+      const statusData = (response.data || response) as Partial<BackgroundCheck>;
       return {
         id: backgroundCheckId,
         userId: statusData.userId || '',
