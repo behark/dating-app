@@ -12,23 +12,26 @@ import { Platform } from 'react-native';
 let Notifications = null;
 let Device = null;
 
-// Try to import expo-notifications if available
-try {
-  Notifications = require('expo-notifications');
-  Device = require('expo-device');
-} catch (error) {
-  console.warn('expo-notifications not installed. Push notifications will not work.');
-}
+// Try to import expo-notifications if available (native platforms only)
+// Skip on web to avoid warnings about unsupported features
+if (Platform.OS !== 'web') {
+  try {
+    Notifications = require('expo-notifications');
+    Device = require('expo-device');
+  } catch (error) {
+    console.warn('expo-notifications not installed. Push notifications will not work.');
+  }
 
-// Configure notification handling behavior
-if (Notifications) {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-    }),
-  });
+  // Configure notification handling behavior (native only)
+  if (Notifications) {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+      }),
+    });
+  }
 }
 
 export class NotificationService {
