@@ -561,7 +561,24 @@ if (process.env.SENTRY_DSN) {
   app.use(monitoringService.getErrorHandler());
 }
 
-// Global error handler
+// Import new error handlers
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+
+// 404 handler for undefined routes
+app.use(notFoundHandler);
+
+// Global error handler (must be last)
+app.use((error, req, res, next) => {
+  // Call errorRateMiddleware for metrics tracking
+  errorRateMiddleware(error, req, res, () => {
+    // Use new centralized error handler
+    errorHandler(error, req, res, next);
+  });
+});
+
+// Legacy error handler (replaced with new errorHandler above)
+// Keeping this commented for reference during migration
+/*
 app.use((error, req, res, next) => {
   // Don't send response if headers already sent
   if (res.headersSent) {
@@ -673,6 +690,7 @@ app.use((error, req, res, next) => {
     }
   });
 });
+*/
 
 // MongoDB connection - using centralized connection from config/database.js
 // This ensures we use one MongoClient instance per application (MongoDB best practice)

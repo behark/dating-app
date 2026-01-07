@@ -55,28 +55,14 @@ const sendNotificationInternal = async (toUserId, type, title, message, data) =>
  */
 const createSwipe = async (req, res) => {
   try {
-    // #region agent log
-    const fs = require('fs');
-    const logPath = '/home/behar/dating-app/.cursor/debug.log';
-    const logEntry = JSON.stringify({
-      location: 'swipeController.js:56',
-      message: 'createSwipe called',
-      data: {
-        hasUser: !!req.user,
-        userId: req.user?.id,
-        targetId: req.body?.targetId,
-        action: req.body?.action,
-        bodyKeys: Object.keys(req.body || {}),
-      },
-      timestamp: Date.now(),
-      sessionId: 'debug-session',
-      runId: 'run3',
-      hypothesisId: 'G',
-    }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-    // #endregion
     const { targetId, action } = req.body;
     const swiperId = req.user.id;
+
+    logger.debug('Processing swipe request', {
+      swiperId,
+      targetId,
+      action,
+    });
 
     // Validate input
     if (!targetId || !action) {
@@ -106,9 +92,24 @@ const createSwipe = async (req, res) => {
     }
 
     // Verify target user exists
-    const targetUser = await User.findById(targetId).select('_id').lean();
+    let targetUser;
+    try {
+      targetUser = await User.findById(targetId).select('_id').lean();
+    } catch (error) {
+      logger.error('Error finding target user', {
+        error: error.message,
+        stack: error.stack,
+        targetId,
+        swiperId,
+      });
+      return sendError(res, 500, {
+        message: 'Error validating target user',
+        error: 'VALIDATION_ERROR',
+      });
+    }
+    
     if (!targetUser) {
-      logger.warn('Target user not found:', { targetId, swiperId });
+      logger.warn('Target user not found', { targetId, swiperId });
       return sendError(res, 404, {
         message: 'Target user not found',
         error: 'USER_NOT_FOUND',
@@ -133,6 +134,13 @@ const createSwipe = async (req, res) => {
     // SwipeService uses atomic operations to prevent race conditions
     const result = await SwipeService.processSwipe(swiperId, targetId, action, {
       isPriority: req.body.isPriority || false,
+    });
+
+    logger.debug('Swipe processed', {
+      swiperId,
+      targetId,
+      isMatch: result.isMatch,
+      alreadyProcessed: result.alreadyProcessed,
     });
 
     // If this swipe was already processed (rapid double-click), return early
@@ -207,28 +215,16 @@ const createSwipe = async (req, res) => {
       },
     });
   } catch (error) {
-    // #region agent log
-    const fs = require('fs');
-    const logPath = '/home/behar/dating-app/.cursor/debug.log';
-    const logEntry = JSON.stringify({
-      location: 'swipeController.js:160',
-      message: 'Error creating swipe',
-      data: {
-        errorMessage: error instanceof Error ? error.message : String(error),
-        errorName: error instanceof Error ? error.name : 'Unknown',
-        errorStack: error instanceof Error ? error.stack : undefined,
-        hasUser: !!req.user,
-        userId: req.user?.id,
-        targetId: req.body?.targetId,
-        action: req.body?.action,
-      },
-      timestamp: Date.now(),
-      sessionId: 'debug-session',
-      runId: 'run3',
-      hypothesisId: 'G',
-    }) + '\n';
-    fs.appendFileSync(logPath, logEntry);
-    // #endregion
+    // Log error with full context
+    logger.error('Error creating swipe', {
+      error: error.message,
+      errorName: error.name,
+      stack: error.stack,
+      code: error.code,
+      swiperId: req.user?.id,
+      targetId: req.body?.targetId,
+      action: req.body?.action,
+    });
 
     // Handle specific error types
     if (error.name === 'ValidationError') {
@@ -556,7 +552,12 @@ const getMatches = async (req, res) => {
     });
   } catch (error) {
     const queryTime = Date.now() - startTime;
-    console.error(`Error getting matches after ${queryTime}ms:`, error);
+    logger.error('Error getting matches', {
+      error: error.message,
+      stack: error.stack,
+      queryTime,
+      userId: req.user?.id,
+    });
 
     // Check for timeout error
     if (
