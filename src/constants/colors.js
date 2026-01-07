@@ -63,6 +63,16 @@ export const Colors = {
     green: '#10B981',
   },
 
+  // Interactive colors (for buttons, links, etc.)
+  interactive: {
+    primary: '#667eea',
+    secondary: '#4ECDC4',
+    danger: '#EA4335',
+    disabled: '#DADCE0',
+    success: '#34A853',
+    warning: '#FBBC04',
+  },
+
   // Status colors
   status: {
     success: '#4CAF50',
