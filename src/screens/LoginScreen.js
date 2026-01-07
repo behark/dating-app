@@ -401,6 +401,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 20,
+    paddingTop: 60, // Extra padding for when used in modal
   },
   header: {
     alignItems: 'center',
