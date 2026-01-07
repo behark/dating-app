@@ -37,6 +37,12 @@ export class NotificationService {
    * @returns {Promise<string|null>} Expo push token or null if failed
    */
   static async registerForPushNotifications() {
+    // Push notifications don't work on web
+    if (Platform.OS === 'web') {
+      console.log('Push notifications not supported on web platform');
+      return null;
+    }
+
     if (!Notifications || !Device) {
       console.log('Push notifications not available: libraries not installed');
       return null;

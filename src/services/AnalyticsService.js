@@ -40,6 +40,33 @@ export class AnalyticsService {
     }
 
     try {
+      // On web, ensure Firebase is initialized before using Analytics
+      if (Platform.OS === 'web') {
+        try {
+          // Import Firebase to ensure it's initialized
+          const { getApps } = require('firebase/app');
+          const apps = getApps();
+          if (apps.length === 0) {
+            // Firebase not initialized - try to initialize it
+            const { initializeApp } = require('firebase/app');
+            const Constants = require('expo-constants').default;
+            const firebaseConfig = {
+              apiKey: Constants.expoConfig?.extra?.firebaseApiKey,
+              authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain,
+              projectId: Constants.expoConfig?.extra?.firebaseProjectId,
+              storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket,
+              messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId,
+              appId: Constants.expoConfig?.extra?.firebaseAppId,
+            };
+            if (firebaseConfig.apiKey) {
+              initializeApp(firebaseConfig);
+            }
+          }
+        } catch (firebaseError) {
+          console.warn('Firebase initialization check failed:', firebaseError);
+        }
+      }
+
       // Enable debug mode in development
       if (__DEV__ && Analytics.setDebugModeEnabled) {
         await Analytics.setDebugModeEnabled(true);
@@ -55,6 +82,8 @@ export class AnalyticsService {
       console.log('Analytics initialized successfully');
     } catch (error) {
       console.error('Error initializing analytics:', error);
+      // Don't block app startup if analytics fails
+      this.initialized = false;
     }
   }
 

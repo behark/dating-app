@@ -90,6 +90,11 @@ self.addEventListener('fetch', (event) => {
 
 // Cache first - try cache, fallback to network
 async function cacheFirst(request, cacheName) {
+  // Skip caching for HEAD requests (not supported by Cache API)
+  if (request.method === 'HEAD') {
+    return fetch(request).catch(() => new Response('Offline', { status: 503 }));
+  }
+
   const cache = await caches.open(cacheName);
   const cachedResponse = await cache.match(request);
 
@@ -99,7 +104,10 @@ async function cacheFirst(request, cacheName) {
 
   try {
     const networkResponse = await fetch(request);
-    cache.put(request, networkResponse.clone());
+    // Only cache GET requests
+    if (request.method === 'GET') {
+      cache.put(request, networkResponse.clone());
+    }
     return networkResponse;
   } catch (error) {
     return new Response('Offline', { status: 503 });
@@ -108,13 +116,21 @@ async function cacheFirst(request, cacheName) {
 
 // Cache first with background refresh
 async function cacheFirstWithRefresh(request, cacheName) {
+  // Skip caching for HEAD requests (not supported by Cache API)
+  if (request.method === 'HEAD') {
+    return fetch(request).catch(() => new Response('', { status: 404 }));
+  }
+
   const cache = await caches.open(cacheName);
   const cachedResponse = await cache.match(request);
 
   // Start network request in background
   const networkPromise = fetch(request)
     .then((response) => {
-      cache.put(request, response.clone());
+      // Only cache GET requests
+      if (request.method === 'GET') {
+        cache.put(request, response.clone());
+      }
       return response;
     })
     .catch(() => null);
@@ -136,13 +152,18 @@ async function cacheFirstWithRefresh(request, cacheName) {
 
 // Network first with cache fallback
 async function networkFirstWithCache(request, cacheName) {
+  // Skip caching for HEAD requests (not supported by Cache API)
+  if (request.method === 'HEAD') {
+    return fetch(request).catch(() => new Response('Offline', { status: 503 }));
+  }
+
   const cache = await caches.open(cacheName);
 
   try {
     const networkResponse = await fetch(request);
 
-    // Only cache successful responses
-    if (networkResponse.ok) {
+    // Only cache successful GET responses
+    if (networkResponse.ok && request.method === 'GET') {
       cache.put(request, networkResponse.clone());
     }
 
