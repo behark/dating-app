@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import EmptyState from '../components/Common/EmptyState';
 import { Colors } from '../constants/colors';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
@@ -311,23 +312,17 @@ const MatchesScreen = () => {
       </View>
       {showLikes ? (
         receivedLikes.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <LinearGradient colors={Colors.gradient.primary} style={styles.emptyCard}>
-              <Ionicons name="star" size={80} color={Colors.text.white} />
-              <Text style={styles.emptyTitle}>No Likes Yet</Text>
-              <Text style={styles.emptyText}>
-                Stand out from the crowd!{/* eslint-disable-line react/no-unescaped-entities */}
-                Boost your profile to get more visibility.
-              </Text>
-              <TouchableOpacity
-                style={styles.ctaButton}
-                onPress={() => navigation.navigate('Premium')}
-                activeOpacity={0.9}
-              >
-                <Text style={styles.ctaButtonText}>Boost Profile 🚀</Text>
-              </TouchableOpacity>
-            </LinearGradient>
-          </View>
+          <EmptyState
+            icon="star-outline"
+            title="No Likes Yet"
+            description="Stand out from the crowd! Boost your profile to get more visibility and see who's interested in you."
+            buttonText="Boost Profile 🚀"
+            onButtonPress={() => navigation.navigate('Premium')}
+            secondaryButtonText="Back to Matches"
+            onSecondaryButtonPress={() => setShowLikes(false)}
+            variant="gradient"
+            iconSize={80}
+          />
         ) : (
           <FlatList
             data={receivedLikes}
@@ -393,24 +388,17 @@ const MatchesScreen = () => {
           />
         )
       ) : conversations.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <LinearGradient colors={Colors.gradient.primary} style={styles.emptyCard}>
-            <Ionicons name="heart-dislike-outline" size={80} color={Colors.text.white} />
-            <Text style={styles.emptyTitle}>No Matches Yet</Text>
-            <Text style={styles.emptyText}>
-              Don't worry, your perfect match is out there!
-              {/* eslint-disable-line react/no-unescaped-entities */}
-              Keep swiping to find them.
-            </Text>
-            <TouchableOpacity
-              style={styles.ctaButton}
-              onPress={() => navigation.navigate('Discover')}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.ctaButtonText}>Start Swiping 🔥</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        </View>
+        <EmptyState
+          icon="heart-dislike-outline"
+          title="No Matches Yet"
+          description="Don't worry, your perfect match is out there! Start swiping to find them and make meaningful connections."
+          buttonText="Start Swiping 🔥"
+          onButtonPress={() => navigation.navigate('Discover')}
+          secondaryButtonText={isPremium ? "View Likes" : "Get Premium"}
+          onSecondaryButtonPress={() => isPremium ? setShowLikes(true) : navigation.navigate('Premium')}
+          variant="gradient"
+          iconSize={80}
+        />
       ) : (
         <FlatList
           data={conversations}

@@ -30,6 +30,7 @@ import { PreferencesService } from '../services/PreferencesService';
 import { PremiumService } from '../services/PremiumService';
 import { SwipeController } from '../services/SwipeController';
 import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import HapticFeedback from '../utils/haptics';
 import logger from '../utils/logger';
 import LoginScreen from './LoginScreen';
 
@@ -436,6 +437,9 @@ const HomeScreen = ({ navigation }) => {
         }
       });
 
+      // Haptic feedback for like action
+      HapticFeedback.swipeFeedback('right');
+
       // Show heart animation immediately
       setShowHeartAnimation(true);
 
@@ -510,6 +514,8 @@ const HomeScreen = ({ navigation }) => {
 
           // If it's a match, show the success animation (deferred)
           if (result.match && result.matchId) {
+            // Celebratory haptic pattern for match
+            HapticFeedback.matchCelebration();
             setTimeout(() => {
               setSuccessMessage(`🎉 Match with ${card.name}!`);
               setShowSuccessAnimation(true);
@@ -569,6 +575,9 @@ const HomeScreen = ({ navigation }) => {
           setSwipesRemaining(Math.max(0, 50 - newCount));
         }
       });
+
+      // Haptic feedback for pass action
+      HapticFeedback.swipeFeedback('left');
 
       // Defer heavy async work to avoid blocking UI
       InteractionManager.runAfterInteractions(async () => {
@@ -638,6 +647,9 @@ const HomeScreen = ({ navigation }) => {
       startTransition(() => {
         setSuperLikesUsed((prev) => prev + 1);
       });
+
+      // Heavy haptic for super like
+      HapticFeedback.heavyImpact();
 
       // Defer heavy async work
       InteractionManager.runAfterInteractions(async () => {
