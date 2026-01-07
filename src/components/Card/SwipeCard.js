@@ -221,6 +221,7 @@ const styles = StyleSheet.create({
   card: {
     position: 'absolute',
     width: SCREEN_WIDTH - 40,
+    left: 20, // Center the card horizontally (half of the 40px total margin)
     height: CARD_HEIGHT,
     borderRadius: 30,
     backgroundColor: Colors.background.white,
