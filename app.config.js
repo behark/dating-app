@@ -169,7 +169,7 @@ export default {
       // Google OAuth Client IDs (required for Google Sign-In)
       // - Web must be an OAuth Client ID ending with `.apps.googleusercontent.com`
       // - iOS/Android are optional unless you ship native builds
-      googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '',
+      googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '466295464562-d46eopil8i350mjdffno9v38bvt4nn31.apps.googleusercontent.com',
       googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '',
       googleAndroidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || '',
       // EAS Project ID for updates
