@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const { logger } = require('../services/LoggingService');
+const cache = require('../services/CacheService');
 
 const {
   sendSuccess,
@@ -64,6 +65,10 @@ exports.updateProfile = async (req, res) => {
       });
     }
 
+    // Invalidate user cache after profile update
+    cache.invalidate(`user:${userId}*`);
+    logger.debug('User profile cache invalidated', { userId });
+
     res.json({
       success: true,
       message: 'Profile updated successfully',
@@ -83,7 +88,10 @@ exports.updateProfile = async (req, res) => {
     });
   } catch (error) {
     logger.error('Profile update error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error updating profile', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error updating profile',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -96,8 +104,18 @@ exports.getProfile = async (req, res) => {
     const requestingUserId = req.user._id?.toString() || req.user.id?.toString();
     const isOwnProfile = requestingUserId === userId;
 
-    const user = await User.findById(userId).select(
-      '-password -passwordResetToken -emailVerificationToken -phoneVerificationCode'
+    // Cache key varies by viewer (own profile has more data)
+    const cacheKey = isOwnProfile ? `user:${userId}:full` : `user:${userId}:public`;
+
+    // Try to get from cache first (cache for 5 minutes)
+    const user = await cache.getOrSet(
+      cacheKey,
+      async () => {
+        return await User.findById(userId)
+          .select('-password -passwordResetToken -emailVerificationToken -phoneVerificationCode')
+          .lean();
+      },
+      300 // 5 minutes TTL
     );
 
     if (!user) {
@@ -151,7 +169,10 @@ exports.getProfile = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get profile error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error fetching profile', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error fetching profile',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -184,7 +205,10 @@ exports.getMyProfile = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get my profile error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error fetching profile', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error fetching profile',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -259,7 +283,10 @@ exports.uploadPhotos = async (req, res) => {
     });
   } catch (error) {
     logger.error('Photo upload error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error uploading photos', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error uploading photos',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -317,7 +344,10 @@ exports.reorderPhotos = async (req, res) => {
     });
   } catch (error) {
     logger.error('Photo reorder error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error reordering photos', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error reordering photos',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -350,7 +380,10 @@ exports.deletePhoto = async (req, res) => {
     });
   } catch (error) {
     logger.error('Photo delete error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error deleting photo', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error deleting photo',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -395,7 +428,10 @@ exports.approvePhoto = async (req, res) => {
     });
   } catch (error) {
     logger.error('Approve photo error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error approving photo', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error approving photo',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -442,7 +478,10 @@ exports.rejectPhoto = async (req, res) => {
     });
   } catch (error) {
     logger.error('Reject photo error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error rejecting photo', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error rejecting photo',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -485,6 +524,9 @@ exports.getPendingPhotos = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get pending photos error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error fetching pending photos', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error fetching pending photos',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
