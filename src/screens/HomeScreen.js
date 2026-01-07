@@ -465,10 +465,10 @@ const HomeScreen = ({ navigation }) => {
           }
 
           // Use SwipeController to save the swipe and check for matches
-          const result = await SwipeController.saveSwipe(userId, card.id, 'like', isPremium);
+          const result = await SwipeController.saveSwipe(userId, cardId, 'like', isPremium);
 
           // Track swipe analytics
-          AnalyticsService.logSwipe('like', card.id);
+          AnalyticsService.logSwipe('like', cardId);
 
           // Reset swiping flag
           isSwipingRef.current = false;
@@ -601,10 +601,10 @@ const HomeScreen = ({ navigation }) => {
           }
 
           // Use SwipeController to save the dislike
-          const result = await SwipeController.saveSwipe(userId, card.id, 'dislike', isPremium);
+          const result = await SwipeController.saveSwipe(userId, cardId, 'dislike', isPremium);
 
           // Track swipe analytics
-          AnalyticsService.logSwipe('pass', card.id);
+          AnalyticsService.logSwipe('pass', cardId);
 
           // Reset swiping flag
           isSwipingRef.current = false;
@@ -656,7 +656,8 @@ const HomeScreen = ({ navigation }) => {
       InteractionManager.runAfterInteractions(async () => {
         try {
           const interactionsService = new AdvancedInteractionsService(authToken);
-          const result = await interactionsService.sendSuperLike(card.id, null);
+          const targetId = card.id || card._id;
+          const result = await interactionsService.sendSuperLike(targetId, null);
 
           if (!result.success) {
             if (result.error === 'Daily super like limit reached') {
@@ -679,7 +680,7 @@ const HomeScreen = ({ navigation }) => {
           }
 
           // Track super like analytics
-          AnalyticsService.logSwipe('superlike', card.id);
+          AnalyticsService.logSwipe('superlike', targetId);
 
           // It's automatically a like, so handle as a right swipe
           await handleSwipeRight(card);
@@ -926,7 +927,7 @@ const HomeScreen = ({ navigation }) => {
               style={styles.aiQuickButton}
               onPress={() =>
                 navigation.navigate('ViewProfile', {
-                  userId: cards[currentIndex]?.id,
+                  userId: cards[currentIndex]?.id || cards[currentIndex]?._id,
                   showCompatibility: true,
                 })
               }
@@ -941,7 +942,7 @@ const HomeScreen = ({ navigation }) => {
               onPress={() =>
                 navigation.navigate('Premium', {
                   feature: 'conversationStarters',
-                  targetUserId: cards[currentIndex]?.id,
+                  targetUserId: cards[currentIndex]?.id || cards[currentIndex]?._id,
                 })
               }
               activeOpacity={0.7}
@@ -994,12 +995,12 @@ const HomeScreen = ({ navigation }) => {
               .slice(currentIndex, currentIndex + 3)
               .map((card, index) => (
                 <SwipeCard
-                  key={card.id}
+                  key={card.id || card._id}
                   card={card}
                   index={currentIndex + index}
                   onSwipeLeft={handleSwipeLeft}
                   onSwipeRight={handleSwipeRight}
-                  onViewProfile={() => navigation.navigate('ViewProfile', { userId: card.id })}
+                  onViewProfile={() => navigation.navigate('ViewProfile', { userId: card.id || card._id })}
                 />
               ))}
 
