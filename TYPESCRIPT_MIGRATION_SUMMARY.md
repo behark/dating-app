@@ -125,6 +125,36 @@
 - ✅ Validation tools
 - ✅ Template generation
 
+### Logger Type Fix (Critical Infrastructure Update)
+**Problem:** TypeScript inferred logger's `error()` method parameter as `null | undefined` only, causing 60+ type errors across migrated services.
+
+**Solution:** Created inline type assertion in migrated service files:
+```typescript
+import loggerModule from '../utils/logger';
+
+// Type assertion for logger to fix type inference from JavaScript module
+const logger = loggerModule as {
+  debug: (message: string, ...args: any[]) => void;
+  info: (message: string, ...args: any[]) => void;
+  warn: (message: string, ...args: any[]) => void;
+  error: (message: string, error?: Error | null, ...args: any[]) => void;
+  apiError: (endpoint: string, method: string, status: number, error?: Error | null) => void;
+  apiRequest: (endpoint: string, method: string) => void;
+};
+```
+
+**Alternative:** Created `src/utils/logger.d.ts` type definition file for project-wide type safety.
+
+**Pattern to Apply:**
+- Add type assertion at top of each TypeScript file that imports logger
+- Cast `unknown` errors to `Error` in catch blocks: `logger.error('...', error as Error)`
+- This ensures type safety while maintaining backward compatibility with JavaScript logger
+
+**Files Updated:**
+- ✅ PaymentService.ts (17 error casts applied)
+- ✅ SafetyService.ts (type assertion + BackgroundCheck fix)
+- ✅ src/utils/logger.d.ts (created)
+
 ---
 
 ## 📊 Current State Analysis

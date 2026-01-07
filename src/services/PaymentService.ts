@@ -11,8 +11,18 @@ import * as Linking from 'expo-linking';
 import { Platform } from 'react-native';
 import { ERROR_MESSAGES } from '../constants/constants';
 import { handleApiResponse } from '../utils/apiResponseHandler';
-import logger from '../utils/logger';
+import loggerModule from '../utils/logger';
 import api from './api';
+
+// Type assertion for logger to fix type inference from JavaScript module
+const logger = loggerModule as {
+  debug: (message: string, ...args: any[]) => void;
+  info: (message: string, ...args: any[]) => void;
+  warn: (message: string, ...args: any[]) => void;
+  error: (message: string, error?: Error | null, ...args: any[]) => void;
+  apiError: (endpoint: string, method: string, status: number, error?: Error | null) => void;
+  apiRequest: (endpoint: string, method: string) => void;
+};
 
 // ==================== TYPES ====================
 
@@ -114,8 +124,8 @@ export class PaymentService {
   static async getSubscriptionTiers(): Promise<SubscriptionTiersResponse> {
     try {
       const response = await api.get('/payment/tiers');
-      const handled = handleApiResponse(response, 'Get subscription tiers');
-      return handled.data || { tiers: [], consumables: {} };
+      const handled = handleApiResponse(response, 'Get subscription tiers') as PaymentResponse;
+      return (handled.data as SubscriptionTiersResponse) || { tiers: [], consumables: {} };
     } catch (error) {
       logger.error('Error getting subscription tiers:', error as Error);
       return { tiers: [], consumables: {} };
@@ -133,8 +143,8 @@ export class PaymentService {
       const response = await api.get('/payment/status', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const handled = handleApiResponse(response, 'Get payment status');
-      return handled.data || null;
+      const handled = handleApiResponse(response, 'Get payment status') as PaymentResponse;
+      return (handled.data as PaymentStatus) || null;
     } catch (error) {
       logger.error('Error getting payment status:', error as Error);
       return null;
@@ -149,8 +159,8 @@ export class PaymentService {
       const response = await api.get('/payment/history', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const handled = handleApiResponse(response, 'Get billing history');
-      return handled.data || { invoices: [], transactions: [] };
+      const handled = handleApiResponse(response, 'Get billing history') as PaymentResponse;
+      return (handled.data as BillingHistory) || { invoices: [], transactions: [] };
     } catch (error) {
       logger.error('Error getting billing history:', error as Error);
       return { invoices: [], transactions: [] };
@@ -178,7 +188,7 @@ export class PaymentService {
         { planType },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Create Stripe checkout');
+      const handled = handleApiResponse(response, 'Create Stripe checkout') as StripeCheckoutResponse;
 
       if (handled.success && handled.data?.url) {
         await Linking.openURL(handled.data.url);
@@ -206,7 +216,7 @@ export class PaymentService {
         { productType, productId, quantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Create Stripe payment intent');
+      const handled = handleApiResponse(response, 'Create Stripe payment intent') as PaymentResponse;
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error creating payment intent:', error as Error);
@@ -222,10 +232,10 @@ export class PaymentService {
       const response = await api.get('/payment/stripe/portal', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const handled = handleApiResponse(response, 'Get Stripe portal');
+      const handled = handleApiResponse(response, 'Get Stripe portal') as PaymentResponse;
 
       if (handled.success && handled.data?.url) {
-        await Linking.openURL(handled.data.url);
+        await Linking.openURL((handled.data as { url?: string }).url!);
       }
 
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
@@ -250,7 +260,7 @@ export class PaymentService {
         { planType },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Create PayPal subscription');
+      const handled = handleApiResponse(response, 'Create PayPal subscription') as PayPalSubscriptionResponse;
 
       if (handled.success && handled.data?.approvalUrl) {
         await Linking.openURL(handled.data.approvalUrl);
@@ -276,7 +286,7 @@ export class PaymentService {
         { subscriptionId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Activate PayPal subscription');
+      const handled = handleApiResponse(response, 'Activate PayPal subscription') as PaymentResponse;
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error activating PayPal subscription:', error as Error);
@@ -299,7 +309,7 @@ export class PaymentService {
         { productType, productId, quantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Create PayPal order');
+      const handled = handleApiResponse(response, 'Create PayPal order') as PayPalSubscriptionResponse;
 
       if (handled.success && handled.data?.approvalUrl) {
         await Linking.openURL(handled.data.approvalUrl);
@@ -322,7 +332,7 @@ export class PaymentService {
         { orderId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Capture PayPal order');
+      const handled = handleApiResponse(response, 'Capture PayPal order') as PaymentResponse;
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error capturing PayPal order:', error as Error);
@@ -346,7 +356,7 @@ export class PaymentService {
         { receiptData, productId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Validate Apple receipt');
+      const handled = handleApiResponse(response, 'Validate Apple receipt') as AppleReceiptValidation;
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error validating Apple receipt:', error as Error);
@@ -364,7 +374,7 @@ export class PaymentService {
         { receiptData },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Restore Apple purchases');
+      const handled = handleApiResponse(response, 'Restore Apple purchases') as PaymentResponse;
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error restoring Apple purchases:', error as Error);
@@ -389,7 +399,7 @@ export class PaymentService {
         { purchaseToken, productId, isSubscription },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Validate Google purchase');
+      const handled = handleApiResponse(response, 'Validate Google purchase') as GooglePurchaseValidation;
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error validating Google purchase:', error as Error);
@@ -410,7 +420,7 @@ export class PaymentService {
         { purchases },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Restore Google purchases');
+      const handled = handleApiResponse(response, 'Restore Google purchases') as PaymentResponse;
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error restoring Google purchases:', error as Error);
@@ -430,7 +440,7 @@ export class PaymentService {
         { immediately },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Cancel subscription');
+      const handled = handleApiResponse(response, 'Cancel subscription') as PaymentResponse;
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error cancelling subscription:', error as Error);
@@ -448,7 +458,7 @@ export class PaymentService {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Resume subscription');
+      const handled = handleApiResponse(response, 'Resume subscription') as PaymentResponse;
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error resuming subscription:', error as Error);
@@ -473,7 +483,7 @@ export class PaymentService {
         { transactionId, reason, amount },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const handled = handleApiResponse(response, 'Request refund');
+      const handled = handleApiResponse(response, 'Request refund') as PaymentResponse;
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
       logger.error('Error requesting refund:', error as Error);
