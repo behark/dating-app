@@ -1,6 +1,16 @@
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
+const {
+  sendSuccess,
+  sendError,
+  sendValidationError,
+  sendNotFound,
+  sendUnauthorized,
+  sendForbidden,
+  sendRateLimit,
+  asyncHandler,
+} = require('../utils/responseHelpers');
 
 // Ensure upload directory exists
 const uploadDir = path.join(__dirname, '../public/uploads');
@@ -11,7 +21,7 @@ if (!fs.existsSync(uploadDir)) {
 exports.uploadLocal = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ success: false, message: 'No file uploaded' });
+      return sendError(res, 400, { message: 'No file uploaded' });
     }
 
     // Since we're using multer diskStorage, the file is already saved
@@ -27,6 +37,6 @@ exports.uploadLocal = async (req, res) => {
     });
   } catch (error) {
     console.error('Local upload error:', error);
-    res.status(500).json({ success: false, message: 'Upload failed', error: error.message });
+    sendError(res, 500, { message: 'Upload failed', error: error.message });
   }
 };

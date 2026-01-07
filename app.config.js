@@ -8,6 +8,7 @@ export default {
       policy: 'sdkVersion',
     },
     plugins: [
+      'expo-font',
       // expo-in-app-purchases is auto-linked, no plugin needed
     ],
     orientation: 'default', // Allow both portrait and landscape for tablets

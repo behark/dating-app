@@ -192,9 +192,10 @@ function generateProfile(index) {
       state: city.state
     },
     preferences: {
-      ageRange: { min: Math.max(18, age - 10), max: Math.min(60, age + 10) },
-      distance: 50,
-      genderPreference: gender === 'male' ? ['female'] : gender === 'female' ? ['male'] : ['male', 'female', 'non-binary']
+      // Demo profiles have open preferences to be visible to everyone
+      ageRange: { min: 18, max: 100 },
+      distance: 1000, // Very large distance so they appear regardless of location
+      genderPreference: ['male', 'female', 'non-binary', 'other'] // Accept all genders
     },
     isVerified,
     isPremium,

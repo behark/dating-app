@@ -59,17 +59,11 @@ const createSwipe = async (req, res) => {
 
     // Validate input
     if (!targetId || !action) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields: targetId, action',
-      });
+      return sendError(res, 400, { message: 'Missing required fields: targetId, action' });
     }
 
     if (!['like', 'pass', 'superlike'].includes(action)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid action. Must be one of: like, pass, superlike',
-      });
+      return sendError(res, 400, { message: 'Invalid action. Must be one of: like, pass, superlike' });
     }
 
     // Check if user is premium using Subscription model
@@ -224,19 +218,12 @@ const undoSwipe = async (req, res) => {
     const userId = req.user.id;
 
     if (!swipeId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required field: swipeId',
-      });
+      return sendError(res, 400, { message: 'Missing required field: swipeId' });
     }
 
     const result = await SwipeService.undoSwipe(swipeId, userId);
 
-    res.json({
-      success: true,
-      message: 'Swipe undone successfully',
-      data: result.undoneSwipe,
-    });
+    sendSuccess(res, 200, { message: 'Swipe undone successfully', data: result.undoneSwipe, });
   } catch (error) {
     logger.error('Error undoing swipe:', { error: error.message, stack: error.stack });
 
@@ -424,11 +411,7 @@ const getMatches = async (req, res) => {
         : String(error)
       ).includes('maxTimeMS')
     ) {
-      return res.status(503).json({
-        success: false,
-        message: 'Match query timed out. Please try again.',
-        error: 'QUERY_TIMEOUT',
-      });
+      return sendError(res, 503, { message: 'Match query timed out. Please try again.', error: 'QUERY_TIMEOUT', });
     }
 
     res.status(500).json({
@@ -447,10 +430,7 @@ const unmatch = async (req, res) => {
     const userId = req.user.id;
 
     if (!matchId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required parameter: matchId',
-      });
+      return sendError(res, 400, { message: 'Missing required parameter: matchId' });
     }
 
     await Match.unmatch(matchId, userId);

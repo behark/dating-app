@@ -1,247 +1,106 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../constants/colors';
 
 /**
- * EmptyState Component
- * 
- * A reusable component for showing engaging empty states throughout the app.
- * Provides consistent design with illustrations, messages, and call-to-action buttons.
- * 
- * @param {string} icon - Ionicons name for the main icon
- * @param {string} title - Main heading text
- * @param {string} description - Supporting description text
- * @param {string} buttonText - Text for the action button (optional)
- * @param {function} onButtonPress - Handler for button press (optional)
- * @param {string} secondaryButtonText - Text for secondary button (optional)
- * @param {function} onSecondaryButtonPress - Handler for secondary button (optional)
- * @param {string} variant - Visual variant: 'gradient', 'simple', 'minimal' (default: 'gradient')
- * @param {number} iconSize - Size of the icon (default: 80)
- * @param {string} iconColor - Color of the icon (optional)
+ * EmptyState component for displaying empty states with optional CTA
+ *
+ * @param {Object} props
+ * @param {string} props.icon - Icon name from Ionicons
+ * @param {number} props.iconSize - Size of the icon (default: 80)
+ * @param {string} props.title - Main title text
+ * @param {string} props.description - Description text
+ * @param {string} props.buttonText - Text for the CTA button
+ * @param {Function} props.onButtonPress - Callback when button is pressed
+ * @param {Array} props.gradientColors - Colors for the background gradient
+ * @param {Object} props.style - Additional styling for the container
  */
 const EmptyState = ({
-  icon = 'heart-outline',
-  title = 'Nothing here yet',
-  description = '',
+  icon,
+  iconSize = 80,
+  title,
+  description,
   buttonText,
   onButtonPress,
-  secondaryButtonText,
-  onSecondaryButtonPress,
-  variant = 'gradient',
-  iconSize = 80,
-  iconColor,
+  gradientColors = ['rgba(102, 126, 234, 0.1)', 'rgba(118, 75, 162, 0.1)'],
   style,
-}) => {
-  const renderContent = () => (
-    <>
-      <View style={styles.iconContainer}>
-        <Ionicons
-          name={icon}
-          size={iconSize}
-          color={
-            iconColor ||
-            (variant === 'gradient' ? Colors.background.white : Colors.primary)
-          }
-        />
-      </View>
-
-      <Text
-        style={[
-          styles.title,
-          variant === 'gradient' && styles.titleGradient,
-          variant === 'minimal' && styles.titleMinimal,
-        ]}
-      >
-        {title}
-      </Text>
-
-      {description ? (
-        <Text
-          style={[
-            styles.description,
-            variant === 'gradient' && styles.descriptionGradient,
-            variant === 'minimal' && styles.descriptionMinimal,
-          ]}
-        >
-          {description}
-        </Text>
-      ) : null}
-
-      {buttonText && onButtonPress && (
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={onButtonPress}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={
-                variant === 'gradient'
-                  ? [Colors.background.white, Colors.background.light]
-                  : Colors.gradient.primary
-              }
-              style={styles.actionButtonGradient}
-            >
-              <Text
-                style={[
-                  styles.actionButtonText,
-                  variant === 'gradient' && styles.actionButtonTextGradient,
-                ]}
-              >
-                {buttonText}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          {secondaryButtonText && onSecondaryButtonPress && (
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={onSecondaryButtonPress}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.secondaryButtonText}>{secondaryButtonText}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+}) => (
+  <View style={[styles.container, style]}>
+    <LinearGradient colors={gradientColors} style={styles.card}>
+      {icon && (
+        <Ionicons name={icon} size={iconSize} color={Colors.primary} />
       )}
-    </>
-  );
-
-  if (variant === 'gradient') {
-    return (
-      <View style={[styles.container, style]}>
-        <LinearGradient colors={Colors.gradient.primary} style={styles.gradientCard}>
-          {renderContent()}
-        </LinearGradient>
-      </View>
-    );
-  }
-
-  if (variant === 'minimal') {
-    return (
-      <View style={[styles.container, styles.minimalContainer, style]}>
-        {renderContent()}
-      </View>
-    );
-  }
-
-  // Simple variant (default fallback)
-  return (
-    <View style={[styles.container, styles.simpleContainer, style]}>
-      <View style={styles.simpleCard}>{renderContent()}</View>
-    </View>
-  );
-};
+      {title && (
+        <Text style={styles.title}>{title}</Text>
+      )}
+      {description && (
+        <Text style={styles.description}>{description}</Text>
+      )}
+      {buttonText && onButtonPress && (
+        <TouchableOpacity
+          style={styles.button}
+          onPress={onButtonPress}
+          activeOpacity={0.8}
+        >
+          <LinearGradient colors={Colors.gradient.primary} style={styles.buttonGradient}>
+            <Text style={styles.buttonText}>{buttonText}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
+    </LinearGradient>
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    alignItems: 'center',
+    paddingVertical: 60,
   },
-  gradientCard: {
-    borderRadius: 30,
+  card: {
+    width: '100%',
     padding: 40,
-    alignItems: 'center',
-    maxWidth: 400,
-    width: '100%',
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 15,
-  },
-  simpleContainer: {
-    backgroundColor: Colors.background.white,
-  },
-  simpleCard: {
-    backgroundColor: Colors.background.lightest,
     borderRadius: 20,
-    padding: 32,
     alignItems: 'center',
-    maxWidth: 400,
-    width: '100%',
-    borderWidth: 1,
-    borderColor: Colors.border.light,
-  },
-  minimalContainer: {
-    backgroundColor: 'transparent',
-  },
-  iconContainer: {
-    marginBottom: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
     color: Colors.text.dark,
-    marginBottom: 12,
+    marginTop: 20,
+    marginBottom: 10,
     textAlign: 'center',
-  },
-  titleGradient: {
-    color: Colors.background.white,
-    fontSize: 28,
-    fontWeight: '800',
-  },
-  titleMinimal: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: Colors.text.secondary,
   },
   description: {
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.text.secondary,
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 24,
-    maxWidth: 300,
-  },
-  descriptionGradient: {
-    color: Colors.text.white90,
-    fontSize: 16,
+    marginBottom: 30,
     lineHeight: 24,
   },
-  descriptionMinimal: {
-    fontSize: 14,
-    color: Colors.text.tertiary,
-  },
-  buttonContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  actionButton: {
-    borderRadius: 25,
+  button: {
+    borderRadius: 15,
     overflow: 'hidden',
     width: '100%',
-    maxWidth: 280,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  actionButtonGradient: {
-    flexDirection: 'row',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
+  buttonGradient: {
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionButtonText: {
+  buttonText: {
     color: Colors.background.white,
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
-  },
-  actionButtonTextGradient: {
-    color: Colors.primary,
-  },
-  secondaryButton: {
-    marginTop: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  secondaryButtonText: {
-    color: Colors.text.white90,
-    fontSize: 14,
-    fontWeight: '600',
+    letterSpacing: 0.5,
   },
 });
 

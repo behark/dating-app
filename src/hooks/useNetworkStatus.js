@@ -1,67 +1,37 @@
 import { useEffect, useState } from 'react';
-import { API_URL } from '../config/api';
+import OfflineService from '../services/OfflineService';
 
 /**
  * Network Status Hook
- * Monitors internet connectivity and provides real-time status
+ * Provides reactive network connectivity state for React components.
  *
- * Note: This is a basic implementation. For production, install:
- * npx expo install @react-native-community/netinfo
+ * Uses OfflineService as the single source of truth for network status
+ * to ensure consistency across the app. OfflineService handles the actual
+ * NetInfo subscription and web fallback logic.
  *
- * And use the NetInfo library for more accurate connectivity detection
+ * WHY: This hook bridges the imperative OfflineService with React's
+ * reactive state model. Components use this hook for UI updates,
+ * while services call OfflineService.getNetworkStatus() directly.
  */
 export const useNetworkStatus = () => {
-  const [isConnected, setIsConnected] = useState(true);
-  const [isInternetReachable, setIsInternetReachable] = useState(true);
+  const [isConnected, setIsConnected] = useState(() => OfflineService.getNetworkStatus());
+  const [isInternetReachable, setIsInternetReachable] = useState(() =>
+    OfflineService.getNetworkStatus()
+  );
 
   useEffect(() => {
-    // Try to import NetInfo if available
-    let NetInfo = null;
-    try {
-      NetInfo = require('@react-native-community/netinfo').default;
-    } catch (error) {
-      console.warn('NetInfo not installed. Falling back to health ping.');
-    }
+    // Subscribe to OfflineService for network status changes
+    const unsubscribe = OfflineService.subscribe((isOnline) => {
+      setIsConnected(isOnline);
+      setIsInternetReachable(isOnline);
+    });
 
-    let unsubscribe = null;
-    let intervalId = null;
+    // Sync initial state
+    const currentStatus = OfflineService.getNetworkStatus();
+    setIsConnected(currentStatus);
+    setIsInternetReachable(currentStatus);
 
-    if (NetInfo) {
-      // Subscribe to network state updates
-      unsubscribe = NetInfo.addEventListener((state) => {
-        setIsConnected(state.isConnected ?? true);
-        setIsInternetReachable(state.isInternetReachable ?? true);
-      });
-    } else {
-      // Fallback: periodically ping backend /health endpoint
-      const baseUrl = API_URL.replace(/\/api$/, '');
-      const healthUrl = `${baseUrl}/health`;
-
-      const pingHealth = async () => {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 3000);
-          const res = await fetch(healthUrl, { method: 'GET', signal: controller.signal });
-          clearTimeout(timeoutId);
-          const ok = !!res && res.ok;
-          setIsConnected(ok);
-          setIsInternetReachable(ok);
-        } catch (e) {
-          setIsConnected(false);
-          setIsInternetReachable(false);
-        }
-      };
-
-      // Initial check and periodic checks
-      pingHealth();
-      intervalId = setInterval(pingHealth, 15000);
-    }
-
-    // Cleanup subscription on unmount
-    return () => {
-      if (typeof unsubscribe === 'function') unsubscribe();
-      if (intervalId) clearInterval(intervalId);
-    };
+    return unsubscribe;
   }, []);
 
   return {

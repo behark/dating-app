@@ -261,11 +261,7 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     logger.error('Login error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error during login',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    return sendError(res, 500, { message: 'Error during login', error: error instanceof Error ? error.message : String(error) });
   }
 };
 
@@ -277,10 +273,7 @@ exports.verifyEmail = async (req, res) => {
     const { token } = req.body;
 
     if (!token) {
-      return res.status(400).json({
-        success: false,
-        message: 'Verification token is required',
-      });
+      return sendError(res, 400, { message: 'Verification token is required' });
     }
 
     // Hash token and find user
@@ -292,10 +285,7 @@ exports.verifyEmail = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid or expired verification token',
-      });
+      return sendError(res, 400, { message: 'Invalid or expired verification token' });
     }
 
     // Mark email as verified
@@ -304,17 +294,12 @@ exports.verifyEmail = async (req, res) => {
     user.emailVerificationTokenExpiry = undefined;
     await user.save();
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Email verified successfully',
     });
   } catch (error) {
     logger.error('Email verification error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error verifying email',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error verifying email', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -326,10 +311,7 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email is required',
-      });
+      return sendError(res, 400, { message: 'Email is required' });
     }
 
     const user = await User.findOne({ email: email.toLowerCase() });
@@ -361,11 +343,7 @@ exports.forgotPassword = async (req, res) => {
     });
   } catch (error) {
     logger.error('Forgot password error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error processing password reset',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error processing password reset', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -377,17 +355,11 @@ exports.resetPassword = async (req, res) => {
     const { token, newPassword } = req.body;
 
     if (!token || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        message: 'Token and new password are required',
-      });
+      return sendError(res, 400, { message: 'Token and new password are required' });
     }
 
     if (newPassword.length < 8) {
-      return res.status(400).json({
-        success: false,
-        message: 'Password must be at least 8 characters long',
-      });
+      return sendError(res, 400, { message: 'Password must be at least 8 characters long' });
     }
 
     // Hash token and find user
@@ -399,10 +371,7 @@ exports.resetPassword = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid or expired reset token',
-      });
+      return sendError(res, 400, { message: 'Invalid or expired reset token' });
     }
 
     // Update password
@@ -418,11 +387,7 @@ exports.resetPassword = async (req, res) => {
     });
   } catch (error) {
     logger.error('Reset password error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error resetting password',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error resetting password', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -434,10 +399,7 @@ exports.logout = async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
-      return res.status(400).json({
-        success: false,
-        message: 'No token provided',
-      });
+      return sendError(res, 400, { message: 'No token provided' });
     }
 
     const jwt = require('jsonwebtoken');
@@ -508,11 +470,7 @@ exports.logout = async (req, res) => {
     });
   } catch (error) {
     logger.error('Logout error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error during logout',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error during logout', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -526,19 +484,13 @@ exports.deleteAccount = async (req, res) => {
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
+      return sendNotFound(res, 'User', userId);
     }
 
     // Verify password only for users who have one (not OAuth-only accounts)
     if (user.password) {
       if (!password) {
-        return res.status(400).json({
-          success: false,
-          message: 'Password is required to delete account',
-        });
+        return sendError(res, 400, { message: 'Password is required to delete account' });
       }
 
       const isPasswordMatch = await user.matchPassword(password);
@@ -630,17 +582,12 @@ exports.deleteAccount = async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Account deleted successfully',
     });
   } catch (error) {
     logger.error('Delete account error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting account',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error deleting account', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -652,10 +599,7 @@ exports.refreshToken = async (req, res) => {
     const { refreshToken } = req.body;
 
     if (!refreshToken) {
-      return res.status(400).json({
-        success: false,
-        message: 'Refresh token is required',
-      });
+      return sendError(res, 400, { message: 'Refresh token is required' });
     }
 
     // Ensure JWT_REFRESH_SECRET is set
@@ -693,11 +637,7 @@ exports.refreshToken = async (req, res) => {
     });
   } catch (error) {
     logger.error('Refresh token error:', { error: error.message, stack: error.stack });
-    res.status(401).json({
-      success: false,
-      message: 'Invalid refresh token',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 401, { message: 'Invalid refresh token', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -754,11 +694,7 @@ exports.googleAuth = async (req, res) => {
         if (!googleConfig.configured) {
           logger.warn('⚠️  Google OAuth not fully configured - proceeding with unverified token');
         } else {
-          return res.status(401).json({
-            success: false,
-            message: 'Google authentication failed. Please try again.',
-            error: verifyError instanceof Error ? verifyError.message : String(verifyError),
-          });
+          return sendError(res, 401, { message: 'Google authentication failed. Please try again.', error: verifyError instanceof Error ? verifyError.message : String(verifyError), });
         }
       }
     }
@@ -770,10 +706,7 @@ exports.googleAuth = async (req, res) => {
     const finalPhotoUrl = verifiedUser?.photoUrl || photoUrl;
 
     if (!finalGoogleId || !finalEmail) {
-      return res.status(400).json({
-        success: false,
-        message: 'Google ID and email are required',
-      });
+      return sendError(res, 400, { message: 'Google ID and email are required' });
     }
 
     let user = await User.findOne({ $or: [{ googleId: finalGoogleId }, { email: finalEmail }] });
@@ -836,11 +769,7 @@ exports.googleAuth = async (req, res) => {
     });
   } catch (error) {
     logger.error('Google auth error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error with Google authentication',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error with Google authentication', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -874,19 +803,12 @@ exports.facebookAuth = async (req, res) => {
           });
         }
 
-        return res.status(401).json({
-          success: false,
-          message: 'Facebook authentication failed. Please try again.',
-          error: verifyError instanceof Error ? verifyError.message : String(verifyError),
-        });
+        return sendError(res, 401, { message: 'Facebook authentication failed. Please try again.', error: verifyError instanceof Error ? verifyError.message : String(verifyError), });
       }
     }
 
     if (!facebookId || !email) {
-      return res.status(400).json({
-        success: false,
-        message: 'Facebook ID and email are required',
-      });
+      return sendError(res, 400, { message: 'Facebook ID and email are required' });
     }
 
     let user = await User.findOne({ $or: [{ facebookId }, { email }] });
@@ -947,11 +869,7 @@ exports.facebookAuth = async (req, res) => {
     });
   } catch (error) {
     logger.error('Facebook auth error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error with Facebook authentication',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error with Facebook authentication', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -963,10 +881,7 @@ exports.appleAuth = async (req, res) => {
     const { appleId, email, name, identityToken } = req.body;
 
     if (!appleId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Apple ID is required',
-      });
+      return sendError(res, 400, { message: 'Apple ID is required' });
     }
 
     // Verify Apple identity token if provided
@@ -1043,10 +958,6 @@ exports.appleAuth = async (req, res) => {
     });
   } catch (error) {
     logger.error('Apple auth error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error with Apple authentication',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error with Apple authentication', error: error instanceof Error ? error.message : String(error), });
   }
 };

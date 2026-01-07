@@ -12,5 +12,8 @@ export * from './message';
 // Match and swipe types
 export * from './match';
 
-// Common types
+// Common types (exported first as base types)
 export * from './common';
+
+// API response types (extends common types)
+export type { SuccessResponse, ErrorResponse as ApiErrorResponse, PaginatedResponse as ApiPaginatedResponse, PaginationInfo, SuccessResponseOptions, ErrorResponseOptions } from './api';

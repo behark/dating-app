@@ -33,10 +33,7 @@ const sendSuperLike = async (req, res) => {
 
     // Validate input
     if (!recipientId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Recipient ID is required',
-      });
+      return sendError(res, 400, { message: 'Recipient ID is required' });
     }
 
     // Check if recipient exists
@@ -50,10 +47,7 @@ const sendSuperLike = async (req, res) => {
 
     // Prevent super liking yourself
     if (senderId === recipientId) {
-      return res.status(400).json({
-        success: false,
-        message: 'You cannot super like yourself',
-      });
+      return sendError(res, 400, { message: 'You cannot super like yourself' });
     }
 
     // Get sender info
@@ -72,10 +66,7 @@ const sendSuperLike = async (req, res) => {
     });
 
     if (existingSwipe) {
-      return res.status(400).json({
-        success: false,
-        message: 'You have already interacted with this profile',
-      });
+      return sendError(res, 400, { message: 'You have already interacted with this profile' });
     }
 
     // Check daily limit

@@ -107,11 +107,7 @@ exports.exportUserData = async (req, res) => {
     });
   } catch (error) {
     logger.error('Data export error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to export user data',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Failed to export user data', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -201,11 +197,7 @@ exports.updatePrivacySettings = async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
-      message: 'Privacy settings updated successfully',
-      data: user.privacySettings,
-    });
+    sendSuccess(res, 200, { message: 'Privacy settings updated successfully', data: user.privacySettings, });
   } catch (error) {
     logger.error('Update privacy settings error:', { error: error.message, stack: error.stack });
     res.status(500).json({
@@ -273,10 +265,7 @@ exports.deleteAccount = async (req, res) => {
       });
     }
     if (user.email !== confirmEmail) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email confirmation does not match',
-      });
+      return sendError(res, 400, { message: 'Email confirmation does not match' });
     }
 
     // Delete all user data from all collections
@@ -333,10 +322,7 @@ exports.rectifyData = async (req, res) => {
     }
 
     if (Object.keys(updates).length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No valid fields provided for update',
-      });
+      return sendError(res, 400, { message: 'No valid fields provided for update' });
     }
 
     const user = await User.findByIdAndUpdate(
@@ -351,11 +337,7 @@ exports.rectifyData = async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
-      message: 'Personal data updated successfully',
-      data: user,
-    });
+    sendSuccess(res, 200, { message: 'Personal data updated successfully', data: user, });
   } catch (error) {
     logger.error('Data rectification error:', { error: error.message, stack: error.stack });
     res.status(500).json({

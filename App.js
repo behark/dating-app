@@ -8,13 +8,12 @@ import './src/config/firebase';
 
 import AppErrorBoundary from './src/components/AppErrorBoundary';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
-import { OfflineBanner } from './src/components/OfflineBanner';
 import NetworkStatusBanner from './src/components/NetworkStatusBanner';
 import { AppProvider } from './src/context/AppContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ChatProvider } from './src/context/ChatContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
-import { SocketProvider } from './src/contexts/SocketContext';
+import { SocketProvider } from './src/context/SocketContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { AnalyticsService } from './src/services/AnalyticsService';
 import NotificationService from './src/services/NotificationService';
@@ -60,9 +59,8 @@ function AppContent() {
   return (
     <>
       <AppNavigator />
+      {/* Network status with pending actions, retry, and auto-hide */}
       <NetworkStatusBanner />
-      {/* Production-ready offline banner */}
-      <OfflineBanner />
       <StatusBar style={isDark ? 'light' : 'dark'} />
       {/* Vercel Speed Insights - Web only */}
       {Platform.OS === 'web' && SpeedInsights && <SpeedInsights />}

@@ -732,7 +732,22 @@ userSchema.methods.updateLocation = function (longitude, latitude) {
 /** @this {import('../types/index').UserModel} */
 // @ts-ignore
 userSchema.statics.findNearby = function (longitude, latitude, maxDistance, options = {}) {
-  const query = {
+  // Base query for all users
+  const baseQuery = {
+    isActive: true,
+    // Exclude suspended users - prevents shadow-locking from hiding profiles
+    suspended: { $ne: true },
+  };
+
+  // Demo profiles query - bypass ALL filters (distance, age, gender)
+  const demoQuery = {
+    ...baseQuery,
+    isDemo: true,
+  };
+
+  // Regular profiles query - apply all filters including location
+  const regularQuery = {
+    ...baseQuery,
     location: {
       $near: {
         $geometry: {
@@ -742,25 +757,33 @@ userSchema.statics.findNearby = function (longitude, latitude, maxDistance, opti
         $maxDistance: maxDistance,
       },
     },
-    isActive: true,
-    // Exclude suspended users - prevents shadow-locking from hiding profiles
-    suspended: { $ne: true },
   };
 
-  // Add additional filters
+  // Apply gender filter to regular profiles only
   if (options.preferredGender && options.preferredGender !== 'any') {
-    query.gender = options.preferredGender;
+    regularQuery.gender = options.preferredGender;
   }
 
+  // Apply age filter to regular profiles only
   if (options.minAge || options.maxAge) {
-    query.age = {};
-    if (options.minAge) query.age.$gte = options.minAge;
-    if (options.maxAge) query.age.$lte = options.maxAge;
+    regularQuery.age = {};
+    if (options.minAge) regularQuery.age.$gte = options.minAge;
+    if (options.maxAge) regularQuery.age.$lte = options.maxAge;
   }
 
+  // Exclude already swiped users (applies to both demo and regular)
   if (options.excludeIds && options.excludeIds.length > 0) {
-    query._id = { $nin: options.excludeIds };
+    demoQuery._id = { $nin: options.excludeIds };
+    regularQuery._id = { $nin: options.excludeIds };
   }
+
+  // Combine: demo profiles bypass all filters, regular profiles use all filters
+  const query = {
+    $or: [
+      demoQuery, // Demo profiles visible regardless of distance, age, gender
+      regularQuery, // Regular profiles with all filters applied
+    ],
+  };
 
   // @ts-ignore - Mongoose static method context
   return this.find(query);

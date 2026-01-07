@@ -70,7 +70,7 @@
     "expo-device": "~8.0.10",
     "expo-document-picker": "~13.0.0",
     "expo-file-system": "~18.0.4",
-    "expo-firebase-analytics": "^8.0.0",
+    "expo-font": "~14.0.10",
     "expo-haptics": "^15.0.8",
     "expo-image-manipulator": "~12.0.0",
     "expo-image-picker": "~16.0.4",

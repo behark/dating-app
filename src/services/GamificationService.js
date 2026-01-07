@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../constants/colors';
-import logger from '../utils/logger';
-import api from './api';
+import BaseService from './BaseService';
 
 // XP amounts for different actions
 export const XP_ACTIONS = {

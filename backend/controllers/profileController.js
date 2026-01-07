@@ -24,10 +24,7 @@ exports.updateProfile = async (req, res) => {
 
     // Validate bio length
     if (bio && bio.length > 500) {
-      return res.status(400).json({
-        success: false,
-        message: 'Bio must not exceed 500 characters',
-      });
+      return sendError(res, 400, { message: 'Bio must not exceed 500 characters' });
     }
 
     // Build update object
@@ -86,11 +83,7 @@ exports.updateProfile = async (req, res) => {
     });
   } catch (error) {
     logger.error('Profile update error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error updating profile',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error updating profile', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -158,11 +151,7 @@ exports.getProfile = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get profile error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching profile',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error fetching profile', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -195,11 +184,7 @@ exports.getMyProfile = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get my profile error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching profile',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error fetching profile', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -212,17 +197,11 @@ exports.uploadPhotos = async (req, res) => {
     const { photos } = req.body; // photos: [{ url, order }]
 
     if (!Array.isArray(photos) || photos.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Photos array is required',
-      });
+      return sendError(res, 400, { message: 'Photos array is required' });
     }
 
     if (photos.length > 6) {
-      return res.status(400).json({
-        success: false,
-        message: 'Maximum 6 photos allowed',
-      });
+      return sendError(res, 400, { message: 'Maximum 6 photos allowed' });
     }
 
     const user = await User.findById(userId);
@@ -280,11 +259,7 @@ exports.uploadPhotos = async (req, res) => {
     });
   } catch (error) {
     logger.error('Photo upload error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error uploading photos',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error uploading photos', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -297,10 +272,7 @@ exports.reorderPhotos = async (req, res) => {
     const { photoIds } = req.body; // photoIds: [photoId1, photoId2, ...]
 
     if (!Array.isArray(photoIds) || photoIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Photo IDs array is required',
-      });
+      return sendError(res, 400, { message: 'Photo IDs array is required' });
     }
 
     const user = await User.findById(userId);
@@ -345,11 +317,7 @@ exports.reorderPhotos = async (req, res) => {
     });
   } catch (error) {
     logger.error('Photo reorder error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error reordering photos',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error reordering photos', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -382,11 +350,7 @@ exports.deletePhoto = async (req, res) => {
     });
   } catch (error) {
     logger.error('Photo delete error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error deleting photo',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error deleting photo', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -431,11 +395,7 @@ exports.approvePhoto = async (req, res) => {
     });
   } catch (error) {
     logger.error('Approve photo error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error approving photo',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error approving photo', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -482,11 +442,7 @@ exports.rejectPhoto = async (req, res) => {
     });
   } catch (error) {
     logger.error('Reject photo error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error rejecting photo',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error rejecting photo', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -529,10 +485,6 @@ exports.getPendingPhotos = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get pending photos error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching pending photos',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error fetching pending photos', error: error instanceof Error ? error.message : String(error), });
   }
 };

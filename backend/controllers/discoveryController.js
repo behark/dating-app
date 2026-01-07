@@ -35,10 +35,7 @@ const discoverUsers = async (req, res) => {
 
     // Validate required parameters
     if (!lat || !lng || !radius) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required parameters: lat, lng, radius',
-      });
+      return sendError(res, 400, { message: 'Missing required parameters: lat, lng, radius' });
     }
 
     // Validate parameter types and ranges
@@ -50,24 +47,15 @@ const discoverUsers = async (req, res) => {
     const skip = (pageNum - 1) * resultLimit;
 
     if (isNaN(latitude) || latitude < -90 || latitude > 90) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid latitude. Must be between -90 and 90',
-      });
+      return sendError(res, 400, { message: 'Invalid latitude. Must be between -90 and 90' });
     }
 
     if (isNaN(longitude) || longitude < -180 || longitude > 180) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid longitude. Must be between -180 and 180',
-      });
+      return sendError(res, 400, { message: 'Invalid longitude. Must be between -180 and 180' });
     }
 
     if (isNaN(searchRadius) || searchRadius <= 0 || searchRadius > 50000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid radius. Must be between 1 and 50000 meters',
-      });
+      return sendError(res, 400, { message: 'Invalid radius. Must be between 1 and 50000 meters' });
     }
 
     // Get current user to access their preferences (with timeout)
@@ -80,11 +68,14 @@ const discoverUsers = async (req, res) => {
         .lean();
 
       if (!currentUser) {
-        return res.status(404).json({
-          success: false,
-          message: 'Current user not found',
-        });
+        return sendNotFound(res, 'User', currentUserId);
       }
+    }
+
+    // CRITICAL FIX: Explicit null check before using user preferences
+    // If currentUserId was provided but user lookup failed, we should not continue
+    if (currentUserId && !currentUser) {
+      return sendNotFound(res, 'User', currentUserId);
     }
 
     // Check elapsed time before expensive swipe lookup
@@ -112,6 +103,7 @@ const discoverUsers = async (req, res) => {
     }
 
     // Build discovery options based on user preferences
+    // Use defaults if currentUser is null (anonymous discovery)
     const discoveryOptions = {
       excludeIds: excludedUserIds,
       minAge: currentUser?.preferredAgeRange?.min || 18,
@@ -244,16 +236,12 @@ const discoverUsers = async (req, res) => {
         : String(error)
       ).includes('maxTimeMS')
     ) {
-      return res.status(503).json({
-        success: false,
-        message: 'Discovery query timed out. Try with a smaller search radius or more filters.',
-        error: 'QUERY_TIMEOUT',
+      return sendError(res, 503, { message: 'Discovery query timed out. Try with a smaller search radius or more filters.', error: 'QUERY_TIMEOUT',
         suggestions: [
           'Reduce search radius',
           'Apply age or gender filters',
           'Try again in a few moments',
-        ],
-      });
+        ], });
     }
 
     res.status(500).json({
@@ -328,10 +316,7 @@ const updateLocation = async (req, res) => {
     }
 
     if (!latitude || !longitude) {
-      return res.status(400).json({
-        success: false,
-        message: 'Latitude and longitude are required',
-      });
+      return sendError(res, 400, { message: 'Latitude and longitude are required' });
     }
 
     const user = await User.findById(userId);
@@ -464,10 +449,7 @@ const updatePreferredDistance = async (req, res) => {
       preferredDistance < 1 ||
       preferredDistance > 50000
     ) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid preferred distance. Must be between 1 and 50000 km',
-      });
+      return sendError(res, 400, { message: 'Invalid preferred distance. Must be between 1 and 50000 km' });
     }
 
     const user = await User.findByIdAndUpdate(userId, { preferredDistance }, { new: true }).select(

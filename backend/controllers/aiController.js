@@ -166,18 +166,12 @@ const generateIcebreakers = async (req, res) => {
 
     // Validate input
     if (!targetUserId) {
-      return res.status(400).json({
-        success: false,
-        message: 'targetUserId is required',
-      });
+      return sendError(res, 400, { message: 'targetUserId is required' });
     }
 
     // Validate targetUserId format (MongoDB ObjectId)
     if (!require('mongoose').Types.ObjectId.isValid(targetUserId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid targetUserId format',
-      });
+      return sendError(res, 400, { message: 'Invalid targetUserId format' });
     }
 
     // Get target user from database
@@ -227,16 +221,11 @@ const generateIcebreakers = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error generating icebreakers:', { error: error.message, stack: error.stack });
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to generate icebreakers',
-      error:
-        process.env.NODE_ENV === 'development'
+    return sendError(res, 500, { message: 'Failed to generate icebreakers', error: process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined,
-    });
+          : undefined, });
   }
 };
 
@@ -250,10 +239,7 @@ const getSmartPhotoSelection = async (req, res) => {
     const { userId } = req.params;
 
     if (!require('mongoose').Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid userId format',
-      });
+      return sendError(res, 400, { message: 'Invalid userId format' });
     }
 
     const user = await User.findById(userId).select('photos');
@@ -296,16 +282,11 @@ const getSmartPhotoSelection = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error analyzing photos:', { error: error.message, stack: error.stack });
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to analyze photos',
-      error:
-        process.env.NODE_ENV === 'development'
+    return sendError(res, 500, { message: 'Failed to analyze photos', error: process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined,
-    });
+          : undefined, });
   }
 };
 
@@ -318,10 +299,7 @@ const generateBioSuggestions = async (req, res) => {
     const { userId, interests = [], currentBio = '' } = req.body;
 
     if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'userId is required',
-      });
+      return sendError(res, 400, { message: 'userId is required' });
     }
 
     // Mock bio suggestions based on interests
@@ -391,16 +369,11 @@ const generateBioSuggestions = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error generating bio suggestions:', { error: error.message, stack: error.stack });
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to generate bio suggestions',
-      error:
-        process.env.NODE_ENV === 'development'
+    return sendError(res, 500, { message: 'Failed to generate bio suggestions', error: process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined,
-    });
+          : undefined, });
   }
 };
 
@@ -416,10 +389,7 @@ const calculateCompatibilityScore = async (req, res) => {
       !require('mongoose').Types.ObjectId.isValid(userId) ||
       !require('mongoose').Types.ObjectId.isValid(targetUserId)
     ) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid userId format',
-      });
+      return sendError(res, 400, { message: 'Invalid userId format' });
     }
 
     const user = await User.findById(userId).select('interests ageRange values gender location');
@@ -494,16 +464,11 @@ const calculateCompatibilityScore = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error calculating compatibility:', { error: error.message, stack: error.stack });
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to calculate compatibility',
-      error:
-        process.env.NODE_ENV === 'development'
+    return sendError(res, 500, { message: 'Failed to calculate compatibility', error: process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined,
-    });
+          : undefined, });
   }
 };
 
@@ -516,10 +481,7 @@ const getConversationStarters = async (req, res) => {
     const { userId, targetUserId, targetProfile = {} } = req.body;
 
     if (!userId || !targetUserId) {
-      return res.status(400).json({
-        success: false,
-        message: 'userId and targetUserId are required',
-      });
+      return sendError(res, 400, { message: 'userId and targetUserId are required' });
     }
 
     const targetUser = await User.findById(targetUserId).select('interests bio name');
@@ -586,16 +548,11 @@ const getConversationStarters = async (req, res) => {
       error: error.message,
       stack: error.stack,
     });
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to get conversation starters',
-      error:
-        process.env.NODE_ENV === 'development'
+    return sendError(res, 500, { message: 'Failed to get conversation starters', error: process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined,
-    });
+          : undefined, });
   }
 };
 
@@ -630,10 +587,7 @@ const getCompatibilityExplanation = (score, commonInterests, commonValues) => {
 const analyzePhotoQuality = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: 'No photo provided',
-      });
+      return sendError(res, 400, { message: 'No photo provided' });
     }
 
     // Mock photo analysis
@@ -657,16 +611,11 @@ const analyzePhotoQuality = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error analyzing photo:', { error: error.message, stack: error.stack });
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to analyze photo',
-      error:
-        process.env.NODE_ENV === 'development'
+    return sendError(res, 500, { message: 'Failed to analyze photo', error: process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined,
-    });
+          : undefined, });
   }
 };
 
@@ -680,10 +629,7 @@ const getPersonalizedMatches = async (req, res) => {
     const { limit = 10, useLocation = true, useInterests = true, useValues = true } = req.query;
 
     if (!require('mongoose').Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid userId format',
-      });
+      return sendError(res, 400, { message: 'Invalid userId format' });
     }
 
     const user = await User.findById(userId).select(
@@ -729,16 +675,11 @@ const getPersonalizedMatches = async (req, res) => {
       error: error.message,
       stack: error.stack,
     });
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to get personalized matches',
-      error:
-        process.env.NODE_ENV === 'development'
+    return sendError(res, 500, { message: 'Failed to get personalized matches', error: process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined,
-    });
+          : undefined, });
   }
 };
 
@@ -751,10 +692,7 @@ const getProfileImprovementSuggestions = async (req, res) => {
     const { userId } = req.params;
 
     if (!require('mongoose').Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid userId format',
-      });
+      return sendError(res, 400, { message: 'Invalid userId format' });
     }
 
     const user = await User.findById(userId).select('photos bio interests');
@@ -816,16 +754,11 @@ const getProfileImprovementSuggestions = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error getting suggestions:', { error: error.message, stack: error.stack });
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to get profile suggestions',
-      error:
-        process.env.NODE_ENV === 'development'
+    return sendError(res, 500, { message: 'Failed to get profile suggestions', error: process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined,
-    });
+          : undefined, });
   }
 };
 
@@ -838,10 +771,7 @@ const getConversationInsights = async (req, res) => {
     const { userId } = req.params;
 
     if (!require('mongoose').Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid userId format',
-      });
+      return sendError(res, 400, { message: 'Invalid userId format' });
     }
 
     // Mock insights based on user data
@@ -892,16 +822,11 @@ const getConversationInsights = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error getting insights:', { error: error.message, stack: error.stack });
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to get conversation insights',
-      error:
-        process.env.NODE_ENV === 'development'
+    return sendError(res, 500, { message: 'Failed to get conversation insights', error: process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined,
-    });
+          : undefined, });
   }
 };
 
@@ -1131,18 +1056,12 @@ const generateMatchIcebreakers = async (req, res) => {
 
     // Validate matchId
     if (!matchId) {
-      return res.status(400).json({
-        success: false,
-        message: 'matchId is required',
-      });
+      return sendError(res, 400, { message: 'matchId is required' });
     }
 
     // Validate matchId format (MongoDB ObjectId)
     if (!require('mongoose').Types.ObjectId.isValid(matchId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid matchId format',
-      });
+      return sendError(res, 400, { message: 'Invalid matchId format' });
     }
 
     // Get current user if authenticated
@@ -1236,16 +1155,11 @@ const generateMatchIcebreakers = async (req, res) => {
       error: error.message,
       stack: error.stack,
     });
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to generate icebreakers',
-      error:
-        process.env.NODE_ENV === 'development'
+    return sendError(res, 500, { message: 'Failed to generate icebreakers', error: process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined,
-    });
+          : undefined, });
   }
 };
 

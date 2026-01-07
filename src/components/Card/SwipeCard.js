@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
 import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { Colors } from '../../constants/colors';
-import ProgressiveImage from '../Common/ProgressiveImage';
+import { UniversalImage } from '../Image';
 import { LocationService } from '../../services/LocationService';
 import { VerificationService } from '../../services/VerificationService';
 
@@ -176,7 +176,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
         ]} 
         testID="swipe-card"
       >
-        <ProgressiveImage
+        <UniversalImage
           source={{
             uri:
               card.photoURL ||
@@ -184,6 +184,8 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
               'https://via.placeholder.com/400',
           }}
           style={styles.image}
+          enableLazy={false} // Disable lazy loading for swipe cards
+          progressive={true} // Enable progressive loading
         />
 
         <TouchableOpacity

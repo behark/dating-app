@@ -23,17 +23,11 @@ exports.reportUser = async (req, res) => {
 
     // Validate input
     if (!reportedUserId || !category || !description) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields: reportedUserId, category, description',
-      });
+      return sendError(res, 400, { message: 'Missing required fields: reportedUserId, category, description' });
     }
 
     if (reporterId === reportedUserId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot report yourself',
-      });
+      return sendError(res, 400, { message: 'Cannot report yourself' });
     }
 
     // Check if reported user exists
@@ -54,10 +48,7 @@ exports.reportUser = async (req, res) => {
     });
 
     if (existingReport) {
-      return res.status(400).json({
-        success: false,
-        message: 'You have already submitted a report for this user that is pending review',
-      });
+      return sendError(res, 400, { message: 'You have already submitted a report for this user that is pending review' });
     }
 
     // Create report
@@ -118,11 +109,7 @@ exports.reportUser = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error reporting user:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error submitting report',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error submitting report', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -148,11 +135,7 @@ exports.getReports = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error getting reports:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error retrieving reports',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error retrieving reports', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -163,10 +146,7 @@ exports.reviewReport = async (req, res) => {
     const { status, action, actionReason } = req.body;
 
     if (!['reviewed', 'dismissed', 'action_taken'].includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid status. Must be: reviewed, dismissed, or action_taken',
-      });
+      return sendError(res, 400, { message: 'Invalid status. Must be: reviewed, dismissed, or action_taken' });
     }
 
     const report = await Report.findByIdAndUpdate(
@@ -205,11 +185,7 @@ exports.reviewReport = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error reviewing report:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error reviewing report',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error reviewing report', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -220,17 +196,11 @@ exports.blockUser = async (req, res) => {
     const userId = req.user.id;
 
     if (!blockedUserId) {
-      return res.status(400).json({
-        success: false,
-        message: 'blockedUserId is required',
-      });
+      return sendError(res, 400, { message: 'blockedUserId is required' });
     }
 
     if (userId === blockedUserId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot block yourself',
-      });
+      return sendError(res, 400, { message: 'Cannot block yourself' });
     }
 
     // Add to blocked users list
@@ -244,11 +214,7 @@ exports.blockUser = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error blocking user:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error blocking user',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error blocking user', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -259,10 +225,7 @@ exports.unblockUser = async (req, res) => {
     const userId = req.user.id;
 
     if (!blockedUserId) {
-      return res.status(400).json({
-        success: false,
-        message: 'blockedUserId is required',
-      });
+      return sendError(res, 400, { message: 'blockedUserId is required' });
     }
 
     await User.findByIdAndUpdate(userId, {
@@ -275,11 +238,7 @@ exports.unblockUser = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error unblocking user:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error unblocking user',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error unblocking user', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -303,11 +262,7 @@ exports.getBlockedUsers = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error getting blocked users:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error retrieving blocked users',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error retrieving blocked users', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -337,11 +292,7 @@ exports.checkIfBlocked = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error checking block status:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error checking block status',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error checking block status', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -352,10 +303,7 @@ exports.flagContent = async (req, res) => {
     const userId = req.user.id;
 
     if (!contentType || !contentId || !reason) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields: contentType, contentId, reason',
-      });
+      return sendError(res, 400, { message: 'Missing required fields: contentType, contentId, reason' });
     }
 
     // Valid content types: 'message', 'profile_photo', 'bio', 'profile'
@@ -388,11 +336,7 @@ exports.flagContent = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error flagging content:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error flagging content',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error flagging content', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -436,11 +380,7 @@ exports.getSafetyScore = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error calculating safety score:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error calculating safety score',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error calculating safety score', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -526,11 +466,7 @@ exports.getSafetyTips = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error getting safety tips:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error retrieving safety tips',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error retrieving safety tips', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -541,10 +477,7 @@ exports.suspendUser = async (req, res) => {
     const { reason } = req.body;
 
     if (!reason) {
-      return res.status(400).json({
-        success: false,
-        message: 'Suspension reason is required',
-      });
+      return sendError(res, 400, { message: 'Suspension reason is required' });
     }
 
     const user = await User.findByIdAndUpdate(
@@ -577,11 +510,7 @@ exports.suspendUser = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error suspending user:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error suspending user',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error suspending user', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -620,11 +549,7 @@ exports.unsuspendUser = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error unsuspending user:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error unsuspending user',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error unsuspending user', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -682,11 +607,7 @@ exports.getAccountStatus = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error getting account status:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error checking account status',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error checking account status', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -699,10 +620,7 @@ exports.appealSuspension = async (req, res) => {
     const { reason } = req.body;
 
     if (!reason || reason.length < 20) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide a detailed explanation (at least 20 characters)',
-      });
+      return sendError(res, 400, { message: 'Please provide a detailed explanation (at least 20 characters)' });
     }
 
     const user = await User.findById(userId);
@@ -715,18 +633,11 @@ exports.appealSuspension = async (req, res) => {
     }
 
     if (!user.suspended) {
-      return res.status(400).json({
-        success: false,
-        message: 'Your account is not suspended',
-      });
+      return sendError(res, 400, { message: 'Your account is not suspended' });
     }
 
     if (user.suspensionType !== 'auto') {
-      return res.status(400).json({
-        success: false,
-        message:
-          'Manual suspensions cannot be appealed through this system. Please contact support.',
-      });
+      return sendError(res, 400, { message: 'Manual suspensions cannot be appealed through this system. Please contact support.' });
     }
 
     // Mark for priority review
@@ -747,10 +658,6 @@ exports.appealSuspension = async (req, res) => {
     });
   } catch (error) {
     logger.error('Error submitting appeal:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error submitting appeal',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error submitting appeal', error: error instanceof Error ? error.message : String(error), });
   }
 };

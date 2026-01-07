@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Profiles Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .profiles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .profile-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .profile-content {
+            padding: 25px;
+        }
+
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .profile-name-age {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .profile-name {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .profile-age {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .badges {
+            display: flex;
+            gap: 8px;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-verified {
+            background: #10b981;
+            color: white;
+        }
+
+        .badge-premium {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+        }
+
+        .badge-demo {
+            background: #667eea;
+            color: white;
+        }
+
+        .profile-profession {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .profile-bio {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 0.95em;
+        }
+
+        .profile-interests {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .interest-tag {
+            background: #f3f4f6;
+            color: #667eea;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .profile-location {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .location-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        .photo-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .photo-thumb {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .photo-thumb:hover {
+            opacity: 0.8;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✨ Demo Profiles Preview</h1>
+        
+        <div class="profiles-grid">
+            <!-- Profile 1: Sarah, 28, Software Engineer -->
+            <div class="profile-card">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400" alt="Sarah" class="profile-image">
+                <div class="profile-content">
+                    <div class="profile-header">
+                        <div class="profile-name-age">
+                            <span class="profile-name">Sarah</span>
+                            <span class="profile-age">28</span>
+                        </div>
+                        <div class="badges">
+                            <span class="badge badge-verified">✓ Verified</span>
+                            <span class="badge badge-demo">Demo</span>
+                        </div>
+                    </div>
+                    <div class="profile-profession">💼 Software Engineer</div>
+                    <p class="profile-bio">
+                        Passionate about technology and building meaningful connections. Love hiking on weekends and trying new coffee shops. Always up for an adventure!
+                    </p>
+                    <div class="profile-interests">
+                        <span class="interest-tag">hiking</span>
+                        <span class="interest-tag">coffee</span>
+                        <span class="interest-tag">technology</span>
+                        <span class="interest-tag">travel</span>
+                        <span class="interest-tag">photography</span>
+                    </div>
+                    <div class="photo-gallery">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" alt="Photo 1" class="photo-thumb">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200" alt="Photo 2" class="photo-thumb">
+                        <img src="https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=200" alt="Photo 3" class="photo-thumb">
+                    </div>
+                    <div class="profile-location">
+                        <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span>San Francisco, CA</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile 2: Michael, 32, Doctor -->
+            <div class="profile-card">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400" alt="Michael" class="profile-image">
+                <div class="profile-content">
+                    <div class="profile-header">
+                        <div class="profile-name-age">
+                            <span class="profile-name">Michael</span>
+                            <span class="profile-age">32</span>
+                        </div>
+                        <div class="badges">
+                            <span class="badge badge-verified">✓ Verified</span>
+                            <span class="badge badge-premium">⭐ Premium</span>
+                            <span class="badge badge-demo">Demo</span>
+                        </div>
+                    </div>
+                    <div class="profile-profession">💼 Doctor</div>
+                    <p class="profile-bio">
+                        Healthcare professional by day, foodie and wine enthusiast by night. Love cooking Italian cuisine and exploring new restaurants. Looking for someone to share life's adventures with.
+                    </p>
+                    <div class="profile-interests">
+                        <span class="interest-tag">cooking</span>
+                        <span class="interest-tag">wine</span>
+                        <span class="interest-tag">foodie</span>
+                        <span class="interest-tag">travel</span>
+                        <span class="interest-tag">fitness</span>
+                        <span class="interest-tag">music</span>
+                    </div>
+                    <div class="photo-gallery">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200" alt="Photo 1" class="photo-thumb">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200" alt="Photo 2" class="photo-thumb">
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200" alt="Photo 3" class="photo-thumb">
+                    </div>
+                    <div class="profile-location">
+                        <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span>New York, NY</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile 3: Emma, 26, Graphic Designer -->
+            <div class="profile-card">
+                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400" alt="Emma" class="profile-image">
+                <div class="profile-content">
+                    <div class="profile-header">
+                        <div class="profile-name-age">
+                            <span class="profile-name">Emma</span>
+                            <span class="profile-age">26</span>
+                        </div>
+                        <div class="badges">
+                            <span class="badge badge-verified">✓ Verified</span>
+                            <span class="badge badge-demo">Demo</span>
+                        </div>
+                    </div>
+                    <div class="profile-profession">💼 Graphic Designer</div>
+                    <p class="profile-bio">
+                        Creative soul who loves art, design, and all things beautiful. Weekend yoga enthusiast and bookworm. Always looking for inspiration and meaningful conversations.
+                    </p>
+                    <div class="profile-interests">
+                        <span class="interest-tag">art</span>
+                        <span class="interest-tag">yoga</span>
+                        <span class="interest-tag">reading</span>
+                        <span class="interest-tag">design</span>
+                        <span class="interest-tag">museums</span>
+                    </div>
+                    <div class="photo-gallery">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200" alt="Photo 1" class="photo-thumb">
+                        <img src="https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=200" alt="Photo 2" class="photo-thumb">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200" alt="Photo 3" class="photo-thumb">
+                    </div>
+                    <div class="profile-location">
+                        <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span>Austin, TX</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile 4: David, 35, Architect -->
+            <div class="profile-card">
+                <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400" alt="David" class="profile-image">
+                <div class="profile-content">
+                    <div class="profile-header">
+                        <div class="profile-name-age">
+                            <span class="profile-name">David</span>
+                            <span class="profile-age">35</span>
+                        </div>
+                        <div class="badges">
+                            <span class="badge badge-verified">✓ Verified</span>
+                            <span class="badge badge-premium">⭐ Premium</span>
+                            <span class="badge badge-demo">Demo</span>
+                        </div>
+                    </div>
+                    <div class="profile-profession">💼 Architect</div>
+                    <p class="profile-bio">
+                        Building dreams one design at a time. Passionate about sustainable architecture, photography, and exploring new cities. Love hiking and discovering hidden gems in urban landscapes.
+                    </p>
+                    <div class="profile-interests">
+                        <span class="interest-tag">architecture</span>
+                        <span class="interest-tag">photography</span>
+                        <span class="interest-tag">hiking</span>
+                        <span class="interest-tag">travel</span>
+                        <span class="interest-tag">nature</span>
+                        <span class="interest-tag">cycling</span>
+                    </div>
+                    <div class="photo-gallery">
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200" alt="Photo 1" class="photo-thumb">
+                        <img src="https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=200" alt="Photo 2" class="photo-thumb">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200" alt="Photo 3" class="photo-thumb">
+                    </div>
+                    <div class="profile-location">
+                        <svg class="location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span>Seattle, WA</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Sample profiles from the 100 demo profiles database</p>
+            <p style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">These profiles are generated by the seed-demo-profiles.js script</p>
+        </div>
+    </div>
+</body>
+</html>

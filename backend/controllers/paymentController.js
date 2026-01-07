@@ -133,10 +133,7 @@ const createStripeCheckout = async (req, res) => {
     const { planType } = req.body;
 
     if (!['monthly', 'yearly'].includes(planType)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid plan type',
-      });
+      return sendError(res, 400, { message: 'Invalid plan type' });
     }
 
     const user = await User.findById(userId);
@@ -266,10 +263,7 @@ const getStripePortal = async (req, res) => {
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
     if (!user.stripeCustomerId) {
-      return res.status(400).json({
-        success: false,
-        message: 'No billing information found',
-      });
+      return sendError(res, 400, { message: 'No billing information found' });
     }
 
     const portalUrl = await StripeService.createPortalSession(user, `${baseUrl}/settings/billing`);
@@ -339,10 +333,7 @@ const createPayPalSubscription = async (req, res) => {
     const { planType } = req.body;
 
     if (!['monthly', 'yearly'].includes(planType)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid plan type',
-      });
+      return sendError(res, 400, { message: 'Invalid plan type' });
     }
 
     const user = await User.findById(userId);
@@ -466,10 +457,7 @@ const validateAppleReceipt = async (req, res) => {
     const { receiptData, productId } = req.body;
 
     if (!receiptData) {
-      return res.status(400).json({
-        success: false,
-        message: 'Receipt data is required',
-      });
+      return sendError(res, 400, { message: 'Receipt data is required' });
     }
 
     const result = await AppleIAPService.processPurchase(userId, receiptData, productId);
@@ -496,10 +484,7 @@ const restoreApplePurchases = async (req, res) => {
     const { receiptData } = req.body;
 
     if (!receiptData) {
-      return res.status(400).json({
-        success: false,
-        message: 'Receipt data is required',
-      });
+      return sendError(res, 400, { message: 'Receipt data is required' });
     }
 
     const result = await AppleIAPService.restorePurchases(userId, receiptData);
@@ -528,10 +513,7 @@ const validateGooglePurchase = async (req, res) => {
     const { purchaseToken, productId, isSubscription } = req.body;
 
     if (!purchaseToken || !productId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Purchase token and product ID are required',
-      });
+      return sendError(res, 400, { message: 'Purchase token and product ID are required' });
     }
 
     let result;
@@ -567,10 +549,7 @@ const restoreGooglePurchases = async (req, res) => {
     const { purchases } = req.body;
 
     if (!purchases || !Array.isArray(purchases)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Purchases array is required',
-      });
+      return sendError(res, 400, { message: 'Purchases array is required' });
     }
 
     const result = await GooglePlayService.restorePurchases(userId, purchases);
@@ -646,10 +625,7 @@ const requestRefund = async (req, res) => {
     const { transactionId, reason, amount } = req.body;
 
     if (!transactionId || !reason) {
-      return res.status(400).json({
-        success: false,
-        message: 'Transaction ID and reason are required',
-      });
+      return sendError(res, 400, { message: 'Transaction ID and reason are required' });
     }
 
     const result = await RefundService.requestRefund(userId, transactionId, reason, amount);

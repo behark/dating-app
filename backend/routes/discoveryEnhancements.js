@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middleware/auth');
+const { authenticate, optionalAuth } = require('../middleware/auth');
 const discoveryEnhancementsController = require('../controllers/discoveryEnhancementsController');
 
-// Explore/Browse mode
-router.get('/explore', authenticate, discoveryEnhancementsController.exploreUsers);
+// Explore/Browse mode - supports guest access to demo profiles
+router.get('/explore', optionalAuth, discoveryEnhancementsController.exploreUsers);
 
 // Top Picks
 router.get('/top-picks', authenticate, discoveryEnhancementsController.getTopPicks);

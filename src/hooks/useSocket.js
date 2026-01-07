@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { useSocketContext } from '../contexts/SocketContext';
+import { useSocketContext } from '../context/SocketContext';
 import logger from '../utils/logger';
 
 /**
  * Custom hook for socket operations
  * Provides convenient methods for socket event handling with automatic cleanup
+ *
+ * NOTE: For chat functionality, prefer using ChatContext (useChat from context/ChatContext)
+ * which provides higher-level chat operations. This hook is for direct socket access
+ * when needed outside of the chat context (e.g., notifications, presence).
  */
 export const useSocket = () => {
   const { socket, isConnected, connectionState, error, connect, disconnect, emit, on, off } =

@@ -41,11 +41,7 @@ exports.getAllPrompts = async (req, res) => {
     });
   } catch (error) {
     logger.error('Get prompts error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching prompts',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error fetching prompts', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -58,17 +54,11 @@ exports.updatePrompts = async (req, res) => {
     const { prompts } = req.body; // Array of { promptId, answer }
 
     if (!Array.isArray(prompts)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Prompts must be an array',
-      });
+      return sendError(res, 400, { message: 'Prompts must be an array' });
     }
 
     if (prompts.length > 3) {
-      return res.status(400).json({
-        success: false,
-        message: 'Maximum 3 prompts allowed',
-      });
+      return sendError(res, 400, { message: 'Maximum 3 prompts allowed' });
     }
 
     // Validate prompts
@@ -82,17 +72,11 @@ exports.updatePrompts = async (req, res) => {
       }
 
       if (!prompt.answer || prompt.answer.trim().length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Prompt answer cannot be empty',
-        });
+        return sendError(res, 400, { message: 'Prompt answer cannot be empty' });
       }
 
       if (prompt.answer.length > 300) {
-        return res.status(400).json({
-          success: false,
-          message: 'Prompt answer must not exceed 300 characters',
-        });
+        return sendError(res, 400, { message: 'Prompt answer must not exceed 300 characters' });
       }
     }
 
@@ -114,11 +98,7 @@ exports.updatePrompts = async (req, res) => {
     });
   } catch (error) {
     logger.error('Update prompts error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error updating prompts',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error updating prompts', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -158,11 +138,7 @@ exports.updateEducation = async (req, res) => {
     });
   } catch (error) {
     logger.error('Update education error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error updating education',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error updating education', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -201,11 +177,7 @@ exports.updateOccupation = async (req, res) => {
     });
   } catch (error) {
     logger.error('Update occupation error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error updating occupation',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error updating occupation', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -218,10 +190,7 @@ exports.updateHeight = async (req, res) => {
     const { value, unit } = req.body;
 
     if (!value || !unit) {
-      return res.status(400).json({
-        success: false,
-        message: 'Height value and unit are required',
-      });
+      return sendError(res, 400, { message: 'Height value and unit are required' });
     }
 
     if (unit !== 'cm' && unit !== 'ft') {
@@ -249,11 +218,7 @@ exports.updateHeight = async (req, res) => {
     });
   } catch (error) {
     logger.error('Update height error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error updating height',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error updating height', error: error instanceof Error ? error.message : String(error), });
   }
 };
 
@@ -266,17 +231,11 @@ exports.updateEthnicity = async (req, res) => {
     const { ethnicity } = req.body;
 
     if (!Array.isArray(ethnicity)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Ethnicity must be an array',
-      });
+      return sendError(res, 400, { message: 'Ethnicity must be an array' });
     }
 
     if (ethnicity.length > 3) {
-      return res.status(400).json({
-        success: false,
-        message: 'Maximum 3 ethnicities allowed',
-      });
+      return sendError(res, 400, { message: 'Maximum 3 ethnicities allowed' });
     }
 
     const user = await User.findByIdAndUpdate(
@@ -301,10 +260,6 @@ exports.updateEthnicity = async (req, res) => {
     });
   } catch (error) {
     logger.error('Update ethnicity error:', { error: error.message, stack: error.stack });
-    res.status(500).json({
-      success: false,
-      message: 'Error updating ethnicity',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    sendError(res, 500, { message: 'Error updating ethnicity', error: error instanceof Error ? error.message : String(error), });
   }
 };

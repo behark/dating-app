@@ -27,10 +27,25 @@ const {
 
 /**
  * Explore/Browse mode - flexible discovery with filters
+ * Supports guest access to demo profiles only
  */
 const exploreUsers = async (req, res) => {
   try {
-    const userId = req.user.id;
+    // Check if this is a guest request (unauthenticated)
+    const isGuest = !req.user;
+    const { guest = false, demoOnly = false } = req.query;
+
+    // For authenticated users, require user ID
+    // For guest users, only allow access to demo profiles
+    let userId = null;
+    if (!isGuest) {
+      userId = req.user.id;
+    } else if (!guest && !demoOnly) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required for non-demo exploration',
+      });
+    }
     const {
       lat,
       lng,
@@ -49,32 +64,30 @@ const exploreUsers = async (req, res) => {
       const longitude = parseFloat(lng);
 
       if (isNaN(latitude) || latitude < -90 || latitude > 90) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid latitude',
-        });
+        return sendError(res, 400, { message: 'Invalid latitude' });
       }
 
       if (isNaN(longitude) || longitude < -180 || longitude > 180) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid longitude',
-        });
+        return sendError(res, 400, { message: 'Invalid longitude' });
       }
     }
 
-    // Get current user
-    const currentUser = await User.findById(userId);
-    if (!currentUser) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
-    }
+    // Handle guest vs authenticated users differently
+    let swipedUserIds = [];
+    if (!isGuest && userId) {
+      // Get current user for authenticated requests
+      const currentUser = await User.findById(userId);
+      if (!currentUser) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+      }
 
-    // Get IDs of users already swiped on
-    const swipedUserIds = await Swipe.getSwipedUserIds(userId);
-    swipedUserIds.push(userId); // Exclude self
+      // Get IDs of users already swiped on
+      swipedUserIds = await Swipe.getSwipedUserIds(userId);
+      swipedUserIds.push(userId); // Exclude self
+    }
 
     // Build query
     const query = {
@@ -83,6 +96,8 @@ const exploreUsers = async (req, res) => {
       // Exclude suspended users - prevents shadow-locking from hiding profiles
       suspended: { $ne: true },
       age: { $gte: minAge, $lte: maxAge },
+      // For guest users, only show demo profiles
+      ...(isGuest || demoOnly ? { isDemo: true } : {}),
     };
 
     if (gender !== 'any') {
@@ -191,11 +206,13 @@ const exploreUsers = async (req, res) => {
       });
     }
 
-    // Log activity
-    await UserActivity.logActivity(userId, 'profile_view', {
-      action: 'explore',
-      filters: { minAge, maxAge, gender, sortBy },
-    });
+    // Log activity (only for authenticated users)
+    if (!isGuest && userId) {
+      await UserActivity.logActivity(userId, 'profile_view', {
+        action: 'explore',
+        filters: { minAge, maxAge, gender, sortBy },
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -432,10 +449,7 @@ const verifyProfile = async (req, res) => {
     const { verificationMethod = 'photo' } = req.body;
 
     if (!['photo', 'video', 'id'].includes(verificationMethod)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid verification method',
-      });
+      return sendError(res, 400, { message: 'Invalid verification method' });
     }
 
     const user = await User.findById(userId);
