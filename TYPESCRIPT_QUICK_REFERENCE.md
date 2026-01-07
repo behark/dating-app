@@ -94,6 +94,34 @@ npm test
 ./scripts/ts-migration-helper.sh validate <file>
 ```
 
+## ⚠️ Logger Import Pattern (CRITICAL)
+**Problem:** TypeScript can't infer logger types from JavaScript module.
+
+**Solution:** Add this at the top of EVERY TypeScript file that uses logger:
+
+```typescript
+import loggerModule from '../utils/logger';
+
+const logger = loggerModule as {
+  debug: (message: string, ...args: any[]) => void;
+  info: (message: string, ...args: any[]) => void;
+  warn: (message: string, ...args: any[]) => void;
+  error: (message: string, error?: Error | null, ...args: any[]) => void;
+  apiError: (endpoint: string, method: string, status: number, error?: Error | null) => void;
+  apiRequest: (endpoint: string, method: string) => void;
+};
+```
+
+**In Catch Blocks:**
+```typescript
+try {
+  // your code
+} catch (error) {
+  logger.error('Error description', error as Error);  // Cast unknown to Error
+  return fallbackValue;
+}
+```
+
 ## 📚 Documentation
 - 📘 `TYPESCRIPT_MIGRATION_GUIDE.md` - Daily guide
 - 📊 `TYPESCRIPT_MIGRATION_PROGRESS.md` - Progress tracking
