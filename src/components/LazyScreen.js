@@ -61,14 +61,23 @@ LoadingPlaceholder.propTypes = {
  * @returns {React.Component} - Lazy loaded component wrapper
  */
 export function createLazyScreen(importFn, options = {}) {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LazyScreen.js:63',message:'createLazyScreen entry',data:{displayName:options?.displayName,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
   const {
     loadingMessage = 'Loading...',
     minLoadingTime = 200, // Minimum loading time to prevent flashing
     preload = false, // Whether to start loading immediately
   } = options;
 
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LazyScreen.js:70',message:'Before variable declarations',data:{timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
   let cachedComponent = null;
   let loadPromise = null;
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/052d01ac-3f86-4688-97f8-e0e7268e5f14',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LazyScreen.js:72',message:'After variable declarations',data:{cachedComponent:typeof cachedComponent,loadPromise:typeof loadPromise,timestamp:Date.now()},timestamp:Date.now(),sessionId:'debug-session',runId:'initial',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
 
   // Preload the component if requested
   if (preload) {
