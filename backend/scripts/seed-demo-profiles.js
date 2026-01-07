@@ -18,7 +18,7 @@
 
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 // Database connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/dating-app';
@@ -211,10 +211,7 @@ async function seedProfiles() {
     
     // Connect to MongoDB
     console.log('📡 Connecting to MongoDB...');
-    await mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
+    await mongoose.connect(MONGODB_URI);
     console.log('✅ Connected to MongoDB\n');
     
     // Remove existing demo profiles
