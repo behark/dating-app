@@ -13,13 +13,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../../../constants/colors';
-import { useAuth } from '../../../context/AuthContext';
-import { validateEmail, validatePassword } from '../../../utils/validators';
-import { showStandardError, STANDARD_ERROR_MESSAGES } from '../../../utils/errorHandler';
-import { useThrottle } from '../../../hooks/useDebounce';
-import { sanitizeEmail, sanitizeString } from '../../../utils/sanitize';
-import logger from '../../../utils/logger';
+import { Colors } from '../constants/colors';
+import { useAuth } from '../context/AuthContext';
+import { validateEmail, validatePassword } from '../utils/validators';
+import { showStandardError, STANDARD_ERROR_MESSAGES } from '../utils/errorHandler';
+import { useThrottle } from '../hooks/useDebounce';
+import { sanitizeEmail, sanitizeString } from '../utils/sanitize';
+import logger from '../utils/logger';
 
 const LoginScreen = ({ navigation, onAuthSuccess }) => {
   const [email, setEmail] = useState('');

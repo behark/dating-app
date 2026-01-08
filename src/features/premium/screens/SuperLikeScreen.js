@@ -11,10 +11,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../../../constants/colors';
-import api from '../../../services/api';
-import logger from '../../../utils/logger';
-import { useAuth } from '../../../context/AuthContext';
+import { Colors } from '../constants/colors';
+import api from '../services/api';
+import logger from '../utils/logger';
+import { useAuth } from '../context/AuthContext';
 
 const SuperLikeScreen = ({ route, navigation }) => {
   const { userId } = route.params || {};

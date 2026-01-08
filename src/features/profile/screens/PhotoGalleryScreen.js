@@ -12,12 +12,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../../../constants/colors';
-import { useAuth } from '../../../context/AuthContext';
-import api from '../../../services/api';
-import { ImageService } from '../../../services/ImageService';
-import { showStandardError, STANDARD_ERROR_MESSAGES } from '../../../utils/errorHandler';
-import logger from '../../../utils/logger';
+import { Colors } from '../constants/colors';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
+import { ImageService } from '../services/ImageService';
+import { showStandardError, STANDARD_ERROR_MESSAGES } from '../utils/errorHandler';
+import logger from '../utils/logger';
 
 const PhotoGalleryScreen = ({ navigation, route }) => {
   const { currentUser } = useAuth();

@@ -10,9 +10,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../../../constants/colors';
+import { Colors } from '../constants/colors';
 import SwipeCard from '../components/Card/SwipeCard';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import LoginScreen from './LoginScreen';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');

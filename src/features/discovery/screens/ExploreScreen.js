@@ -14,12 +14,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import api from '../../../services/api';
-import { Colors } from '../../../constants/colors';
-import { useAuth } from '../../../context/AuthContext';
-import { calculateDistance } from '../../../utils/distanceCalculator';
-import { showStandardError } from '../../../utils/errorHandler';
-import logger from '../../../utils/logger';
+import api from '../services/api';
+import { Colors } from '../constants/colors';
+import { useAuth } from '../context/AuthContext';
+import { calculateDistance } from '../utils/distanceCalculator';
+import { showStandardError } from '../utils/errorHandler';
+import logger from '../utils/logger';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 24) / 2;
