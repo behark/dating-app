@@ -9,6 +9,7 @@ import { initSentry } from '../utils/sentry';
 import IAPService from './IAPService';
 import api from './api';
 import { API_ENDPOINTS } from '../constants/constants';
+import logger from '../utils/logger';
 
 /**
  * Service to handle all app initialization logic
@@ -24,7 +25,7 @@ class AppInitializationService {
         environment: __DEV__ ? 'development' : 'production',
         release: Constants.expoConfig?.version || '1.0.0',
       });
-      if (__DEV__) console.log('✅ Sentry error tracking initialized');
+      if (__DEV__) logger.debug('Sentry error tracking initialized');
     } else {
       if (__DEV__) console.warn('⚠️  Sentry DSN not configured - error tracking disabled');
     }
@@ -34,28 +35,28 @@ class AppInitializationService {
       try {
         const pushToken = await NotificationService.registerForPushNotifications();
         if (pushToken) {
-          console.log('✅ Push token:', pushToken);
+          logger.debug('Push token registered');
           // Send push token to backend
           try {
             await api.post(API_ENDPOINTS.NOTIFICATIONS.PUSH_TOKEN, {
               expoPushToken: pushToken,
               platform: Platform.OS,
             });
-            console.log('✅ Push token registered with backend');
+            logger.debug('Push token registered with backend');
           } catch (error) {
-            console.error('❌ Failed to register push token with backend:', error);
+            logger.error('Failed to register push token with backend:', error);
           }
         }
 
         // Setup notification listeners
         const cleanup = NotificationService.setupNotificationListeners(
           (notification) => {
-            console.log('📱 Notification received:', notification);
+            logger.debug('Notification received');
             // Handle foreground notifications
           },
           (response) => {
             const data = response.notification.request.content.data;
-            console.log('📱 Notification tapped:', data);
+            logger.debug('Notification tapped');
 
             // Navigate based on notification type
             if (data && data.type) {
@@ -63,18 +64,18 @@ class AppInitializationService {
                 case 'match':
                   // Navigate to matches screen
                   // Note: Navigation handling would need to be implemented with navigation ref
-                  console.log('Navigate to matches screen for match:', data.matchId);
+                  logger.debug('Navigate to matches screen for match');
                   break;
                 case 'message':
                   // Navigate to chat screen
-                  console.log('Navigate to chat screen for message:', data.matchId);
+                  logger.debug('Navigate to chat screen for message');
                   break;
                 case 'like':
                   // Navigate to profile or matches
-                  console.log('Navigate to profile for like:', data.userId);
+                  logger.debug('Navigate to profile for like');
                   break;
                 default:
-                  console.log('Unknown notification type:', data.type);
+                  logger.debug('Unknown notification type:', data.type);
               }
             }
           }
@@ -82,7 +83,7 @@ class AppInitializationService {
 
         return cleanup;
       } catch (error) {
-        console.error('❌ Error setting up push notifications:', error);
+        logger.error('Error setting up push notifications:', error);
       }
     }
 
@@ -96,7 +97,7 @@ class AppInitializationService {
     // Initialize IAP service (only on native platforms)
     if (Platform.OS !== 'web') {
       IAPService.initialize().catch((error) => {
-        console.error('Failed to initialize IAP:', error);
+        logger.error('Failed to initialize IAP:', error);
       });
     }
 
@@ -121,7 +122,7 @@ class AppInitializationService {
 
         // Log version info
         if (__DEV__) {
-          console.log('📱 App Version:', UpdateService.getDisplayVersion());
+          logger.debug('App Version:', UpdateService.getDisplayVersion());
         }
       });
     }
