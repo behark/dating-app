@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Linking } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
+import logger from '../utils/logger';
 
 /**
  * Deep Link Handler
@@ -31,7 +32,7 @@ export const parseDeepLink = (url) => {
     );
 
     if (!match) {
-      console.log('Deep link does not match expected format:', url);
+      logger.debug('Deep link does not match expected format:', url);
       return null;
     }
 
@@ -89,11 +90,11 @@ export const parseDeepLink = (url) => {
         };
 
       default:
-        console.log('Unknown deep link screen:', screen);
+        logger.debug('Unknown deep link screen:', screen);
         return null;
     }
   } catch (error) {
-    console.error('Error parsing deep link:', error);
+    logger.error('Error parsing deep link:', error);
     return null;
   }
 };
@@ -116,13 +117,13 @@ export const useDeepLinking = (navigationRef) => {
     const handleDeepLink = ({ url }) => {
       if (!url) return;
 
-      console.log('Deep link received:', url);
+      logger.debug('Deep link received:', url);
 
       // Parse the URL
       const route = parseDeepLink(url);
 
       if (route) {
-        console.log('Navigating to:', route.screen, route.params);
+        logger.debug('Navigating to:', route.screen, route.params);
         
         // Navigate to the parsed route using NavigationContainer ref
         try {
@@ -135,10 +136,10 @@ export const useDeepLinking = (navigationRef) => {
             );
           }
         } catch (error) {
-          console.error('Error navigating to deep link:', error);
+          logger.error('Error navigating to deep link:', error);
         }
       } else {
-        console.log('Could not parse deep link, ignoring');
+        logger.debug('Could not parse deep link, ignoring');
       }
     };
 
@@ -146,12 +147,12 @@ export const useDeepLinking = (navigationRef) => {
     Linking.getInitialURL()
       .then((url) => {
         if (url) {
-          console.log('Initial URL:', url);
+          logger.debug('Initial URL:', url);
           handleDeepLink({ url });
         }
       })
       .catch((error) => {
-        console.error('Error getting initial URL:', error);
+        logger.error('Error getting initial URL:', error);
       });
 
     // Listen for deep links while app is running
@@ -220,10 +221,10 @@ export const openURL = async (url) => {
     if (supported) {
       await Linking.openURL(url);
     } else {
-      console.error('Cannot open URL:', url);
+      logger.error('Cannot open URL:', url);
     }
   } catch (error) {
-    console.error('Error opening URL:', error);
+    logger.error('Error opening URL:', error);
   }
 };
 

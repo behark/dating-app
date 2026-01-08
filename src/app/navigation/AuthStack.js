@@ -1,16 +1,13 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-// Feature-based imports
-import HomeScreen from '../../features/discovery/screens/DiscoveryScreen';
-import LoginScreen from '../../features/auth/screens/LoginScreen';
+import HomeScreen from '../screens/HomeScreen';
+import LoginScreen from '../screens/LoginScreen';
 
-const ForgotPasswordScreen = require('../../features/auth/screens/ForgotPasswordScreen').default;
-const RegisterScreen = require('../../features/auth/screens/RegisterScreen').default;
-const EmailVerificationScreen = require('../../features/auth/screens/EmailVerificationScreen').default;
-
-// Legacy screens
-const TermsOfServiceScreen = require('../../screens/TermsOfServiceScreen').default;
-const PrivacyPolicyScreen = require('../../screens/PrivacyPolicyScreen').default;
+const ForgotPasswordScreen = require('../screens/ForgotPasswordScreen').default;
+const RegisterScreen = require('../screens/RegisterScreen').default;
+const EmailVerificationScreen = require('../screens/EmailVerificationScreen').default;
+const TermsOfServiceScreen = require('../features/settings/screens/TermsOfServiceScreen').default;
+const PrivacyPolicyScreen = require('../features/settings/screens/PrivacyPolicyScreen').default;
 
 const Stack = createNativeStackNavigator();
 
