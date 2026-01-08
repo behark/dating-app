@@ -1388,9 +1388,8 @@ const HomeScreen = ({ navigation }) => {
       try {
         // Use repository to get current user profile
         const userData = await userRepository.getCurrentUser(userId);
-        // Temporarily relaxed: Only require name (not photo) for testing
-        // TODO: Re-enable photo requirement after testing: !userData?.photoURL
-        setNeedsProfile(!userData?.name);
+        // Require both name and photo for production
+        setNeedsProfile(!userData?.name || !userData?.photoURL);
       } catch (error) {
         logger.error('Error checking profile:', error);
         setNeedsProfile(false); // Don't block on error

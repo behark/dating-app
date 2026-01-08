@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import logger from '../utils/logger';
 
 /**
  * NotificationService
@@ -57,18 +58,18 @@ export class NotificationService {
   static async registerForPushNotifications() {
     // Push notifications don't work on web
     if (Platform.OS === 'web') {
-      console.log('Push notifications not supported on web platform');
+      logger.debug('Push notifications not supported on web platform');
       return null;
     }
 
     if (!Notifications || !Device) {
-      console.log('Push notifications not available: libraries not installed');
+      logger.debug('Push notifications not available: libraries not installed');
       return null;
     }
 
     // Push notifications only work on physical devices
     if (!Device.isDevice) {
-      console.log('Push notifications only work on physical devices');
+      logger.debug('Push notifications only work on physical devices');
       return null;
     }
 
@@ -84,7 +85,7 @@ export class NotificationService {
       }
 
       if (finalStatus !== 'granted') {
-        console.log('Failed to get push notification permissions');
+        logger.debug('Failed to get push notification permissions');
         return null;
       }
 
@@ -104,10 +105,10 @@ export class NotificationService {
         await this.setupAndroidChannels();
       }
 
-      console.log('Push notification token:', token);
+      logger.info('Push notification token registered');
       return token;
     } catch (error) {
-      console.error('Error registering for push notifications:', error);
+      logger.error('Error registering for push notifications:', error);
       return null;
     }
   }
@@ -158,9 +159,9 @@ export class NotificationService {
         showBadge: true,
       });
 
-      console.log('Android notification channels configured');
+      logger.debug('Android notification channels configured');
     } catch (error) {
-      console.error('Error setting up Android channels:', error);
+      logger.error('Error setting up Android channels:', error);
     }
   }
 
@@ -180,7 +181,7 @@ export class NotificationService {
 
     // Notification received while app is in foreground
     const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
-      console.log('Notification received:', notification);
+      logger.debug('Notification received');
       if (onNotification) {
         onNotification(notification);
       }
@@ -188,7 +189,7 @@ export class NotificationService {
 
     // User tapped on notification
     const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-      console.log('Notification tapped:', response);
+      logger.debug('Notification tapped');
       if (onNotificationResponse) {
         onNotificationResponse(response);
       }
@@ -215,7 +216,7 @@ export class NotificationService {
     try {
       return await Notifications.getBadgeCountAsync();
     } catch (error) {
-      console.error('Error getting badge count:', error);
+      logger.error('Error getting badge count:', error);
       return 0;
     }
   }
@@ -231,7 +232,7 @@ export class NotificationService {
     try {
       await Notifications.setBadgeCountAsync(count);
     } catch (error) {
-      console.error('Error setting badge count:', error);
+      logger.error('Error setting badge count:', error);
     }
   }
 
@@ -245,7 +246,7 @@ export class NotificationService {
     try {
       await Notifications.dismissAllNotificationsAsync();
     } catch (error) {
-      console.error('Error clearing notifications:', error);
+      logger.error('Error clearing notifications:', error);
     }
   }
 
@@ -255,7 +256,7 @@ export class NotificationService {
    */
   static async scheduleLocalNotification(notification) {
     if (!Notifications) {
-      console.log('Notifications not available');
+      logger.debug('Notifications not available');
       return;
     }
 
@@ -271,7 +272,7 @@ export class NotificationService {
         trigger: notification.trigger || null, // null = immediate
       });
     } catch (error) {
-      console.error('Error scheduling local notification:', error);
+      logger.error('Error scheduling local notification:', error);
     }
   }
 }
