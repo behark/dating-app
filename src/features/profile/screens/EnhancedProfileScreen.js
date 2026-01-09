@@ -11,28 +11,28 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
-import logger from '../utils/logger';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import api from '../../../services/api';
+import logger from '../../../utils/logger';
 
 // Profile Components
-import InteractivePhotoGallery from '../components/Profile/InteractivePhotoGallery';
-import ProfileCompletionProgress from '../components/Profile/ProfileCompletionProgress';
-import ProfileVideoIntroduction from '../components/Profile/ProfileVideoIntroduction';
+import InteractivePhotoGallery from '../../../components/Profile/InteractivePhotoGallery';
+import ProfileCompletionProgress from '../../../components/Profile/ProfileCompletionProgress';
+import ProfileVideoIntroduction from '../../../components/Profile/ProfileVideoIntroduction';
 import {
   VerificationBadgeGroup,
   VerificationStatus,
-} from '../components/Profile/VerificationBadge';
+} from '../../../components/Profile/VerificationBadge';
 
 // Gamification Components
-import { AchievementShowcase } from '../components/Gamification/AchievementBadgeAnimated';
-import BadgeShowcase from '../components/Gamification/BadgeShowcase';
-import DailyChallenges from '../components/Gamification/DailyChallenges';
-import LevelProgressionCard from '../components/Gamification/LevelProgressionCard';
+import { AchievementShowcase } from '../../../components/Gamification/AchievementBadgeAnimated';
+import BadgeShowcase from '../../../components/Gamification/BadgeShowcase';
+import DailyChallenges from '../../../components/Gamification/DailyChallenges';
+import LevelProgressionCard from '../../../components/Gamification/LevelProgressionCard';
 
 // Services
-import { GamificationService } from '../services/GamificationService';
+import { GamificationService } from '../../../services/GamificationService';
 
 const EnhancedProfileScreen = () => {
   const navigation = useNavigation();

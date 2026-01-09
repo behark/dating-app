@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { Colors } from '../constants/colors';
 
 /**
  * Error notification component with auto-dismiss

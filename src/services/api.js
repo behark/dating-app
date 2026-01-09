@@ -11,6 +11,26 @@ import logger from '../utils/logger';
 const AUTH_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 
+// Session expired callback
+let sessionExpiredCallback = null;
+
+/**
+ * Set the callback to be called when the session expires
+ * @param {Function|null} callback - Function to call on session expiration
+ */
+export const setSessionExpiredCallback = (callback) => {
+  sessionExpiredCallback = callback;
+};
+
+/**
+ * Trigger the session expired callback if set
+ */
+const triggerSessionExpired = () => {
+  if (sessionExpiredCallback && typeof sessionExpiredCallback === 'function') {
+    sessionExpiredCallback();
+  }
+};
+
 const api = {
   // Auth token (cached in memory for performance)
   _authToken: null,
@@ -135,11 +155,11 @@ const api = {
 
       // API_URL should already end with /api, use it directly
       const refreshUrl = `${API_URL}/auth/refresh-token`;
-      
-      logger.debug('Attempting to refresh auth token...', { 
-        apiUrl: API_URL, 
+
+      logger.debug('Attempting to refresh auth token...', {
+        apiUrl: API_URL,
         refreshUrl,
-        hasRefreshToken: !!refreshToken 
+        hasRefreshToken: !!refreshToken
       });
 
       let response;

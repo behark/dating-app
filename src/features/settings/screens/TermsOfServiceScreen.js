@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Linking } from 'react-native';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../../constants/colors';
 
 const TermsOfServiceScreen = ({ navigation }) => {
   const handleOpenWebVersion = () => {

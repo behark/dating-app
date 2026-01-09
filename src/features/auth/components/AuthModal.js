@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../../constants/colors';
+import { Colors } from '../../../constants/colors';
 
 /**
  * AuthModal component for displaying authentication screens in a modal

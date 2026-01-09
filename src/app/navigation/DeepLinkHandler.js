@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Linking } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
-import logger from '../utils/logger';
+import logger from '../../utils/logger';
 
 /**
  * Deep Link Handler

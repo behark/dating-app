@@ -11,6 +11,8 @@ export { useNetworkStatus } from './useNetworkStatus';
 export { useSocket } from './useSocket';
 export { useBetaTesting } from './useBetaTesting';
 export { useInAppPurchase } from './useInAppPurchase';
+export { useBehaviorAnalytics } from './useBehaviorAnalytics';
+export { useAuthState } from './useAuthState';
 
 // Re-export default exports (imported separately to avoid no-named-as-default warning)
 import useResponsiveDefault from './useResponsive';

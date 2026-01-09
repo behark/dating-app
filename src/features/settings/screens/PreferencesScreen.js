@@ -2,15 +2,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
-import { Colors } from '../constants/colors';
-import RangeSlider from '../components/Slider/RangeSlider';
-import SingleSlider from '../components/Slider/SingleSlider';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { showStandardError, showSuccess } from '../utils/errorHandler';
-import logger from '../utils/logger';
-import { PreferencesService } from '../services/PreferencesService';
-import { LocationService } from '../services/LocationService';
+import { Colors } from '../../../constants/colors';
+import RangeSlider from '../../../components/Slider/RangeSlider';
+import SingleSlider from '../../../components/Slider/SingleSlider';
+import { useAuth } from '../../../context/AuthContext';
+import { useTheme } from '../../../context/ThemeContext';
+import { showStandardError, showSuccess } from '../../../utils/errorHandler';
+import logger from '../../../utils/logger';
+import { PreferencesService } from '../../../services/PreferencesService';
+import { LocationService } from '../../../services/LocationService';
 
 const PreferencesScreen = ({ navigation }) => {
   const { currentUser } = useAuth();

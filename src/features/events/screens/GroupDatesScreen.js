@@ -9,13 +9,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import { LocationService } from '../services/LocationService';
-import { SocialFeaturesService } from '../services/SocialFeaturesService';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
-import logger from '../utils/logger';
-import { getUserId, userIdsMatch } from '../utils/userIdUtils';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import { LocationService } from '../../../services/LocationService';
+import { SocialFeaturesService } from '../../../services/SocialFeaturesService';
+import { getUserFriendlyMessage } from '../../../utils/errorMessages';
+import logger from '../../../utils/logger';
+import { getUserId, userIdsMatch } from '../../../utils/userIdUtils';
 
 const GroupDatesScreen = ({ navigation }) => {
   const { currentUser } = useAuth();

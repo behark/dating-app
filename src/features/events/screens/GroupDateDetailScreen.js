@@ -10,11 +10,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import { SocialFeaturesService } from '../services/SocialFeaturesService';
-import { getUserId, userIdsMatch } from '../utils/userIdUtils';
-import logger from '../utils/logger';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import { SocialFeaturesService } from '../../../services/SocialFeaturesService';
+import { getUserId, userIdsMatch } from '../../../utils/userIdUtils';
+import logger from '../../../utils/logger';
 
 const GroupDateDetailScreen = ({ navigation, route }) => {
   const { groupDate } = route.params || {};

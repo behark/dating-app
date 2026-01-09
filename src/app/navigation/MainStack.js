@@ -2,44 +2,48 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React from 'react';
-import { useChat } from '../app/providers/ChatProvider';
-import { Colors } from '../constants/colors';
-import HapticFeedback from '../utils/haptics';
+import { useChat } from '../providers/ChatProvider';
+import { Colors } from '../../constants/colors';
+import HapticFeedback from '../../utils/haptics';
 
-import HomeScreen from '../screens/HomeScreen';
-import MatchesScreen from '../screens/MatchesScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-
-// Lazy-loaded screens
-const ChatScreen = require('../screens/ChatScreen').default;
-const EventsScreen = require('../features/events/screens/EventsScreen').default;
-const GroupDatesScreen = require('../features/events/screens/GroupDatesScreen').default;
-const NotificationPreferencesScreen = require('../features/settings/screens/NotificationPreferencesScreen').default;
-const PhotoGalleryScreen = require('../screens/PhotoGalleryScreen').default;
-const PreferencesScreen = require('../features/settings/screens/PreferencesScreen').default;
-const PremiumScreen = require('../screens/PremiumScreen').default;
-const ProfileSharingScreen = require('../screens/ProfileSharingScreen').default;
-const SocialMediaConnectionScreen = require('../features/settings/screens/SocialMediaConnectionScreen').default;
-const ReportUserScreen = require('../features/safety/screens/ReportUserScreen').default;
-const SafetyTipsScreen = require('../screens/SafetyTipsScreen').default;
-const SafetyAdvancedScreen = require('../screens/SafetyAdvancedScreen').default;
-const PrivacySettingsScreen = require('../features/settings/screens/PrivacySettingsScreen').default;
-const AIInsightsScreen = require('../screens/AIInsightsScreen').default;
-const ViewProfileScreen = require('../screens/ViewProfileScreen').default;
-const EditProfileScreen = require('../screens/EditProfileScreen').default;
-const EmailVerificationScreen = require('../screens/EmailVerificationScreen').default;
-const PhoneVerificationScreen = require('../screens/PhoneVerificationScreen').default;
-const ForgotPasswordScreen = require('../screens/ForgotPasswordScreen').default;
-const CreateEventScreen = require('../features/events/screens/CreateEventScreen').default;
-const EventDetailScreen = require('../features/events/screens/EventDetailScreen').default;
-const CreateGroupDateScreen = require('../features/events/screens/CreateGroupDateScreen').default;
-const GroupDateDetailScreen = require('../features/events/screens/GroupDateDetailScreen').default;
-const MatchAnimationScreen = require('../screens/MatchAnimationScreen').default;
-const AddEmergencyContactScreen = require('../screens/AddEmergencyContactScreen').default;
-const TopPicksScreen = require('../screens/TopPicksScreen').default;
-const ExploreScreen = require('../screens/ExploreScreen').default;
-const SuperLikeScreen = require('../screens/SuperLikeScreen').default;
-const ProfileViewsScreen = require('../screens/ProfileViewsScreen').default;
+// Import screens from centralized barrel export
+import {
+  HomeScreen,
+  MatchesScreen,
+  ProfileScreen,
+  ChatScreen,
+  EventsScreen,
+  GroupDatesScreen,
+  NotificationPreferencesScreen,
+  PhotoGalleryScreen,
+  PreferencesScreen,
+  PremiumScreen,
+  ProfileSharingScreen,
+  SocialMediaConnectionScreen,
+  ReportUserScreen,
+  SafetyTipsScreen,
+  SafetyAdvancedScreen,
+  PrivacySettingsScreen,
+  PrivacyPolicyScreen,
+  TermsOfServiceScreen,
+  AIInsightsScreen,
+  ViewProfileScreen,
+  EditProfileScreen,
+  EmailVerificationScreen,
+  PhoneVerificationScreen,
+  ForgotPasswordScreen,
+  CreateEventScreen,
+  EventDetailScreen,
+  CreateGroupDateScreen,
+  GroupDateDetailScreen,
+  MatchAnimationScreen,
+  AddEmergencyContactScreen,
+  TopPicksScreen,
+  ExploreScreen,
+  SuperLikeScreen,
+  ProfileViewsScreen,
+  VerificationScreen,
+} from '../screens';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -155,7 +159,7 @@ const MainStack = () => (
     />
     <Stack.Screen
       name="Verification"
-      component={require('../screens/VerificationScreen').default}
+      component={VerificationScreen}
       options={{
         headerShown: false,
         presentation: 'card',
@@ -211,7 +215,7 @@ const MainStack = () => (
     />
     <Stack.Screen
       name="PrivacyPolicy"
-      component={require('../features/settings/screens/PrivacyPolicyScreen').default}
+      component={PrivacyPolicyScreen}
       options={{
         headerShown: false,
         presentation: 'card',
@@ -219,7 +223,7 @@ const MainStack = () => (
     />
     <Stack.Screen
       name="TermsOfService"
-      component={require('../features/settings/screens/TermsOfServiceScreen').default}
+      component={TermsOfServiceScreen}
       options={{
         headerShown: false,
         presentation: 'card',

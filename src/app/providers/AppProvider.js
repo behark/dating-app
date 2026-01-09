@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useReducer, useRef } from 'react';
-import { OfflineService } from '../services/OfflineService';
-import logger from '../utils/logger';
+import { OfflineService } from '../../services/OfflineService';
+import logger from '../../utils/logger';
 
 // Initial State
 const initialState = {

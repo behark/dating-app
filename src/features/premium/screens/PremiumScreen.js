@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../constants/colors';
-import { PremiumService } from '../services/PremiumService';
-import { useAuth } from '../context/AuthContext';
-import { showStandardError } from '../utils/errorHandler';
-import logger from '../utils/logger';
+import { Colors } from '../../../constants/colors';
+import { PremiumService } from '../../../services/PremiumService';
+import { useAuth } from '../../../context/AuthContext';
+import { showStandardError } from '../../../utils/errorHandler';
+import logger from '../../../utils/logger';
 
 const PremiumScreen = ({ navigation }) => {
   const { currentUser } = useAuth();

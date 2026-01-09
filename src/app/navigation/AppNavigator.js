@@ -1,13 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
-import ConsentBanner from '../components/ConsentBanner';
-import { useAuth } from '../app/providers/AuthProvider';
+import ConsentBanner from '../../components/ConsentBanner';
+import { useAuth } from '../providers/AuthProvider';
 import { useDeepLinking } from './DeepLinkHandler';
 import AuthStack from './AuthStack';
 import MainStack from './MainStack';
-import PrivacyService from '../services/PrivacyService';
-import { UserBehaviorAnalytics } from '../services/UserBehaviorAnalytics';
+import PrivacyService from '../../services/PrivacyService';
+import { UserBehaviorAnalytics } from '../../services/UserBehaviorAnalytics';
 
 // Main navigator component
 

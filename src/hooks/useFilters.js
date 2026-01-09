@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import logger from '../utils/logger';
 
 /**
  * Custom hook for managing filters and sorting in discovery screens
@@ -50,9 +51,9 @@ export const useFilters = ({
       try {
         // In a real implementation, this would use AsyncStorage or similar
         // For now, just log the intent
-        console.log(`Saving filters to ${storageKey}:`, defaultFilters);
+        logger.debug(`Saving filters to ${storageKey}:`, defaultFilters);
       } catch (error) {
-        console.warn('Failed to save filters to storage:', error);
+        logger.warn('Failed to save filters to storage:', error);
       }
     }
   }, [defaultFilterOptions, onFiltersChange, storageKey]);

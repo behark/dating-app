@@ -15,8 +15,8 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
-import logger from '../utils/logger';
+import { db } from '../../config/firebase';
+import logger from '../../utils/logger';
 import { UserRepository } from './UserRepository';
 
 // Simple in-memory cache for user profiles

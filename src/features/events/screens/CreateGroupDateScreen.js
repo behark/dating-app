@@ -11,10 +11,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import { SocialFeaturesService } from '../services/SocialFeaturesService';
-import logger from '../utils/logger';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import { SocialFeaturesService } from '../../../services/SocialFeaturesService';
+import logger from '../../../utils/logger';
 
 const CreateGroupDateScreen = ({ navigation, route }) => {
   const { currentUser } = useAuth();

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '../../constants/colors';
+import { Colors } from '../constants/colors';
 
 /**
  * ValuePropositionHeader component for displaying app value proposition with CTA

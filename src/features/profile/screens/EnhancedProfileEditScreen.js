@@ -11,9 +11,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { ProfileService } from '../services/ProfileService';
-import logger from '../utils/logger';
+import { Colors } from '../../../constants/colors';
+import { ProfileService } from '../../../services/ProfileService';
+import logger from '../../../utils/logger';
 
 const ETHNICITIES = [
   'Asian',

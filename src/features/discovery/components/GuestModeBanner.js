@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { Colors } from '../../../constants/colors';
 
 const GuestModeBanner = ({
   guestViewCount,

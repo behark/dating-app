@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Animated, Easing, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { Colors } from '../../../constants/colors';
 
 const PROFILE_SECTIONS = [
   { id: 'photos', label: 'Photos', icon: 'images', weight: 25, minCount: 3 },

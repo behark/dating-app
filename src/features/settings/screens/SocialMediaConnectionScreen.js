@@ -11,8 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { SocialMediaService } from '../services/SocialMediaService';
+import { Colors } from '../../../constants/colors';
+import { SocialMediaService } from '../../../services/SocialMediaService';
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const INSTAGRAM_CLIENT_ID = process.env.INSTAGRAM_CLIENT_ID;

@@ -10,8 +10,8 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '../../constants/colors';
-import { useTheme } from '../../context/ThemeContext';
+import { Colors } from '../constants/colors';
+import { useTheme } from '../context/ThemeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const useNativeDriver = Platform.OS !== 'web';

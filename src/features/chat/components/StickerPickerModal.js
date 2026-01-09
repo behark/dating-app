@@ -12,9 +12,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../../constants/colors';
-import MediaMessagesService from '../../services/MediaMessagesService';
-import logger from '../../utils/logger';
+import { Colors } from '../../../constants/colors';
+import MediaMessagesService from '../../../services/MediaMessagesService';
+import logger from '../../../utils/logger';
 
 const { width } = Dimensions.get('window');
 const GRID_COLS = 4;

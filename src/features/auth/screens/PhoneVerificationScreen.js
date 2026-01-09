@@ -10,8 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
 
 export const PhoneVerificationScreen = ({ navigation, route }) => {
   const { sendPhoneVerification, verifyPhone, currentUser } = useAuth();

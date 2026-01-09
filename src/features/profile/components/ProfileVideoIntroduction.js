@@ -13,8 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../../constants/colors';
-import logger from '../../utils/logger';
+import { Colors } from '../../../constants/colors';
+import logger from '../../../utils/logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const MAX_VIDEO_DURATION = 30; // 30 seconds max

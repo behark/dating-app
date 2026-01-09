@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { Colors } from '../../../constants/colors';
 
 const SortOption = ({ label, value, isActive, onPress }) => (
   <TouchableOpacity

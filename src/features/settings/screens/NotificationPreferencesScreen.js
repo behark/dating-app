@@ -11,10 +11,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import logger from '../utils/logger';
-import { NotificationService } from '../services/NotificationService';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import logger from '../../../utils/logger';
+import { NotificationService } from '../../../services/NotificationService';
 
 const NotificationPreferencesScreen = ({ navigation }) => {
   const { currentUser } = useAuth();

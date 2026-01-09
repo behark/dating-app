@@ -1,13 +1,14 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import HomeScreen from '../screens/HomeScreen';
-import LoginScreen from '../screens/LoginScreen';
-
-const ForgotPasswordScreen = require('../screens/ForgotPasswordScreen').default;
-const RegisterScreen = require('../screens/RegisterScreen').default;
-const EmailVerificationScreen = require('../screens/EmailVerificationScreen').default;
-const TermsOfServiceScreen = require('../features/settings/screens/TermsOfServiceScreen').default;
-const PrivacyPolicyScreen = require('../features/settings/screens/PrivacyPolicyScreen').default;
+import {
+  HomeScreen,
+  LoginScreen,
+  ForgotPasswordScreen,
+  RegisterScreen,
+  EmailVerificationScreen,
+  TermsOfServiceScreen,
+  PrivacyPolicyScreen,
+} from '../screens';
 
 const Stack = createNativeStackNavigator();
 

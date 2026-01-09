@@ -11,14 +11,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import api from '../services/api';
-import logger from '../utils/logger';
-import { useAuth } from '../context/AuthContext';
+import { Colors } from '../../../constants/colors';
+import api from '../../../services/api';
+import logger from '../../../utils/logger';
+import { useAuth } from '../../../context/AuthContext';
 
 const SuperLikeScreen = ({ route, navigation }) => {
   const { userId } = route.params || {};
-  const { user, authToken } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [quota, setQuota] = useState(null);
   const [message, setMessage] = useState('');
@@ -32,15 +32,10 @@ const SuperLikeScreen = ({ route, navigation }) => {
     try {
       setLoading(true);
       const response = await api.get('/interactions/super-like-quota');
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
-      }
-      const data = await response.json();
-      if (data.success) {
-        setQuota(data.data);
+      if (response.success) {
+        setQuota(response.data);
       } else {
-        throw new Error(data.message || 'Failed to load super like quota');
+        throw new Error(response.message || 'Failed to load super like quota');
       }
     } catch (error) {
       logger.error('Error fetching quota:', error);
@@ -84,28 +79,22 @@ const SuperLikeScreen = ({ route, navigation }) => {
         recipientId: userId,
         message: message || null,
       });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
-      }
 
-      const data = await response.json();
-
-      if (data.success) {
-        Alert.alert('Success', data.message, [
+      if (response.success) {
+        Alert.alert('Success', response.message, [
           {
             text: 'OK',
             onPress: () => navigation.goBack(),
           },
         ]);
 
-        if (data.data.isMatch) {
+        if (response.data?.isMatch) {
           setTimeout(() => {
-            navigation.navigate('MatchAnimation', { matchedUser: data.data });
+            navigation.navigate('MatchAnimation', { matchedUser: response.data });
           }, 500);
         }
       } else {
-        Alert.alert('Error', data.message);
+        Alert.alert('Error', response.message || 'Failed to send super like');
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to send super like');
