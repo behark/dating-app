@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors } from '../constants/colors';
+import { Colors } from '../../../constants/colors';
 
 const MatchAnimationScreen = ({ navigation, route }) => {
   const { matchedUser } = route.params || {};

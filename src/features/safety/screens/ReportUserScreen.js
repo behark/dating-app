@@ -13,9 +13,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { SafetyService } from '../services/SafetyService';
-import logger from '../utils/logger';
+import { Colors } from '../../../constants/colors';
+import { SafetyService } from '../../../services/SafetyService';
+import logger from '../../../utils/logger';
 
 export default function ReportUserScreen({ route, navigation }) {
   const { userId: reportedUserId, userName = 'User' } = route.params || {};

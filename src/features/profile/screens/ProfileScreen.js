@@ -15,14 +15,14 @@ import {
   View,
   Platform,
 } from 'react-native';
-import BadgeShowcase from '../components/Gamification/BadgeShowcase';
-import { storage } from '../config/firebase';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import { ProfileService } from '../services/ProfileService';
-import HapticFeedback from '../utils/haptics';
-import logger from '../utils/logger';
-import { shadowToWebBoxShadow, textShadowToWeb } from '../utils/stylePlatform';
+import BadgeShowcase from '../../../components/Gamification/BadgeShowcase';
+import { storage } from '../../../config/firebase';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import { ProfileService } from '../../../services/ProfileService';
+import HapticFeedback from '../../../utils/haptics';
+import logger from '../../../utils/logger';
+import { shadowToWebBoxShadow, textShadowToWeb } from '../../../utils/stylePlatform';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();

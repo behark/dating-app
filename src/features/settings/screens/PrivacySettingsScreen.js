@@ -14,11 +14,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import PrivacyService from '../services/PrivacyService';
-import { showStandardError } from '../utils/errorHandler';
-import logger from '../utils/logger';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import PrivacyService from '../../../services/PrivacyService';
+import { showStandardError } from '../../../utils/errorHandler';
+import logger from '../../../utils/logger';
 
 const PrivacySettingsScreen = ({ navigation }) => {
   const { currentUser, logout } = useAuth();

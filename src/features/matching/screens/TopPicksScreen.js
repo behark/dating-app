@@ -12,16 +12,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import api from '../services/api';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import { calculateDistance } from '../utils/distanceCalculator';
-import logger from '../utils/logger';
+import api from '../../../services/api';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import { calculateDistance } from '../../../utils/distanceCalculator';
+import logger from '../../../utils/logger';
 
 const { width } = Dimensions.get('window');
 
 const TopPicksScreen = ({ navigation }) => {
-  const { authToken } = useAuth();
+  useAuth(); // Ensure user is authenticated
   const [loading, setLoading] = useState(false);
   const [topPicks, setTopPicks] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -58,18 +58,14 @@ const TopPicksScreen = ({ navigation }) => {
     try {
       const response = await api.get('/discovery/top-picks?limit=10');
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setTopPicks(data.data.topPicks || []);
+      if (response.success) {
+        setTopPicks(response.data?.topPicks || []);
+      } else {
+        throw new Error(response.message || 'Failed to load top picks');
       }
     } catch (error) {
       logger.error('Error fetching top picks:', error);
-      Alert.alert('Error', 'Failed to load top picks');
+      Alert.alert('Error', error.message || 'Failed to load top picks');
     } finally {
       setLoading(false);
     }

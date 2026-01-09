@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Image, StyleSheet, ActivityIndicator } from 'react-native';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '../context/ThemeContext';
 
 const ProgressiveImage = ({ source, style, placeholderSource, thumbnailSource, ...props }) => {
   const { theme } = useTheme();

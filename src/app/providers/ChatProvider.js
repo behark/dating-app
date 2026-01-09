@@ -2,14 +2,14 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // io import removed - using SocketContext
-import { SOCKET_URL } from '../config/api';
-import api from '../services/api';
-import logger from '../utils/logger';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
-import { sanitizeString } from '../utils/sanitize';
-import { useSocketContext } from './SocketContext';
-import OfflineService from '../services/OfflineService';
-import { useAuth } from './AuthContext';
+import { SOCKET_URL } from '../../config/api';
+import api from '../../services/api';
+import logger from '../../utils/logger';
+import { getUserFriendlyMessage } from '../../utils/errorMessages';
+import { sanitizeString } from '../../utils/sanitize';
+import { useSocketContext } from './SocketProvider';
+import OfflineService from '../../services/OfflineService';
+import { useAuth } from './AuthProvider';
 
 const ChatContext = createContext();
 

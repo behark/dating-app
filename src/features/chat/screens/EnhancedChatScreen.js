@@ -17,21 +17,21 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import { useChat } from '../context/ChatContext';
-import logger from '../utils/logger';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import { useChat } from '../../../context/ChatContext';
+import logger from '../../../utils/logger';
 
 // Chat Components
 import AnimatedTypingIndicator, {
   HeaderTypingIndicator,
-} from '../components/Chat/AnimatedTypingIndicator';
-import ChatThemes, { CHAT_THEMES, useChatTheme } from '../components/Chat/ChatThemes';
+} from '../components/AnimatedTypingIndicator';
+import ChatThemes, { CHAT_THEMES, useChatTheme } from '../components/ChatThemes';
 import MessageReactions, {
   QuickReactionButton,
   REACTIONS,
-} from '../components/Chat/MessageReactions';
-import MessageScheduler, { ScheduledMessagesList } from '../components/Chat/MessageScheduler';
+} from '../components/MessageReactions';
+import MessageScheduler, { ScheduledMessagesList } from '../components/MessageScheduler';
 
 const EnhancedChatScreen = ({ route, navigation }) => {
   const { matchId, otherUser } = route.params;

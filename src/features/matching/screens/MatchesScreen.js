@@ -12,14 +12,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import EmptyState from '../components/Common/EmptyState';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import { useChat } from '../context/ChatContext';
-import { PremiumService } from '../services/PremiumService';
-import { SwipeController } from '../services/SwipeController';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
-import logger from '../utils/logger';
+import EmptyState from '../../../components/EmptyState';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import { useChat } from '../../../context/ChatContext';
+import { PremiumService } from '../../../services/PremiumService';
+import { SwipeController } from '../../../services/SwipeController';
+import { getUserFriendlyMessage } from '../../../utils/errorMessages';
+import logger from '../../../utils/logger';
 
 const MatchesScreen = () => {
   const navigation = useNavigation();

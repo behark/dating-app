@@ -2,10 +2,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
 import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import { Colors } from '../../constants/colors';
-import { UniversalImage } from '../Image';
-import { LocationService } from '../../services/LocationService';
-import { VerificationService } from '../../services/VerificationService';
+import { Colors } from '../../../constants/colors';
+import { UniversalImage } from '../../../components/Image';
+import { LocationService } from '../../../services/LocationService';
+import { VerificationService } from '../../../services/VerificationService';
 
 // Only import gesture handlers on native platforms
 const PanGestureHandler =

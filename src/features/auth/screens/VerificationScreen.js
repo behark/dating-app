@@ -4,10 +4,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { Colors } from '../constants/colors';
-import { VerificationService } from '../services/VerificationService';
-import { useAuth } from '../context/AuthContext';
-import logger from '../utils/logger';
+import { Colors } from '../../../constants/colors';
+import { VerificationService } from '../../../services/VerificationService';
+import { useAuth } from '../../../context/AuthContext';
+import logger from '../../../utils/logger';
 
 const VerificationScreen = ({ navigation }) => {
   const { currentUser } = useAuth();

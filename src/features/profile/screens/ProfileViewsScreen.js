@@ -9,10 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { ActivityService } from '../services/ActivityService';
-import { formatRelativeTime } from '../utils/formatters';
-import logger from '../utils/logger';
+import { Colors } from '../../../constants/colors';
+import { ActivityService } from '../../../services/ActivityService';
+import { formatRelativeTime } from '../../../utils/formatters';
+import logger from '../../../utils/logger';
 
 export default function ProfileViewsScreen({ navigation }) {
   const [viewData, setViewData] = useState(null);

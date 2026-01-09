@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { Alert, TouchableOpacity, View } from 'react-native';
-import { Colors } from '../../constants/colors';
+import { Colors } from '../../../constants/colors';
 
 const ActionButtons = ({
   cards,

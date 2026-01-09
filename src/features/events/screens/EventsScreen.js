@@ -9,14 +9,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import EmptyState from '../components/Common/EmptyState';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import { SocialFeaturesService } from '../services/SocialFeaturesService';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
-import HapticFeedback from '../utils/haptics';
-import logger from '../utils/logger';
-import { getUserId, userIdsMatch } from '../utils/userIdUtils';
+import EmptyState from '../../../components/EmptyState';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import { SocialFeaturesService } from '../../../services/SocialFeaturesService';
+import { getUserFriendlyMessage } from '../../../utils/errorMessages';
+import HapticFeedback from '../../../utils/haptics';
+import logger from '../../../utils/logger';
+import { getUserId, userIdsMatch } from '../../../utils/userIdUtils';
 
 const EventsScreen = ({ navigation }) => {
   const { currentUser } = useAuth();

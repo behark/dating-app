@@ -8,8 +8,8 @@
  * Returns empty arrays/null on errors instead of throwing.
  */
 
-import { API_URL } from '../config/api';
-import logger from '../utils/logger';
+import { API_URL } from '../../config/api';
+import logger from '../../utils/logger';
 import { UserRepository } from './UserRepository';
 
 // Simple in-memory cache for user profiles

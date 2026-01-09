@@ -1,4 +1,4 @@
-import { Swipe } from '../models/Swipe';
+import { Swipe } from '../types/models/Swipe';
 import logger from '../utils/logger';
 import api from './api';
 

@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Platform, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Colors } from '../../constants/colors';
-import { useTheme } from '../../context/ThemeContext';
+import { Colors } from '../constants/colors';
+import { useTheme } from '../context/ThemeContext';
 
 const HeartAnimation = ({ visible, onComplete }) => {
   const scaleAnim = useRef(new Animated.Value(0)).current;

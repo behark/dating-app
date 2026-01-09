@@ -15,16 +15,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import EmptyState from '../components/Common/EmptyState';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import { useChat } from '../context/ChatContext';
-import AnalyticsService from '../services/AnalyticsService';
-import { useNetworkStatus } from '../hooks/useNetworkStatus';
-import { showStandardError } from '../utils/errorHandler';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
-import HapticFeedback from '../utils/haptics';
-import logger from '../utils/logger';
+import EmptyState from '../../../components/EmptyState';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import { useChat } from '../../../context/ChatContext';
+import AnalyticsService from '../../../services/AnalyticsService';
+import { useNetworkStatus } from '../../../hooks/useNetworkStatus';
+import { showStandardError } from '../../../utils/errorHandler';
+import { getUserFriendlyMessage } from '../../../utils/errorMessages';
+import HapticFeedback from '../../../utils/haptics';
+import logger from '../../../utils/logger';
 
 const ChatScreen = ({ route, navigation }) => {
   const { matchId, otherUser } = route.params;

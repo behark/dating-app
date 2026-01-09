@@ -5,23 +5,23 @@ import * as WebBrowser from 'expo-web-browser';
 import PropTypes from 'prop-types';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Alert, Platform } from 'react-native';
-import { API_URL } from '../config/api';
-import { ERROR_MESSAGES } from '../constants/constants';
-import api from '../services/api';
-import { setSessionExpiredCallback } from '../services/api';
-import { LocationService } from '../services/LocationService';
-import { NotificationService } from '../services/NotificationService';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
-import { decodeJWT, extractGoogleUserInfo } from '../utils/jwt';
-import logger from '../utils/logger';
+import { API_URL } from '../../config/api';
+import { ERROR_MESSAGES } from '../../constants/constants';
+import api from '../../services/api';
+import { setSessionExpiredCallback } from '../../services/api';
+import { LocationService } from '../../services/LocationService';
+import { NotificationService } from '../../services/NotificationService';
+import { getUserFriendlyMessage } from '../../utils/errorMessages';
+import { decodeJWT, extractGoogleUserInfo } from '../../utils/jwt';
+import logger from '../../utils/logger';
 import {
   clearAllTokens,
   getAuthToken,
   getRefreshToken,
   storeAuthToken,
   storeRefreshToken,
-} from '../utils/secureStorage';
-import { clearUser as clearSentryUser, setUser as setSentryUser } from '../utils/sentry';
+} from '../../utils/secureStorage';
+import { clearUser as clearSentryUser, setUser as setSentryUser } from '../../utils/sentry';
 
 WebBrowser.maybeCompleteAuthSession();
 

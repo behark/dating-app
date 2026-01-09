@@ -11,9 +11,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import api from '../services/api';
-import logger from '../utils/logger';
+import { Colors } from '../../../constants/colors';
+import api from '../../../services/api';
+import logger from '../../../utils/logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 

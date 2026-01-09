@@ -15,11 +15,14 @@
     "paths": {
       "@/*": ["src/*"],
       "@components/*": ["src/components/*"],
-      "@screens/*": ["src/screens/*"],
+      "@features/*": ["src/features/*"],
       "@services/*": ["src/services/*"],
+      "@hooks/*": ["src/hooks/*"],
       "@utils/*": ["src/utils/*"],
+      "@constants/*": ["src/constants/*"],
       "@context/*": ["src/context/*"],
-      "@config/*": ["src/config/*"]
+      "@app/*": ["src/app/*"],
+      "@assets/*": ["assets/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],

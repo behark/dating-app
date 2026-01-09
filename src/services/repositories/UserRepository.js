@@ -8,7 +8,7 @@
  * instead of throwing, allowing the UI to display appropriate empty states.
  */
 
-import { ERROR_MESSAGES } from '../constants/constants';
+import { ERROR_MESSAGES } from '../../constants/constants';
 
 export class UserRepository {
   /**

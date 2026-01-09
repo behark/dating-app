@@ -11,14 +11,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import { LocationService } from '../services/LocationService';
-import { validateEmail } from '../utils/validators';
-import { showStandardError, STANDARD_ERROR_MESSAGES } from '../utils/errorHandler';
-import { useThrottle } from '../hooks/useDebounce';
-import { sanitizeEmail, sanitizeString } from '../utils/sanitize';
-import logger from '../utils/logger';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import { LocationService } from '../../../services/LocationService';
+import { validateEmail } from '../../../utils/validators';
+import { showStandardError, STANDARD_ERROR_MESSAGES } from '../../../utils/errorHandler';
+import { useThrottle } from '../../../hooks/useDebounce';
+import { sanitizeEmail, sanitizeString } from '../../../utils/sanitize';
+import logger from '../../../utils/logger';
 
 export const RegisterScreen = ({ navigation }) => {
   const { signup } = useAuth();

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Alert } from 'react-native';
-import { Colors } from '../constants/colors';
-import { useAuth } from '../context/AuthContext';
-import { SocialFeaturesService } from '../services/SocialFeaturesService';
-import logger from '../utils/logger';
-import { getUserFriendlyMessage } from '../utils/errorMessages';
+import { Colors } from '../../../constants/colors';
+import { useAuth } from '../../../context/AuthContext';
+import { SocialFeaturesService } from '../../../services/SocialFeaturesService';
+import logger from '../../../utils/logger';
+import { getUserFriendlyMessage } from '../../../utils/errorMessages';
 
 const ProfileSharingScreen = ({ navigation }) => {
   const { currentUser } = useAuth();

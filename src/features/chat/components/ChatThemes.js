@@ -11,9 +11,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { getChatPatternKey, getChatThemeKey } from '../../constants/constants';
-import logger from '../../utils/logger';
-import { Colors } from '../../constants/colors';
+import { getChatPatternKey, getChatThemeKey } from '../../../constants/constants';
+import logger from '../../../utils/logger';
+import { Colors } from '../../../constants/colors';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
