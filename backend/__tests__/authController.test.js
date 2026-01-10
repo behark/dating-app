@@ -19,7 +19,7 @@ jest.mock('jsonwebtoken', () => ({
 }));
 
 // Mock User model
-jest.mock('../models/User', () => {
+jest.mock('../src/core/domain/User', () => {
   const userInstance = {
     _id: 'u1',
     email: 'test@example.com',
@@ -122,7 +122,7 @@ describe('authController.login', () => {
   });
 
   test('Should return 500 on internal error and not leak sensitive message', async () => {
-    const User = require('../models/User');
+    const User = require('../src/core/domain/User');
     User.findOne.mockImplementationOnce(() => {
       throw new Error('DB down');
     });
@@ -163,7 +163,7 @@ describe('authController.register', () => {
   });
 
   test('Should return 400 when user already exists', async () => {
-    const User = require('../models/User');
+    const User = require('../src/core/domain/User');
     User.findOne.mockResolvedValueOnce({ _id: 'u1' });
 
     const req = {
@@ -180,7 +180,7 @@ describe('authController.register', () => {
   });
 
   test('Should create user, send verification email, and return tokens', async () => {
-    const User = require('../models/User');
+    const User = require('../src/core/domain/User');
     User.findOne.mockResolvedValueOnce(null); // not existing
 
     const req = {
@@ -261,7 +261,7 @@ describe('authController.resetPassword and forgotPassword', () => {
   });
 
   test('forgotPassword should succeed even if user not found', async () => {
-    const User = require('../models/User');
+    const User = require('../src/core/domain/User');
     // Reset and mock for forgotPassword test - user not found should return success (no enumeration)
     User.findOne = jest.fn(async () => null);
 
@@ -281,7 +281,7 @@ describe('authController.resetPassword and forgotPassword', () => {
   });
 
   test('resetPassword should reset password successfully', async () => {
-    const User = require('../models/User');
+    const User = require('../src/core/domain/User');
     const mockUser = {
       _id: 'u1',
       email: 'test@example.com',

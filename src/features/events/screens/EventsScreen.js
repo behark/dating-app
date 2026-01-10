@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import EmptyState from '../../../components/EmptyState';
+import EmptyState from '../../../components/common/EmptyState';
 import { Colors } from '../../../constants/colors';
 import { useAuth } from '../../../context/AuthContext';
 import { SocialFeaturesService } from '../../../services/SocialFeaturesService';

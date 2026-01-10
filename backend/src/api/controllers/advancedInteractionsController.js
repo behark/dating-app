@@ -132,7 +132,7 @@ const sendSuperLike = async (req, res) => {
     }
 
     // Send notification to recipient (in production)
-    console.log(`[NOTIFICATION] Super like from ${sender.name} to ${recipient.name}`);
+    logger.info('Super like notification', { from: sender._id, to: recipient._id });
 
     return res.status(201).json({
       success: true,

@@ -10,6 +10,7 @@ const PaymentTransaction = require('../domain/PaymentTransaction');
 const Subscription = require('../domain/Subscription');
 const StripeService = require('./StripeService');
 const PayPalService = require('./PayPalService');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 class RefundService {
   /**
@@ -424,9 +425,9 @@ class RefundService {
     } catch (notifError) {
       // Log but don't fail the denial
       const { logger } = require('../../infrastructure/external/LoggingService');
-      logger.error('Failed to send refund denial notification', { 
-        userId: transaction.userId, 
-        error: notifError.message 
+      logger.error('Failed to send refund denial notification', {
+        userId: transaction.userId,
+        error: notifError.message
       });
     }
 
@@ -470,8 +471,11 @@ class RefundService {
     try {
       const subscription = await Subscription.findOne({ userId });
       if (!subscription) {
-        // TODO: Log a more detailed error
-        console.error(`User with ID ${userId} not found.`);
+        logger.error('Subscription cancellation failed: No subscription found', {
+          userId,
+          action: 'cancelSubscription',
+          cancelAtPeriodEnd
+        });
         return { success: false, message: 'User not found', statusCode: 404 };
       }
 

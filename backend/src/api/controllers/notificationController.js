@@ -196,9 +196,12 @@ exports.sendNotification = async (req, res) => {
 
     // In a real implementation, you would send the notification via Expo's push notification service
     // For now, we'll just log and return success
-    console.log(
-      `[NOTIFICATION] To: ${toUserId}, Type: ${type}, Title: ${title}, Message: ${message}`
-    );
+    logger.info('Notification sent', {
+      toUserId,
+      type,
+      title,
+      messagePreview: message.substring(0, 50)
+    });
 
     // Store notification in database
     const notification = await Notification.create({

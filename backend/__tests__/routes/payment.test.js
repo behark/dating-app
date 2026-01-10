@@ -78,7 +78,7 @@ jest.mock('stripe', () => {
 });
 
 // Mock User model
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
   findOne: jest.fn(),
@@ -86,7 +86,7 @@ jest.mock('../../models/User', () => ({
 
 // Mock Payment model (if exists)
 jest.mock(
-  '../../models/Payment',
+  '../../src/core/domain/Payment',
   () => ({
     find: jest.fn(),
     create: jest.fn(),
@@ -115,7 +115,7 @@ const createTestApp = () => {
 
 describe('Payment API Tests', () => {
   let app;
-  const User = require('../../models/User');
+  const User = require('../../src/core/domain/User');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';

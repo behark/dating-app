@@ -18,12 +18,12 @@ const {
 const { profiles, users } = require('../utils/fixtures');
 
 // Mock dependencies
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
 }));
 
-jest.mock('../../models/Match', () => ({
+jest.mock('../../src/core/domain/Match', () => ({
   findOne: jest.fn(),
 }));
 
@@ -47,8 +47,8 @@ const createTestApp = () => {
 
 describe('Profile API Tests', () => {
   let app;
-  const User = require('../../models/User');
-  const Match = require('../../models/Match');
+  const User = require('../../src/core/domain/User');
+  const Match = require('../../src/core/domain/Match');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';

@@ -14,12 +14,12 @@ const {
 } = require('../utils/testHelpers');
 
 // Mock dependencies
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
 }));
 
-jest.mock('../../models/Activity', () => {
+jest.mock('../../src/core/domain/Activity', () => {
   const mockActivity = {
     save: jest.fn().mockResolvedValue(true),
   };
@@ -51,8 +51,8 @@ const createTestApp = () => {
 
 describe('Activity API Tests', () => {
   let app;
-  const User = require('../../models/User');
-  const Activity = require('../../models/Activity');
+  const User = require('../../src/core/domain/User');
+  const Activity = require('../../src/core/domain/Activity');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';

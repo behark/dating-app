@@ -14,12 +14,12 @@ const {
 } = require('../utils/testHelpers');
 
 // Mock dependencies
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
 }));
 
-jest.mock('../../models/Notification', () => {
+jest.mock('../../src/core/domain/Notification', () => {
   const mockNotification = {
     save: jest.fn().mockResolvedValue(true),
   };
@@ -54,8 +54,8 @@ const createTestApp = () => {
 
 describe('Notifications API Tests', () => {
   let app;
-  const Notification = require('../../models/Notification');
-  const User = require('../../models/User');
+  const Notification = require('../../src/core/domain/Notification');
+  const User = require('../../src/core/domain/User');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';

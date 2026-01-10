@@ -5,8 +5,8 @@
 
 const request = require('supertest');
 const app = require('../../server');
-const User = require('../../models/User');
-const Swipe = require('../../models/Swipe');
+const User = require('../../src/core/domain/User');
+const Swipe = require('../../src/core/domain/Swipe');
 const mongoose = require('mongoose');
 
 describe('Swipe Race Conditions', () => {

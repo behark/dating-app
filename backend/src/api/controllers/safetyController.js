@@ -648,9 +648,10 @@ exports.appealSuspension = async (req, res) => {
     });
 
     // Log for admin review
-    console.log(
-      `[SAFETY] Suspension appeal submitted by user ${userId}: ${reason.substring(0, 100)}...`
-    );
+    logger.info('Suspension appeal submitted', {
+      userId,
+      reasonPreview: reason.substring(0, 100)
+    });
 
     res.json({
       success: true,

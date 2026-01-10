@@ -18,8 +18,8 @@ import {
 // Component imports - using relative paths within feature
 import SkeletonCard from '../components/SkeletonCard';
 import SwipeCard from '../components/SwipeCard';
-import EmptyState from '../../../components/EmptyState';
-import MicroAnimations from '../../../components/MicroAnimations';
+import EmptyState from '../../../components/common/EmptyState';
+import MicroAnimations from '../../../components/common/MicroAnimations';
 import { Colors } from '../../../constants/colors';
 import { UI_MESSAGES } from '../../../constants/constants';
 import { useAuth } from '../../../context/AuthContext';

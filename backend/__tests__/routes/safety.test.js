@@ -18,13 +18,13 @@ const {
 const { safety, users } = require('../utils/fixtures');
 
 // Mock dependencies
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
 }));
 
 jest.mock(
-  '../../models/Report',
+  '../../src/core/domain/Report',
   () => ({
     create: jest.fn(),
     find: jest.fn(),
@@ -54,7 +54,7 @@ const createTestApp = () => {
 
 describe('Safety API Tests', () => {
   let app;
-  const User = require('../../models/User');
+  const User = require('../../src/core/domain/User');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';
@@ -153,7 +153,7 @@ describe('Safety API Tests', () => {
           role: 'admin',
         });
 
-        const Report = require('../../models/Report');
+        const Report = require('../../src/core/domain/Report');
         Report.find.mockReturnValue({
           sort: jest.fn().mockReturnThis(),
           populate: jest.fn().mockReturnThis(),
@@ -195,7 +195,7 @@ describe('Safety API Tests', () => {
           role: 'admin',
         });
 
-        const Report = require('../../models/Report');
+        const Report = require('../../src/core/domain/Report');
         Report.findByIdAndUpdate.mockResolvedValue({
           _id: 'report_id',
           status: 'reviewed',

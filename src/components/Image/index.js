@@ -1,5 +1,17 @@
-// Universal Image Components - Consolidated from LazyImage, OptimizedImage, and ProgressiveImage
-export { default as UniversalImage, ProfileImage, preloadImages, clearImageCache, getCacheStats } from './UniversalImage';
+import React from 'react';
+import { Image, Platform } from 'react-native';
 
-// Legacy default export for backward compatibility (will be deprecated)
-export { default } from './UniversalImage';
+export const UniversalImage = ({ source, style, resizeMode = 'cover', ...props }) => {
+  const imageSource = typeof source === 'string' ? { uri: source } : source;
+
+  return (
+    <Image
+      source={imageSource}
+      style={style}
+      resizeMode={resizeMode}
+      {...props}
+    />
+  );
+};
+
+export default UniversalImage;

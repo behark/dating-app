@@ -34,7 +34,7 @@ const handleValidationErrors = (req, res, next) => {
 
 const router = express.Router();
 
-// Apply authentication to all routes (CRITICAL: Remove mock auth in production)
+// Apply authentication to all routes
 router.use(authenticate);
 
 // GET /api/chat/conversations - Get all conversations for user

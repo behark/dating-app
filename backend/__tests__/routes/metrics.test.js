@@ -15,23 +15,23 @@ const {
 } = require('../utils/testHelpers');
 
 // Mock dependencies
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
   countDocuments: jest.fn(),
   aggregate: jest.fn(),
 }));
 
-jest.mock('../../models/Match', () => ({
+jest.mock('../../src/core/domain/Match', () => ({
   countDocuments: jest.fn(),
   aggregate: jest.fn(),
 }));
 
-jest.mock('../../models/Message', () => ({
+jest.mock('../../src/core/domain/Message', () => ({
   countDocuments: jest.fn(),
   aggregate: jest.fn(),
 }));
 
-jest.mock('../../models/Swipe', () => ({
+jest.mock('../../src/core/domain/Swipe', () => ({
   countDocuments: jest.fn(),
   aggregate: jest.fn(),
 }));
@@ -64,10 +64,10 @@ const createTestApp = () => {
 
 describe('Metrics API Tests', () => {
   let app;
-  const User = require('../../models/User');
-  const Match = require('../../models/Match');
-  const Message = require('../../models/Message');
-  const Swipe = require('../../models/Swipe');
+  const User = require('../../src/core/domain/User');
+  const Match = require('../../src/core/domain/Match');
+  const Message = require('../../src/core/domain/Message');
+  const Swipe = require('../../src/core/domain/Swipe');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';

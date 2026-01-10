@@ -5,7 +5,7 @@
 
 const request = require('supertest');
 const app = require('../../server');
-const User = require('../../models/User');
+const User = require('../../src/core/domain/User');
 const mongoose = require('mongoose');
 
 describe('Backend Network Handling', () => {

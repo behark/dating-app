@@ -5,9 +5,9 @@
 
 const request = require('supertest');
 const app = require('../../server');
-const User = require('../../models/User');
-const Match = require('../../models/Match');
-const Message = require('../../models/Message');
+const User = require('../../src/core/domain/User');
+const Match = require('../../src/core/domain/Match');
+const Message = require('../../src/core/domain/Message');
 const mongoose = require('mongoose');
 
 describe('Concurrent Message Operations', () => {

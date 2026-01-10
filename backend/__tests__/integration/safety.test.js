@@ -7,9 +7,9 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../../server');
-const User = require('../../models/User');
-const Block = require('../../models/Block');
-const Report = require('../../models/Report');
+const User = require('../../src/core/domain/User');
+const Block = require('../../src/core/domain/Block');
+const Report = require('../../src/core/domain/Report');
 
 let mongoServer;
 let user1Token, user2Token, adminToken;

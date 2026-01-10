@@ -14,13 +14,13 @@ const {
 } = require('../utils/testHelpers');
 
 // Mock dependencies
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
   find: jest.fn(),
 }));
 
-jest.mock('../../models/Interaction', () => {
+jest.mock('../../src/core/domain/Interaction', () => {
   const mockInteraction = {
     save: jest.fn().mockResolvedValue(true),
   };
@@ -53,8 +53,8 @@ const createTestApp = () => {
 
 describe('Advanced Interactions API Tests', () => {
   let app;
-  const User = require('../../models/User');
-  const Interaction = require('../../models/Interaction');
+  const User = require('../../src/core/domain/User');
+  const Interaction = require('../../src/core/domain/Interaction');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';

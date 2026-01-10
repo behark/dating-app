@@ -7,9 +7,9 @@ const authController = require('../controllers/authController');
 // Mock external dependencies
 jest.mock('nodemailer');
 jest.mock('jsonwebtoken');
-jest.mock('../models/User');
+jest.mock('../src/core/domain/User');
 
-const User = require('../models/User');
+const User = require('../src/core/domain/User');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 

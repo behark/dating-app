@@ -14,25 +14,25 @@ jest.mock('../services/MonitoringService', () => ({
   datadogService: mockDatadogService,
 }));
 
-jest.mock('../models/User', () => ({
+jest.mock('../src/core/domain/User', () => ({
   countDocuments: jest.fn(),
   find: jest.fn(),
 }));
 
-jest.mock('../models/Swipe', () => ({
+jest.mock('../src/core/domain/Swipe', () => ({
   countDocuments: jest.fn(),
   aggregate: jest.fn(),
 }));
 
-jest.mock('../models/Message', () => ({
+jest.mock('../src/core/domain/Message', () => ({
   aggregate: jest.fn(),
 }));
 
-jest.mock('../models/UserActivity', () => ({
+jest.mock('../src/core/domain/UserActivity', () => ({
   distinct: jest.fn(),
 }));
 
-jest.mock('../models/Subscription', () => ({
+jest.mock('../src/core/domain/Subscription', () => ({
   countDocuments: jest.fn(),
 }));
 
@@ -40,11 +40,11 @@ const {
   AnalyticsMetricsService,
   analyticsMetricsService,
 } = require('../services/AnalyticsMetricsService');
-const User = require('../models/User');
-const Swipe = require('../models/Swipe');
-const Message = require('../models/Message');
-const UserActivity = require('../models/UserActivity');
-const Subscription = require('../models/Subscription');
+const User = require('../src/core/domain/User');
+const Swipe = require('../src/core/domain/Swipe');
+const Message = require('../src/core/domain/Message');
+const UserActivity = require('../src/core/domain/UserActivity');
+const Subscription = require('../src/core/domain/Subscription');
 
 describe('AnalyticsMetricsService', () => {
   let service;

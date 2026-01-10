@@ -83,7 +83,7 @@ const closeMockRedis = async () => {
  * @returns {Promise<Object>} Created user
  */
 const seedUser = async (userData) => {
-  const User = require('../../models/User');
+  const User = require('../../src/core/domain/User');
   const bcrypt = require('bcryptjs');
 
   const hashedPassword = userData.password ? await bcrypt.hash(userData.password, 10) : undefined;
@@ -114,7 +114,7 @@ const seedUsers = async (usersData) => {
  * @returns {Promise<Object>} Created match
  */
 const seedMatch = async (userId1, userId2) => {
-  const Match = require('../../models/Match');
+  const Match = require('../../src/core/domain/Match');
 
   const match = new Match({
     users: [userId1, userId2],
@@ -132,7 +132,7 @@ const seedMatch = async (userId1, userId2) => {
  * @returns {Promise<Object>} Created swipe
  */
 const seedSwipe = async (swipeData) => {
-  const Swipe = require('../../models/Swipe');
+  const Swipe = require('../../src/core/domain/Swipe');
 
   const swipe = new Swipe({
     ...swipeData,
@@ -149,7 +149,7 @@ const seedSwipe = async (swipeData) => {
  * @returns {Promise<Object>} Created message
  */
 const seedMessage = async (messageData) => {
-  const Message = require('../../models/Message');
+  const Message = require('../../src/core/domain/Message');
 
   const message = new Message({
     ...messageData,

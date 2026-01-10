@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import EmptyState from '../../../components/EmptyState';
+import EmptyState from '../../../components/common/EmptyState';
 import { Colors } from '../../../constants/colors';
 import { useAuth } from '../../../context/AuthContext';
 import { useChat } from '../../../context/ChatContext';
@@ -75,12 +75,12 @@ const MatchesScreen = () => {
       try {
         const receivedSwipes = await SwipeController.getReceivedSwipes(currentUser.uid);
         if (requestId !== requestIdRef.current) return;
-        
+
         // Get list of matched user IDs to filter them out from likes
         const matchedUserIds = new Set(
           conversations.map((conv) => conv.otherUser?._id || conv.otherUser?.id)
         );
-        
+
         // Transform swipes to user-friendly format for display
         // Filter out people who have already matched (they show in Matches tab)
         const formattedLikes = receivedSwipes
@@ -438,6 +438,10 @@ const MatchesScreen = () => {
           data={conversations}
           renderItem={renderConversation}
           keyExtractor={(item) => item.matchId}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          initialNumToRender={10}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}

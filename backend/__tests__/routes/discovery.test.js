@@ -16,19 +16,19 @@ const {
 const { discovery, users } = require('../utils/fixtures');
 
 // Mock dependencies
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   find: jest.fn(),
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
   aggregate: jest.fn(),
 }));
 
-jest.mock('../../models/Swipe', () => ({
+jest.mock('../../src/core/domain/Swipe', () => ({
   find: jest.fn(),
   distinct: jest.fn(),
 }));
 
-jest.mock('../../models/Match', () => ({
+jest.mock('../../src/core/domain/Match', () => ({
   findOne: jest.fn(),
 }));
 
@@ -70,8 +70,8 @@ const createUsersTestApp = () => {
 
 describe('Discovery API Tests', () => {
   let app;
-  const User = require('../../models/User');
-  const Swipe = require('../../models/Swipe');
+  const User = require('../../src/core/domain/User');
+  const Swipe = require('../../src/core/domain/Swipe');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';
@@ -351,9 +351,9 @@ describe('Discovery API Tests', () => {
 
 describe('Users API Tests', () => {
   let app;
-  const User = require('../../models/User');
-  const Match = require('../../models/Match');
-  const Swipe = require('../../models/Swipe');
+  const User = require('../../src/core/domain/User');
+  const Match = require('../../src/core/domain/Match');
+  const Swipe = require('../../src/core/domain/Swipe');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';
