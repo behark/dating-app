@@ -14,13 +14,13 @@ const {
 } = require('../utils/testHelpers');
 
 // Mock dependencies
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
   find: jest.fn(),
 }));
 
-jest.mock('../../models/Event', () => {
+jest.mock('../../src/core/domain/Event', () => {
   const mockEvent = {
     save: jest.fn().mockResolvedValue(true),
   };
@@ -32,7 +32,7 @@ jest.mock('../../models/Event', () => {
   return EventConstructor;
 });
 
-jest.mock('../../models/Group', () => {
+jest.mock('../../src/core/domain/Group', () => {
   const mockGroup = {
     save: jest.fn().mockResolvedValue(true),
   };
@@ -64,9 +64,9 @@ const createTestApp = () => {
 
 describe('Social Features API Tests', () => {
   let app;
-  const User = require('../../models/User');
-  const Event = require('../../models/Event');
-  const Group = require('../../models/Group');
+  const User = require('../../src/core/domain/User');
+  const Event = require('../../src/core/domain/Event');
+  const Group = require('../../src/core/domain/Group');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';

@@ -502,10 +502,10 @@ class GamificationService {
       reward.isClaimed = true;
       reward.claimedAt = new Date();
 
-      // TODO: Add points to user account
-      // await User.findByIdAndUpdate(reward.userId, {
-      //   $inc: { points: reward.rewardValue }
-      // });
+      // Add points to user account
+      await User.findByIdAndUpdate(reward.userId, {
+        $inc: { points: reward.rewardValue }
+      });
 
       await reward.save();
       return reward;

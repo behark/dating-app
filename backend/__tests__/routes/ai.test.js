@@ -37,7 +37,7 @@ jest.mock('openai', () => {
 });
 
 // Mock User model
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
 }));
@@ -62,7 +62,7 @@ const createTestApp = () => {
 
 describe('AI API Tests', () => {
   let app;
-  const User = require('../../models/User');
+  const User = require('../../src/core/domain/User');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';

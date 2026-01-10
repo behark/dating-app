@@ -9,7 +9,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const path = require('path');
 const fs = require('fs');
 const app = require('../../server');
-const User = require('../../models/User');
+const User = require('../../src/core/domain/User');
 
 let mongoServer;
 let userToken;

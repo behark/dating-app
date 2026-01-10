@@ -7,9 +7,9 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../../server');
-const User = require('../../models/User');
-const Swipe = require('../../models/Swipe');
-const Match = require('../../models/Match');
+const User = require('../../src/core/domain/User');
+const Swipe = require('../../src/core/domain/Swipe');
+const Match = require('../../src/core/domain/Match');
 
 let mongoServer;
 let user1Token, user2Token, user3Token;

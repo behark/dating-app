@@ -200,6 +200,9 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                     <TouchableOpacity
                       style={[styles.genderButton, gender === 'male' && styles.genderButtonActive]}
                       onPress={() => setGender('male')}
+                      accessibilityLabel="Male"
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: gender === 'male' }}
                     >
                       <Text
                         style={[styles.genderText, gender === 'male' && styles.genderTextActive]}
@@ -213,6 +216,9 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                         gender === 'female' && styles.genderButtonActive,
                       ]}
                       onPress={() => setGender('female')}
+                      accessibilityLabel="Female"
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: gender === 'female' }}
                     >
                       <Text
                         style={[styles.genderText, gender === 'female' && styles.genderTextActive]}
@@ -223,6 +229,9 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
                     <TouchableOpacity
                       style={[styles.genderButton, gender === 'other' && styles.genderButtonActive]}
                       onPress={() => setGender('other')}
+                      accessibilityLabel="Other"
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: gender === 'other' }}
                     >
                       <Text
                         style={[styles.genderText, gender === 'other' && styles.genderTextActive]}

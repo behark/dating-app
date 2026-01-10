@@ -15,7 +15,7 @@ const {
 } = require('../utils/testHelpers');
 
 // Mock dependencies
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
 }));
@@ -58,7 +58,7 @@ const createTestApp = () => {
 
 describe('Premium API Tests', () => {
   let app;
-  const User = require('../../models/User');
+  const User = require('../../src/core/domain/User');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';

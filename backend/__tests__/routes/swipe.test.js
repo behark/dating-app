@@ -17,11 +17,11 @@ const {
 const { swipes, users } = require('../utils/fixtures');
 
 // Mock dependencies
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
 }));
 
-jest.mock('../../models/Swipe', () => ({
+jest.mock('../../src/core/domain/Swipe', () => ({
   findOne: jest.fn(),
   create: jest.fn(),
   find: jest.fn(),
@@ -30,7 +30,7 @@ jest.mock('../../models/Swipe', () => ({
   countDocuments: jest.fn(),
 }));
 
-jest.mock('../../models/Match', () => ({
+jest.mock('../../src/core/domain/Match', () => ({
   create: jest.fn(),
   find: jest.fn(),
   findById: jest.fn(),
@@ -57,9 +57,9 @@ const createTestApp = () => {
 
 describe('Swipe API Tests', () => {
   let app;
-  const User = require('../../models/User');
-  const Swipe = require('../../models/Swipe');
-  const Match = require('../../models/Match');
+  const User = require('../../src/core/domain/User');
+  const Swipe = require('../../src/core/domain/Swipe');
+  const Match = require('../../src/core/domain/Match');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';

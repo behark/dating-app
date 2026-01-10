@@ -291,7 +291,7 @@ exports.deleteAccount = async (req, res) => {
     ]);
 
     // Log deletion for compliance records (anonymized)
-    console.log(`Account deleted: ${userId} - Reason: ${reason || 'Not specified'}`);
+    logger.info('Account deleted', { userId, reason: reason || 'Not specified' });
 
     res.json({
       success: true,

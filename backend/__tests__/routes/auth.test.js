@@ -34,7 +34,7 @@ jest.mock('mongoose', () => {
   };
 });
 
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findOne: jest.fn(),
   findById: jest.fn(),
   create: jest.fn(),
@@ -75,7 +75,7 @@ const createTestApp = () => {
 
 describe('Auth API Tests', () => {
   let app;
-  const User = require('../../models/User');
+  const User = require('../../src/core/domain/User');
   const bcrypt = require('bcryptjs');
   const jwt = require('jsonwebtoken');
 

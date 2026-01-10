@@ -17,7 +17,7 @@ const {
 const { messages } = require('../utils/fixtures');
 
 // Mock dependencies
-jest.mock('../../models/Message', () => ({
+jest.mock('../../src/core/domain/Message', () => ({
   find: jest.fn(),
   findById: jest.fn(),
   create: jest.fn(),
@@ -27,12 +27,12 @@ jest.mock('../../models/Message', () => ({
   countDocuments: jest.fn(),
 }));
 
-jest.mock('../../models/Match', () => ({
+jest.mock('../../src/core/domain/Match', () => ({
   findById: jest.fn(),
   findOne: jest.fn(),
 }));
 
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
 }));
 
@@ -56,9 +56,9 @@ const createTestApp = () => {
 
 describe('Chat API Tests', () => {
   let app;
-  const Message = require('../../models/Message');
-  const Match = require('../../models/Match');
-  const User = require('../../models/User');
+  const Message = require('../../src/core/domain/Message');
+  const Match = require('../../src/core/domain/Match');
+  const User = require('../../src/core/domain/User');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';

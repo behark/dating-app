@@ -104,7 +104,7 @@ datadogService.init();
 
 // Register health checks
 healthCheckService.registerCheck('mongodb', async () => {
-  const { getConnectionStatus } = require('./config/database');
+  const { getConnectionStatus } = require('./src/config/database');
   const status = getConnectionStatus();
 
   if (status.readyState !== 1) {
@@ -144,7 +144,7 @@ healthCheckService.registerCheck('mongodb', async () => {
 
 healthCheckService.registerCheck('redis', async () => {
   try {
-    const { getRedis } = require('./config/redis');
+    const { getRedis } = require('./src/config/redis');
 
     // Get Redis client
     const redisClient = await getRedis();
@@ -183,15 +183,15 @@ healthCheckService.registerCheck('redis', async () => {
 if (process.env.NODE_ENV === 'production') {
   app.use((req, res, next) => {
     // Check if request is already HTTPS
-    const isHttps = 
-      req.secure || 
+    const isHttps =
+      req.secure ||
       req.headers['x-forwarded-proto'] === 'https' ||
       req.protocol === 'https';
-    
+
     if (!isHttps) {
       // Redirect to HTTPS
       const httpsUrl = `https://${req.headers.host}${req.url}`;
-      logger.info('Redirecting HTTP to HTTPS', { 
+      logger.info('Redirecting HTTP to HTTPS', {
         from: `${req.protocol}://${req.headers.host}${req.url}`,
         to: httpsUrl,
         ip: req.ip
@@ -422,7 +422,7 @@ app.use((req, res, next) => {
 });
 
 // Global rate limiting - Apply to all API routes
-const { dynamicRateLimiter } = require('./middleware/rateLimiter');
+const { dynamicRateLimiter } = require('./src/api/middleware/rateLimiter');
 // @ts-ignore - dynamicRateLimiter returns Express middleware
 app.use('/api', dynamicRateLimiter());
 
@@ -562,7 +562,7 @@ if (process.env.SENTRY_DSN) {
 }
 
 // Import new error handlers
-const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+const { errorHandler, notFoundHandler } = require('./src/api/middleware/errorHandler');
 
 // 404 handler for undefined routes
 app.use(notFoundHandler);
@@ -814,7 +814,7 @@ io.use(async (socket, next) => {
     }
 
     // Verify user exists and is active
-    const user = await User.findById(/** @type {any} */ (socket).userId).select(
+    const user = await User.findById(/** @type {any} */(socket).userId).select(
       '_id name isActive'
     );
     if (!user) {

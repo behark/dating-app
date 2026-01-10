@@ -11,11 +11,11 @@ import {
 import { Colors } from '../../../constants/colors';
 import {
   BackgroundCheck,
-  CheckInTimer,
+  SafetyCheckIn as CheckInTimer,
   DatePlansSharing,
   EmergencySOS,
-  PhotoVerificationAdvanced,
-} from '../../../components/Safety/SafetyAdvancedComponents';
+  IdentityVerification as PhotoVerificationAdvanced,
+} from '../components';
 import { SafetyService } from '../../../services/SafetyService';
 
 /**

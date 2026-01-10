@@ -5,9 +5,9 @@
 
 require('dotenv').config();
 const mongoose = require('mongoose');
-const { connectDB, gracefulShutdown: dbGracefulShutdown } = require('./config/database');
-const { initRedis } = require('./config/redis');
-const { initializeProcessors, scheduleRecurringJobs } = require('./services/JobProcessors');
+const { connectDB, gracefulShutdown: dbGracefulShutdown } = require('./src/config/database');
+const { initRedis } = require('./src/config/redis');
+const { initializeProcessors, scheduleRecurringJobs } = require('./src/core/services/JobProcessors');
 
 // Graceful shutdown flag
 let isShuttingDown = false;
@@ -75,11 +75,11 @@ const shutdown = async (signal) => {
 
   try {
     // Close queue connections
-    const QueueService = require('./services/QueueService');
+    const QueueService = require('./src/infrastructure/queues/QueueService');
     await QueueService.closeAll();
 
     // Close Redis
-    const { closeRedis } = require('./config/redis');
+    const { closeRedis } = require('./src/config/redis');
     await closeRedis();
 
     // Close MongoDB using centralized graceful shutdown

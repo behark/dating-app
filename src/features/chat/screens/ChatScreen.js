@@ -15,7 +15,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import EmptyState from '../../../components/EmptyState';
+import EmptyState from '../../../components/common/EmptyState';
 import { Colors } from '../../../constants/colors';
 import { useAuth } from '../../../context/AuthContext';
 import { useChat } from '../../../context/ChatContext';
@@ -114,7 +114,7 @@ const ChatScreen = ({ route, navigation }) => {
   useEffect(() => {
     // Track screen view for analytics
     AnalyticsService.logScreenView('Chat');
-    
+
     if (matchId) {
       joinRoom(matchId);
       loadMessages();
@@ -198,10 +198,10 @@ const ChatScreen = ({ route, navigation }) => {
         }
 
         const imageUri = result.assets[0].uri;
-        
+
         // Track image message analytics
         AnalyticsService.logMessageSent(matchId, 'image');
-        
+
         sendImageMessage(matchId, imageUri, {
           caption: 'Shared an image',
           width: result.assets[0].width,
@@ -259,7 +259,7 @@ const ChatScreen = ({ route, navigation }) => {
         },
         {
           text: 'Cancel',
-          onPress: () => {},
+          onPress: () => { },
           style: 'cancel',
         },
       ],
@@ -287,13 +287,21 @@ const ChatScreen = ({ route, navigation }) => {
     }, 1000);
   };
 
-  const loadMoreMessages = () => {
+  const loadMoreMessages = useCallback(() => {
     if (!loadingMore && hasMoreMessages && messages.length > 0) {
       loadMessages(true);
     }
-  };
+  }, [loadingMore, hasMoreMessages, messages.length, loadMessages]);
 
-  const renderMessage = ({ item }) => {
+  // Estimated message height for getItemLayout optimization
+  const MESSAGE_HEIGHT = 80;
+  const getItemLayout = useCallback((data, index) => ({
+    length: MESSAGE_HEIGHT,
+    offset: MESSAGE_HEIGHT * index,
+    index,
+  }), []);
+
+  const renderMessage = useCallback(({ item }) => {
     const isMe = item.senderId === currentUser.uid;
     const time = new Date(item.createdAt).toLocaleTimeString([], {
       hour: '2-digit',
@@ -374,7 +382,7 @@ const ChatScreen = ({ route, navigation }) => {
         )}
       </View>
     );
-  };
+  }, [currentUser.uid, matchId, sendReadReceipt, readReceiptTimers]);
 
   return (
     <LinearGradient colors={Colors.gradient.light} style={styles.container}>
@@ -431,6 +439,11 @@ const ChatScreen = ({ route, navigation }) => {
             data={messages}
             renderItem={renderMessage}
             keyExtractor={(item) => item._id}
+            getItemLayout={getItemLayout}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={15}
+            windowSize={10}
+            initialNumToRender={20}
             contentContainerStyle={styles.messagesList}
             showsVerticalScrollIndicator={false}
             onEndReached={loadMoreMessages}

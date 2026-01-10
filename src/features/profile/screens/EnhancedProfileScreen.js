@@ -17,13 +17,13 @@ import api from '../../../services/api';
 import logger from '../../../utils/logger';
 
 // Profile Components
-import InteractivePhotoGallery from '../../../components/Profile/InteractivePhotoGallery';
-import ProfileCompletionProgress from '../../../components/Profile/ProfileCompletionProgress';
-import ProfileVideoIntroduction from '../../../components/Profile/ProfileVideoIntroduction';
+import InteractivePhotoGallery from '../components/InteractivePhotoGallery';
+import ProfileCompletionProgress from '../components/ProfileCompletionProgress';
+import ProfileVideoIntroduction from '../components/ProfileVideoIntroduction';
 import {
   VerificationBadgeGroup,
   VerificationStatus,
-} from '../../../components/Profile/VerificationBadge';
+} from '../components/VerificationBadge';
 
 // Gamification Components
 import { AchievementShowcase } from '../../../components/Gamification/AchievementBadgeAnimated';

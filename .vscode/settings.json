@@ -1,4 +1,52 @@
 {
-    "editor.defaultFormatter": "vscode.typescript-language-features",
-    "editor.formatOnSave": true
+  // ===== Editor Basics =====
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.formatOnSave": true,          // Auto format on save
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.detectIndentation": false,
+  "editor.trimAutoWhitespace": true,
+  "editor.rulers": [80, 120],           // Show guides for line length
+
+  // ===== Error & Linting =====
+  "files.autoSave": "onFocusChange",
+  "problems.showCurrentInStatus": true,
+  "typescript.tsserver.experimental.enableProjectDiagnostics": true, // stricter TS errors
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "eslint.alwaysShowStatus": true,
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+    "typescriptreact",
+    "javascriptreact"
+  ],
+
+  // ===== Formatting =====
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "all",
+  "prettier.semi": true,
+  "prettier.arrowParens": "always",
+  "prettier.printWidth": 100,
+
+  // ===== Copilot Integration =====
+  "github.copilot.enable": true,
+  "github.copilot.suggestionDelay": 50,
+  "github.copilot.inlineSuggest.enable": true,
+
+  // ===== Warning / Error Level =====
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.git": true,
+    "**/dist": true
+  },
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  },
+  "editor.semanticHighlighting.enabled": true,
+  "editor.defaultFormatter": "vscode.typescript-language-features"
 }

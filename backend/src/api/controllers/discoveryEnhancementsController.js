@@ -147,7 +147,7 @@ const exploreUsers = async (req, res) => {
       .select(
         'name age gender bio photos interests location locationPrivacy profileCompleteness lastActivityAt isProfileVerified activityScore'
       )
-      .sort(/** @type {any} */ (sortQuery))
+      .sort(/** @type {any} */(sortQuery))
       .skip(skip)
       .limit(limit);
 
@@ -253,7 +253,7 @@ const getTopPicks = async (req, res) => {
     // For now, return what we have
     if (existingPicksCount === 0) {
       // In production, this would call a background job to calculate top picks
-      console.log(`No recent top picks for user ${userId}, triggering calculation`);
+      logger.info('No recent top picks, triggering calculation', { userId });
     }
 
     // Get top picks

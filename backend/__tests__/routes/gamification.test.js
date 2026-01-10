@@ -14,13 +14,13 @@ const {
 } = require('../utils/testHelpers');
 
 // Mock dependencies
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
   find: jest.fn(),
 }));
 
-jest.mock('../../models/Achievement', () => {
+jest.mock('../../src/core/domain/Achievement', () => {
   const mockAchievement = {
     save: jest.fn().mockResolvedValue(true),
   };
@@ -51,8 +51,8 @@ const createTestApp = () => {
 
 describe('Gamification API Tests', () => {
   let app;
-  const User = require('../../models/User');
-  const Achievement = require('../../models/Achievement');
+  const User = require('../../src/core/domain/User');
+  const Achievement = require('../../src/core/domain/Achievement');
 
   beforeAll(() => {
     process.env.JWT_SECRET = 'test-secret';

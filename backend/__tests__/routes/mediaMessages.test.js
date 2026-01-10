@@ -14,12 +14,12 @@ const {
 } = require('../utils/testHelpers');
 
 // Mock dependencies
-jest.mock('../../models/User', () => ({
+jest.mock('../../src/core/domain/User', () => ({
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
 }));
 
-jest.mock('../../models/Message', () => {
+jest.mock('../../src/core/domain/Message', () => {
   const mockMessage = {
     save: jest.fn().mockResolvedValue(true),
   };
@@ -83,8 +83,8 @@ const createTestApp = () => {
 
 describe('Media Messages API Tests', () => {
   let app;
-  const User = require('../../models/User');
-  const Message = require('../../models/Message');
+  const User = require('../../src/core/domain/User');
+  const Message = require('../../src/core/domain/Message');
   const cloudinary = require('cloudinary').v2;
 
   beforeAll(() => {

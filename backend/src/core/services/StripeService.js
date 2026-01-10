@@ -17,7 +17,7 @@ const PaymentTransaction = require('../domain/PaymentTransaction');
 // Initialize Stripe with secret key (only if configured)
 let stripe = null;
 if (paymentConfig.stripe.secretKey) {
-  stripe = new /** @type {any} */ (Stripe)(paymentConfig.stripe.secretKey, {
+  stripe = new /** @type {any} */(Stripe)(paymentConfig.stripe.secretKey, {
     apiVersion: '2023-10-16',
   });
 } else {
@@ -604,9 +604,24 @@ class StripeService {
    */
   static async handleTrialWillEnd(subscription, event) {
     const userId = subscription.metadata.userId;
-    // Send notification to user about trial ending
-    console.log(`Trial ending soon for user ${userId}`);
-    // TODO: Send push notification / email
+    const { logger } = require('../../infrastructure/external/LoggingService');
+
+    logger.info('Trial ending soon notification', { userId, subscriptionId: subscription.id });
+
+    // Create notification in database for user
+    try {
+      const Notification = require('../domain/Notification');
+      await Notification.create({
+        userId,
+        type: 'trial_ending',
+        title: 'Trial Ending Soon',
+        message: 'Your trial period is ending soon. Upgrade now to continue enjoying premium features.',
+        data: { subscriptionId: subscription.id },
+        read: false
+      });
+    } catch (notifError) {
+      logger.error('Failed to create trial ending notification', { userId, error: notifError.message });
+    }
   }
 
   /**
@@ -693,15 +708,15 @@ class StripeService {
   static async handleInvoiceUpcoming(invoice, event) {
     // Send reminder notification about upcoming charge
     const customerId = invoice.customer;
-    
+
     try {
       const User = require('../domain/User');
       const user = await User.findOne({ stripeCustomerId: customerId });
-      
+
       if (user) {
         const Notification = require('../domain/Notification');
         const dueDate = new Date(invoice.due_date * 1000);
-        
+
         await Notification.create({
           userId: user._id,
           type: 'system',
