@@ -18,6 +18,7 @@
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "ios": {
         "resourceClass": "m-medium"
       },
@@ -29,16 +30,17 @@
       }
     },
     "production": {
+      "channel": "production",
       "ios": {
-        "resourceClass": "m-medium",
-        "autoIncrement": "buildNumber"
+        "resourceClass": "m-medium"
       },
       "android": {
-        "buildType": "app-bundle",
-        "autoIncrement": "versionCode"
+        "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_ENV": "production"
+        "EXPO_PUBLIC_ENV": "production",
+        "NODE_ENV": "production",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     }
   },
