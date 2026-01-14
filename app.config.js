@@ -1,7 +1,8 @@
 export default {
   expo: {
     name: 'dating-app',
-    slug: 'dating-app',
+    slug: 'genlang',
+    owner: 'beharkabashis-organization',
     version: '1.0.0',
     // Runtime version for OTA updates - increment when native code changes
     runtimeVersion: {
@@ -9,6 +10,34 @@ export default {
     },
     plugins: [
       'expo-font',
+      '@react-native-community/datetimepicker',
+      'expo-web-browser',
+      'expo-secure-store',
+      'react-native-iap',
+      // Sentry plugin - Uploads disabled to prevent build failures
+      // Sentry error tracking will still work in the app, but sourcemaps won't be uploaded
+      [
+        '@sentry/react-native',
+        {
+          // Completely disable all uploads to prevent build failures
+          uploadNativeSymbols: false,
+          uploadSourceMaps: false,
+          // Disable Gradle plugin uploads completely
+          enableAutoSessionTracking: false,
+          // Don't configure organization/project to prevent upload attempts
+          // This ensures the Gradle plugin won't try to upload even if credentials exist
+          organization: '',
+          project: '',
+        },
+      ],
+      [
+        'expo-build-properties',
+        {
+          android: {
+            kotlinVersion: '2.1.20',
+          },
+        },
+      ],
       // expo-in-app-purchases is auto-linked, no plugin needed
     ],
     orientation: 'default', // Allow both portrait and landscape for tablets
@@ -28,7 +57,7 @@ export default {
       // Fallback timeout if update check fails (5 seconds)
       fallbackToCacheTimeout: 5000,
       // URL for Expo updates (EAS Update) - Configure EAS_PROJECT_ID env var
-      url: `https://u.expo.dev/${process.env.EAS_PROJECT_ID || 'your-project-id'}`,
+      url: 'https://u.expo.dev/5c4d9519-5ab2-4768-a04c-247118bef600',
     },
     // iOS Configuration - Minimum iOS 14+
     ios: {
