@@ -66,7 +66,7 @@ export default {
     // iOS Configuration - Minimum iOS 14+
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'com.datingapp.app',
+      bundleIdentifier: 'com.beharkabashis.datingapp',
       buildNumber: '1',
       // Deep linking support
       associatedDomains: ['applinks:dating-app.com', 'applinks:*.dating-app.com'],
@@ -89,7 +89,7 @@ export default {
         CFBundleURLTypes: [
           {
             CFBundleURLSchemes: ['dating-app', 'exp'],
-            CFBundleURLName: 'com.datingapp.app',
+            CFBundleURLName: 'com.beharkabashis.datingapp',
           },
         ],
         // Required permission usage descriptions for App Store submission
@@ -108,7 +108,7 @@ export default {
     },
     // Android Configuration - Minimum Android 8.0 (API 26)
     android: {
-      package: 'com.datingapp.app',
+      package: 'com.beharkabashis.datingapp',
       versionCode: 1,
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',
