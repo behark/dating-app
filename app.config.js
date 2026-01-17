@@ -35,6 +35,10 @@ export default {
         {
           android: {
             kotlinVersion: '2.1.20',
+            compileSdkVersion: 34,
+            targetSdkVersion: 34,
+            minSdkVersion: 26,
+            buildToolsVersion: '34.0.0',
           },
         },
       ],
@@ -184,9 +188,12 @@ export default {
         'https://dating-app-backend-x4yq.onrender.com/api'
       ).replace('/api', ''),
       // Sentry DSN for error tracking
-      sentryDsn: process.env.EXPO_PUBLIC_SENTRY_DSN || 'https://e21c92d839607c2d0f9378d08ca96903@o4510655194726400.ingest.de.sentry.io/4510655204687952',
+      sentryDsn:
+        process.env.EXPO_PUBLIC_SENTRY_DSN ||
+        'https://e21c92d839607c2d0f9378d08ca96903@o4510655194726400.ingest.de.sentry.io/4510655204687952',
       // Firebase configuration
-      firebaseApiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'AIzaSyBlk0u4pYjlfcumY3-eCrTZi1LWoTbtfO4',
+      firebaseApiKey:
+        process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'AIzaSyBlk0u4pYjlfcumY3-eCrTZi1LWoTbtfO4',
       firebaseAuthDomain:
         process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || 'my-project-de65d.firebaseapp.com',
       firebaseProjectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || 'my-project-de65d',
@@ -194,12 +201,15 @@ export default {
         process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || 'my-project-de65d.firebasestorage.app',
       firebaseMessagingSenderId:
         process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '466295464562',
-      firebaseAppId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '1:466295464562:web:0edad1169197f22b3758eb',
+      firebaseAppId:
+        process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '1:466295464562:web:0edad1169197f22b3758eb',
       firebaseMeasurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID || 'G-6SVJV18H0Q',
       // Google OAuth Client IDs (required for Google Sign-In)
       // - Web must be an OAuth Client ID ending with `.apps.googleusercontent.com`
       // - iOS/Android are optional unless you ship native builds
-      googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || '466295464562-d46eopil8i350mjdffno9v38bvt4nn31.apps.googleusercontent.com',
+      googleWebClientId:
+        process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
+        '466295464562-d46eopil8i350mjdffno9v38bvt4nn31.apps.googleusercontent.com',
       googleIosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || '',
       googleAndroidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || '',
       // EAS Project ID for updates
