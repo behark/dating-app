@@ -13,7 +13,7 @@ export default {
       '@react-native-community/datetimepicker',
       'expo-web-browser',
       'expo-secure-store',
-      'react-native-iap',
+      // react-native-iap is auto-linked, no plugin needed
       // Sentry plugin - Uploads disabled to prevent build failures
       // Sentry error tracking will still work in the app, but sourcemaps won't be uploaded
       [
