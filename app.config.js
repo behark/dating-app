@@ -35,10 +35,10 @@ export default {
         {
           android: {
             kotlinVersion: '2.1.20',
-            compileSdkVersion: 34,
+            compileSdkVersion: 35,
             targetSdkVersion: 34,
             minSdkVersion: 26,
-            buildToolsVersion: '34.0.0',
+            buildToolsVersion: '35.0.0',
           },
         },
       ],
