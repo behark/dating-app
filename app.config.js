@@ -42,7 +42,7 @@ export default {
           },
         },
       ],
-      // expo-in-app-purchases is auto-linked, no plugin needed
+      // react-native-iap is auto-linked, no plugin needed
     ],
     orientation: 'default', // Allow both portrait and landscape for tablets
     icon: './assets/icon.png',
