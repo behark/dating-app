@@ -36,7 +36,7 @@ export default {
           android: {
             kotlinVersion: '2.1.20',
             compileSdkVersion: 35,
-            targetSdkVersion: 34,
+            targetSdkVersion: 35,
             minSdkVersion: 26,
             buildToolsVersion: '35.0.0',
           },
@@ -117,8 +117,8 @@ export default {
       edgeToEdgeEnabled: true,
       // Minimum SDK 26 = Android 8.0 Oreo
       minSdkVersion: 26,
-      // Target latest stable SDK for best compatibility
-      targetSdkVersion: 34,
+      // Target SDK 35 (required by Google Play)
+      targetSdkVersion: 35,
       // Support all screen sizes including tablets
       permissions: [],
       allowBackup: false,
