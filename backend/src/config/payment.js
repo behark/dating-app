@@ -69,7 +69,7 @@ module.exports = {
 
   // Google Play Store Configuration
   google: {
-    packageName: process.env.GOOGLE_PACKAGE_NAME || 'com.datingapp.app',
+    packageName: process.env.GOOGLE_PACKAGE_NAME || 'com.beharkabashis.datingapp',
     serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
     serviceAccountPrivateKey: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY,
     // Product IDs (configure in Google Play Console)
