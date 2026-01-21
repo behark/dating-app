@@ -37,8 +37,8 @@ import { GuestModeBanner, PremiumHeader, ActionButtons } from '../components';
 import HapticFeedback from '../../../utils/haptics';
 import logger from '../../../utils/logger';
 import LoginScreen from '../../auth/screens/LoginScreen';
-import { getStyles } from './HomeScreen.styles';
 import { GUEST_FREE_VIEWS } from '../data/demoProfiles';
+import { getStyles } from './HomeScreen.styles';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -89,32 +89,42 @@ const HomeScreen = ({ navigation }) => {
 
   // Guest mode: Show login prompt helper
   const lastPromptRef = useRef(0);
-  const promptLogin = useCallback((reason) => {
-    if (showLoginModal) return;
-    const now = Date.now();
-    if (now - lastPromptRef.current < 2000) return;
-    lastPromptRef.current = now;
-    setLoginPromptReason(reason);
-    setShowLoginModal(true);
-    AnalyticsService.logEvent('guest_login_prompt', {
-      reason,
-      viewCount: guestViewCount,
-      profilesViewed: guestViewCount
-    });
-  }, [guestViewCount, showLoginModal]);
+  const promptLogin = useCallback(
+    (reason) => {
+      if (showLoginModal) return;
+      const now = Date.now();
+      if (now - lastPromptRef.current < 2000) return;
+      lastPromptRef.current = now;
+      setLoginPromptReason(reason);
+      setShowLoginModal(true);
+      AnalyticsService.logEvent('guest_login_prompt', {
+        reason,
+        viewCount: guestViewCount,
+        profilesViewed: guestViewCount,
+      });
+    },
+    [guestViewCount, showLoginModal]
+  );
 
   // Optimistic UI update function - must be declared before useSwipeActions
-  const applySwipeUIOptimistic = useCallback((direction, card) => {
-    startTransition(() => {
-      setLastSwipedCard({ card, direction, swipeId: null });
-      setCurrentIndex((prev) => prev + 1);
-      const newCount = swipesUsedToday + 1;
-      setSwipesUsedToday(newCount);
-      if (!isPremium) {
-        setSwipesRemaining(Math.max(0, 50 - newCount));
-      }
-    });
-  }, [isPremium, swipesUsedToday]);
+  const applySwipeUIOptimistic = useCallback(
+    (direction, card) => {
+      startTransition(() => {
+        setLastSwipedCard({ card, direction, swipeId: null });
+        setCurrentIndex((prev) => prev + 1);
+        if (!isGuest) {
+          setSwipesUsedToday((prev) => {
+            const newCount = prev + 1;
+            if (!isPremium) {
+              setSwipesRemaining(Math.max(0, 50 - newCount));
+            }
+            return newCount;
+          });
+        }
+      });
+    },
+    [isGuest, isPremium]
+  );
 
   // Swipe actions hook - must be after userId, isGuest, isPremium, promptLogin, and applySwipeUIOptimistic are declared
   const swipeActions = useSwipeActions({
@@ -134,27 +144,39 @@ const HomeScreen = ({ navigation }) => {
   const getLoginPromptMessage = () => {
     switch (loginPromptReason) {
       case 'swipe':
-        return { title: '💕 Ready to Match?', subtitle: 'Create a free account to start swiping and find your match!' };
+        return {
+          title: '💕 Ready to Match?',
+          subtitle: 'Create a free account to start swiping and find your match!',
+        };
       case 'like':
-        return { title: '❤️ Like This Person?', subtitle: 'Sign up to let them know you\'re interested!' };
+        return {
+          title: '❤️ Like This Person?',
+          subtitle: "Sign up to let them know you're interested!",
+        };
       case 'superlike':
-        return { title: '⭐ Super Like?', subtitle: 'Create an account to send Super Likes and stand out!' };
+        return {
+          title: '⭐ Super Like?',
+          subtitle: 'Create an account to send Super Likes and stand out!',
+        };
       case 'view':
-        return { title: '👀 Want to See More?', subtitle: 'Sign up to view full profiles and photos!' };
+        return {
+          title: '👀 Want to See More?',
+          subtitle: 'Sign up to view full profiles and photos!',
+        };
       case 'limit':
         return {
-          title: '🔥 You\'re on Fire!',
-          subtitle: `You've viewed ${guestViewCount} profiles! Sign up free to see unlimited matches and start connecting.`
+          title: "🔥 You're on Fire!",
+          subtitle: `You've viewed ${guestViewCount} profiles! Sign up free to see unlimited matches and start connecting.`,
         };
       case 'banner':
         return {
           title: '💕 Ready to Match?',
-          subtitle: 'Join thousands of singles and start your dating journey today!'
+          subtitle: 'Join thousands of singles and start your dating journey today!',
         };
       default:
         return {
           title: 'Join Our Community!',
-          subtitle: 'Create a free account to unlock all features and start matching!'
+          subtitle: 'Create a free account to unlock all features and start matching!',
         };
     }
   };
@@ -181,7 +203,7 @@ const HomeScreen = ({ navigation }) => {
       (async () => {
         if (isGuest) {
           // Guest mode: Load demo profiles from database (100 profiles)
-          const loc = await initializeLocation();
+          const loc = await initializeLocation({ allowGuest: true });
           if (!isActive) return;
           await loadCards(loc, true); // true = guest mode
           if (!isActive) return;
@@ -217,26 +239,28 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const initializeLocation = async () => {
-    if (!userId) return;
+  const initializeLocation = async ({ allowGuest = false } = {}) => {
+    if (!userId && !allowGuest) return null;
     try {
       setLocationUpdating(true);
 
       // First, try to get location from user profile (in case GPS isn't available)
       let location = null;
-      try {
-        const userData = await userRepository.getCurrentUser(userId);
-        if (userData?.location?.coordinates && userData.location.coordinates.length === 2) {
-          // User has saved location in profile
-          location = {
-            latitude: userData.location.coordinates[1], // MongoDB stores as [lng, lat]
-            longitude: userData.location.coordinates[0],
-            accuracy: null,
-          };
-          logger.info('Using saved location from user profile', location);
+      if (userId) {
+        try {
+          const userData = await userRepository.getCurrentUser(userId);
+          if (userData?.location?.coordinates && userData.location.coordinates.length === 2) {
+            // User has saved location in profile
+            location = {
+              latitude: userData.location.coordinates[1], // MongoDB stores as [lng, lat]
+              longitude: userData.location.coordinates[0],
+              accuracy: null,
+            };
+            logger.info('Using saved location from user profile', location);
+          }
+        } catch (profileError) {
+          logger.warn('Could not get location from user profile', profileError);
         }
-      } catch (profileError) {
-        logger.warn('Could not get location from user profile', profileError);
       }
 
       // If no saved location, try to get current GPS location
@@ -244,10 +268,12 @@ const HomeScreen = ({ navigation }) => {
         const gpsLocation = await LocationService.getCurrentLocation();
         if (gpsLocation) {
           location = gpsLocation;
-          // Update user location in database
-          await LocationService.updateUserLocation(userId, location);
-          // Start periodic location updates (every 5 minutes)
-          LocationService.startPeriodicLocationUpdates(userId);
+          if (userId) {
+            // Update user location in database
+            await LocationService.updateUserLocation(userId, location);
+            // Start periodic location updates (every 5 minutes)
+            LocationService.startPeriodicLocationUpdates(userId);
+          }
         }
       }
 
@@ -256,7 +282,7 @@ const HomeScreen = ({ navigation }) => {
         logger.warn('Location not available, using NYC as default location for discovery');
         const defaultLocation = {
           latitude: 40.7128, // New York City (where many demo profiles are)
-          longitude: -74.0060,
+          longitude: -74.006,
           accuracy: null,
         };
         location = defaultLocation;
@@ -269,7 +295,7 @@ const HomeScreen = ({ navigation }) => {
       // Use NYC as default location on error (better than 0,0)
       const defaultLocation = {
         latitude: 40.7128, // New York City
-        longitude: -74.0060,
+        longitude: -74.006,
         accuracy: null,
       };
       setUserLocation(defaultLocation);
@@ -347,7 +373,7 @@ const HomeScreen = ({ navigation }) => {
         const discoveryService = new DiscoveryService();
         const result = await discoveryService.exploreUsers(
           loc?.latitude ?? userLocation?.latitude ?? 40.7128,
-          loc?.longitude ?? userLocation?.longitude ?? -74.0060,
+          loc?.longitude ?? userLocation?.longitude ?? -74.006,
           {
             radius: discoveryRadius * 1000,
             limit: 50,
@@ -359,8 +385,8 @@ const HomeScreen = ({ navigation }) => {
         // For authenticated users, use repository to get discoverable users
         availableUsers = await userRepository.getDiscoverableUsers(userId, {
           limit: 50,
-          lat: (loc?.latitude ?? userLocation?.latitude),
-          lng: (loc?.longitude ?? userLocation?.longitude),
+          lat: loc?.latitude ?? userLocation?.latitude,
+          lng: loc?.longitude ?? userLocation?.longitude,
           radius: discoveryRadius * 1000, // Convert km to meters
         });
       }
@@ -373,11 +399,11 @@ const HomeScreen = ({ navigation }) => {
         return;
       }
 
-      // Apply user preferences filtering
-      const filteredUsers = await PreferencesService.filterUsersForDiscovery(
-        userId,
-        availableUsers
-      );
+      // Apply user preferences filtering for signed-in users only
+      const filteredUsers =
+        isGuestMode || !userId
+          ? availableUsers
+          : await PreferencesService.filterUsersForDiscovery(userId, availableUsers);
 
       // Shuffle for variety
       const shuffled = filteredUsers.sort(() => Math.random() - 0.5);
@@ -418,28 +444,49 @@ const HomeScreen = ({ navigation }) => {
     }
   }, [userId, isPremium]);
 
-  // Swipe handlers using the swipe actions hook
-  const handleSwipeRight = useCallback((card) => {
-    if (isGuest) {
-      const newViewCount = guestViewCount + 1;
-      setGuestViewCount(newViewCount);
-      promptLogin('like');
-      return;
-    }
-    swipeActions.handleSwipeRight(card);
-  }, [isGuest, guestViewCount, promptLogin, swipeActions]);
+  const handleGuestSwipe = useCallback(
+    (direction, reason, card) => {
+      if (guestViewCount >= GUEST_FREE_VIEWS) {
+        promptLogin('limit');
+        return false;
+      }
 
-  const handleSwipeLeft = useCallback((card) => {
-    if (isGuest) {
       const newViewCount = guestViewCount + 1;
       setGuestViewCount(newViewCount);
+      applySwipeUIOptimistic(direction, card);
+
       if (newViewCount >= GUEST_FREE_VIEWS) {
         promptLogin('limit');
+      } else if (reason) {
+        promptLogin(reason);
       }
-      return;
-    }
-    swipeActions.handleSwipeLeft(card);
-  }, [isGuest, guestViewCount, promptLogin, swipeActions, GUEST_FREE_VIEWS]);
+      return true;
+    },
+    [guestViewCount, applySwipeUIOptimistic, promptLogin, GUEST_FREE_VIEWS]
+  );
+
+  // Swipe handlers using the swipe actions hook
+  const handleSwipeRight = useCallback(
+    (card) => {
+      if (isGuest) {
+        handleGuestSwipe('right', 'like', card);
+        return;
+      }
+      swipeActions.handleSwipeRight(card);
+    },
+    [isGuest, handleGuestSwipe, swipeActions]
+  );
+
+  const handleSwipeLeft = useCallback(
+    (card) => {
+      if (isGuest) {
+        handleGuestSwipe('left', null, card);
+        return;
+      }
+      swipeActions.handleSwipeLeft(card);
+    },
+    [isGuest, handleGuestSwipe, swipeActions]
+  );
 
   const handleSuperLike = useCallback(
     async (card) => {
@@ -509,7 +556,16 @@ const HomeScreen = ({ navigation }) => {
         }
       });
     },
-    [userId, premiumFeatures.superLikesPerDay, authToken, isGuest, promptLogin, navigation, applySwipeUIOptimistic, reconcileSwipeCounters]
+    [
+      userId,
+      premiumFeatures.superLikesPerDay,
+      authToken,
+      isGuest,
+      promptLogin,
+      navigation,
+      applySwipeUIOptimistic,
+      reconcileSwipeCounters,
+    ]
   );
 
   // Guest mode: Handle view profile
@@ -640,9 +696,7 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.guestBannerContent}>
             <Ionicons name="eye-outline" size={18} color={Colors.primary} />
             <Text style={styles.guestBannerText}>
-              {guestViewCount >= GUEST_FREE_VIEWS
-                ? '🔥 Last chance!'
-                : 'Browsing as Guest'}
+              {guestViewCount >= GUEST_FREE_VIEWS ? '🔥 Last chance!' : 'Browsing as Guest'}
             </Text>
             {guestViewCount < GUEST_FREE_VIEWS && (
               <Text style={styles.guestBannerCount}>
@@ -653,7 +707,7 @@ const HomeScreen = ({ navigation }) => {
           <TouchableOpacity
             style={[
               styles.guestSignUpButton,
-              guestViewCount >= GUEST_FREE_VIEWS && styles.guestSignUpButtonUrgent
+              guestViewCount >= GUEST_FREE_VIEWS && styles.guestSignUpButtonUrgent,
             ]}
             onPress={() => promptLogin('banner')}
           >
@@ -792,29 +846,27 @@ const HomeScreen = ({ navigation }) => {
       >
         {loading || authLoading
           ? // Show skeleton cards while loading
-          Array.from({ length: 3 }).map((_, index) => (
-            <SkeletonCard key={`skeleton-${index}`} style={{ marginBottom: 15 }} />
-          ))
+            Array.from({ length: 3 }).map((_, index) => (
+              <SkeletonCard key={`skeleton-${index}`} style={{ marginBottom: 15 }} />
+            ))
           : cards.length > 0 && (
-            <View style={styles.cardsContainer}>
-              <View
-                style={styles.cardsWrapper}
-              >
-                {cards
-                  .slice(currentIndex, currentIndex + 3)
-                  .map((card, index) => (
+              <View style={styles.cardsContainer}>
+                <View style={styles.cardsWrapper}>
+                  {cards.slice(currentIndex, currentIndex + 3).map((card, index) => (
                     <SwipeCard
                       key={card.id || card._id}
                       card={card}
                       index={currentIndex + index}
                       onSwipeLeft={handleSwipeLeft}
                       onSwipeRight={handleSwipeRight}
-                      onViewProfile={() => navigation.navigate('ViewProfile', { userId: card.id || card._id })}
+                      onViewProfile={() =>
+                        navigation.navigate('ViewProfile', { userId: card.id || card._id })
+                      }
                     />
                   ))}
+                </View>
               </View>
-            </View>
-          )}
+            )}
 
         {currentIndex >= cards.length && cards.length > 0 && (
           <View style={styles.emptyContainer}>
@@ -842,13 +894,13 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.emptyContainer}>
             <EmptyState
               icon="people-outline"
-              title={isGuest ? "Preview Mode 👋" : "No Profiles Yet 🌟"}
+              title={isGuest ? 'Preview Mode 👋' : 'No Profiles Yet 🌟'}
               description={
                 isGuest
                   ? "You're viewing in guest mode. Sign up to see real profiles and start matching!"
-                  : "Check back soon for new profiles, or adjust your preferences to see more matches!"
+                  : 'Check back soon for new profiles, or adjust your preferences to see more matches!'
               }
-              buttonText={isGuest ? "Sign Up Free" : "Adjust Preferences"}
+              buttonText={isGuest ? 'Sign Up Free' : 'Adjust Preferences'}
               onButtonPress={() => {
                 HapticFeedback.lightImpact();
                 if (isGuest) {
@@ -966,16 +1018,12 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.loginModalSubtitle}>{loginPrompt.subtitle}</Text>
           </View>
           <View style={styles.loginModalContent}>
-            <LoginScreen
-              navigation={navigation}
-              onAuthSuccess={() => setShowLoginModal(false)}
-            />
+            <LoginScreen navigation={navigation} onAuthSuccess={() => setShowLoginModal(false)} />
           </View>
         </View>
       </Modal>
     </LinearGradient>
   );
 };
-
 
 export default HomeScreen;
