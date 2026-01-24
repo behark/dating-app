@@ -1,15 +1,15 @@
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import { initSentry } from '../utils/sentry';
+import { API_ENDPOINTS } from '../constants/constants';
+import logger from '../utils/logger';
 import { AnalyticsService } from './AnalyticsService';
 import NotificationService from './NotificationService';
 import { PWAService } from './PWAService';
 import { UpdateService } from './UpdateService';
 import { UserBehaviorAnalytics } from './UserBehaviorAnalytics';
-import { initSentry } from '../utils/sentry';
 import IAPService from './IAPService';
 import api from './api';
-import { API_ENDPOINTS } from '../constants/constants';
-import logger from '../utils/logger';
 
 /**
  * Service to handle all app initialization logic
@@ -17,6 +17,7 @@ import logger from '../utils/logger';
  */
 class AppInitializationService {
   static async initializeApp() {
+    let notificationCleanup = null;
     // CRITICAL FIX: Initialize Sentry error tracking
     const sentryDsn = Constants.expoConfig?.extra?.sentryDsn || process.env.EXPO_PUBLIC_SENTRY_DSN;
     if (sentryDsn) {
@@ -49,7 +50,7 @@ class AppInitializationService {
         }
 
         // Setup notification listeners
-        const cleanup = NotificationService.setupNotificationListeners(
+        notificationCleanup = NotificationService.setupNotificationListeners(
           (notification) => {
             logger.debug('Notification received');
             // Handle foreground notifications
@@ -80,8 +81,6 @@ class AppInitializationService {
             }
           }
         );
-
-        return cleanup;
       } catch (error) {
         logger.error('Error setting up push notifications:', error);
       }
@@ -135,6 +134,8 @@ class AppInitializationService {
     UserBehaviorAnalytics.registerABTest('premium_cta', ['control', 'urgency', 'social_proof'], {
       distribution: [0.34, 0.33, 0.33],
     });
+
+    return notificationCleanup;
   }
 
   static setupConsoleWarnings() {
