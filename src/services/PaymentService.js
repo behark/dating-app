@@ -55,6 +55,9 @@ export class PaymentService {
    */
   static async getBillingHistory(token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
       const response = await api.get('/payment/history', {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -102,9 +105,19 @@ export class PaymentService {
    */
   static async createStripePaymentIntent(productType, productId, quantity, token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
+      if (!productType || !productId) {
+        throw new Error('Product type and product ID are required');
+      }
+      const safeQuantity = Number.isFinite(quantity) ? quantity : 1;
+      if (safeQuantity <= 0) {
+        throw new Error('Quantity must be greater than 0');
+      }
       const response = await api.post(
         '/payment/stripe/payment-intent',
-        { productType, productId, quantity },
+        { productType, productId, quantity: safeQuantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const handled = handleApiResponse(response, 'Create Stripe payment intent');
@@ -143,6 +156,12 @@ export class PaymentService {
    */
   static async createPayPalSubscription(planType, token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
+      if (!['monthly', 'yearly'].includes(planType)) {
+        throw new Error('Plan type must be monthly or yearly');
+      }
       const response = await api.post(
         '/payment/paypal/subscription',
         { planType },
@@ -166,6 +185,12 @@ export class PaymentService {
    */
   static async activatePayPalSubscription(subscriptionId, token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
+      if (!subscriptionId) {
+        throw new Error('Subscription ID is required');
+      }
       const response = await api.post(
         '/payment/paypal/subscription/activate',
         { subscriptionId },
@@ -184,9 +209,19 @@ export class PaymentService {
    */
   static async createPayPalOrder(productType, productId, quantity, token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
+      if (!productType || !productId) {
+        throw new Error('Product type and product ID are required');
+      }
+      const safeQuantity = Number.isFinite(quantity) ? quantity : 1;
+      if (safeQuantity <= 0) {
+        throw new Error('Quantity must be greater than 0');
+      }
       const response = await api.post(
         '/payment/paypal/order',
-        { productType, productId, quantity },
+        { productType, productId, quantity: safeQuantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const handled = handleApiResponse(response, 'Create PayPal order');
@@ -207,6 +242,12 @@ export class PaymentService {
    */
   static async capturePayPalOrder(orderId, token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
+      if (!orderId) {
+        throw new Error('Order ID is required');
+      }
       const response = await api.post(
         '/payment/paypal/order/capture',
         { orderId },
@@ -227,6 +268,12 @@ export class PaymentService {
    */
   static async validateAppleReceipt(receiptData, productId, token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
+      if (!receiptData || !productId) {
+        throw new Error('Receipt data and product ID are required');
+      }
       const response = await api.post(
         '/payment/apple/validate',
         { receiptData, productId },
@@ -245,6 +292,12 @@ export class PaymentService {
    */
   static async restoreApplePurchases(receiptData, token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
+      if (!receiptData) {
+        throw new Error('Receipt data is required');
+      }
       const response = await api.post(
         '/payment/apple/restore',
         { receiptData },
@@ -265,6 +318,12 @@ export class PaymentService {
    */
   static async validateGooglePurchase(purchaseToken, productId, isSubscription, token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
+      if (!purchaseToken || !productId) {
+        throw new Error('Purchase token and product ID are required');
+      }
       const response = await api.post(
         '/payment/google/validate',
         { purchaseToken, productId, isSubscription },
@@ -283,6 +342,12 @@ export class PaymentService {
    */
   static async restoreGooglePurchases(purchases, token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
+      if (!Array.isArray(purchases)) {
+        throw new Error('Purchases must be an array');
+      }
       const response = await api.post(
         '/payment/google/restore',
         { purchases },
@@ -303,6 +368,9 @@ export class PaymentService {
    */
   static async cancelSubscription(immediately, token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
       const response = await api.post(
         '/payment/subscription/cancel',
         { immediately },
@@ -321,6 +389,9 @@ export class PaymentService {
    */
   static async resumeSubscription(token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
       const response = await api.post(
         '/payment/subscription/resume',
         {},
@@ -341,6 +412,15 @@ export class PaymentService {
    */
   static async requestRefund(transactionId, reason, amount, token) {
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Authentication token is required');
+      }
+      if (!transactionId || !reason) {
+        throw new Error('Transaction ID and reason are required');
+      }
+      if (amount !== undefined && !Number.isFinite(amount)) {
+        throw new Error('Amount must be a number');
+      }
       const response = await api.post(
         '/payment/refund/request',
         { transactionId, reason, amount },

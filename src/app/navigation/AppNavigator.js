@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ConsentBanner from '../../components/ConsentBanner';
 import { useAuth } from '../providers/AuthProvider';
 import { useDeepLinking } from './DeepLinkHandler';
@@ -18,6 +18,7 @@ const AppNavigator = () => {
   const [showConsentBanner, setShowConsentBanner] = useState(false);
   const [checkingConsent, setCheckingConsent] = useState(true);
   const [navigationReady, setNavigationReady] = useState(false);
+  const wasAuthenticatedRef = useRef(null);
 
   // Check consent status when user logs in
   useEffect(() => {
@@ -107,6 +108,29 @@ const AppNavigator = () => {
 
     routeNameRef.current = currentRouteName;
   };
+
+  useEffect(() => {
+    if (!navigationReady) {
+      return;
+    }
+
+    const isAuthenticated = Boolean(currentUser);
+
+    if (wasAuthenticatedRef.current === null) {
+      wasAuthenticatedRef.current = isAuthenticated;
+      return;
+    }
+
+    if (wasAuthenticatedRef.current !== isAuthenticated) {
+      const targetRoute = isAuthenticated ? 'Main' : 'Home';
+      navigationRef.current?.reset({
+        index: 0,
+        routes: [{ name: targetRoute }],
+      });
+    }
+
+    wasAuthenticatedRef.current = isAuthenticated;
+  }, [currentUser, navigationReady]);
 
   return (
     <>
