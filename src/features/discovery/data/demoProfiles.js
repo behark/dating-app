@@ -1,5 +1,13 @@
 // Demo profiles for guest mode preview
+// App launched January 2025 - profiles have varying join dates
 export const GUEST_FREE_VIEWS = 10;
+
+// Helper to calculate days ago from current date
+const daysAgo = (days) => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString();
+};
 
 export const GUEST_DEMO_PROFILES = [
   {
@@ -17,6 +25,8 @@ export const GUEST_DEMO_PROFILES = [
     distance: 5,
     isVerified: true,
     isDemo: true,
+    createdAt: daysAgo(340), // Early adopter - joined shortly after launch
+    lastActive: daysAgo(0), // Active today
   },
   {
     id: 'demo_2',
@@ -33,6 +43,8 @@ export const GUEST_DEMO_PROFILES = [
     distance: 12,
     isVerified: false,
     isDemo: true,
+    createdAt: daysAgo(280), // Joined 9 months ago
+    lastActive: daysAgo(1),
   },
   {
     id: 'demo_3',
@@ -49,6 +61,8 @@ export const GUEST_DEMO_PROFILES = [
     distance: 8,
     isVerified: true,
     isDemo: true,
+    createdAt: daysAgo(220), // Joined 7 months ago
+    lastActive: daysAgo(0),
   },
   {
     id: 'demo_4',
@@ -65,6 +79,8 @@ export const GUEST_DEMO_PROFILES = [
     distance: 15,
     isVerified: false,
     isDemo: true,
+    createdAt: daysAgo(150), // Joined 5 months ago
+    lastActive: daysAgo(2),
   },
   {
     id: 'demo_5',
@@ -81,6 +97,8 @@ export const GUEST_DEMO_PROFILES = [
     distance: 20,
     isVerified: true,
     isDemo: true,
+    createdAt: daysAgo(90), // Joined 3 months ago
+    lastActive: daysAgo(0),
   },
   {
     id: 'demo_6',
@@ -97,13 +115,15 @@ export const GUEST_DEMO_PROFILES = [
     distance: 9,
     isVerified: true,
     isDemo: true,
+    createdAt: daysAgo(365), // OG user - joined at launch
+    lastActive: daysAgo(0),
   },
   {
     id: 'demo_7',
     _id: 'demo_7',
     name: 'Diego',
     age: 31,
-    bio: 'Chef by day, salsa dancer by night. Let’s find the best tacos in town.',
+    bio: 'Chef by day, salsa dancer by night. Let's find the best tacos in town.',
     photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
     photos: [
       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
@@ -113,6 +133,8 @@ export const GUEST_DEMO_PROFILES = [
     distance: 14,
     isVerified: false,
     isDemo: true,
+    createdAt: daysAgo(60), // Joined 2 months ago
+    lastActive: daysAgo(1),
   },
   {
     id: 'demo_8',
@@ -129,6 +151,8 @@ export const GUEST_DEMO_PROFILES = [
     distance: 6,
     isVerified: true,
     isDemo: true,
+    createdAt: daysAgo(30), // Joined 1 month ago
+    lastActive: daysAgo(0),
   },
   {
     id: 'demo_9',
@@ -145,6 +169,8 @@ export const GUEST_DEMO_PROFILES = [
     distance: 11,
     isVerified: false,
     isDemo: true,
+    createdAt: daysAgo(14), // Joined 2 weeks ago
+    lastActive: daysAgo(0),
   },
   {
     id: 'demo_10',
@@ -161,6 +187,8 @@ export const GUEST_DEMO_PROFILES = [
     distance: 4,
     isVerified: true,
     isDemo: true,
+    createdAt: daysAgo(3), // New user - just joined!
+    lastActive: daysAgo(0),
   },
 ];
 
