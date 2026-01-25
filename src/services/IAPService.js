@@ -6,7 +6,7 @@ if (Platform.OS !== 'web') {
   try {
     IAP = require('react-native-iap');
   } catch (error) {
-    console.warn('react-native-iap not available:', error);
+    if (__DEV__) console.warn('react-native-iap not available:', error);
   }
 }
 
@@ -32,7 +32,7 @@ class IAPService {
    */
   async initialize() {
     if (!this.isAvailable) {
-      console.warn('IAP not available on web platform');
+      if (__DEV__) console.warn('IAP not available on web platform');
       return;
     }
 
@@ -47,13 +47,13 @@ class IAPService {
       });
 
       this.purchaseErrorSubscription = IAP.purchaseErrorListener((error) => {
-        console.error('Purchase error:', error);
+        if (__DEV__) console.error('Purchase error:', error);
       });
 
       this.isConnected = true;
-      console.log('IAP service initialized');
+      if (__DEV__) console.log('IAP service initialized');
     } catch (error) {
-      console.error('Failed to initialize IAP:', error);
+      if (__DEV__) console.error('Failed to initialize IAP:', error);
       throw error;
     }
   }
@@ -63,7 +63,7 @@ class IAPService {
    */
   async getProducts(productIds) {
     if (!this.isAvailable) {
-      console.warn('IAP not available on web platform');
+      if (__DEV__) console.warn('IAP not available on web platform');
       return [];
     }
 
@@ -74,7 +74,7 @@ class IAPService {
       this.products = products;
       return products;
     } catch (error) {
-      console.error('Error getting products:', error);
+      if (__DEV__) console.error('Error getting products:', error);
       throw error;
     }
   }
@@ -84,7 +84,7 @@ class IAPService {
    */
   async getSubscriptions(subscriptionIds) {
     if (!this.isAvailable) {
-      console.warn('IAP not available on web platform');
+      if (__DEV__) console.warn('IAP not available on web platform');
       return [];
     }
 
@@ -94,7 +94,7 @@ class IAPService {
       const subscriptions = await IAP.getSubscriptions(subscriptionIds);
       return subscriptions;
     } catch (error) {
-      console.error('Error getting subscriptions:', error);
+      if (__DEV__) console.error('Error getting subscriptions:', error);
       throw error;
     }
   }
@@ -112,7 +112,7 @@ class IAPService {
 
       return await IAP.requestPurchase(productId, false);
     } catch (error) {
-      console.error('Purchase failed:', error);
+      if (__DEV__) console.error('Purchase failed:', error);
       throw error;
     }
   }
@@ -130,7 +130,7 @@ class IAPService {
 
       return await IAP.requestSubscription(subscriptionId, false);
     } catch (error) {
-      console.error('Subscription purchase failed:', error);
+      if (__DEV__) console.error('Subscription purchase failed:', error);
       throw error;
     }
   }
@@ -140,7 +140,7 @@ class IAPService {
    */
   async restorePurchases() {
     if (!this.isAvailable) {
-      console.warn('IAP not available on web platform');
+      if (__DEV__) console.warn('IAP not available on web platform');
       return [];
     }
 
@@ -151,7 +151,7 @@ class IAPService {
       this.purchaseHistory = purchases;
       return purchases;
     } catch (error) {
-      console.error('Failed to restore purchases:', error);
+      if (__DEV__) console.error('Failed to restore purchases:', error);
       throw error;
     }
   }
@@ -169,7 +169,7 @@ class IAPService {
       // Acknowledge the purchase
       await this.finishTransaction(purchase);
     } catch (error) {
-      console.error('Error handling purchase update:', error);
+      if (__DEV__) console.error('Error handling purchase update:', error);
     }
   }
 
@@ -188,9 +188,9 @@ class IAPService {
         // Android
         await IAP.acknowledgePurchaseAndroid(purchase.purchaseToken);
       }
-      console.log('Transaction finished:', purchase.productId);
+      if (__DEV__) console.log('Transaction finished:', purchase.productId);
     } catch (error) {
-      console.error('Failed to finish transaction:', error);
+      if (__DEV__) console.error('Failed to finish transaction:', error);
       throw error;
     }
   }
@@ -209,7 +209,7 @@ class IAPService {
           (purchase.isAcknowledged || purchase.transactionState === 'purchased')
       );
     } catch (error) {
-      console.error('Failed to get active subscription:', error);
+      if (__DEV__) console.error('Failed to get active subscription:', error);
       return [];
     }
   }
@@ -237,10 +237,10 @@ class IAPService {
 
         await IAP.endConnection();
         this.isConnected = false;
-        console.log('IAP service disconnected');
+        if (__DEV__) console.log('IAP service disconnected');
       }
     } catch (error) {
-      console.error('Failed to disconnect IAP:', error);
+      if (__DEV__) console.error('Failed to disconnect IAP:', error);
     }
   }
 

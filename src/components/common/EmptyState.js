@@ -14,6 +14,9 @@ import { Colors } from '../../constants/colors';
  * @param {string} props.description - Description text
  * @param {string} props.buttonText - Text for the CTA button
  * @param {Function} props.onButtonPress - Callback when button is pressed
+ * @param {string} props.secondaryButtonText - Text for the secondary button
+ * @param {Function} props.onSecondaryButtonPress - Callback when secondary button is pressed
+ * @param {string} props.variant - Variant style ('default' | 'simple')
  * @param {Array} props.gradientColors - Colors for the background gradient
  * @param {Object} props.style - Additional styling for the container
  */
@@ -24,6 +27,9 @@ const EmptyState = ({
   description,
   buttonText,
   onButtonPress,
+  secondaryButtonText,
+  onSecondaryButtonPress,
+  variant = 'default',
   gradientColors = ['rgba(102, 126, 234, 0.1)', 'rgba(118, 75, 162, 0.1)'],
   style,
 }) => (
@@ -47,6 +53,15 @@ const EmptyState = ({
           <LinearGradient colors={Colors.gradient.primary} style={styles.buttonGradient}>
             <Text style={styles.buttonText}>{buttonText}</Text>
           </LinearGradient>
+        </TouchableOpacity>
+      )}
+      {secondaryButtonText && onSecondaryButtonPress && (
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={onSecondaryButtonPress}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.secondaryButtonText}>{secondaryButtonText}</Text>
         </TouchableOpacity>
       )}
     </LinearGradient>
@@ -101,6 +116,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: 0.5,
+  },
+  secondaryButton: {
+    marginTop: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    backgroundColor: 'transparent',
+  },
+  secondaryButtonText: {
+    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
 
