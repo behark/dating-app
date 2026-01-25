@@ -172,6 +172,9 @@ export default {
     extra: {
       // Environment
       env: process.env.EXPO_PUBLIC_ENV || 'production',
+      // PRODUCTION WARNING: All values below are development fallbacks.
+      // For production, set proper environment variables to override these defaults.
+      // Never commit actual production credentials to source control.
       // Support Expo Go for development
       ...(process.env.EXPO_PUBLIC_ENV === 'development' && {
         expoGoScheme: 'exp',
