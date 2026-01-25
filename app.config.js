@@ -3,7 +3,7 @@ export default {
     name: 'dating-app',
     slug: 'genlang',
     owner: 'beharkabashis-organization',
-    version: '1.0.0',
+    version: '1.4.2',
     // Runtime version for OTA updates - increment when native code changes
     runtimeVersion: {
       policy: 'sdkVersion',
@@ -67,7 +67,7 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.beharkabashis.datingapp',
-      buildNumber: '1',
+      buildNumber: '42',
       // Deep linking support
       associatedDomains: ['applinks:dating-app.com', 'applinks:*.dating-app.com'],
       infoPlist: {
@@ -109,7 +109,7 @@ export default {
     // Android Configuration - Minimum Android 8.0 (API 26)
     android: {
       package: 'com.beharkabashis.datingapp',
-      versionCode: 1,
+      versionCode: 42,
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',
         backgroundColor: '#ffffff',
@@ -172,6 +172,9 @@ export default {
     extra: {
       // Environment
       env: process.env.EXPO_PUBLIC_ENV || 'production',
+      // PRODUCTION WARNING: All values below are development fallbacks.
+      // For production, set proper environment variables to override these defaults.
+      // Never commit actual production credentials to source control.
       // Support Expo Go for development
       ...(process.env.EXPO_PUBLIC_ENV === 'development' && {
         expoGoScheme: 'exp',

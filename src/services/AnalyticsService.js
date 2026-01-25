@@ -22,7 +22,7 @@ const loadAnalytics = async () => {
     
     const apps = getApps();
     if (apps.length === 0) {
-      console.warn('Firebase not initialized - Analytics unavailable');
+      if (__DEV__) console.warn('Firebase not initialized - Analytics unavailable');
       return null;
     }
     
@@ -35,7 +35,7 @@ const loadAnalytics = async () => {
       // Check if Analytics is supported (requires browser environment)
       const supported = await isSupported();
       if (!supported) {
-        console.warn('Firebase Analytics not supported in this environment');
+        if (__DEV__) console.warn('Firebase Analytics not supported in this environment');
         return null;
       }
       
@@ -50,12 +50,12 @@ const loadAnalytics = async () => {
           await setUserProperties(getAnalytics(app), properties);
         },
       };
-      console.log('Using Firebase JS SDK Analytics (web)');
+      if (__DEV__) console.log('Using Firebase JS SDK Analytics (web)');
       return Analytics;
     } else {
       // For React Native, gracefully degrade - Firebase Analytics JS SDK doesn't work on native
       // In the future, you could integrate React Native Firebase here
-      console.warn('Firebase Analytics not available on native platforms - events will be logged to console only');
+      if (__DEV__) console.warn('Firebase Analytics not available on native platforms - events will be logged to console only');
       Analytics = {
         logEvent: (eventName, params) => {
           if (__DEV__) {
@@ -73,7 +73,7 @@ const loadAnalytics = async () => {
       return Analytics;
     }
   } catch (error) {
-    console.warn('Analytics library not available:', error.message);
+    if (__DEV__) console.warn('Analytics library not available:', error.message);
     return null;
   }
 };
@@ -95,7 +95,7 @@ export class AnalyticsService {
       Analytics = await loadAnalytics();
       
       if (!Analytics) {
-        console.warn('Analytics not available - skipping initialization');
+        if (__DEV__) console.warn('Analytics not available - skipping initialization');
         return;
       }
 
@@ -106,9 +106,9 @@ export class AnalyticsService {
       }
 
       this.initialized = true;
-      console.log('Analytics initialized successfully');
+      if (__DEV__) console.log('Analytics initialized successfully');
     } catch (error) {
-      console.error('Error initializing analytics:', error);
+      if (__DEV__) console.error('Error initializing analytics:', error);
       // Don't block app startup if analytics fails
       this.initialized = false;
     }
@@ -132,7 +132,7 @@ export class AnalyticsService {
         console.log('[Analytics] Event (no analytics):', eventName, params);
       }
     } catch (error) {
-      console.error('Error logging event:', error);
+      if (__DEV__) console.error('Error logging event:', error);
     }
   }
 
@@ -154,7 +154,7 @@ export class AnalyticsService {
         console.log('Analytics user ID set:', userId);
       }
     } catch (error) {
-      console.error('Error setting user ID:', error);
+      if (__DEV__) console.error('Error setting user ID:', error);
     }
   }
 
@@ -180,7 +180,7 @@ export class AnalyticsService {
         console.log('Analytics user properties set:', properties);
       }
     } catch (error) {
-      console.error('Error setting user properties:', error);
+      if (__DEV__) console.error('Error setting user properties:', error);
     }
   }
 

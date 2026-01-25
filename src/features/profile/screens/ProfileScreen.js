@@ -74,7 +74,7 @@ const ProfileScreen = () => {
 
   const loadUserBadges = async () => {
     try {
-      const GamificationService = require('../services/GamificationService').default;
+      const { GamificationService } = require('../../../services/GamificationService');
       const badges = await GamificationService.getUserBadges(currentUser.uid);
       setUserBadges(badges || []);
     } catch (error) {
