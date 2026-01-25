@@ -26,16 +26,16 @@ if (Platform.OS === 'web') {
     // eslint-disable-next-line import/no-unresolved
     const { Analytics: AnalyticsComponent } = require('@vercel/analytics/react');
     Analytics = AnalyticsComponent;
-  } catch (error) {
-    console.warn('Vercel Analytics not available:', error);
+  } catch {
+    // Vercel Analytics not available in this environment
   }
 
   try {
     // eslint-disable-next-line import/no-unresolved
     const { SpeedInsights: SpeedInsightsComponent } = require('@vercel/speed-insights/react');
     SpeedInsights = SpeedInsightsComponent;
-  } catch (error) {
-    console.warn('Vercel Speed Insights not available:', error);
+  } catch {
+    // Vercel Speed Insights not available in this environment
   }
 }
 

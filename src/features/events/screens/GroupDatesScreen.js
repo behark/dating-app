@@ -103,14 +103,16 @@ const GroupDatesScreen = ({ navigation }) => {
         setLoading(false);
       }
     });
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount - initializeLocation and fetchGroupDates are stable
 
   // Re-fetch when userLocation changes
   useEffect(() => {
     if (userLocation) {
       fetchGroupDates();
     }
-  }, [userLocation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLocation]); // fetchGroupDates depends on userLocation which triggers this effect
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -134,7 +136,7 @@ const GroupDatesScreen = ({ navigation }) => {
   const GroupDateCard = ({ item }) => {
     const startDate = new Date(item.startTime);
     const userId = getUserId(currentUser);
-    const isJoined = item.currentParticipants.some((p) => userIdsMatch(p.userId, userId));
+    const isJoined = item.currentParticipants?.some((p) => userIdsMatch(p.userId, userId)) || false;
 
     return (
       <TouchableOpacity
