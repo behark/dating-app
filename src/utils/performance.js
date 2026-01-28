@@ -45,15 +45,15 @@ export class RenderTimer {
 
   end() {
     if (!this.startTime) {
-      console.warn(`${this.name}: Timer not started`);
+      if (__DEV__) console.warn(`${this.name}: Timer not started`);
       return;
     }
 
     const duration = performance.now() - this.startTime;
     if (duration > PERFORMANCE_THRESHERS.RENDER_TIME_WARNING) {
-      console.warn(`${this.name} render took ${duration.toFixed(2)}ms (slow)`);
+      if (__DEV__) console.warn(`${this.name} render took ${duration.toFixed(2)}ms (slow)`);
     } else {
-      console.log(`${this.name} render: ${duration.toFixed(2)}ms`);
+      if (__DEV__) console.log(`${this.name} render: ${duration.toFixed(2)}ms`);
     }
 
     this.startTime = null;

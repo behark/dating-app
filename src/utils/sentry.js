@@ -24,7 +24,7 @@ try {
   }
 } catch (error) {
   // Sentry not available - will use fallback logging
-  console.warn('Sentry not available:', error.message);
+  if (__DEV__) console.warn('Sentry not available:', error.message);
 }
 
 /**
@@ -37,14 +37,14 @@ try {
  */
 export const initSentry = (options = {}) => {
   if (!Sentry) {
-    console.warn('Sentry not available - error tracking disabled');
+    if (__DEV__) console.warn('Sentry not available - error tracking disabled');
     return false;
   }
 
   const { dsn, environment = 'development', release, user } = options;
 
   if (!dsn) {
-    console.warn('Sentry DSN not provided - error tracking disabled');
+    if (__DEV__) console.warn('Sentry DSN not provided - error tracking disabled');
     return false;
   }
 
@@ -57,7 +57,7 @@ export const initSentry = (options = {}) => {
       try {
         integrations.push(Sentry.reactNativeTracing());
       } catch (e) {
-        console.warn('Failed to add reactNativeTracing:', e);
+        if (__DEV__) console.warn('Failed to add reactNativeTracing:', e);
       }
     }
 
@@ -66,7 +66,7 @@ export const initSentry = (options = {}) => {
       try {
         integrations.push(Sentry.browserTracingIntegration());
       } catch (e) {
-        console.warn('Failed to add browserTracingIntegration:', e);
+        if (__DEV__) console.warn('Failed to add browserTracingIntegration:', e);
       }
     }
 
@@ -126,10 +126,10 @@ export const initSentry = (options = {}) => {
       });
     }
 
-    console.log('✅ Sentry initialized successfully');
+    if (__DEV__) console.log('✅ Sentry initialized successfully');
     return true;
   } catch (error) {
-    console.error('Failed to initialize Sentry:', error);
+    if (__DEV__) console.error('Failed to initialize Sentry:', error);
     return false;
   }
 };
@@ -141,7 +141,7 @@ export const initSentry = (options = {}) => {
  */
 export const captureException = (error, context = {}) => {
   if (!Sentry) {
-    console.error('Sentry not available - error not tracked:', error, context);
+    if (__DEV__) console.error('Sentry not available - error not tracked:', error, context);
     return;
   }
 
@@ -153,7 +153,7 @@ export const captureException = (error, context = {}) => {
       },
     });
   } catch (e) {
-    console.error('Failed to capture exception in Sentry:', e);
+    if (__DEV__) console.error('Failed to capture exception in Sentry:', e);
   }
 };
 
@@ -165,7 +165,7 @@ export const captureException = (error, context = {}) => {
  */
 export const captureMessage = (message, level = 'info', context = {}) => {
   if (!Sentry) {
-    console.log(`[${level.toUpperCase()}] ${message}`, context);
+    if (__DEV__) console.log(`[${level.toUpperCase()}] ${message}`, context);
     return;
   }
 
@@ -178,7 +178,7 @@ export const captureMessage = (message, level = 'info', context = {}) => {
       },
     });
   } catch (e) {
-    console.error('Failed to capture message in Sentry:', e);
+    if (__DEV__) console.error('Failed to capture message in Sentry:', e);
   }
 };
 
@@ -196,7 +196,7 @@ export const setUser = (user) => {
       username: user.name || user.username,
     });
   } catch (e) {
-    console.error('Failed to set user in Sentry:', e);
+    if (__DEV__) console.error('Failed to set user in Sentry:', e);
   }
 };
 
@@ -209,7 +209,7 @@ export const clearUser = () => {
   try {
     Sentry.setUser(null);
   } catch (e) {
-    console.error('Failed to clear user in Sentry:', e);
+    if (__DEV__) console.error('Failed to clear user in Sentry:', e);
   }
 };
 
@@ -223,7 +223,7 @@ export const addBreadcrumb = (breadcrumb) => {
   try {
     Sentry.addBreadcrumb(breadcrumb);
   } catch (e) {
-    console.error('Failed to add breadcrumb in Sentry:', e);
+    if (__DEV__) console.error('Failed to add breadcrumb in Sentry:', e);
   }
 };
 
