@@ -1,0 +1,13 @@
+# Dating App - robots.txt
+# Allow all crawlers for public pages
+
+User-agent: *
+Allow: /
+Allow: /privacy-policy.html
+Allow: /terms-of-service.html
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://dating-app.com/sitemap.xml

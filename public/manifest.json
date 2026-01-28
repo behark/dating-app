@@ -9,33 +9,46 @@
   "theme_color": "#667eea",
   "icons": [
     {
-      "src": "/assets/icon-192.png",
-      "sizes": "192x192",
+      "src": "/assets/icon.png",
+      "sizes": "1024x1024",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/assets/icon-512.png",
-      "sizes": "512x512",
+      "src": "/assets/adaptive-icon.png",
+      "sizes": "1024x1024",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/favicon.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "categories": ["social", "lifestyle"],
   "screenshots": [
     {
-      "src": "/assets/screenshot-home.png",
-      "sizes": "390x844",
+      "src": "/assets/play-store-screenshots/screenshot-1-home.png",
+      "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Home screen with profile cards"
     },
     {
-      "src": "/assets/screenshot-tablet.png",
-      "sizes": "1024x768",
+      "src": "/assets/play-store-screenshots/screenshot-2-profile.png",
+      "sizes": "1080x1920",
       "type": "image/png",
-      "form_factor": "wide",
-      "label": "Tablet view with enhanced layout"
+      "form_factor": "narrow",
+      "label": "Profile view"
+    },
+    {
+      "src": "/assets/play-store-screenshots/screenshot-3-chat.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Chat conversation"
     }
   ],
   "prefer_related_applications": false,
@@ -45,15 +58,13 @@
       "name": "Messages",
       "short_name": "Messages",
       "description": "View your conversations",
-      "url": "/matches",
-      "icons": [{ "src": "/assets/icon-messages.png", "sizes": "96x96" }]
+      "url": "/matches"
     },
     {
       "name": "My Profile",
       "short_name": "Profile",
       "description": "Edit your profile",
-      "url": "/profile",
-      "icons": [{ "src": "/assets/icon-profile.png", "sizes": "96x96" }]
+      "url": "/profile"
     }
   ],
   "share_target": {
