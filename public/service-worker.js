@@ -1,4 +1,7 @@
 // Service Worker for Dating App PWA
+const IS_DEV = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+const log = (...args) => IS_DEV && console.log(...args);
+
 const CACHE_NAME = 'dating-app-v1';
 const STATIC_CACHE = 'dating-app-static-v1';
 const DYNAMIC_CACHE = 'dating-app-dynamic-v1';
@@ -9,11 +12,11 @@ const STATIC_ASSETS = ['/', '/index.html', '/manifest.json', '/favicon.ico'];
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
-  console.log('[ServiceWorker] Install');
+  log('[ServiceWorker] Install');
 
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
-      console.log('[ServiceWorker] Pre-caching static assets');
+      log('[ServiceWorker] Pre-caching static assets');
       return cache.addAll(STATIC_ASSETS);
     })
   );
@@ -24,7 +27,7 @@ self.addEventListener('install', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('[ServiceWorker] Activate');
+  log('[ServiceWorker] Activate');
 
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -39,7 +42,7 @@ self.addEventListener('activate', (event) => {
             );
           })
           .map((name) => {
-            console.log('[ServiceWorker] Deleting old cache:', name);
+            log('[ServiceWorker] Deleting old cache:', name);
             return caches.delete(name);
           })
       );
@@ -191,7 +194,7 @@ async function networkFirstWithCache(request, cacheName) {
 
 // Background sync for offline actions
 self.addEventListener('sync', (event) => {
-  console.log('[ServiceWorker] Sync event:', event.tag);
+  log('[ServiceWorker] Sync event:', event.tag);
 
   if (event.tag === 'sync-messages') {
     event.waitUntil(syncMessages());
@@ -204,7 +207,7 @@ self.addEventListener('sync', (event) => {
 
 // Push notifications
 self.addEventListener('push', (event) => {
-  console.log('[ServiceWorker] Push received');
+  log('[ServiceWorker] Push received');
 
   let data = {};
   if (event.data) {
@@ -228,7 +231,7 @@ self.addEventListener('push', (event) => {
 
 // Notification click handler
 self.addEventListener('notificationclick', (event) => {
-  console.log('[ServiceWorker] Notification click');
+  log('[ServiceWorker] Notification click');
 
   event.notification.close();
 
@@ -255,12 +258,12 @@ self.addEventListener('notificationclick', (event) => {
 // Helper functions for background sync
 async function syncMessages() {
   // This would sync pending messages from IndexedDB
-  console.log('[ServiceWorker] Syncing messages...');
+  log('[ServiceWorker] Syncing messages...');
 }
 
 async function syncSwipes() {
   // This would sync pending swipes from IndexedDB
-  console.log('[ServiceWorker] Syncing swipes...');
+  log('[ServiceWorker] Syncing swipes...');
 }
 
 // Message handler for communication with main thread
