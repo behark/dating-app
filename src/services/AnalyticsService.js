@@ -10,10 +10,24 @@ import { Platform } from 'react-native';
 
 let Analytics = null;
 let analyticsLoadAttempted = false;
+let analyticsDisabled = false;
+
+const shouldDisableAnalyticsForError = (error) => {
+  const code = error?.code || '';
+  const message = error?.message || '';
+
+  return (
+    code.includes('analytics/config-fetch-failed') ||
+    code.includes('installations/request-failed') ||
+    message.includes('Analytics: Dynamic config fetch failed') ||
+    message.includes('App not found') ||
+    message.includes('PERMISSION_DENIED')
+  );
+};
 
 // Lazy load analytics to ensure Firebase is initialized first
 const loadAnalytics = async () => {
-  if (analyticsLoadAttempted) return Analytics;
+  if (analyticsLoadAttempted || analyticsDisabled) return Analytics;
   analyticsLoadAttempted = true;
   
   try {
@@ -27,9 +41,25 @@ const loadAnalytics = async () => {
     }
     
     const app = getApp();
+    const appOptions = app?.options || {};
     
     // On web, use Firebase JS SDK Analytics
     if (Platform.OS === 'web') {
+      const placeholderAppId =
+        typeof appOptions.appId === 'string' &&
+        appOptions.appId.includes('123456789') &&
+        appOptions.appId.includes('abc123');
+
+      if (!appOptions.appId || !appOptions.measurementId || placeholderAppId) {
+        if (__DEV__) {
+          console.warn('Firebase Analytics config missing - skipping analytics init', {
+            hasAppId: !!appOptions.appId,
+            hasMeasurementId: !!appOptions.measurementId,
+            placeholderAppId,
+          });
+        }
+        return null;
+      }
       const { getAnalytics, isSupported, logEvent, setUserId: setAnalyticsUserId, setUserProperties } = require('firebase/analytics');
       
       // Check if Analytics is supported (requires browser environment)
@@ -81,12 +111,28 @@ const loadAnalytics = async () => {
 export class AnalyticsService {
   static initialized = false;
   static userId = null;
+  static disabled = false;
+
+  static disableAnalytics(error) {
+    if (analyticsDisabled) return;
+    analyticsDisabled = true;
+    this.disabled = true;
+    this.initialized = false;
+    Analytics = null;
+
+    if (__DEV__) {
+      console.warn('Disabling analytics due to configuration error', {
+        code: error?.code,
+        message: error?.message,
+      });
+    }
+  }
 
   /**
    * Initialize analytics service
    */
   static async initialize() {
-    if (this.initialized) {
+    if (this.initialized || analyticsDisabled) {
       return;
     }
 
@@ -109,6 +155,9 @@ export class AnalyticsService {
       if (__DEV__) console.log('Analytics initialized successfully');
     } catch (error) {
       if (__DEV__) console.error('Error initializing analytics:', error);
+      if (shouldDisableAnalyticsForError(error)) {
+        this.disableAnalytics(error);
+      }
       // Don't block app startup if analytics fails
       this.initialized = false;
     }
@@ -120,7 +169,7 @@ export class AnalyticsService {
    * @param {Object} params - Event parameters
    */
   static async logEvent(eventName, params = {}) {
-    if (!this.initialized || !Analytics) {
+    if (!this.initialized || !Analytics || analyticsDisabled) {
       return;
     }
 
@@ -133,6 +182,9 @@ export class AnalyticsService {
       }
     } catch (error) {
       if (__DEV__) console.error('Error logging event:', error);
+      if (shouldDisableAnalyticsForError(error)) {
+        this.disableAnalytics(error);
+      }
     }
   }
 
@@ -141,7 +193,7 @@ export class AnalyticsService {
    * @param {string} userId - User ID
    */
   static async setUserId(userId) {
-    if (!this.initialized || !Analytics) {
+    if (!this.initialized || !Analytics || analyticsDisabled) {
       return;
     }
 
@@ -155,6 +207,9 @@ export class AnalyticsService {
       }
     } catch (error) {
       if (__DEV__) console.error('Error setting user ID:', error);
+      if (shouldDisableAnalyticsForError(error)) {
+        this.disableAnalytics(error);
+      }
     }
   }
 
@@ -163,7 +218,7 @@ export class AnalyticsService {
    * @param {Object} properties - User properties
    */
   static async setUserProperties(properties) {
-    if (!this.initialized || !Analytics) {
+    if (!this.initialized || !Analytics || analyticsDisabled) {
       return;
     }
 
@@ -181,6 +236,9 @@ export class AnalyticsService {
       }
     } catch (error) {
       if (__DEV__) console.error('Error setting user properties:', error);
+      if (shouldDisableAnalyticsForError(error)) {
+        this.disableAnalytics(error);
+      }
     }
   }
 

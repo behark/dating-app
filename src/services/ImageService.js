@@ -106,9 +106,9 @@ export class ImageService {
       // We skip separate thumbnail generation for local upload simplicity
       // The backend or frontend can handle resizing if needed
 
-      // Create FormData for upload
+      // Create FormData for upload (backend expects "photos" field)
       const formData = new FormData();
-      formData.append('image', {
+      formData.append('photos', {
         uri: compressedImage.uri,
         name: `photo_${Date.now()}.jpg`,
         type: 'image/jpeg',
@@ -118,7 +118,7 @@ export class ImageService {
       const token = await api.getAuthToken();
 
       // Upload to backend
-      const uploadResponse = await fetch(`${API_URL}/upload`, {
+      const uploadResponse = await fetch(`${API_URL}/upload/photo`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -139,32 +139,21 @@ export class ImageService {
         throw new Error(uploadResult.message || 'Upload failed');
       }
 
-      const fullUrl = uploadResult.url;
-      const thumbUrl = uploadResult.url; // Use same URL for now
+      const uploadResults = uploadResult?.data?.uploadResults || uploadResult?.uploadResults || [];
+      const firstSuccess =
+        uploadResults.find((result) => result.success) || uploadResults[0] || {};
 
-      // Create photo object for backend API
-      const photoData = {
-        url: fullUrl,
-        thumbnailUrl: thumbUrl,
-        isPrimary,
-      };
-
-      // Use backend API to add photo to user profile
-      const response = await api.post('/profile/photos/upload', {
-        photos: [photoData],
-      });
-
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to update profile with photo');
-      }
+      const fullUrl =
+        firstSuccess.url || uploadResult?.data?.url || uploadResult?.url || compressedImage.uri;
+      const thumbUrl = firstSuccess.thumbnailUrl || fullUrl;
 
       const imageData = {
-        id: uploadResult.fileId || Date.now().toString(),
+        id: firstSuccess.publicId || uploadResult.fileId || Date.now().toString(),
         fullUrl,
         thumbnailUrl: thumbUrl,
         uploadedAt: new Date(),
         isPrimary,
-        fileName: uploadResult.fileName,
+        fileName: firstSuccess.fileName || uploadResult.fileName,
       };
 
       return { success: true, imageData };

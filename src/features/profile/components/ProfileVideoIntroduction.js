@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { ResizeMode, Video } from 'expo-av';
+import { useEvent } from 'expo';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
@@ -28,8 +29,12 @@ const ProfileVideoIntroduction = ({
   userName = 'User',
   showPreview = true,
 }) => {
-  const videoRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const player = useVideoPlayer(videoUrl || null, (playerInstance) => {
+    playerInstance.loop = true;
+  });
+  const { isPlaying } = useEvent(player, 'playingChange', {
+    isPlaying: player?.playing ?? false,
+  });
   const [showModal, setShowModal] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -48,6 +53,25 @@ const ProfileVideoIntroduction = ({
       pulseAnim.setValue(1);
     }
   }, [recording]);
+
+  useEffect(() => {
+    if (!player) return undefined;
+
+    const updateStatus = () => {
+      const currentTime = typeof player.currentTime === 'number' ? player.currentTime : 0;
+      const duration = typeof player.duration === 'number' && player.duration > 0 ? player.duration : 1;
+      setVideoStatus({
+        positionMillis: currentTime * 1000,
+        durationMillis: duration * 1000,
+        isMuted: !!player.muted,
+        isPlaying: !!player.playing,
+      });
+    };
+
+    updateStatus();
+    const intervalId = setInterval(updateStatus, 250);
+    return () => clearInterval(intervalId);
+  }, [player, videoUrl]);
 
   const startRecordingPulse = () => {
     Animated.loop(
@@ -82,20 +106,15 @@ const ProfileVideoIntroduction = ({
   };
 
   const handlePlayPause = async () => {
-    if (!videoRef.current) return;
+    if (!player) return;
 
     animatePlayButton();
 
     if (isPlaying) {
-      await videoRef.current.pauseAsync();
+      player.pause();
     } else {
-      await videoRef.current.playAsync();
+      player.play();
     }
-  };
-
-  const handleVideoStatusUpdate = (status) => {
-    setVideoStatus(status);
-    setIsPlaying(status.isPlaying);
   };
 
   const pickVideo = async () => {
@@ -107,7 +126,7 @@ const ProfileVideoIntroduction = ({
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        mediaTypes: ImagePicker.MediaType.Videos,
         allowsEditing: true,
         aspect: [9, 16],
         quality: 0.8,
@@ -157,7 +176,7 @@ const ProfileVideoIntroduction = ({
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        mediaTypes: ImagePicker.MediaType.Videos,
         allowsEditing: true,
         aspect: [9, 16],
         quality: 0.8,
@@ -211,14 +230,12 @@ const ProfileVideoIntroduction = ({
 
     return (
       <View style={styles.videoContainer}>
-        <Video
-          ref={videoRef}
+        <VideoView
           style={styles.video}
-          source={{ uri: videoUrl }}
-          resizeMode={ResizeMode.COVER}
-          isLooping
-          onPlaybackStatusUpdate={handleVideoStatusUpdate}
-          useNativeControls={false}
+          player={player}
+          contentFit="cover"
+          allowsFullscreen={false}
+          allowsPictureInPicture={false}
         />
 
         {/* Video overlay controls */}

@@ -10,6 +10,8 @@ export default {
     },
     plugins: [
       'expo-font',
+      'expo-video',
+      'expo-audio',
       '@react-native-community/datetimepicker',
       'expo-web-browser',
       'expo-secure-store',
@@ -172,6 +174,9 @@ export default {
     extra: {
       // Environment
       env: process.env.EXPO_PUBLIC_ENV || 'production',
+      // Vercel analytics toggles (web only)
+      vercelAnalyticsEnabled: process.env.EXPO_PUBLIC_VERCEL_ANALYTICS_ENABLED === 'true',
+      vercelSpeedInsightsEnabled: process.env.EXPO_PUBLIC_VERCEL_SPEED_INSIGHTS_ENABLED === 'true',
       // PRODUCTION WARNING: All values below are development fallbacks.
       // For production, set proper environment variables to override these defaults.
       // Never commit actual production credentials to source control.

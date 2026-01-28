@@ -15,6 +15,7 @@ const firebaseConfig = {
   storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket,
   messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId,
   appId: Constants.expoConfig?.extra?.firebaseAppId,
+  measurementId: Constants.expoConfig?.extra?.firebaseMeasurementId,
 };
 
 // Initialize Firebase - only if not already initialized and config is valid
