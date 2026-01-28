@@ -373,8 +373,22 @@ const HomeScreen = ({ navigation }) => {
         });
       }
 
+      const normalizedUsers = Array.isArray(availableUsers)
+        ? availableUsers
+        : Array.isArray(availableUsers?.users)
+          ? availableUsers.users
+          : [];
+
+      if (!Array.isArray(availableUsers) && !Array.isArray(availableUsers?.users)) {
+        logger.warn('Discovery payload not an array', {
+          source: isGuestMode ? 'guest' : 'auth',
+          type: availableUsers === null ? 'null' : typeof availableUsers,
+          keys: availableUsers && typeof availableUsers === 'object' ? Object.keys(availableUsers) : null,
+        });
+      }
+
       // If no users found, show empty state (no error alert)
-      if (availableUsers.length === 0) {
+      if (normalizedUsers.length === 0) {
         setCards([]);
         setCurrentIndex(0);
         setLoading(false);
@@ -382,16 +396,21 @@ const HomeScreen = ({ navigation }) => {
       }
 
       // Apply user preferences filtering (skip for guests)
-      let filteredUsers = availableUsers;
+      let filteredUsers = normalizedUsers;
       if (!isGuestMode && userId) {
         filteredUsers = await PreferencesService.filterUsersForDiscovery(
           userId,
-          availableUsers
+          normalizedUsers
         );
       }
 
       // Shuffle for variety
-      const shuffled = filteredUsers.sort(() => Math.random() - 0.5);
+      const usersForShuffle = Array.isArray(filteredUsers)
+        ? filteredUsers
+        : Array.isArray(filteredUsers?.users)
+          ? filteredUsers.users
+          : [];
+      const shuffled = [...usersForShuffle].sort(() => Math.random() - 0.5);
       setCards(shuffled);
       setCurrentIndex(0);
       setLoading(false);

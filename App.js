@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect } from 'react';
 import { Linking, Platform } from 'react-native';
@@ -20,8 +21,14 @@ import { UpdateService } from './src/services/UpdateService';
 // Using dynamic imports for web platform to avoid breaking native builds
 let Analytics = null;
 let SpeedInsights = null;
+const enableVercelAnalytics =
+  Constants.expoConfig?.extra?.vercelAnalyticsEnabled ||
+  process.env.EXPO_PUBLIC_VERCEL_ANALYTICS_ENABLED === 'true';
+const enableSpeedInsights =
+  Constants.expoConfig?.extra?.vercelSpeedInsightsEnabled ||
+  process.env.EXPO_PUBLIC_VERCEL_SPEED_INSIGHTS_ENABLED === 'true';
 
-if (Platform.OS === 'web') {
+if (Platform.OS === 'web' && enableVercelAnalytics) {
   try {
     // eslint-disable-next-line import/no-unresolved
     const { Analytics: AnalyticsComponent } = require('@vercel/analytics/react');
@@ -29,7 +36,9 @@ if (Platform.OS === 'web') {
   } catch {
     // Vercel Analytics not available in this environment
   }
+}
 
+if (Platform.OS === 'web' && enableSpeedInsights) {
   try {
     // eslint-disable-next-line import/no-unresolved
     const { SpeedInsights: SpeedInsightsComponent } = require('@vercel/speed-insights/react');

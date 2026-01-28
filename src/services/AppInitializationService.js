@@ -159,6 +159,10 @@ class AppInitializationService {
         ) {
           return; // Suppress - this is expected on web
         }
+        // Suppress zustand default export deprecation warnings from third-party bundles
+        if (message.includes('zustand') && message.includes('Default export is deprecated')) {
+          return;
+        }
         originalWarn.apply(console, args);
       };
     }
