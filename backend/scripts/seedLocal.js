@@ -24,7 +24,7 @@ const APP_LAUNCH_DATE = new Date('2025-01-15');
 const seedLocal = async () => {
   try {
     console.log('🌱 Starting local seed...');
-    
+
     // Connect to Database
     const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/dating-app';
     await mongoose.connect(MONGODB_URI);
@@ -33,7 +33,7 @@ const seedLocal = async () => {
     // 1. Create Main Test User
     const mainUserEmail = 'test@example.com';
     await User.deleteOne({ email: mainUserEmail });
-    
+
     const mainUser = await User.create({
       name: 'Test User',
       email: mainUserEmail,
@@ -107,7 +107,7 @@ const seedLocal = async () => {
         email: 'diego.demo@example.com',
         age: 31,
         gender: 'male',
-        bio: 'Chef by day, salsa dancer by night. Let's find the best tacos in town.',
+        bio: "Chef by day, salsa dancer by night. Let's find the best tacos in town.",
         photos: [
           { url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500', order: 0 },
           { url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500', order: 1 },
@@ -135,7 +135,7 @@ const seedLocal = async () => {
         email: 'eli.demo@example.com',
         age: 26,
         gender: 'male',
-        bio: 'Startup builder, gym regular, and amateur guitarist. Let's jam sometime.',
+        bio: "Startup builder, gym regular, and amateur guitarist. Let's jam sometime.",
         photos: [
           { url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500', order: 0 },
           { url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500', order: 1 },

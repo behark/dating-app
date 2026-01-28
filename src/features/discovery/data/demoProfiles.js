@@ -123,7 +123,7 @@ export const GUEST_DEMO_PROFILES = [
     _id: 'demo_7',
     name: 'Diego',
     age: 31,
-    bio: 'Chef by day, salsa dancer by night. Let's find the best tacos in town.',
+    bio: "Chef by day, salsa dancer by night. Let's find the best tacos in town.",
     photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
     photos: [
       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
