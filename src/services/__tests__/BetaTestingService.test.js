@@ -1,240 +1,125 @@
-/**
- * Tests for Beta Testing Service
- */
-
 import { BetaTestingService } from '../BetaTestingService';
+import api from '../api';
+
+jest.mock('../api', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  },
+}));
 
 describe('BetaTestingService', () => {
   let service;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     service = new BetaTestingService();
   });
 
-  describe('User Enrollment', () => {
-    it('should enroll a new beta user', () => {
-      const enrollment = service.enrollUser('user_123', {
-        email: 'beta@test.com',
-        name: 'Beta Tester',
-        features: ['video_chat', 'ai_matching'],
-      });
-
-      expect(enrollment.userId).toBe('user_123');
-      expect(enrollment.status).toBe('active');
-      expect(enrollment.features).toContain('video_chat');
+  it('enrolls user via API and caches enrollment', async () => {
+    api.post.mockResolvedValue({
+      success: true,
+      data: {
+        userId: 'user_123',
+        status: 'active',
+        tier: 'standard',
+        features: ['all'],
+      },
     });
 
-    it('should set default values for enrollment', () => {
-      const enrollment = service.enrollUser('user_456');
-
-      expect(enrollment.tier).toBe('standard');
-      expect(enrollment.features).toContain('all');
-      expect(enrollment.consent.dataCollection).toBe(true);
+    const enrollment = await service.enrollUser('user_123', {
+      email: 'beta@test.com',
+      name: 'Beta Tester',
     });
 
-    it('should check if user is beta tester', () => {
-      service.enrollUser('beta_user');
-
-      expect(service.isBetaTester('beta_user')).toBe(true);
-      expect(service.isBetaTester('regular_user')).toBeUndefined();
-    });
+    expect(enrollment.userId).toBe('user_123');
+    expect(enrollment.status).toBe('active');
+    expect(service.betaUsers.get('user_123')).toBeDefined();
   });
 
-  describe('Feedback Submission', () => {
-    it('should submit general feedback', () => {
-      const feedback = service.submitFeedback('user_123', {
-        type: 'general',
-        title: 'Great app!',
-        description: 'I love the new design',
-        rating: 5,
-        category: 'design',
-      });
+  it('falls back to local pending enrollment when API fails', async () => {
+    api.post.mockRejectedValue(new Error('network error'));
 
-      expect(feedback.id).toBeDefined();
-      expect(feedback.type).toBe('general');
-      expect(feedback.status).toBe('new');
-      expect(feedback.rating).toBe(5);
-    });
+    const enrollment = await service.enrollUser('user_456');
 
-    it('should auto-categorize bug reports', () => {
-      const bug = service.submitFeedback('user_123', {
-        type: 'bug',
-        title: 'App crashes on startup',
-        description: 'The app crashes when I open it',
-      });
-
-      expect(service.bugs).toContainEqual(expect.objectContaining({ id: bug.id }));
-    });
-
-    it('should auto-categorize feature requests', () => {
-      const feature = service.submitFeedback('user_123', {
-        type: 'feature',
-        title: 'Add dark mode',
-        description: 'Would be nice to have dark mode',
-      });
-
-      expect(service.featureRequests).toContainEqual(expect.objectContaining({ id: feature.id }));
-    });
-
-    it('should include device info and timestamp', () => {
-      const feedback = service.submitFeedback('user_123', {
-        title: 'Test feedback',
-        deviceInfo: { platform: 'ios', version: '15.0' },
-        appVersion: '1.0.0',
-      });
-
-      expect(feedback.deviceInfo.platform).toBe('ios');
-      expect(feedback.appVersion).toBe('1.0.0');
-      expect(feedback.timestamp).toBeDefined();
-    });
+    expect(enrollment.userId).toBe('user_456');
+    expect(enrollment.status).toBe('pending');
+    expect(enrollment.features).toContain('all');
   });
 
-  describe('Bug Reports', () => {
-    it('should submit detailed bug report', () => {
-      const bug = service.submitBugReport('user_123', {
-        title: 'Login button not working',
-        description: 'Login button does not respond to taps',
-        severity: 'high',
-        reproducibility: 'always',
-        stepsToReproduce: ['Open app', 'Enter credentials', 'Tap login button'],
-        expectedBehavior: 'Should navigate to home screen',
-        actualBehavior: 'Nothing happens',
-      });
+  it('returns beta status from API', async () => {
+    api.get.mockResolvedValue({ success: true, data: { isEnrolled: true, status: 'active' } });
 
-      expect(bug.severity).toBe('high');
-      expect(bug.reproducibility).toBe('always');
-      expect(bug.stepsToReproduce).toHaveLength(3);
-    });
+    const status = await service.getBetaStatus('user_123');
+    const isTester = await service.isBetaTester('user_123');
 
-    it('should set default values for bug report', () => {
-      const bug = service.submitBugReport('user_123', {
-        title: 'Minor issue',
-        description: 'Something is not quite right',
-      });
-
-      expect(bug.severity).toBe('medium');
-      expect(bug.reproducibility).toBe('sometimes');
-      expect(bug.status).toBe('new');
-    });
+    expect(status.isEnrolled).toBe(true);
+    expect(isTester).toBe(true);
   });
 
-  describe('Session Analytics', () => {
-    it('should record session data', () => {
-      const session = service.recordSession('user_123', {
-        startTime: new Date(),
-        duration: 300000, // 5 minutes
-        screens: ['home', 'discover', 'profile'],
-        featuresUsed: ['swipe', 'like', 'message'],
-        appVersion: '1.0.0',
-      });
-
-      expect(session.userId).toBe('user_123');
-      expect(session.screens).toContain('discover');
-      expect(session.features).toContain('swipe');
+  it('submits feedback and updates local lists', async () => {
+    api.post.mockResolvedValueOnce({
+      success: true,
+      data: { id: 'f1', userId: 'user_123', type: 'general', status: 'new', rating: 5 },
     });
+    api.post.mockResolvedValueOnce({
+      success: true,
+      data: { id: 'b1', userId: 'user_123', type: 'bug', status: 'new', severity: 'high' },
+    });
+
+    const feedback = await service.submitFeedback('user_123', {
+      type: 'general',
+      title: 'Great app',
+      rating: 5,
+    });
+    const bug = await service.submitBugReport('user_123', {
+      title: 'Crash on launch',
+      severity: 'high',
+    });
+
+    expect(feedback.id).toBe('f1');
+    expect(bug.type).toBe('bug');
+    expect(service.feedback).toHaveLength(2);
+    expect(service.bugs).toHaveLength(1);
   });
 
-  describe('Statistics', () => {
-    beforeEach(() => {
-      // Add some test data
-      service.submitFeedback('user_1', { type: 'bug', title: 'Bug 1', rating: 2 });
-      service.submitFeedback('user_2', { type: 'feature', title: 'Feature 1', rating: 4 });
-      service.submitFeedback('user_3', { type: 'general', title: 'General 1', rating: 5 });
-      service.submitBugReport('user_4', { title: 'Critical bug', severity: 'critical' });
-      service.submitBugReport('user_5', { title: 'High bug', severity: 'high' });
+  it('records session and computes analytics', async () => {
+    api.post.mockResolvedValue({
+      success: true,
+      data: { id: 's1', status: 'recorded', duration: 60000, features: ['swipe', 'like'] },
     });
 
-    it('should calculate feedback statistics', () => {
-      const stats = service.getFeedbackStats();
-
-      expect(stats.total).toBe(3);
-      expect(stats.byType.bug).toBe(1);
-      expect(stats.byType.feature).toBe(1);
-      expect(stats.byType.general).toBe(1);
+    await service.recordSession('user_123', {
+      duration: 60000,
+      featuresUsed: ['swipe', 'like'],
     });
 
-    it('should calculate average rating', () => {
-      const stats = service.getFeedbackStats();
-      const avgRating = parseFloat(stats.averageRating);
+    service.betaUsers.set('user_123', { status: 'active' });
 
-      expect(avgRating).toBeGreaterThan(0);
-      expect(avgRating).toBeLessThanOrEqual(5);
-    });
+    const analytics = service.getAnalytics();
 
-    it('should calculate bug statistics', () => {
-      const bugStats = service.getBugStats();
-
-      expect(bugStats.total).toBe(3); // 1 from submitFeedback + 2 from submitBugReport
-      expect(bugStats.critical).toBe(1);
-      expect(bugStats.high).toBe(1);
-    });
+    expect(analytics.totalSessions).toBe(1);
+    expect(analytics.totalBetaUsers).toBe(1);
+    expect(analytics.featureUsage.swipe).toBe(1);
   });
 
-  describe('Analytics', () => {
-    it('should generate comprehensive analytics', () => {
-      service.enrollUser('user_1');
-      service.enrollUser('user_2');
-      service.submitFeedback('user_1', { title: 'Test', rating: 4 });
-      service.recordSession('user_1', { duration: 60000, features: ['swipe'] });
-
-      const analytics = service.getAnalytics();
-
-      expect(analytics.totalBetaUsers).toBe(2);
-      expect(analytics.activeUsers).toBe(2);
-      expect(analytics.totalSessions).toBe(1);
-      expect(analytics.feedbackStats).toBeDefined();
-      expect(analytics.bugStats).toBeDefined();
+  it('exports feedback payload as JSON', async () => {
+    api.post.mockResolvedValue({
+      success: true,
+      data: { id: 'f1', userId: 'user_1', type: 'general', status: 'new' },
     });
 
-    it('should track feature usage', () => {
-      service.recordSession('user_1', { featuresUsed: ['swipe', 'like'] });
-      service.recordSession('user_2', { featuresUsed: ['swipe', 'chat'] });
+    await service.submitFeedback('user_1', { type: 'general', title: 'Test feedback' });
 
-      const analytics = service.getAnalytics();
+    const exported = service.exportFeedback('json');
+    const parsed = JSON.parse(exported);
 
-      expect(analytics.featureUsage.swipe).toBe(2);
-      expect(analytics.featureUsage.like).toBe(1);
-      expect(analytics.featureUsage.chat).toBe(1);
-    });
-  });
-
-  describe('Feedback Management', () => {
-    it('should filter feedback', () => {
-      service.submitFeedback('user_1', { type: 'bug', title: 'Bug' });
-      service.submitFeedback('user_1', { type: 'feature', title: 'Feature' });
-      service.submitFeedback('user_2', { type: 'bug', title: 'Another bug' });
-
-      const bugFeedback = service.getAllFeedback({ type: 'bug' });
-      expect(bugFeedback).toHaveLength(2);
-
-      const user1Feedback = service.getAllFeedback({ userId: 'user_1' });
-      expect(user1Feedback).toHaveLength(2);
-    });
-
-    it('should update feedback status', () => {
-      const feedback = service.submitFeedback('user_1', { title: 'Test' });
-
-      service.updateFeedbackStatus(feedback.id, 'reviewing', 'admin_1', 'Looking into this');
-
-      const updated = service.getAllFeedback().find((f) => f.id === feedback.id);
-      expect(updated.status).toBe('reviewing');
-      expect(updated.assignee).toBe('admin_1');
-      expect(updated.notes).toBe('Looking into this');
-    });
-  });
-
-  describe('Data Export', () => {
-    it('should export feedback data as JSON', () => {
-      service.submitFeedback('user_1', { title: 'Test feedback' });
-      service.submitBugReport('user_1', { title: 'Test bug' });
-
-      const exported = service.exportFeedback('json');
-      const parsed = JSON.parse(exported);
-
-      expect(parsed.feedback).toHaveLength(1);
-      expect(parsed.bugs).toHaveLength(1);
-      expect(parsed.exportedAt).toBeDefined();
-      expect(parsed.analytics).toBeDefined();
-    });
+    expect(parsed.feedback).toHaveLength(1);
+    expect(parsed.exportedAt).toBeDefined();
+    expect(parsed.analytics).toBeDefined();
   });
 });

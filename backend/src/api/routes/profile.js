@@ -109,7 +109,7 @@ router.put(
   rejectPhoto
 );
 
-// Get pending photos for moderation
-router.get('/admin/photos/pending', authenticate, getPendingPhotos);
+// Get pending photos for moderation (admin only)
+router.get('/admin/photos/pending', authenticate, isAdmin, getPendingPhotos);
 
 module.exports = router;

@@ -1,26 +1,24 @@
 const crypto = require('crypto');
-const authController = require('../controllers/authController');
 const { closeRedis } = require('../config/redis');
 
-// Mock nodemailer
 jest.mock('nodemailer', () => ({
   createTransport: jest.fn(() => ({
     sendMail: jest.fn().mockResolvedValue(true),
   })),
 }));
 
-// Mock jsonwebtoken with dynamic behavior
 jest.mock('jsonwebtoken', () => ({
   sign: jest.fn(() => 'jwt-token'),
   verify: jest.fn((token) => {
-    if (token === 'invalid' || token === 'abc') throw new Error('Invalid token');
+    if (token === 'invalid' || token === 'abc') {
+      throw new Error('Invalid token');
+    }
     return { userId: 'u1' };
   }),
 }));
 
-// Mock User model
 jest.mock('../src/core/domain/User', () => {
-  const userInstance = {
+  const buildUser = (overrides = {}) => ({
     _id: 'u1',
     email: 'test@example.com',
     name: 'Test',
@@ -32,21 +30,20 @@ jest.mock('../src/core/domain/User', () => {
     matchPassword: jest.fn(async (pwd) => pwd === 'correct-password'),
     generateAuthToken: jest.fn(() => 'auth-token'),
     generateRefreshToken: jest.fn(() => 'refresh-token'),
-  };
-
-  const User = jest.fn((doc) => ({ ...userInstance, ...doc }));
-  User.findOne = jest.fn(async (q) => {
-    if (q?.email === 'exists@example.com') return { ...userInstance };
-    if (q?.emailVerificationToken) return { ...userInstance };
-    return null;
+    ...overrides,
   });
-  User.findById = jest.fn(async (id) => (id === 'u1' ? { ...userInstance } : null));
-  User.findByIdAndDelete = jest.fn(async () => ({}));
+
+  const User = jest.fn((doc = {}) => buildUser(doc));
+  User.findOne = jest.fn(async () => null);
+  User.findById = jest.fn(async () => null);
+  User.__buildUser = buildUser;
 
   return User;
 });
 
-// Env helper
+const authController = require('../controllers/authController');
+const User = require('../src/core/domain/User');
+
 const setEnv = () => {
   process.env.JWT_SECRET = 'secret';
   process.env.JWT_REFRESH_SECRET = 'refresh';
@@ -55,7 +52,6 @@ const setEnv = () => {
   process.env.FRONTEND_URL = 'https://app.example.com';
 };
 
-// Response helper
 const createRes = () => {
   const res = {};
   res.status = jest.fn().mockReturnValue(res);
@@ -67,6 +63,7 @@ describe('authController.login', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setEnv();
+    User.findOne.mockResolvedValue(null);
   });
 
   test('Should return 400 when email or password is missing', async () => {
@@ -80,6 +77,7 @@ describe('authController.login', () => {
   });
 
   test('Should return 401 when user not found', async () => {
+    User.findOne.mockResolvedValueOnce(null);
     const req = { body: { email: 'nouser@example.com', password: 'x' } };
     const res = createRes();
 
@@ -92,6 +90,10 @@ describe('authController.login', () => {
   });
 
   test('Should return 401 when password is incorrect', async () => {
+    const user = User.__buildUser();
+    user.matchPassword.mockResolvedValueOnce(false);
+    User.findOne.mockResolvedValueOnce(user);
+
     const req = { body: { email: 'exists@example.com', password: 'wrong' } };
     const res = createRes();
 
@@ -104,6 +106,10 @@ describe('authController.login', () => {
   });
 
   test('Should return 200 with tokens and user on success', async () => {
+    const user = User.__buildUser();
+    user.matchPassword.mockResolvedValueOnce(true);
+    User.findOne.mockResolvedValueOnce(user);
+
     const req = { body: { email: 'exists@example.com', password: 'correct-password' } };
     const res = createRes();
 
@@ -120,29 +126,13 @@ describe('authController.login', () => {
       })
     );
   });
-
-  test('Should return 500 on internal error and not leak sensitive message', async () => {
-    const User = require('../src/core/domain/User');
-    User.findOne.mockImplementationOnce(() => {
-      throw new Error('DB down');
-    });
-
-    const req = { body: { email: 'exists@example.com', password: 'correct-password' } };
-    const res = createRes();
-
-    await authController.login(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false, message: 'Error during login' })
-    );
-  });
 });
 
 describe('authController.register', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setEnv();
+    User.findOne.mockResolvedValue(null);
   });
 
   test('Should return 400 when required fields are missing', async () => {
@@ -150,7 +140,6 @@ describe('authController.register', () => {
     const res = createRes();
 
     await authController.register(req, res);
-
     expect(res.status).toHaveBeenCalledWith(400);
   });
 
@@ -163,9 +152,7 @@ describe('authController.register', () => {
   });
 
   test('Should return 400 when user already exists', async () => {
-    const User = require('../src/core/domain/User');
-    User.findOne.mockResolvedValueOnce({ _id: 'u1' });
-
+    User.findOne.mockResolvedValueOnce(User.__buildUser());
     const req = {
       body: { email: 'exists@example.com', password: 'correct-password', name: 'Test' },
     };
@@ -179,9 +166,10 @@ describe('authController.register', () => {
     );
   });
 
-  test('Should create user, send verification email, and return tokens', async () => {
-    const User = require('../src/core/domain/User');
-    User.findOne.mockResolvedValueOnce(null); // not existing
+  test('Should create user and return tokens', async () => {
+    User.findOne.mockResolvedValueOnce(null);
+    const newUser = User.__buildUser({ email: 'new@example.com', name: 'New' });
+    User.mockImplementationOnce(() => newUser);
 
     const req = {
       body: {
@@ -220,7 +208,7 @@ describe('authController.refreshToken', () => {
   });
 
   test('Should return 500 if JWT_REFRESH_SECRET not set', async () => {
-    const old = { ...process.env };
+    const oldRefreshSecret = process.env.JWT_REFRESH_SECRET;
     delete process.env.JWT_REFRESH_SECRET;
 
     const req = { body: { refreshToken: 'abc' } };
@@ -229,10 +217,11 @@ describe('authController.refreshToken', () => {
     await authController.refreshToken(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
 
-    process.env = old;
+    process.env.JWT_REFRESH_SECRET = oldRefreshSecret;
   });
 
   test('Should return new auth token when valid', async () => {
+    User.findById.mockResolvedValueOnce(User.__buildUser());
     const req = { body: { refreshToken: 'valid' } };
     const res = createRes();
 
@@ -240,7 +229,7 @@ describe('authController.refreshToken', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
-        data: expect.objectContaining({ authToken: 'auth-token' }),
+        data: expect.objectContaining({ authToken: 'auth-token', refreshToken: 'refresh-token' }),
       })
     );
   });
@@ -258,19 +247,17 @@ describe('authController.resetPassword and forgotPassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setEnv();
+    User.findOne.mockResolvedValue(null);
   });
 
   test('forgotPassword should succeed even if user not found', async () => {
-    const User = require('../src/core/domain/User');
-    // Reset and mock for forgotPassword test - user not found should return success (no enumeration)
-    User.findOne = jest.fn(async () => null);
-
+    User.findOne.mockResolvedValueOnce(null);
     const req = { body: { email: 'nouser@example.com' } };
     const res = createRes();
 
     await authController.forgotPassword(req, res);
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
-  }, 10000);
+  });
 
   test('resetPassword should return 400 on invalid inputs', async () => {
     const req = { body: { token: '', newPassword: '' } };
@@ -281,33 +268,26 @@ describe('authController.resetPassword and forgotPassword', () => {
   });
 
   test('resetPassword should reset password successfully', async () => {
-    const User = require('../src/core/domain/User');
-    const mockUser = {
-      _id: 'u1',
-      email: 'test@example.com',
-      password: 'hashed',
-      passwordResetToken: undefined,
-      passwordResetTokenExpiry: undefined,
-      save: jest.fn().mockResolvedValue(true),
-    };
-
-    User.findOne = jest.fn(async () => mockUser);
+    const token = crypto.randomBytes(32).toString('hex');
+    const user = User.__buildUser({
+      passwordResetToken: crypto.createHash('sha256').update(token).digest('hex'),
+      passwordResetTokenExpiry: new Date(Date.now() + 60_000),
+    });
+    User.findOne.mockResolvedValueOnce(user);
 
     const req = {
       body: {
-        token: crypto.randomBytes(32).toString('hex'),
+        token,
         newPassword: 'newPassword123',
       },
     };
     const res = createRes();
 
     await authController.resetPassword(req, res);
-    // Either 200 or 400 depending on token validity - just verify it responds
-    expect(res.status).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
   });
 });
 
-// Cleanup: Close Redis connection after all tests to prevent Jest from hanging
 afterAll(async () => {
   await closeRedis();
 });

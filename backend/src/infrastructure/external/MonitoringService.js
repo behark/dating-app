@@ -428,6 +428,23 @@ class HealthCheckService {
   getRouter() {
     const router = require('express').Router();
 
+    const getReadinessPayload = async () => {
+      const results = await this.runChecks();
+      if (results.status === 'healthy') {
+        return { statusCode: 200, payload: { ready: true, timestamp: results.timestamp } };
+      }
+      return {
+        statusCode: 503,
+        payload: { ready: false, timestamp: results.timestamp, checks: results.checks },
+      };
+    };
+
+    const getLivenessPayload = () => ({
+      alive: true,
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+    });
+
     // Basic health check
     router.get('/health', (req, res) => {
       // Don't send response if headers already sent
@@ -452,12 +469,8 @@ class HealthCheckService {
       if (res.headersSent) {
         return;
       }
-      const results = await this.runChecks();
-      if (results.status === 'healthy') {
-        res.json({ ready: true });
-      } else {
-        res.status(503).json({ ready: false, checks: results.checks });
-      }
+      const { statusCode, payload } = await getReadinessPayload();
+      res.status(statusCode).json(payload);
     });
 
     // Liveness probe
@@ -465,7 +478,38 @@ class HealthCheckService {
       if (res.headersSent) {
         return;
       }
-      res.json({ alive: true, uptime: process.uptime() });
+      res.json(getLivenessPayload());
+    });
+
+    // Kubernetes-friendly aliases
+    router.get('/health/ready', async (req, res) => {
+      if (res.headersSent) {
+        return;
+      }
+      const { statusCode, payload } = await getReadinessPayload();
+      res.status(statusCode).json(payload);
+    });
+
+    router.get('/health/readiness', async (req, res) => {
+      if (res.headersSent) {
+        return;
+      }
+      const { statusCode, payload } = await getReadinessPayload();
+      res.status(statusCode).json(payload);
+    });
+
+    router.get('/health/live', (req, res) => {
+      if (res.headersSent) {
+        return;
+      }
+      res.json(getLivenessPayload());
+    });
+
+    router.get('/health/liveness', (req, res) => {
+      if (res.headersSent) {
+        return;
+      }
+      res.json(getLivenessPayload());
     });
 
     return router;

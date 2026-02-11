@@ -220,7 +220,7 @@ class FeatureFlagService {
     const userFlags = {};
     this.flags.forEach((flag, name) => {
       userFlags[name] = {
-        enabled: this.isEnabled(name, userId, userGroups),
+        enabled: this.isEnabledSync(name, userId, userGroups),
         description: flag.description,
       };
     });

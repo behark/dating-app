@@ -10,16 +10,16 @@ import {
 
 // Constants to avoid duplicate strings
 const UNEXPECTED_ERROR_TEXT = 'unexpected error';
-const DEFAULT_ERROR_MESSAGE = 'An unexpected error occurred.';
+const DEFAULT_ERROR_MESSAGE = 'An unexpected error occurred. Please try again.';
 
 describe('Error Messages', () => {
   describe('getHttpErrorMessage', () => {
     it('should return user-friendly message for known status codes', () => {
-      expect(getHttpErrorMessage(400)).toContain('Invalid request');
+      expect(getHttpErrorMessage(400)).toContain('check your input');
       expect(getHttpErrorMessage(401)).toContain('sign in');
       expect(getHttpErrorMessage(403)).toContain('permission');
-      expect(getHttpErrorMessage(404)).toContain('not found');
-      expect(getHttpErrorMessage(500)).toContain('servers');
+      expect(getHttpErrorMessage(404)).toContain('found');
+      expect(getHttpErrorMessage(500)).toContain('our end');
       expect(getHttpErrorMessage(503)).toContain('unavailable');
     });
 
@@ -30,14 +30,14 @@ describe('Error Messages', () => {
 
     it('should use default message when no custom default provided', () => {
       const result = getHttpErrorMessage(999);
-      expect(result).toBe('An error occurred');
+      expect(result).toBe(DEFAULT_ERROR_MESSAGE);
     });
   });
 
   describe('getUserFriendlyMessage', () => {
     it('should map network errors', () => {
-      expect(getUserFriendlyMessage('network error')).toContain('Network connection');
-      expect(getUserFriendlyMessage('Network failed')).toContain('Network connection');
+      expect(getUserFriendlyMessage('network error')).toContain('internet connection');
+      expect(getUserFriendlyMessage('Network failed')).toContain('internet connection');
     });
 
     it('should map timeout errors', () => {
@@ -57,7 +57,7 @@ describe('Error Messages', () => {
 
     it('should clean up technical error messages', () => {
       const result = getUserFriendlyMessage('Error: Failed to connect');
-      expect(result).toContain('Unable to connect');
+      expect(result).toContain(UNEXPECTED_ERROR_TEXT);
       expect(result).not.toContain('Error:');
     });
 

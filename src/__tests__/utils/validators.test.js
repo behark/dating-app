@@ -61,9 +61,9 @@ describe('Validators', () => {
     it('should validate age within range', () => {
       expect(validateAge(18)).toBe(true);
       expect(validateAge(25)).toBe(true);
-      expect(validateAge(100)).toBe(true);
+      expect(validateAge(120)).toBe(true);
       expect(validateAge(17)).toBe(false);
-      expect(validateAge(101)).toBe(false);
+      expect(validateAge(121)).toBe(false);
     });
 
     it('should accept custom age range', () => {
@@ -73,7 +73,8 @@ describe('Validators', () => {
 
     it('should reject invalid inputs', () => {
       expect(validateAge(NaN)).toBe(false);
-      expect(validateAge('25')).toBe(false);
+      expect(validateAge('25')).toBe(true);
+      expect(validateAge('25.5')).toBe(false);
       expect(validateAge(null)).toBe(false);
     });
   });
@@ -144,7 +145,7 @@ describe('Validators', () => {
     });
 
     it('should reject invalid user IDs', () => {
-      expect(validateUserId('invalid')).toBe(false);
+      expect(validateUserId('bad!')).toBe(false);
       expect(validateUserId('123')).toBe(false);
       expect(validateUserId('')).toBe(false);
       expect(validateUserId(null)).toBe(false);

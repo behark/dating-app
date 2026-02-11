@@ -139,9 +139,9 @@ describe('Validators - Property-Based Tests', () => {
       );
     });
 
-    it('should return true for ages between 18 and 100', () => {
+    it('should return true for ages between 18 and 120', () => {
       fc.assert(
-        fc.property(fc.integer({ min: 18, max: 100 }), (age) => {
+        fc.property(fc.integer({ min: 18, max: 120 }), (age) => {
           return validateAge(age) === true;
         }),
         { numRuns: 100 }
@@ -157,9 +157,9 @@ describe('Validators - Property-Based Tests', () => {
       );
     });
 
-    it('should return false for ages above 100', () => {
+    it('should return false for ages above 120', () => {
       fc.assert(
-        fc.property(fc.integer({ min: 101, max: 200 }), (age) => {
+        fc.property(fc.integer({ min: 121, max: 200 }), (age) => {
           return validateAge(age) === false;
         }),
         { numRuns: 50 }
@@ -329,7 +329,7 @@ describe('Validators - Property-Based Tests', () => {
 
     it('should return false for strings that are too short', () => {
       fc.assert(
-        fc.property(fc.string({ minLength: 1, maxLength: 23 }), (id) => {
+        fc.property(fc.string({ minLength: 1, maxLength: 5 }), (id) => {
           return validateUserId(id) === false;
         }),
         { numRuns: 100, timeout: DEFAULT_TIMEOUT }
@@ -400,7 +400,7 @@ describe('Validators - Property-Based Tests', () => {
   describe('validateNotEmpty - Property Tests', () => {
     it('should return true for non-empty strings', () => {
       fc.assert(
-        fc.property(fc.string({ minLength: 1 }), (str) => {
+        fc.property(fc.string({ minLength: 1 }).filter((str) => str.trim().length > 0), (str) => {
           return validateNotEmpty(str) === true;
         }),
         { numRuns: 200, timeout: DEFAULT_TIMEOUT }

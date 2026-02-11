@@ -5,7 +5,12 @@ module.exports = {
   ],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testMatch: ['**/__tests__/**/*.(test|spec).(js|jsx|ts|tsx)', '**/*.(test|spec).(js|jsx|ts|tsx)'],
-  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/backend/', '<rootDir>/e2e/'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '<rootDir>/backend/',
+    '<rootDir>/e2e/',
+    '<rootDir>/tests/performance/',
+  ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',
@@ -13,6 +18,7 @@ module.exports = {
     '!src/**/__mocks__/**',
   ],
   moduleNameMapper: {
+    '^@testing-library/react$': '<rootDir>/tests/shims/testing-library-react.js',
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@components/(.*)$': '<rootDir>/src/components/$1',
     '^@screens/(.*)$': '<rootDir>/src/screens/$1',

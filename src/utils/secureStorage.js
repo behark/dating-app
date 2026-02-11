@@ -18,8 +18,8 @@ const TOKEN_KEYS = {
  * Check if secure storage is available
  * @returns {boolean}
  */
-const isSecureStorageAvailable = () => {
-  return Platform.OS !== 'web' && SecureStore.isAvailableAsync();
+const isSecureStorageAvailable = async () => {
+  return Platform.OS !== 'web' && (await SecureStore.isAvailableAsync());
 };
 
 /**
@@ -30,7 +30,7 @@ const isSecureStorageAvailable = () => {
  */
 export const storeTokenSecurely = async (key, value) => {
   try {
-    if (isSecureStorageAvailable()) {
+    if (await isSecureStorageAvailable()) {
       // Use SecureStore on native platforms (iOS Keychain / Android Keystore)
       await SecureStore.setItemAsync(key, value, {
         requireAuthentication: false, // Don't require biometric auth for tokens
@@ -62,7 +62,7 @@ export const storeTokenSecurely = async (key, value) => {
  */
 export const getTokenSecurely = async (key) => {
   try {
-    if (isSecureStorageAvailable()) {
+    if (await isSecureStorageAvailable()) {
       // Try SecureStore first on native platforms
       const value = await SecureStore.getItemAsync(key);
       if (value) {
@@ -98,7 +98,7 @@ export const getTokenSecurely = async (key) => {
  */
 export const removeTokenSecurely = async (key) => {
   try {
-    if (isSecureStorageAvailable()) {
+    if (await isSecureStorageAvailable()) {
       await SecureStore.deleteItemAsync(key);
       logger.debug(`Token removed from ${Platform.OS} secure storage`, { key });
     }

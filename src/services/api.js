@@ -339,6 +339,12 @@ const api = {
 
     try {
       const response = await fetch(url, requestOptions);
+      const isResponseOk =
+        typeof response?.ok === 'boolean'
+          ? response.ok
+          : typeof response?.status === 'number'
+            ? response.status >= 200 && response.status < 300
+            : true;
 
       // Handle 401 Unauthorized - token may be expired, attempt refresh
       if (response.status === 401) {
@@ -376,7 +382,7 @@ const api = {
         );
       }
 
-      if (!response.ok) {
+      if (!isResponseOk) {
         const errorData = await response.json().catch(() => ({}));
         // Handle standardized error format: { success: false, message: '...', error: 'CODE' }
         const errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
@@ -392,6 +398,10 @@ const api = {
       }
 
       // Parse response
+      if (typeof response.json !== 'function') {
+        return this.normalizeResponse(response);
+      }
+
       const rawResponse = await response.json();
 
       // Normalize response format to ensure consistency

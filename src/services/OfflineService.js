@@ -48,12 +48,21 @@ class OfflineServiceClass {
    */
   setupNetworkListener() {
     if (Platform.OS === 'web') {
+      const hasWindowListeners =
+        typeof window !== 'undefined' &&
+        typeof window.addEventListener === 'function' &&
+        typeof window.removeEventListener === 'function';
+
       // Web-specific network detection - store bound handlers to enable proper removal
       this._handleOnline = () => this.handleNetworkChange(true);
       this._handleOffline = () => this.handleNetworkChange(false);
-      window.addEventListener('online', this._handleOnline);
-      window.addEventListener('offline', this._handleOffline);
-      this.isOnline = navigator.onLine;
+
+      if (hasWindowListeners) {
+        window.addEventListener('online', this._handleOnline);
+        window.addEventListener('offline', this._handleOffline);
+      }
+
+      this.isOnline = typeof navigator !== 'undefined' ? navigator.onLine !== false : true;
     } else {
       // React Native - use NetInfo
       this.unsubscribeNetInfo = NetInfo.addEventListener((state) => {
@@ -84,10 +93,10 @@ class OfflineServiceClass {
     }
     if (Platform.OS === 'web') {
       // Use the stored bound handlers to properly remove event listeners
-      if (this._handleOnline) {
+      if (this._handleOnline && typeof window !== 'undefined') {
         window.removeEventListener('online', this._handleOnline);
       }
-      if (this._handleOffline) {
+      if (this._handleOffline && typeof window !== 'undefined') {
         window.removeEventListener('offline', this._handleOffline);
       }
     }
