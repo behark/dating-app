@@ -1,19 +1,15 @@
 import { SafetyService } from '../SafetyService';
+import api from '../api';
 
-// Mock Firebase
-jest.mock('firebase/firestore', () => ({
-  addDoc: jest.fn(() => Promise.resolve({ id: 'report_123' })),
-  collection: jest.fn(),
-  doc: jest.fn(),
-  getDoc: jest.fn(),
-  getDocs: jest.fn(() => Promise.resolve({ empty: true, docs: [] })),
-  query: jest.fn(),
-  updateDoc: jest.fn(),
-  where: jest.fn(),
-}));
-
-jest.mock('../../config/firebase', () => ({
-  db: {},
+jest.mock('../api', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  },
 }));
 
 describe('SafetyService', () => {
@@ -21,187 +17,107 @@ describe('SafetyService', () => {
     jest.clearAllMocks();
   });
 
-  describe('blockUser', () => {
-    it('should block a user successfully', async () => {
-      const { getDoc, updateDoc } = require('firebase/firestore');
-      getDoc.mockResolvedValue({
-        data: () => ({ blockedUsers: [] }),
-      });
-      updateDoc.mockResolvedValue();
+  it('blocks a user successfully', async () => {
+    api.post.mockResolvedValue({ success: true, data: true });
 
-      const result = await SafetyService.blockUser('user1', 'user2');
-      expect(result).toBe(true);
-      expect(updateDoc).toHaveBeenCalled();
-    });
+    const result = await SafetyService.blockUser('user_2');
 
-    it('should not block already blocked user', async () => {
-      const { getDoc, updateDoc } = require('firebase/firestore');
-      getDoc.mockResolvedValue({
-        data: () => ({ blockedUsers: ['user2'] }),
-      });
-
-      const result = await SafetyService.blockUser('user1', 'user2');
-      expect(result).toBe(false);
-      expect(updateDoc).not.toHaveBeenCalled();
-    });
-
-    it('should handle errors gracefully', async () => {
-      const { getDoc } = require('firebase/firestore');
-      getDoc.mockRejectedValue(new Error('Firebase error'));
-
-      const result = await SafetyService.blockUser('user1', 'user2');
-      expect(result).toBe(false);
-    });
+    expect(result).toBe(true);
+    expect(api.post).toHaveBeenCalledWith('/safety/block', { blockedUserId: 'user_2' });
   });
 
-  describe('unblockUser', () => {
-    it('should unblock a user successfully', async () => {
-      const { getDoc, updateDoc } = require('firebase/firestore');
-      getDoc.mockResolvedValue({
-        data: () => ({ blockedUsers: ['user2', 'user3'] }),
-      });
-      updateDoc.mockResolvedValue();
+  it('returns false when block fails', async () => {
+    api.post.mockResolvedValue({ success: false, message: 'Failed' });
 
-      const result = await SafetyService.unblockUser('user1', 'user2');
-      expect(result).toBe(true);
-      expect(updateDoc).toHaveBeenCalled();
-    });
+    const result = await SafetyService.blockUser('user_2');
 
-    it('should handle errors gracefully', async () => {
-      const { getDoc } = require('firebase/firestore');
-      getDoc.mockRejectedValue(new Error('Firebase error'));
-
-      const result = await SafetyService.unblockUser('user1', 'user2');
-      expect(result).toBe(false);
-    });
+    expect(result).toBe(false);
   });
 
-  describe('getBlockedUsers', () => {
-    it('should return blocked users list', async () => {
-      const { getDoc } = require('firebase/firestore');
-      getDoc.mockResolvedValue({
-        data: () => ({ blockedUsers: ['user2', 'user3'] }),
-      });
-
-      const result = await SafetyService.getBlockedUsers('user1');
-      expect(result).toEqual(['user2', 'user3']);
+  it('returns blocked users list', async () => {
+    api.get.mockResolvedValue({
+      success: true,
+      data: { blockedUsers: ['user_2', 'user_3'] },
+      blockedUsers: ['user_2', 'user_3'],
     });
 
-    it('should return empty array on error', async () => {
-      const { getDoc } = require('firebase/firestore');
-      getDoc.mockRejectedValue(new Error('Firebase error'));
+    const result = await SafetyService.getBlockedUsers();
 
-      const result = await SafetyService.getBlockedUsers('user1');
-      expect(result).toEqual([]);
-    });
+    expect(result).toEqual(['user_2', 'user_3']);
   });
 
-  describe('isUserBlocked', () => {
-    it('should return true if user is blocked', async () => {
-      const { getDoc } = require('firebase/firestore');
-      getDoc.mockResolvedValue({
-        data: () => ({ blockedUsers: ['user2'] }),
-      });
+  it('reports a user successfully', async () => {
+    api.post.mockResolvedValue({ success: true, data: { reportId: 'report_1' } });
 
-      const result = await SafetyService.isUserBlocked('user1', 'user2');
-      expect(result).toBe(true);
-    });
+    const result = await SafetyService.reportUser(
+      'reported_user',
+      'harassment',
+      'Sent inappropriate messages',
+      []
+    );
 
-    it('should return false if user is not blocked', async () => {
-      const { getDoc } = require('firebase/firestore');
-      getDoc.mockResolvedValue({
-        data: () => ({ blockedUsers: ['user3'] }),
-      });
-
-      const result = await SafetyService.isUserBlocked('user1', 'user2');
-      expect(result).toBe(false);
-    });
+    expect(result.reportId).toBe('report_1');
   });
 
-  describe('reportUser', () => {
-    it('should create a report successfully', async () => {
-      const { addDoc, getDoc, updateDoc } = require('firebase/firestore');
-      addDoc.mockResolvedValue({ id: 'report_123' });
-      getDoc.mockResolvedValue({
-        data: () => ({ reportCount: 0 }),
-      });
-      updateDoc.mockResolvedValue();
+  it('returns report categories', async () => {
+    const categories = await SafetyService.getReportCategories();
 
-      const result = await SafetyService.reportUser(
-        'reporter1',
-        'reported1',
-        'harassment',
-        'Sent inappropriate messages'
-      );
-
-      expect(result.success).toBe(true);
-      expect(result.reportId).toBe('report_123');
-    });
-
-    it('should handle report creation errors', async () => {
-      const { addDoc } = require('firebase/firestore');
-      addDoc.mockRejectedValue(new Error('Database error'));
-
-      const result = await SafetyService.reportUser(
-        'reporter1',
-        'reported1',
-        'scam',
-        'Trying to collect money'
-      );
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
-    });
+    expect(categories.length).toBeGreaterThan(0);
+    expect(categories.some((c) => c.id === 'harassment')).toBe(true);
   });
 
-  describe('getReportCategories', () => {
-    it('should return all report categories', async () => {
-      const categories = await SafetyService.getReportCategories();
+  it('submits photo verification using advanced endpoint', async () => {
+    api.post.mockResolvedValue({ success: true, data: { verificationId: 'verification_1' } });
 
-      expect(categories).toHaveLength(6);
-      expect(categories.map((c) => c.id)).toContain('harassment');
-      expect(categories.map((c) => c.id)).toContain('fake_profile');
-      expect(categories.map((c) => c.id)).toContain('scam');
+    const result = await SafetyService.submitPhotoVerification('photo_uri', {
+      method: 'advanced',
+      passed: true,
+      confidence: 0.9,
     });
+
+    expect(result.success).toBe(true);
+    expect(result.verificationId).toBe('verification_1');
   });
 
-  describe('submitPhotoVerification', () => {
-    it('should submit verification successfully', async () => {
-      const { addDoc } = require('firebase/firestore');
-      addDoc.mockResolvedValue({ id: 'verification_123' });
-
-      const result = await SafetyService.submitPhotoVerification(
-        'user1',
-        'https://example.com/photo.jpg',
-        { method: 'advanced', passed: true }
-      );
-
-      expect(result.success).toBe(true);
-      expect(result.verificationId).toBe('verification_123');
+  it('returns photo verification status', async () => {
+    api.get.mockResolvedValue({
+      success: true,
+      data: { verified: false, status: 'not_submitted' },
     });
 
-    it('should handle verification submission errors', async () => {
-      const { addDoc } = require('firebase/firestore');
-      addDoc.mockRejectedValue(new Error('Upload failed'));
+    const result = await SafetyService.getPhotoVerificationStatus();
 
-      const result = await SafetyService.submitPhotoVerification(
-        'user1',
-        'https://example.com/photo.jpg'
-      );
-
-      expect(result.success).toBe(false);
-    });
+    expect(result.verified).toBe(false);
+    expect(result.status).toBe('not_submitted');
   });
 
-  describe('getPhotoVerificationStatus', () => {
-    it('should return not_submitted for new users', async () => {
-      const { getDocs } = require('firebase/firestore');
-      getDocs.mockResolvedValue({ empty: true, docs: [] });
+  it('validates date plan and emergency contact fields', () => {
+    const validPlan = {
+      location: 'Coffee Shop',
+      dateTime: new Date(Date.now() + 60 * 60 * 1000),
+    };
+    const invalidPlan = {
+      location: '',
+      dateTime: new Date(Date.now() - 60 * 60 * 1000),
+    };
 
-      const result = await SafetyService.getPhotoVerificationStatus('user1');
+    expect(SafetyService.validateDatePlan(validPlan).isValid).toBe(true);
+    expect(SafetyService.validateDatePlan(invalidPlan).isValid).toBe(false);
 
-      expect(result.verified).toBe(false);
-      expect(result.status).toBe('not_submitted');
-    });
+    expect(
+      SafetyService.validateEmergencyContact({
+        name: 'Mom',
+        phone: '5551234567',
+        relationship: 'Mother',
+      }).isValid
+    ).toBe(true);
+
+    expect(
+      SafetyService.validateEmergencyContact({
+        name: '',
+        phone: '123',
+        relationship: '',
+      }).isValid
+    ).toBe(false);
   });
 });

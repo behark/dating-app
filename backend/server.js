@@ -4,6 +4,7 @@ const Sentry = require('./instrument.js');
 require('dotenv').config();
 const { createServer } = require('http');
 const express = require('express');
+const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -177,6 +178,71 @@ healthCheckService.registerCheck('redis', async () => {
       `Redis not available: ${error instanceof Error ? error.message : String(error)}`
     );
   }
+});
+
+healthCheckService.registerCheck('backup', async () => {
+  const backupEnabled = String(process.env.MONGODB_BACKUP_ENABLED || 'false').toLowerCase() === 'true';
+
+  if (!backupEnabled) {
+    return {
+      status: 'not_configured',
+      enabled: false,
+      message: 'Database backups are not enabled',
+    };
+  }
+
+  let rawLastSuccess = process.env.MONGODB_BACKUP_LAST_SUCCESS_AT;
+  let source = 'env';
+
+  if (!rawLastSuccess) {
+    const statusFilePath = process.env.MONGODB_BACKUP_STATUS_FILE;
+    if (statusFilePath) {
+      try {
+        if (fs.existsSync(statusFilePath)) {
+          const rawStatus = fs.readFileSync(statusFilePath, 'utf8');
+          const parsedStatus = JSON.parse(rawStatus);
+          rawLastSuccess =
+            parsedStatus.lastSuccessAt || parsedStatus.last_success_at || parsedStatus.timestamp;
+          if (rawLastSuccess) {
+            source = `file:${statusFilePath}`;
+          }
+        }
+      } catch (error) {
+        throw new Error(
+          `Failed to read MONGODB_BACKUP_STATUS_FILE (${statusFilePath}): ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    }
+  }
+
+  if (!rawLastSuccess) {
+    throw new Error(
+      'Backups enabled but no timestamp found. Set MONGODB_BACKUP_LAST_SUCCESS_AT or MONGODB_BACKUP_STATUS_FILE.'
+    );
+  }
+
+  const lastSuccess = new Date(rawLastSuccess);
+  if (Number.isNaN(lastSuccess.getTime())) {
+    throw new Error('MONGODB_BACKUP_LAST_SUCCESS_AT is not a valid ISO timestamp');
+  }
+
+  const maxAgeHours = Number.parseInt(process.env.MONGODB_BACKUP_MAX_AGE_HOURS || '30', 10);
+  const ageMs = Date.now() - lastSuccess.getTime();
+  const ageHours = Number((ageMs / (1000 * 60 * 60)).toFixed(2));
+
+  if (ageMs > maxAgeHours * 60 * 60 * 1000) {
+    throw new Error(
+      `Last backup is stale (${ageHours}h old, max allowed ${maxAgeHours}h). Update MONGODB_BACKUP_LAST_SUCCESS_AT.`
+    );
+  }
+
+  return {
+    enabled: true,
+    source,
+    lastSuccessAt: lastSuccess.toISOString(),
+    ageHours,
+    maxAgeHours,
+  };
 });
 
 // HTTPS Enforcement - Force HTTPS in production
@@ -387,6 +453,12 @@ const SAFE_NO_ORIGIN_PATHS = [
   '/',
   '/health',
   '/health/detailed',
+  '/health/ready',
+  '/health/readiness',
+  '/health/live',
+  '/health/liveness',
+  '/ready',
+  '/live',
   '/favicon.ico',
   '/metrics',
   '/api/metrics/health', // Metrics health endpoint
@@ -1303,6 +1375,8 @@ process.on('uncaughtException', (err) => {
 if (process.env.VERCEL_ENV) {
   // Serverless - connect on each cold start
   connectDB();
+} else if (process.env.NODE_ENV === 'test') {
+  // Avoid binding a TCP port when imported by backend test suites.
 } else {
   // Traditional server
   startServer();

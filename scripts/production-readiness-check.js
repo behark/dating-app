@@ -12,11 +12,22 @@ const WARN = '⚠️';
 
 class ProductionChecker {
   constructor() {
+    this.projectRoot = process.cwd();
     this.results = {
       passed: [],
       failed: [],
       warnings: [],
     };
+  }
+
+  resolveExistingPath(paths) {
+    for (const relativePath of paths) {
+      const fullPath = path.join(this.projectRoot, relativePath);
+      if (fs.existsSync(fullPath)) {
+        return { relativePath, fullPath };
+      }
+    }
+    return null;
   }
 
   log(status, message) {
@@ -42,23 +53,46 @@ class ProductionChecker {
   checkEnvVariables() {
     console.log('\n📋 Checking Environment Variables...\n');
 
-    const required = ['NODE_ENV', 'MONGODB_URI', 'JWT_SECRET', 'JWT_REFRESH_SECRET'];
+    const required = [
+      { name: 'NODE_ENV' },
+      { name: 'MONGODB_URI', alternatives: ['MONGODB_URL'] },
+      { name: 'JWT_SECRET' },
+      { name: 'JWT_REFRESH_SECRET' },
+      { name: 'HASH_SALT' },
+    ];
 
-    const recommended = ['REDIS_URL', 'SENTRY_DSN', 'CORS_ORIGINS', 'RATE_LIMIT_MAX'];
+    const recommended = [
+      { name: 'REDIS_URL' },
+      { name: 'SENTRY_DSN' },
+      { name: 'CORS_ORIGIN', alternatives: ['CORS_ORIGINS'] },
+      { name: 'RATE_LIMIT_MAX' },
+    ];
 
-    required.forEach((key) => {
-      if (process.env[key]) {
-        this.pass(`${key} is set`);
+    const getValue = ({ name, alternatives = [] }) => {
+      if (process.env[name]) return { key: name, value: process.env[name] };
+      for (const alt of alternatives) {
+        if (process.env[alt]) return { key: alt, value: process.env[alt] };
+      }
+      return null;
+    };
+
+    required.forEach((def) => {
+      const found = getValue(def);
+      if (found?.value) {
+        this.pass(`${found.key} is set`);
       } else {
-        this.fail(`${key} is MISSING (required)`);
+        const alternates = def.alternatives?.length ? ` (or ${def.alternatives.join(', ')})` : '';
+        this.fail(`${def.name} is MISSING (required)${alternates}`);
       }
     });
 
-    recommended.forEach((key) => {
-      if (process.env[key]) {
-        this.pass(`${key} is set`);
+    recommended.forEach((def) => {
+      const found = getValue(def);
+      if (found?.value) {
+        this.pass(`${found.key} is set`);
       } else {
-        this.warn(`${key} is not set (recommended)`);
+        const alternates = def.alternatives?.length ? ` (or ${def.alternatives.join(', ')})` : '';
+        this.warn(`${def.name} is not set (recommended)${alternates}`);
       }
     });
 
@@ -71,9 +105,21 @@ class ProductionChecker {
       this.fail('JWT_REFRESH_SECRET is too short (min 32 chars)');
     }
 
-    if (process.env.NODE_ENV !== 'production') {
+    if ((process.env.NODE_ENV || '').trim() !== 'production') {
       this.warn(`NODE_ENV is "${process.env.NODE_ENV}" (should be "production")`);
     }
+
+    const malformedUrlVars = ['CORS_ORIGIN', 'CORS_ORIGINS', 'SENTRY_DSN', 'FRONTEND_URL', 'MONGODB_URI'];
+    malformedUrlVars.forEach((name) => {
+      const value = process.env[name];
+      if (!value) return;
+      if (value.includes('\\n') || value.includes('\n')) {
+        this.fail(`${name} contains newline characters (remove trailing \\n / line breaks)`);
+      }
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        this.warn(`${name} appears wrapped in quotes; prefer raw value without surrounding quotes`);
+      }
+    });
   }
 
   // Security Configuration Checks
@@ -82,23 +128,32 @@ class ProductionChecker {
 
     // Check for common security files
     const securityFiles = [
-      { path: 'backend/middleware/rateLimiter.js', name: 'Rate Limiter' },
-      { path: 'backend/middleware/csrf.js', name: 'CSRF Protection' },
-      { path: 'backend/middleware/auth.js', name: 'Authentication Middleware' },
+      {
+        name: 'Rate Limiter',
+        paths: ['backend/src/api/middleware/rateLimiter.js', 'backend/middleware/rateLimiter.js'],
+      },
+      {
+        name: 'CSRF Protection',
+        paths: ['backend/src/api/middleware/csrf.js', 'backend/middleware/csrf.js'],
+      },
+      {
+        name: 'Authentication Middleware',
+        paths: ['backend/src/api/middleware/auth.js', 'backend/middleware/auth.js'],
+      },
     ];
 
-    securityFiles.forEach(({ path: filePath, name }) => {
-      const fullPath = path.join(process.cwd(), filePath);
-      if (fs.existsSync(fullPath)) {
-        this.pass(`${name} exists`);
+    securityFiles.forEach(({ paths, name }) => {
+      const resolved = this.resolveExistingPath(paths);
+      if (resolved) {
+        this.pass(`${name} exists (${resolved.relativePath})`);
       } else {
-        this.fail(`${name} not found at ${filePath}`);
+        this.fail(`${name} not found in expected paths`);
       }
     });
 
     // Check helmet config
     try {
-      const serverPath = path.join(process.cwd(), 'backend/server.js');
+      const serverPath = path.join(this.projectRoot, 'backend/server.js');
       const serverContent = fs.readFileSync(serverPath, 'utf8');
 
       if (serverContent.includes('helmet')) {
@@ -163,10 +218,17 @@ class ProductionChecker {
       'discovery.js',
     ];
 
-    const routesPath = path.join(process.cwd(), 'backend/routes');
+    const routesRoot =
+      this.resolveExistingPath(['backend/src/api/routes']) ||
+      this.resolveExistingPath(['backend/routes']);
+
+    if (!routesRoot) {
+      this.warn('Routes directory not found');
+      return;
+    }
 
     routeFiles.forEach((file) => {
-      const fullPath = path.join(routesPath, file);
+      const fullPath = path.join(routesRoot.fullPath, file);
       if (fs.existsSync(fullPath)) {
         this.pass(`Route ${file} exists`);
       } else {
@@ -187,9 +249,12 @@ class ProductionChecker {
     }
 
     // Check for error middleware
-    const errorMiddlewarePath = path.join(process.cwd(), 'backend/middleware/errorHandler.js');
-    if (fs.existsSync(errorMiddlewarePath)) {
-      this.pass('Error handler middleware exists');
+    const resolvedErrorMiddleware = this.resolveExistingPath([
+      'backend/src/api/middleware/errorHandler.js',
+      'backend/middleware/errorHandler.js',
+    ]);
+    if (resolvedErrorMiddleware) {
+      this.pass(`Error handler middleware exists (${resolvedErrorMiddleware.relativePath})`);
     } else {
       this.warn('Error handler middleware not found');
     }
@@ -207,9 +272,12 @@ class ProductionChecker {
     }
 
     // Check for CDN/static file handling
-    const cdnServicePath = path.join(process.cwd(), 'backend/services/cdnService.js');
-    if (fs.existsSync(cdnServicePath)) {
-      this.pass('CDN service exists');
+    const resolvedCdnService = this.resolveExistingPath([
+      'backend/src/core/services/cdnService.js',
+      'backend/services/cdnService.js',
+    ]);
+    if (resolvedCdnService) {
+      this.pass(`CDN service exists (${resolvedCdnService.relativePath})`);
     } else {
       this.warn('CDN service not found');
     }
@@ -220,7 +288,7 @@ class ProductionChecker {
     console.log('\n🏥 Checking Health Check Endpoints...\n');
 
     try {
-      const serverPath = path.join(process.cwd(), 'backend/server.js');
+      const serverPath = path.join(this.projectRoot, 'backend/server.js');
       const serverContent = fs.readFileSync(serverPath, 'utf8');
 
       if (serverContent.includes('/health') || serverContent.includes('/api/health')) {
@@ -252,7 +320,7 @@ class ProductionChecker {
     const testDirs = ['backend/__tests__', 'src/__tests__'];
 
     testDirs.forEach((dir) => {
-      const fullPath = path.join(process.cwd(), dir);
+      const fullPath = path.join(this.projectRoot, dir);
       if (fs.existsSync(fullPath)) {
         const files = fs.readdirSync(fullPath, { recursive: true });
         const testFiles = files.filter(
@@ -272,7 +340,7 @@ class ProductionChecker {
     const dockerFiles = ['Dockerfile', 'docker-compose.yml', 'docker-compose.production.yml'];
 
     dockerFiles.forEach((file) => {
-      const fullPath = path.join(process.cwd(), file);
+      const fullPath = path.join(this.projectRoot, file);
       if (fs.existsSync(fullPath)) {
         this.pass(`${file} exists`);
       } else {
@@ -288,7 +356,7 @@ class ProductionChecker {
     const ciFiles = ['.github/workflows/ci.yml', '.github/workflows/api-tests.yml'];
 
     ciFiles.forEach((file) => {
-      const fullPath = path.join(process.cwd(), file);
+      const fullPath = path.join(this.projectRoot, file);
       if (fs.existsSync(fullPath)) {
         this.pass(`${file} exists`);
       } else {
@@ -301,19 +369,13 @@ class ProductionChecker {
   checkAppStoreRequirements() {
     console.log('\n📱 Checking App Store Requirements...\n');
 
-    // Check for privacy policy
-    const legalFiles = [
-      { pattern: '**/privacy*.md', name: 'Privacy Policy' },
-      { pattern: '**/terms*.md', name: 'Terms of Service' },
-    ];
-
-    if (process.env.PRIVACY_POLICY_URL) {
+    if (process.env.PRIVACY_POLICY_URL || process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL) {
       this.pass('Privacy Policy URL configured');
     } else {
       this.warn('Privacy Policy URL not set');
     }
 
-    if (process.env.TERMS_OF_SERVICE_URL) {
+    if (process.env.TERMS_OF_SERVICE_URL || process.env.EXPO_PUBLIC_TERMS_OF_SERVICE_URL) {
       this.pass('Terms of Service URL configured');
     } else {
       this.warn('Terms of Service URL not set');
@@ -321,7 +383,7 @@ class ProductionChecker {
 
     // Check app.config.js for required fields
     try {
-      const appConfigPath = path.join(process.cwd(), 'app.config.js');
+      const appConfigPath = path.join(this.projectRoot, 'app.config.js');
       if (fs.existsSync(appConfigPath)) {
         this.pass('app.config.js exists');
       } else {
@@ -399,7 +461,10 @@ class ProductionChecker {
 
 // Run if executed directly
 if (require.main === module) {
-  require('dotenv').config();
+  const dotenv = require('dotenv');
+  dotenv.config();
+  dotenv.config({ path: './backend/.env' });
+  dotenv.config({ path: './backend/.env.production', override: true });
   const checker = new ProductionChecker();
   const result = checker.run();
   process.exit(result.isReady ? 0 : 1);

@@ -6,6 +6,17 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
+jest.mock('@react-native-community/netinfo', () => ({
+  addEventListener: jest.fn(() => jest.fn()),
+  fetch: jest.fn(() =>
+    Promise.resolve({
+      isConnected: true,
+      isInternetReachable: true,
+      type: 'wifi',
+    })
+  ),
+}));
+
 // Mock Expo modules
 jest.mock('expo-constants', () => ({
   expoConfig: {
@@ -30,12 +41,20 @@ jest.mock('expo-linking', () => ({
   parseURL: jest.fn(),
 }));
 
+jest.mock('expo-secure-store', () => ({
+  isAvailableAsync: jest.fn(async () => false),
+  setItemAsync: jest.fn(async () => undefined),
+  getItemAsync: jest.fn(async () => null),
+  deleteItemAsync: jest.fn(async () => undefined),
+}));
+
 // Mock React Native
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   RN.Platform.OS = 'web';
   RN.Dimensions = {
     get: jest.fn(() => ({ width: 375, height: 812 })),
+    addEventListener: jest.fn(() => ({ remove: jest.fn() })),
   };
   return RN;
 });

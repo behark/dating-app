@@ -41,9 +41,16 @@ export const validatePassword = (password, options = {}) => {
  * @returns {boolean} True if age is valid
  */
 export const validateAge = (age, options = {}) => {
-  const { minAge = 18, maxAge = 100 } = options;
-  if (typeof age !== 'number' || isNaN(age)) return false;
-  return age >= minAge && age <= maxAge;
+  const { minAge = 18, maxAge = 120 } = options;
+  const parsedAge =
+    typeof age === 'string' && age.trim().length > 0
+      ? Number(age)
+      : typeof age === 'number'
+        ? age
+        : NaN;
+
+  if (!Number.isInteger(parsedAge)) return false;
+  return parsedAge >= minAge && parsedAge <= maxAge;
 };
 
 /**
@@ -112,10 +119,12 @@ export const validateCoordinates = (lat, lng) => {
  */
 export const validateUserId = (userId) => {
   if (!userId || typeof userId !== 'string') return false;
-  // MongoDB ObjectId format or UUID format
+  const normalizedUserId = userId.trim();
+  // MongoDB ObjectId format, UUID format, or Firebase/custom alphanumeric IDs
   return (
-    /^[a-f\d]{24}$/i.test(userId) ||
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)
+    /^[a-f\d]{24}$/i.test(normalizedUserId) ||
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(normalizedUserId) ||
+    /^[A-Za-z0-9_-]{6,128}$/.test(normalizedUserId)
   );
 };
 

@@ -65,6 +65,13 @@ const BACKEND_VARS = {
       alternatives: ['REDIS_HOST'],
       description: 'Redis connection',
     },
+    {
+      name: 'CORS_ORIGIN',
+      alternatives: ['CORS_ORIGINS'],
+      description: 'Allowed CORS origins',
+      pattern: /^https:\/\//,
+      patternMessage: 'Must be HTTPS in production',
+    },
   ],
 
   recommended: [
@@ -189,15 +196,40 @@ class EnvValidator {
       return false;
     }
 
+    const normalizedValue = typeof value === 'string' ? value.trim() : value;
+
+    if (typeof value === 'string' && normalizedValue !== value) {
+      this.warn(`${varDef.name}: Has leading/trailing whitespace`);
+    }
+
+    if (
+      typeof value === 'string' &&
+      (value.includes('\\n') || value.includes('\n')) &&
+      (varDef.name.includes('URL') ||
+        varDef.name.includes('URI') ||
+        varDef.name.includes('ORIGIN') ||
+        varDef.name.includes('DSN'))
+    ) {
+      this.fail(`${varDef.name}: Contains newline characters`);
+      return false;
+    }
+
+    if (
+      typeof value === 'string' &&
+      ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'")))
+    ) {
+      this.warn(`${varDef.name}: Value appears wrapped in quotes`);
+    }
+
     // Check minimum length
-    if (varDef.minLength && value.length < varDef.minLength) {
-      this.fail(`${varDef.name}: Too short (${value.length} chars, need ${varDef.minLength})`);
+    if (varDef.minLength && normalizedValue.length < varDef.minLength) {
+      this.fail(`${varDef.name}: Too short (${normalizedValue.length} chars, need ${varDef.minLength})`);
       return false;
     }
 
     // Check for default/placeholder values
     if (varDef.noDefaultValues) {
-      const lowerValue = value.toLowerCase();
+      const lowerValue = normalizedValue.toLowerCase();
       for (const forbidden of varDef.noDefaultValues) {
         if (lowerValue.includes(forbidden.toLowerCase())) {
           this.fail(`${varDef.name}: Contains placeholder value "${forbidden}"`);
@@ -207,12 +239,12 @@ class EnvValidator {
     }
 
     // Check expected value
-    if (varDef.expectedValue && value !== varDef.expectedValue) {
-      this.warn(`${varDef.name}: Expected "${varDef.expectedValue}", got "${value}"`);
+    if (varDef.expectedValue && normalizedValue !== varDef.expectedValue) {
+      this.warn(`${varDef.name}: Expected "${varDef.expectedValue}", got "${normalizedValue}"`);
     }
 
     // Check pattern
-    if (varDef.pattern && !varDef.pattern.test(value)) {
+    if (varDef.pattern && !varDef.pattern.test(normalizedValue)) {
       if (level === 'critical') {
         this.fail(`${varDef.name}: ${varDef.patternMessage || 'Invalid format'}`);
         return false;
@@ -224,7 +256,7 @@ class EnvValidator {
     // Check must differ from another var
     if (varDef.mustDifferFrom) {
       const otherValue = process.env[varDef.mustDifferFrom];
-      if (value === otherValue) {
+      if (normalizedValue === otherValue) {
         this.fail(`${varDef.name}: Must be different from ${varDef.mustDifferFrom}`);
         return false;
       }
@@ -410,8 +442,10 @@ class EnvValidator {
 if (require.main === module) {
   // Load .env file if present
   try {
-    require('dotenv').config();
-    require('dotenv').config({ path: './backend/.env' });
+    const dotenv = require('dotenv');
+    dotenv.config();
+    dotenv.config({ path: './backend/.env' });
+    dotenv.config({ path: './backend/.env.production', override: true });
   } catch (e) {
     // dotenv not installed, that's fine
   }

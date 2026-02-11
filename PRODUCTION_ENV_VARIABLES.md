@@ -4,6 +4,35 @@ Complete guide for setting up environment variables for the Dating App in produc
 
 ---
 
+## 🚨 Critical Formatting Rules (Do This First)
+
+When copying env values between Render, Vercel, and EAS, use these rules to avoid silent breakage:
+
+```bash
+# 1) Do NOT include outer quotes for URL/DSN vars
+CORS_ORIGIN=https://dating-app-seven-peach.vercel.app
+SENTRY_DSN=https://<key>@o<org>.ingest.de.sentry.io/<project>
+
+# 2) Do NOT keep trailing "\n" in URL/DSN vars
+# BAD: https://...vercel.app\n
+# GOOD: https://...vercel.app
+
+# 3) Firebase private key should keep escaped newlines, but no extra wrapping quotes
+FIREBASE_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n
+
+# 4) Set BOTH CORS vars for compatibility in this codebase
+CORS_ORIGIN=https://dating-app-seven-peach.vercel.app
+CORS_ORIGINS=https://dating-app-seven-peach.vercel.app
+```
+
+Quick audit command:
+
+```bash
+npm run audit:cloud-env
+```
+
+---
+
 ## 🏗️ Architecture Recommendation
 
 ### Current Setup: Backend on Render + Frontend on Vercel ✅ RECOMMENDED
@@ -125,6 +154,13 @@ CORS_ORIGIN=https://dating-app-seven-peach.vercel.app
 # ===========================================
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/dating-app?retryWrites=true&w=majority
 MONGODB_POOL_SIZE=10
+
+# Backup health (recommended)
+MONGODB_BACKUP_ENABLED=true
+MONGODB_BACKUP_LAST_SUCCESS_AT=2026-02-11T20:00:00Z
+# Optional: path to JSON file updated by backup automation
+MONGODB_BACKUP_STATUS_FILE=/var/run/dating-app/backup-status.json
+MONGODB_BACKUP_MAX_AGE_HOURS=30
 ```
 
 ### Cache (Redis - Optional but Recommended)
@@ -281,10 +317,20 @@ APPLE_TEAM_ID=your-apple-team-id
 - [ ] `JWT_SECRET` - **Generate unique 64-char string**
 - [ ] `JWT_REFRESH_SECRET` - **Generate different 64-char string**
 - [ ] `MONGODB_URI` - From MongoDB Atlas
+- [ ] `MONGODB_BACKUP_ENABLED=true`
+- [ ] `MONGODB_BACKUP_LAST_SUCCESS_AT` - Updated by your backup job
+- [ ] (optional) `MONGODB_BACKUP_STATUS_FILE` - JSON file written by backup automation
+- [ ] `MONGODB_BACKUP_MAX_AGE_HOURS` - e.g. `30`
 - [ ] `FRONTEND_URL` - Your Vercel frontend URL
 - [ ] `CORS_ORIGIN` - Your Vercel frontend URL
 - [ ] `CLOUDINARY_*` - From Cloudinary dashboard
 - [ ] `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - From Google Cloud Console
+
+### Health Endpoints (Backend)
+- [ ] `GET /health`
+- [ ] `GET /health/detailed`
+- [ ] `GET /ready` and `GET /live`
+- [ ] `GET /health/ready` and `GET /health/live` (Kubernetes-friendly aliases)
 
 ---
 

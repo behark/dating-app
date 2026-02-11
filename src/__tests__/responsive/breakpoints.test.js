@@ -27,31 +27,31 @@ describe('Responsive Breakpoints', () => {
 
   describe('Breakpoint Detection', () => {
     it('should detect xs breakpoint (< 360px)', () => {
-      Dimensions.get.mockReturnValue({ width: 320, height: 568 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 320, height: 568 });
       const { result } = renderHook(() => useResponsive());
       expect(result.current.width).toBe(320);
     });
 
     it('should detect sm breakpoint (360px - 768px)', () => {
-      Dimensions.get.mockReturnValue({ width: 375, height: 667 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 375, height: 667 });
       const { result } = renderHook(() => useResponsive());
       expect(result.current.width).toBe(375);
     });
 
     it('should detect md breakpoint (768px - 1024px)', () => {
-      Dimensions.get.mockReturnValue({ width: 768, height: 1024 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 768, height: 1024 });
       const { result } = renderHook(() => useResponsive());
       expect(result.current.width).toBe(768);
     });
 
     it('should detect lg breakpoint (1024px - 1280px)', () => {
-      Dimensions.get.mockReturnValue({ width: 1024, height: 768 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 1024, height: 768 });
       const { result } = renderHook(() => useResponsive());
       expect(result.current.width).toBe(1024);
     });
 
     it('should detect xl breakpoint (>= 1280px)', () => {
-      Dimensions.get.mockReturnValue({ width: 1280, height: 720 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 1280, height: 720 });
       const { result } = renderHook(() => useResponsive());
       expect(result.current.width).toBe(1280);
     });
@@ -79,13 +79,13 @@ describe('Responsive Breakpoints', () => {
 
   describe('Orientation Detection', () => {
     it('should detect portrait orientation', () => {
-      Dimensions.get.mockReturnValue({ width: 375, height: 812 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 375, height: 812 });
       const { result } = renderHook(() => useResponsive());
       expect(result.current.isLandscape).toBe(false);
     });
 
     it('should detect landscape orientation', () => {
-      Dimensions.get.mockReturnValue({ width: 812, height: 375 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 812, height: 375 });
       const { result } = renderHook(() => useResponsive());
       expect(result.current.isLandscape).toBe(true);
     });
@@ -93,20 +93,20 @@ describe('Responsive Breakpoints', () => {
 
   describe('Platform Detection', () => {
     it('should detect web platform', () => {
-      Dimensions.get.mockReturnValue({ width: 1280, height: 720 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 1280, height: 720 });
       const { result } = renderHook(() => useResponsive());
       // Platform detection depends on Platform.OS mock
       expect(result.current.platform).toBeDefined();
     });
 
     it('should detect iOS platform', () => {
-      Dimensions.get.mockReturnValue({ width: 375, height: 812 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 375, height: 812 });
       const { result } = renderHook(() => useResponsive());
       expect(result.current.platform).toBeDefined();
     });
 
     it('should detect Android platform', () => {
-      Dimensions.get.mockReturnValue({ width: 414, height: 896 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 414, height: 896 });
       const { result } = renderHook(() => useResponsive());
       expect(result.current.platform).toBeDefined();
     });
@@ -131,14 +131,14 @@ describe('Responsive Breakpoints', () => {
 
   describe('Dimension Updates', () => {
     it('should update dimensions on orientation change', () => {
-      Dimensions.get.mockReturnValue({ width: 375, height: 812 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 375, height: 812 });
       const { result, rerender } = renderHook(() => useResponsive());
 
       expect(result.current.width).toBe(375);
       expect(result.current.isLandscape).toBe(false);
 
       // Simulate orientation change
-      Dimensions.get.mockReturnValue({ width: 812, height: 375 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 812, height: 375 });
       rerender();
 
       // Note: In real implementation, Dimensions.addEventListener would trigger update
@@ -149,21 +149,21 @@ describe('Responsive Breakpoints', () => {
 
   describe('Edge Cases', () => {
     it('should handle very small screens', () => {
-      Dimensions.get.mockReturnValue({ width: 280, height: 400 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 280, height: 400 });
       const { result } = renderHook(() => useResponsive());
       expect(result.current.width).toBe(280);
       expect(getDeviceType(280)).toBe('mobile');
     });
 
     it('should handle very large screens', () => {
-      Dimensions.get.mockReturnValue({ width: 3840, height: 2160 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 3840, height: 2160 });
       const { result } = renderHook(() => useResponsive());
       expect(result.current.width).toBe(3840);
       expect(getDeviceType(3840)).toBe('desktop');
     });
 
     it('should handle square screens', () => {
-      Dimensions.get.mockReturnValue({ width: 1024, height: 1024 });
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 1024, height: 1024 });
       const { result } = renderHook(() => useResponsive());
       expect(result.current.isLandscape).toBe(false); // Equal dimensions = portrait
     });

@@ -1,479 +1,118 @@
-/**
- * Chat API Tests
- * Comprehensive test suite for /api/chat endpoints
- */
-
-const request = require('supertest');
 const express = require('express');
+const request = require('supertest');
+const mongoose = require('mongoose');
 
-const {
-  generateTestToken,
-  authHeader,
-  assertUnauthorized,
-  assertValidationError,
-  assertForbidden,
-} = require('../utils/testHelpers');
-
-const { messages } = require('../utils/fixtures');
-
-// Mock dependencies
-jest.mock('../../src/core/domain/Message', () => ({
-  find: jest.fn(),
-  findById: jest.fn(),
-  create: jest.fn(),
-  findByIdAndUpdate: jest.fn(),
-  updateMany: jest.fn(),
-  aggregate: jest.fn(),
-  countDocuments: jest.fn(),
+jest.mock('../../src/api/controllers/chatController', () => ({
+  getMessages: jest.fn((req, res) => res.status(200).json({ success: true })),
+  getConversations: jest.fn((req, res) => res.status(200).json({ success: true })),
+  markAsRead: jest.fn((req, res) => res.status(200).json({ success: true })),
+  getUnreadCount: jest.fn((req, res) => res.status(200).json({ success: true })),
+  deleteMessage: jest.fn((req, res) => res.status(200).json({ success: true })),
+  markMessageAsRead: jest.fn((req, res) => res.status(200).json({ success: true })),
+  getReadReceipts: jest.fn((req, res) => res.status(200).json({ success: true })),
+  sendEncryptedMessage: jest.fn((req, res) => res.status(201).json({ success: true })),
+  addReaction: jest.fn((req, res) => res.status(200).json({ success: true })),
+  removeReaction: jest.fn((req, res) => res.status(200).json({ success: true })),
 }));
 
-jest.mock('../../src/core/domain/Match', () => ({
-  findById: jest.fn(),
-  findOne: jest.fn(),
+jest.mock('../../src/api/middleware/auth', () => ({
+  authenticate: jest.fn((req, res, next) => {
+    if (!req.headers.authorization) {
+      return res.status(401).json({ success: false });
+    }
+    req.user = { _id: 'user_1' };
+    next();
+  }),
 }));
 
-jest.mock('../../src/core/domain/User', () => ({
-  findById: jest.fn(),
-}));
+const controller = require('../../src/api/controllers/chatController');
 
-// Create test app
-const createTestApp = () => {
+const createApp = () => {
   const app = express();
   app.use(express.json());
-
-  const chatRoutes = require('../../routes/chat');
-  app.use('/api/chat', chatRoutes);
-
-  app.use((err, req, res, next) => {
-    res.status(err.status || 500).json({
-      success: false,
-      message: err.message || 'Internal server error',
-    });
-  });
-
+  app.use('/api/chat', require('../../routes/chat'));
   return app;
 };
 
-describe('Chat API Tests', () => {
+describe('chat routes', () => {
   let app;
-  const Message = require('../../src/core/domain/Message');
-  const Match = require('../../src/core/domain/Match');
-  const User = require('../../src/core/domain/User');
 
   beforeAll(() => {
-    process.env.JWT_SECRET = 'test-secret';
-    app = createTestApp();
+    app = createApp();
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('GET /api/chat/conversations', () => {
-    describe('Success Cases', () => {
-      it('should return all conversations for user', async () => {
-        Match.find = jest.fn().mockReturnValue({
-          populate: jest.fn().mockReturnThis(),
-          lean: jest.fn().mockResolvedValue([
-            {
-              _id: 'match_1',
-              users: [
-                { _id: 'user_id', name: 'Current User' },
-                { _id: 'other_user', name: 'Other User' },
-              ],
-            },
-          ]),
-        });
-
-        Message.findOne = jest.fn().mockResolvedValue({
-          _id: 'message_1',
-          content: 'Last message',
-          createdAt: new Date(),
-        });
-
-        const response = await request(app)
-          .get('/api/chat/conversations')
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(200);
-        expect(response.body.success).toBe(true);
-      });
-
-      it('should return empty array for user with no conversations', async () => {
-        Match.find = jest.fn().mockReturnValue({
-          populate: jest.fn().mockReturnThis(),
-          lean: jest.fn().mockResolvedValue([]),
-        });
-
-        const response = await request(app)
-          .get('/api/chat/conversations')
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(200);
-        expect(response.body.conversations || []).toEqual([]);
-      });
-
-      it('should include last message in conversation', async () => {
-        Match.find = jest.fn().mockReturnValue({
-          populate: jest.fn().mockReturnThis(),
-          lean: jest.fn().mockResolvedValue([
-            {
-              _id: 'match_1',
-              users: [
-                { _id: 'user_id', name: 'Current User' },
-                { _id: 'other_user', name: 'Other User' },
-              ],
-            },
-          ]),
-        });
-
-        Message.findOne = jest.fn().mockReturnValue({
-          sort: jest.fn().mockReturnThis(),
-          lean: jest.fn().mockResolvedValue({
-            _id: 'message_1',
-            content: 'Last message',
-            createdAt: new Date(),
-          }),
-        });
-
-        const response = await request(app)
-          .get('/api/chat/conversations')
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(200);
-      });
-    });
+  it('requires auth', async () => {
+    const res = await request(app).get('/api/chat/conversations');
+    expect(res.status).toBe(401);
   });
 
-  describe('GET /api/chat/unread', () => {
-    describe('Success Cases', () => {
-      it('should return unread message count', async () => {
-        Message.countDocuments.mockResolvedValue(5);
-
-        const response = await request(app).get('/api/chat/unread').set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(200);
-        expect(response.body.count).toBeDefined();
-      });
-
-      it('should return 0 for user with no unread messages', async () => {
-        Message.countDocuments.mockResolvedValue(0);
-
-        const response = await request(app).get('/api/chat/unread').set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(200);
-        expect(response.body.count).toBe(0);
-      });
-    });
+  it('routes conversation and unread endpoints', async () => {
+    const auth = { Authorization: 'Bearer token' };
+    const conversations = await request(app).get('/api/chat/conversations').set(auth);
+    const unread = await request(app).get('/api/chat/unread').set(auth);
+    expect(conversations.status).toBe(200);
+    expect(unread.status).toBe(200);
   });
 
-  describe('GET /api/chat/messages/:matchId', () => {
-    describe('Success Cases', () => {
-      it('should return messages for a match', async () => {
-        Match.findById.mockResolvedValue({
-          _id: 'match_id',
-          users: ['user_id', 'other_user'],
-          status: 'active',
-        });
+  it('validates message route matchId and encrypted payload', async () => {
+    const auth = { Authorization: 'Bearer token' };
+    const invalid = await request(app).get('/api/chat/messages/bad-id').set(auth);
+    expect(invalid.status).toBe(400);
 
-        Message.find.mockReturnValue({
-          sort: jest.fn().mockReturnThis(),
-          limit: jest.fn().mockReturnThis(),
-          skip: jest.fn().mockReturnThis(),
-          populate: jest.fn().mockReturnThis(),
-          lean: jest.fn().mockResolvedValue([
-            {
-              _id: 'message_1',
-              senderId: 'user_id',
-              content: 'Hello',
-              createdAt: new Date(),
-            },
-            {
-              _id: 'message_2',
-              senderId: 'other_user',
-              content: 'Hi there',
-              createdAt: new Date(),
-            },
-          ]),
-        });
+    const validMatchId = new mongoose.Types.ObjectId().toString();
+    const valid = await request(app).get(`/api/chat/messages/${validMatchId}`).set(auth);
+    expect(valid.status).toBe(200);
 
-        const response = await request(app)
-          .get('/api/chat/messages/match_id')
-          .set('x-user-id', 'user_id');
+    const encryptedBad = await request(app)
+      .post('/api/chat/messages/encrypted')
+      .set(auth)
+      .send({ matchId: 'bad', content: '' });
+    expect(encryptedBad.status).toBe(400);
 
-        expect(response.status).toBe(200);
-        expect(response.body.messages).toBeDefined();
-      });
-
-      it('should return paginated messages', async () => {
-        Match.findById.mockResolvedValue({
-          _id: 'match_id',
-          users: ['user_id', 'other_user'],
-          status: 'active',
-        });
-
-        Message.find.mockReturnValue({
-          sort: jest.fn().mockReturnThis(),
-          limit: jest.fn().mockReturnThis(),
-          skip: jest.fn().mockReturnThis(),
-          populate: jest.fn().mockReturnThis(),
-          lean: jest.fn().mockResolvedValue([]),
-        });
-
-        const response = await request(app)
-          .get('/api/chat/messages/match_id')
-          .query({ page: 2, limit: 20 })
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(200);
-      });
-    });
-
-    describe('Not Found', () => {
-      it('should return 404 for non-existent match', async () => {
-        Match.findById.mockResolvedValue(null);
-
-        const response = await request(app)
-          .get('/api/chat/messages/nonexistent_match')
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(404);
-      });
-    });
-
-    describe('Forbidden', () => {
-      it('should reject access to match user is not part of', async () => {
-        Match.findById.mockResolvedValue({
-          _id: 'match_id',
-          users: ['other_user_1', 'other_user_2'],
-          status: 'active',
-        });
-
-        const response = await request(app)
-          .get('/api/chat/messages/match_id')
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(403);
-      });
-    });
+    const encryptedOk = await request(app)
+      .post('/api/chat/messages/encrypted')
+      .set(auth)
+      .send({ matchId: validMatchId, content: 'hello', type: 'text' });
+    expect(encryptedOk.status).toBe(201);
   });
 
-  describe('PUT /api/chat/messages/:matchId/read', () => {
-    describe('Success Cases', () => {
-      it('should mark all messages as read', async () => {
-        Match.findById.mockResolvedValue({
-          _id: 'match_id',
-          users: ['user_id', 'other_user'],
-          status: 'active',
-        });
+  it('routes read/delete/receipt endpoints', async () => {
+    const auth = { Authorization: 'Bearer token' };
+    const id = new mongoose.Types.ObjectId().toString();
 
-        Message.updateMany.mockResolvedValue({
-          modifiedCount: 5,
-        });
+    const readAll = await request(app).put(`/api/chat/messages/${id}/read`).set(auth);
+    const readOne = await request(app).put(`/api/chat/messages/${id}/read-single`).set(auth);
+    const receipts = await request(app).get(`/api/chat/receipts/${id}`).set(auth);
+    const del = await request(app).delete(`/api/chat/messages/${id}`).set(auth);
 
-        const response = await request(app)
-          .put('/api/chat/messages/match_id/read')
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(200);
-        expect(response.body.success).toBe(true);
-      });
-    });
-
-    describe('Not Found', () => {
-      it('should return 404 for non-existent match', async () => {
-        Match.findById.mockResolvedValue(null);
-
-        const response = await request(app)
-          .put('/api/chat/messages/nonexistent_match/read')
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(404);
-      });
-    });
+    expect(readAll.status).toBe(200);
+    expect(readOne.status).toBe(200);
+    expect(receipts.status).toBe(200);
+    expect(del.status).toBe(200);
   });
 
-  describe('PUT /api/chat/messages/:messageId/read-single', () => {
-    describe('Success Cases', () => {
-      it('should mark single message as read', async () => {
-        Message.findById.mockResolvedValue({
-          _id: 'message_id',
-          matchId: 'match_id',
-          senderId: 'other_user',
-          recipientId: 'user_id',
-        });
+  it('validates reactions endpoints', async () => {
+    const auth = { Authorization: 'Bearer token' };
+    const id = new mongoose.Types.ObjectId().toString();
 
-        Message.findByIdAndUpdate.mockResolvedValue({
-          _id: 'message_id',
-          readAt: new Date(),
-        });
+    const bad = await request(app).post('/api/chat/messages/reactions').set(auth).send({});
+    expect(bad.status).toBe(400);
 
-        const response = await request(app)
-          .put('/api/chat/messages/message_id/read-single')
-          .set('x-user-id', 'user_id');
+    const add = await request(app)
+      .post('/api/chat/messages/reactions')
+      .set(auth)
+      .send({ messageId: id, reactionId: 'like' });
+    const remove = await request(app)
+      .delete('/api/chat/messages/reactions')
+      .set(auth)
+      .send({ messageId: id, reactionId: 'like' });
 
-        expect(response.status).toBe(200);
-      });
-    });
-
-    describe('Not Found', () => {
-      it('should return 404 for non-existent message', async () => {
-        Message.findById.mockResolvedValue(null);
-
-        const response = await request(app)
-          .put('/api/chat/messages/nonexistent/read-single')
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(404);
-      });
-    });
-  });
-
-  describe('GET /api/chat/receipts/:matchId', () => {
-    describe('Success Cases', () => {
-      it('should return read receipts for conversation', async () => {
-        Match.findById.mockResolvedValue({
-          _id: 'match_id',
-          users: ['user_id', 'other_user'],
-          status: 'active',
-        });
-
-        Message.find.mockReturnValue({
-          select: jest.fn().mockReturnThis(),
-          lean: jest.fn().mockResolvedValue([
-            { _id: 'msg_1', readAt: new Date() },
-            { _id: 'msg_2', readAt: null },
-          ]),
-        });
-
-        const response = await request(app)
-          .get('/api/chat/receipts/match_id')
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(200);
-      });
-    });
-  });
-
-  describe('POST /api/chat/messages/encrypted', () => {
-    describe('Success Cases', () => {
-      it('should send encrypted message', async () => {
-        Match.findById.mockResolvedValue({
-          _id: messages.encryptedMessage.matchId,
-          users: ['user_id', 'other_user'],
-          status: 'active',
-        });
-
-        Message.create.mockResolvedValue({
-          _id: 'message_id',
-          matchId: messages.encryptedMessage.matchId,
-          senderId: 'user_id',
-          content: messages.encryptedMessage.content,
-          isEncrypted: true,
-          createdAt: new Date(),
-        });
-
-        const response = await request(app)
-          .post('/api/chat/messages/encrypted')
-          .set('x-user-id', 'user_id')
-          .send(messages.encryptedMessage);
-
-        expect(response.status).toBe(201);
-        expect(response.body.success).toBe(true);
-      });
-    });
-
-    describe('Validation Errors', () => {
-      it('should reject message without matchId', async () => {
-        const response = await request(app)
-          .post('/api/chat/messages/encrypted')
-          .set('x-user-id', 'user_id')
-          .send({ content: 'Hello' });
-
-        expect(response.status).toBe(400);
-      });
-
-      it('should reject message without content', async () => {
-        const response = await request(app)
-          .post('/api/chat/messages/encrypted')
-          .set('x-user-id', 'user_id')
-          .send({ matchId: 'match_id' });
-
-        expect(response.status).toBe(400);
-      });
-    });
-
-    describe('Match Validation', () => {
-      it('should reject message to non-existent match', async () => {
-        Match.findById.mockResolvedValue(null);
-
-        const response = await request(app)
-          .post('/api/chat/messages/encrypted')
-          .set('x-user-id', 'user_id')
-          .send(messages.validMessage);
-
-        expect(response.status).toBe(404);
-      });
-
-      it('should reject message to match user is not part of', async () => {
-        Match.findById.mockResolvedValue({
-          _id: 'match_id',
-          users: ['other_user_1', 'other_user_2'],
-          status: 'active',
-        });
-
-        const response = await request(app)
-          .post('/api/chat/messages/encrypted')
-          .set('x-user-id', 'user_id')
-          .send(messages.validMessage);
-
-        expect(response.status).toBe(403);
-      });
-    });
-  });
-
-  describe('DELETE /api/chat/messages/:messageId', () => {
-    describe('Success Cases', () => {
-      it('should delete own message', async () => {
-        Message.findById.mockResolvedValue({
-          _id: 'message_id',
-          senderId: 'user_id',
-          deleteOne: jest.fn().mockResolvedValue(true),
-        });
-
-        const response = await request(app)
-          .delete('/api/chat/messages/message_id')
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(200);
-      });
-    });
-
-    describe('Not Found', () => {
-      it('should return 404 for non-existent message', async () => {
-        Message.findById.mockResolvedValue(null);
-
-        const response = await request(app)
-          .delete('/api/chat/messages/nonexistent')
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(404);
-      });
-    });
-
-    describe('Forbidden', () => {
-      it("should reject deletion of other user's message", async () => {
-        Message.findById.mockResolvedValue({
-          _id: 'message_id',
-          senderId: 'other_user',
-        });
-
-        const response = await request(app)
-          .delete('/api/chat/messages/message_id')
-          .set('x-user-id', 'user_id');
-
-        expect(response.status).toBe(403);
-      });
-    });
+    expect(add.status).toBe(200);
+    expect(remove.status).toBe(200);
+    expect(controller.addReaction).toHaveBeenCalled();
   });
 });

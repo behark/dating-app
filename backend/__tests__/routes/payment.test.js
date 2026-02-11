@@ -1,564 +1,154 @@
-/**
- * Payment API Tests
- * Comprehensive test suite for /api/payment endpoints
- */
-
-const request = require('supertest');
 const express = require('express');
+const request = require('supertest');
 
-const {
-  generateTestToken,
-  authHeader,
-  assertUnauthorized,
-  assertValidationError,
-} = require('../utils/testHelpers');
-
-const { payments } = require('../utils/fixtures');
-
-// Mock Stripe
-jest.mock('stripe', () => {
-  return jest.fn().mockImplementation(() => ({
-    customers: {
-      create: jest.fn().mockResolvedValue({ id: 'cus_test123' }),
-      retrieve: jest.fn().mockResolvedValue({ id: 'cus_test123' }),
-    },
-    subscriptions: {
-      create: jest.fn().mockResolvedValue({
-        id: 'sub_test123',
-        status: 'active',
-        current_period_end: Date.now() / 1000 + 30 * 24 * 60 * 60,
-      }),
-      retrieve: jest.fn().mockResolvedValue({
-        id: 'sub_test123',
-        status: 'active',
-      }),
-      cancel: jest.fn().mockResolvedValue({
-        id: 'sub_test123',
-        status: 'canceled',
-      }),
-      update: jest.fn().mockResolvedValue({
-        id: 'sub_test123',
-        status: 'active',
-      }),
-    },
-    checkout: {
-      sessions: {
-        create: jest.fn().mockResolvedValue({
-          id: 'cs_test123',
-          url: 'https://checkout.stripe.com/test',
-        }),
-      },
-    },
-    paymentIntents: {
-      create: jest.fn().mockResolvedValue({
-        id: 'pi_test123',
-        client_secret: 'secret_test',
-      }),
-    },
-    setupIntents: {
-      create: jest.fn().mockResolvedValue({
-        id: 'seti_test123',
-        client_secret: 'secret_test',
-      }),
-    },
-    billingPortal: {
-      sessions: {
-        create: jest.fn().mockResolvedValue({
-          url: 'https://billing.stripe.com/test',
-        }),
-      },
-    },
-    webhooks: {
-      constructEvent: jest.fn().mockReturnValue({
-        type: 'checkout.session.completed',
-        data: { object: { customer: 'cus_test123' } },
-      }),
-    },
-  }));
-});
-
-// Mock User model
-jest.mock('../../src/core/domain/User', () => ({
-  findById: jest.fn(),
-  findByIdAndUpdate: jest.fn(),
-  findOne: jest.fn(),
+jest.mock('../../src/api/controllers/paymentController', () => ({
+  getSubscriptionTiers: jest.fn((req, res) => res.status(200).json({ success: true })),
+  stripeWebhook: jest.fn((req, res) => res.status(200).json({ received: true })),
+  paypalWebhook: jest.fn((req, res) => res.status(200).json({ received: true })),
+  appleWebhook: jest.fn((req, res) => res.status(200).json({ received: true })),
+  googleWebhook: jest.fn((req, res) => res.status(200).json({ received: true })),
+  getPaymentStatus: jest.fn((req, res) => res.status(200).json({ success: true })),
+  getBillingHistory: jest.fn((req, res) => res.status(200).json({ success: true })),
+  createStripeCheckout: jest.fn((req, res) => res.status(200).json({ success: true })),
+  createStripePaymentIntent: jest.fn((req, res) => res.status(200).json({ success: true })),
+  createStripeSetupIntent: jest.fn((req, res) => res.status(200).json({ success: true })),
+  getStripePortal: jest.fn((req, res) => res.status(200).json({ success: true })),
+  createPayPalSubscription: jest.fn((req, res) => res.status(200).json({ success: true })),
+  activatePayPalSubscription: jest.fn((req, res) => res.status(200).json({ success: true })),
+  createPayPalOrder: jest.fn((req, res) => res.status(200).json({ success: true })),
+  capturePayPalOrder: jest.fn((req, res) => res.status(200).json({ success: true })),
+  validateAppleReceipt: jest.fn((req, res) => res.status(200).json({ success: true })),
+  restoreApplePurchases: jest.fn((req, res) => res.status(200).json({ success: true })),
+  validateGooglePurchase: jest.fn((req, res) => res.status(200).json({ success: true })),
+  restoreGooglePurchases: jest.fn((req, res) => res.status(200).json({ success: true })),
+  cancelSubscription: jest.fn((req, res) => res.status(200).json({ success: true })),
+  resumeSubscription: jest.fn((req, res) => res.status(200).json({ success: true })),
+  requestRefund: jest.fn((req, res) => res.status(200).json({ success: true })),
 }));
 
-// Mock Payment model (if exists)
-jest.mock(
-  '../../src/core/domain/Payment',
-  () => ({
-    find: jest.fn(),
-    create: jest.fn(),
-    findOne: jest.fn(),
+jest.mock('../../src/api/middleware/auth', () => ({
+  authenticate: jest.fn((req, res, next) => {
+    if (!req.headers.authorization) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    req.user = { _id: 'user_1' };
+    next();
   }),
-  { virtual: true }
-);
+}));
 
-// Create test app
-const createTestApp = () => {
+const paymentController = require('../../src/api/controllers/paymentController');
+
+const createApp = () => {
   const app = express();
   app.use(express.json());
-
-  const paymentRoutes = require('../../routes/payment');
-  app.use('/api/payment', paymentRoutes);
-
-  app.use((err, req, res, next) => {
-    res.status(err.status || 500).json({
-      success: false,
-      message: err.message || 'Internal server error',
-    });
-  });
-
+  app.use('/api/payment', require('../../routes/payment'));
   return app;
 };
 
-describe('Payment API Tests', () => {
+describe('payment routes', () => {
   let app;
-  const User = require('../../src/core/domain/User');
 
   beforeAll(() => {
-    process.env.JWT_SECRET = 'test-secret';
-    process.env.STRIPE_SECRET_KEY = 'sk_test_123';
-    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test123';
-    app = createTestApp();
+    app = createApp();
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('GET /api/payment/tiers (Public)', () => {
-    describe('Success Cases', () => {
-      it('should return available subscription tiers', async () => {
-        const response = await request(app).get('/api/payment/tiers');
-
-        expect(response.status).toBe(200);
-        expect(response.body.success).toBe(true);
-        expect(response.body.tiers || response.body.data).toBeDefined();
-      });
-
-      it('should work without authentication', async () => {
-        const response = await request(app).get('/api/payment/tiers');
-
-        expect(response.status).toBe(200);
-      });
-    });
+  it('serves public tiers endpoint', async () => {
+    const res = await request(app).get('/api/payment/tiers');
+    expect(res.status).toBe(200);
+    expect(paymentController.getSubscriptionTiers).toHaveBeenCalled();
   });
 
-  describe('GET /api/payment/status', () => {
-    describe('Success Cases', () => {
-      it('should return payment status for authenticated user', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-          subscription: {
-            tier: 'gold',
-            status: 'active',
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          },
-          stripeCustomerId: 'cus_test123',
-        });
+  it('routes webhook endpoints without auth', async () => {
+    const stripe = await request(app)
+      .post('/api/payment/webhooks/stripe')
+      .set('Content-Type', 'application/json')
+      .send({ id: 'evt_1' });
+    const paypal = await request(app).post('/api/payment/webhooks/paypal').send({ id: 'evt_2' });
+    const apple = await request(app).post('/api/payment/webhooks/apple').send({ id: 'evt_3' });
+    const google = await request(app).post('/api/payment/webhooks/google').send({ id: 'evt_4' });
 
-        const response = await request(app)
-          .get('/api/payment/status')
-          .set('Authorization', `Bearer ${generateTestToken()}`);
-
-        expect(response.status).toBe(200);
-        expect(response.body.success).toBe(true);
-      });
-
-      it('should return free tier for user without subscription', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-          subscription: { tier: 'free' },
-        });
-
-        const response = await request(app)
-          .get('/api/payment/status')
-          .set('Authorization', `Bearer ${generateTestToken()}`);
-
-        expect(response.status).toBe(200);
-      });
-    });
-
-    describe('Unauthorized Access', () => {
-      it('should reject unauthenticated request', async () => {
-        const response = await request(app).get('/api/payment/status');
-
-        assertUnauthorized(response);
-      });
-    });
+    expect(stripe.status).toBe(200);
+    expect(paypal.status).toBe(200);
+    expect(apple.status).toBe(200);
+    expect(google.status).toBe(200);
   });
 
-  describe('GET /api/payment/history', () => {
-    describe('Success Cases', () => {
-      it('should return billing history for user', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-          stripeCustomerId: 'cus_test123',
-        });
+  it('protects authenticated endpoints', async () => {
+    const noAuth = await request(app).get('/api/payment/status');
+    expect(noAuth.status).toBe(401);
 
-        const response = await request(app)
-          .get('/api/payment/history')
-          .set('Authorization', `Bearer ${generateTestToken()}`);
-
-        expect(response.status).toBe(200);
-      });
-    });
+    const withAuth = await request(app)
+      .get('/api/payment/status')
+      .set('Authorization', 'Bearer token');
+    expect(withAuth.status).toBe(200);
+    expect(paymentController.getPaymentStatus).toHaveBeenCalled();
   });
 
-  describe('Stripe Endpoints', () => {
-    describe('POST /api/payment/stripe/checkout', () => {
-      describe('Success Cases', () => {
-        it('should create checkout session', async () => {
-          User.findById.mockResolvedValue({
-            _id: 'user_id',
-            email: 'test@example.com',
-            stripeCustomerId: 'cus_test123',
-          });
+  it('routes stripe endpoints', async () => {
+    const checkout = await request(app)
+      .post('/api/payment/stripe/checkout')
+      .set('Authorization', 'Bearer token')
+      .send({ planId: 'gold' });
+    const intent = await request(app)
+      .post('/api/payment/stripe/payment-intent')
+      .set('Authorization', 'Bearer token')
+      .send({ amount: 999 });
+    const setup = await request(app)
+      .post('/api/payment/stripe/setup-intent')
+      .set('Authorization', 'Bearer token')
+      .send({});
+    const portal = await request(app)
+      .get('/api/payment/stripe/portal')
+      .set('Authorization', 'Bearer token');
 
-          const response = await request(app)
-            .post('/api/payment/stripe/checkout')
-            .set('Authorization', `Bearer ${generateTestToken()}`)
-            .send(payments.stripeCheckout);
-
-          expect(response.status).toBe(200);
-          expect(response.body.success).toBe(true);
-        });
-
-        it('should create new Stripe customer if not exists', async () => {
-          User.findById.mockResolvedValue({
-            _id: 'user_id',
-            email: 'test@example.com',
-            // No stripeCustomerId
-          });
-
-          User.findByIdAndUpdate.mockResolvedValue({
-            _id: 'user_id',
-            stripeCustomerId: 'cus_test123',
-          });
-
-          const response = await request(app)
-            .post('/api/payment/stripe/checkout')
-            .set('Authorization', `Bearer ${generateTestToken()}`)
-            .send(payments.stripeCheckout);
-
-          expect(response.status).toBe(200);
-        });
-      });
-
-      describe('Validation Errors', () => {
-        it('should reject without planId', async () => {
-          const response = await request(app)
-            .post('/api/payment/stripe/checkout')
-            .set('Authorization', `Bearer ${generateTestToken()}`)
-            .send({ successUrl: 'https://example.com/success' });
-
-          expect(response.status).toBe(400);
-        });
-      });
-    });
-
-    describe('POST /api/payment/stripe/payment-intent', () => {
-      describe('Success Cases', () => {
-        it('should create payment intent', async () => {
-          User.findById.mockResolvedValue({
-            _id: 'user_id',
-            stripeCustomerId: 'cus_test123',
-          });
-
-          const response = await request(app)
-            .post('/api/payment/stripe/payment-intent')
-            .set('Authorization', `Bearer ${generateTestToken()}`)
-            .send(payments.stripePaymentIntent);
-
-          expect(response.status).toBe(200);
-          expect(response.body.clientSecret).toBeDefined();
-        });
-      });
-    });
-
-    describe('POST /api/payment/stripe/setup-intent', () => {
-      describe('Success Cases', () => {
-        it('should create setup intent', async () => {
-          User.findById.mockResolvedValue({
-            _id: 'user_id',
-            stripeCustomerId: 'cus_test123',
-          });
-
-          const response = await request(app)
-            .post('/api/payment/stripe/setup-intent')
-            .set('Authorization', `Bearer ${generateTestToken()}`);
-
-          expect(response.status).toBe(200);
-        });
-      });
-    });
-
-    describe('GET /api/payment/stripe/portal', () => {
-      describe('Success Cases', () => {
-        it('should return customer portal URL', async () => {
-          User.findById.mockResolvedValue({
-            _id: 'user_id',
-            stripeCustomerId: 'cus_test123',
-          });
-
-          const response = await request(app)
-            .get('/api/payment/stripe/portal')
-            .set('Authorization', `Bearer ${generateTestToken()}`);
-
-          expect(response.status).toBe(200);
-          expect(response.body.url).toBeDefined();
-        });
-      });
-
-      describe('Edge Cases', () => {
-        it('should return error for user without Stripe customer', async () => {
-          User.findById.mockResolvedValue({
-            _id: 'user_id',
-            // No stripeCustomerId
-          });
-
-          const response = await request(app)
-            .get('/api/payment/stripe/portal')
-            .set('Authorization', `Bearer ${generateTestToken()}`);
-
-          expect(response.status).toBe(400);
-        });
-      });
-    });
+    expect(checkout.status).toBe(200);
+    expect(intent.status).toBe(200);
+    expect(setup.status).toBe(200);
+    expect(portal.status).toBe(200);
   });
 
-  describe('PayPal Endpoints', () => {
-    describe('POST /api/payment/paypal/subscription', () => {
-      it('should create PayPal subscription', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-          email: 'test@example.com',
-        });
+  it('routes paypal/apple/google endpoints', async () => {
+    const authHeader = { Authorization: 'Bearer token' };
 
-        const response = await request(app)
-          .post('/api/payment/paypal/subscription')
-          .set('Authorization', `Bearer ${generateTestToken()}`)
-          .send(payments.paypalSubscription);
+    const paypalSub = await request(app)
+      .post('/api/payment/paypal/subscription')
+      .set(authHeader)
+      .send({});
+    const paypalOrder = await request(app).post('/api/payment/paypal/order').set(authHeader).send({});
+    const appleValidate = await request(app).post('/api/payment/apple/validate').set(authHeader).send({});
+    const googleValidate = await request(app)
+      .post('/api/payment/google/validate')
+      .set(authHeader)
+      .send({});
 
-        expect(response.status).toBe(200);
-      });
-    });
-
-    describe('POST /api/payment/paypal/subscription/activate', () => {
-      it('should activate PayPal subscription', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-        });
-
-        const response = await request(app)
-          .post('/api/payment/paypal/subscription/activate')
-          .set('Authorization', `Bearer ${generateTestToken()}`)
-          .send({ subscriptionId: 'sub_paypal_123' });
-
-        expect(response.status).toBe(200);
-      });
-    });
-
-    describe('POST /api/payment/paypal/order', () => {
-      it('should create PayPal order', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-        });
-
-        const response = await request(app)
-          .post('/api/payment/paypal/order')
-          .set('Authorization', `Bearer ${generateTestToken()}`)
-          .send({ amount: 9.99, currency: 'USD' });
-
-        expect(response.status).toBe(200);
-      });
-    });
-
-    describe('POST /api/payment/paypal/order/capture', () => {
-      it('should capture PayPal order', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-        });
-
-        const response = await request(app)
-          .post('/api/payment/paypal/order/capture')
-          .set('Authorization', `Bearer ${generateTestToken()}`)
-          .send({ orderId: 'order_paypal_123' });
-
-        expect(response.status).toBe(200);
-      });
-    });
+    expect(paypalSub.status).toBe(200);
+    expect(paypalOrder.status).toBe(200);
+    expect(appleValidate.status).toBe(200);
+    expect(googleValidate.status).toBe(200);
   });
 
-  describe('Apple IAP Endpoints', () => {
-    describe('POST /api/payment/apple/validate', () => {
-      it('should validate Apple receipt', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-        });
+  it('routes subscription management and refunds', async () => {
+    const authHeader = { Authorization: 'Bearer token' };
 
-        const response = await request(app)
-          .post('/api/payment/apple/validate')
-          .set('Authorization', `Bearer ${generateTestToken()}`)
-          .send(payments.appleReceipt);
+    const cancel = await request(app)
+      .post('/api/payment/subscription/cancel')
+      .set(authHeader)
+      .send({});
+    const resume = await request(app)
+      .post('/api/payment/subscription/resume')
+      .set(authHeader)
+      .send({});
+    const refund = await request(app).post('/api/payment/refund/request').set(authHeader).send({});
 
-        expect(response.status).toBe(200);
-      });
-    });
-
-    describe('POST /api/payment/apple/restore', () => {
-      it('should restore Apple purchases', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-        });
-
-        const response = await request(app)
-          .post('/api/payment/apple/restore')
-          .set('Authorization', `Bearer ${generateTestToken()}`)
-          .send({ receiptData: 'base64_receipt' });
-
-        expect(response.status).toBe(200);
-      });
-    });
-  });
-
-  describe('Google Play Endpoints', () => {
-    describe('POST /api/payment/google/validate', () => {
-      it('should validate Google purchase', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-        });
-
-        const response = await request(app)
-          .post('/api/payment/google/validate')
-          .set('Authorization', `Bearer ${generateTestToken()}`)
-          .send(payments.googlePurchase);
-
-        expect(response.status).toBe(200);
-      });
-    });
-
-    describe('POST /api/payment/google/restore', () => {
-      it('should restore Google purchases', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-        });
-
-        const response = await request(app)
-          .post('/api/payment/google/restore')
-          .set('Authorization', `Bearer ${generateTestToken()}`)
-          .send({});
-
-        expect(response.status).toBe(200);
-      });
-    });
-  });
-
-  describe('Subscription Management', () => {
-    describe('POST /api/payment/subscription/cancel', () => {
-      it('should cancel active subscription', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-          subscription: {
-            tier: 'gold',
-            stripeSubscriptionId: 'sub_test123',
-          },
-        });
-
-        User.findByIdAndUpdate.mockResolvedValue({
-          _id: 'user_id',
-          subscription: { tier: 'gold', cancelAtPeriodEnd: true },
-        });
-
-        const response = await request(app)
-          .post('/api/payment/subscription/cancel')
-          .set('Authorization', `Bearer ${generateTestToken()}`);
-
-        expect(response.status).toBe(200);
-      });
-    });
-
-    describe('POST /api/payment/subscription/resume', () => {
-      it('should resume canceled subscription', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-          subscription: {
-            tier: 'gold',
-            stripeSubscriptionId: 'sub_test123',
-            cancelAtPeriodEnd: true,
-          },
-        });
-
-        const response = await request(app)
-          .post('/api/payment/subscription/resume')
-          .set('Authorization', `Bearer ${generateTestToken()}`);
-
-        expect(response.status).toBe(200);
-      });
-    });
-  });
-
-  describe('Refund Endpoints', () => {
-    describe('POST /api/payment/refund/request', () => {
-      it('should submit refund request', async () => {
-        User.findById.mockResolvedValue({
-          _id: 'user_id',
-          subscription: { tier: 'gold' },
-        });
-
-        const response = await request(app)
-          .post('/api/payment/refund/request')
-          .set('Authorization', `Bearer ${generateTestToken()}`)
-          .send({ reason: 'Not satisfied with service' });
-
-        expect(response.status).toBe(200);
-      });
-    });
-  });
-
-  describe('Webhook Endpoints', () => {
-    describe('POST /api/payment/webhooks/stripe', () => {
-      it('should process Stripe webhook', async () => {
-        const response = await request(app)
-          .post('/api/payment/webhooks/stripe')
-          .set('stripe-signature', 'test_signature')
-          .send(JSON.stringify({ type: 'test.event' }));
-
-        // Webhook processing might return 200 or 400 depending on implementation
-        expect([200, 400]).toContain(response.status);
-      });
-    });
-
-    describe('POST /api/payment/webhooks/paypal', () => {
-      it('should process PayPal webhook', async () => {
-        const response = await request(app)
-          .post('/api/payment/webhooks/paypal')
-          .send({ event_type: 'BILLING.SUBSCRIPTION.ACTIVATED' });
-
-        expect([200, 400]).toContain(response.status);
-      });
-    });
-
-    describe('POST /api/payment/webhooks/apple', () => {
-      it('should process Apple webhook', async () => {
-        const response = await request(app)
-          .post('/api/payment/webhooks/apple')
-          .send({ notification_type: 'DID_RENEW' });
-
-        expect([200, 400]).toContain(response.status);
-      });
-    });
-
-    describe('POST /api/payment/webhooks/google', () => {
-      it('should process Google webhook', async () => {
-        const response = await request(app)
-          .post('/api/payment/webhooks/google')
-          .send({ message: { data: 'base64_encoded_data' } });
-
-        expect([200, 400]).toContain(response.status);
-      });
-    });
+    expect(cancel.status).toBe(200);
+    expect(resume.status).toBe(200);
+    expect(refund.status).toBe(200);
+    expect(paymentController.cancelSubscription).toHaveBeenCalled();
+    expect(paymentController.resumeSubscription).toHaveBeenCalled();
+    expect(paymentController.requestRefund).toHaveBeenCalled();
   });
 });

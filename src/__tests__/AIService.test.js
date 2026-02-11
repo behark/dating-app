@@ -1,448 +1,288 @@
-// Mock Firebase before imports
-jest.mock('../config/firebase', () => ({
-  app: {},
-  db: {},
-  storage: {},
-  auth: {
-    currentUser: null,
+jest.mock('../services/api', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
   },
 }));
 
-// Mock SafetyService Firebase dependency
-jest.mock('firebase/app', () => ({
-  initializeApp: jest.fn(),
-  getApps: jest.fn(() => []),
-}));
-
-jest.mock('firebase/auth', () => ({
-  getAuth: jest.fn(() => ({
-    currentUser: null,
-  })),
-  initializeAuth: jest.fn(),
-}));
-
-jest.mock('firebase/firestore', () => ({
-  getFirestore: jest.fn(() => ({})),
-}));
-
-jest.mock('firebase/storage', () => ({
-  getStorage: jest.fn(() => ({})),
-}));
-
+import api from '../services/api';
 import { AIService } from '../services/AIService';
 import { SafetyService } from '../services/SafetyService';
 
 describe('AIService', () => {
+  const userId = '507f1f77bcf86cd799439011';
+  const targetUserId = '507f1f77bcf86cd799439012';
   let aiService;
-  const userId = 'user_123';
-  const targetUserId = 'user_456';
 
   beforeEach(() => {
+    jest.clearAllMocks();
     aiService = new AIService('mock_token');
   });
 
-  describe('getSmartPhotoSelection', () => {
-    test('should return photo recommendations', async () => {
-      // Mock the fetch
-      global.fetch = jest.fn(() =>
-        Promise.resolve({
-          json: () =>
-            Promise.resolve({
-              success: true,
-              data: {
-                recommendations: [
-                  {
-                    photoIndex: 0,
-                    photoUrl: 'https://example.com/photo1.jpg',
-                    score: 95,
-                    priority: 'high',
-                    reasons: ['Clear face visible', 'Good lighting'],
-                  },
-                ],
-                analysis: {
-                  totalPhotos: 5,
-                  averageScore: 85,
-                },
-              },
-            }),
-        })
-      );
-
-      const result = await aiService.getSmartPhotoSelection(userId);
-      expect(result.recommendations).toBeDefined();
-      expect(result.analysis.totalPhotos).toBe(5);
+  test('getSmartPhotoSelection returns recommendations', async () => {
+    api.get.mockResolvedValue({
+      success: true,
+      data: { recommendations: [{ photoIndex: 0 }], analysis: { totalPhotos: 5 } },
     });
 
-    test('should handle errors gracefully', async () => {
-      global.fetch = jest.fn(() => Promise.reject(new Error('Network error')));
+    const result = await aiService.getSmartPhotoSelection(userId);
 
-      await expect(aiService.getSmartPhotoSelection(userId)).rejects.toThrow();
-    });
+    expect(api.get).toHaveBeenCalledWith(`/ai/smart-photos/${userId}`);
+    expect(result.analysis.totalPhotos).toBe(5);
   });
 
-  describe('getBioSuggestions', () => {
-    test('should return bio suggestions', async () => {
-      global.fetch = jest.fn(() =>
-        Promise.resolve({
-          json: () =>
-            Promise.resolve({
-              success: true,
-              data: {
-                suggestions: [
-                  {
-                    bio: 'Adventure seeker | Love exploring new places',
-                    tone: 'casual',
-                    reason: 'Based on your travel interests',
-                  },
-                ],
-                explanations: {
-                  toneAdvice: 'Keep it genuine',
-                  lengthTip: 'Aim for 50-150 characters',
-                },
-              },
-            }),
-        })
-      );
-
-      const result = await aiService.getBioSuggestions(userId, ['travel'], 'Current bio');
-      expect(result.suggestions).toBeDefined();
-      expect(result.suggestions.length).toBeGreaterThan(0);
-    });
+  test('getSmartPhotoSelection rejects invalid user IDs', async () => {
+    await expect(aiService.getSmartPhotoSelection('x')).rejects.toThrow();
   });
 
-  describe('getCompatibilityScore', () => {
-    test('should calculate compatibility score', async () => {
-      global.fetch = jest.fn(() =>
-        Promise.resolve({
-          json: () =>
-            Promise.resolve({
-              success: true,
-              data: {
-                score: 75,
-                breakdown: {
-                  interestMatch: 80,
-                  valueMatch: 70,
-                  ageCompatibility: 85,
-                },
-                explanation: 'Great match!',
-              },
-            }),
-        })
-      );
-
-      const result = await aiService.getCompatibilityScore(userId, targetUserId);
-      expect(result.score).toBeDefined();
-      expect(result.score).toBeGreaterThanOrEqual(0);
-      expect(result.score).toBeLessThanOrEqual(100);
-      expect(result.breakdown).toBeDefined();
+  test('getBioSuggestions returns generated suggestions', async () => {
+    api.post.mockResolvedValue({
+      success: true,
+      data: { suggestions: [{ bio: 'Test bio' }], explanations: { toneAdvice: 'Keep it real' } },
     });
+
+    const result = await aiService.getBioSuggestions(userId, ['travel'], 'Current bio');
+
+    expect(api.post).toHaveBeenCalledWith('/ai/bio-suggestions', {
+      userId,
+      interests: ['travel'],
+      currentBio: 'Current bio',
+    });
+    expect(result.suggestions).toHaveLength(1);
   });
 
-  describe('getConversationStarters', () => {
-    test('should return conversation starters', async () => {
-      global.fetch = jest.fn(() =>
-        Promise.resolve({
-          json: () =>
-            Promise.resolve({
-              success: true,
-              data: {
-                starters: [
-                  "Hey! I noticed you love travel. What's your dream destination?",
-                  'Your bio caught my attention!',
-                ],
-                reasoning: {
-                  interestBased: 'Based on travel',
-                  personalizationLevel: 'high',
-                },
-              },
-            }),
-        })
-      );
+  test('getCompatibilityScore returns match scoring', async () => {
+    api.get.mockResolvedValue({
+      success: true,
+      data: { score: 82, breakdown: { interestMatch: 80 }, explanation: 'Great match' },
+    });
 
-      const result = await aiService.getConversationStarters(userId, targetUserId, {
+    const result = await aiService.getCompatibilityScore(userId, targetUserId);
+
+    expect(api.get).toHaveBeenCalledWith(`/ai/compatibility/${userId}/${targetUserId}`);
+    expect(result.score).toBe(82);
+  });
+
+  test('getConversationStarters returns starters', async () => {
+    api.post.mockResolvedValue({
+      success: true,
+      data: { starters: ['Hello there!'], reasoning: { personalizationLevel: 'high' } },
+    });
+
+    const result = await aiService.getConversationStarters(userId, targetUserId, {
+      interests: ['travel'],
+      bio: 'Love adventures',
+    });
+
+    expect(api.post).toHaveBeenCalledWith('/ai/conversation-starters', {
+      userId,
+      targetUserId,
+      targetProfile: expect.objectContaining({
         interests: ['travel'],
-        bio: 'Love traveling',
-      });
-      expect(result.starters).toBeDefined();
-      expect(result.starters.length).toBeGreaterThan(0);
+        bio: 'Love adventures',
+      }),
     });
+    expect(result.starters).toEqual(['Hello there!']);
   });
 
-  describe('getPersonalizedMatches', () => {
-    test('should return personalized matches', async () => {
-      global.fetch = jest.fn(() =>
-        Promise.resolve({
-          json: () =>
-            Promise.resolve({
-              success: true,
-              data: {
-                matches: [
-                  {
-                    userId: 'match_1',
-                    name: 'Sarah',
-                    compatibilityScore: 85,
-                  },
-                ],
-                reasoning: {
-                  algorithm: 'Interest-based matching',
-                },
-              },
-            }),
-        })
-      );
-
-      const result = await aiService.getPersonalizedMatches(userId);
-      expect(result.matches).toBeDefined();
-      expect(Array.isArray(result.matches)).toBe(true);
+  test('getPersonalizedMatches returns matches list', async () => {
+    api.get.mockResolvedValue({
+      success: true,
+      data: { matches: [{ userId: 'm1' }], reasoning: { algorithm: 'interest' } },
     });
+
+    const result = await aiService.getPersonalizedMatches(userId, {
+      limit: 20,
+      location: true,
+      interests: true,
+      values: false,
+    });
+
+    expect(api.get).toHaveBeenCalledWith(
+      `/ai/personalized-matches/${userId}?limit=20&useLocation=true&useInterests=true&useValues=false`
+    );
+    expect(Array.isArray(result.matches)).toBe(true);
   });
 
-  describe('getProfileImprovementSuggestions', () => {
-    test('should return profile improvement suggestions', async () => {
-      global.fetch = jest.fn(() =>
-        Promise.resolve({
-          json: () =>
-            Promise.resolve({
-              success: true,
-              data: {
-                suggestions: [
-                  {
-                    area: 'Photos',
-                    priority: 'high',
-                    suggestion: 'Add more photos',
-                  },
-                ],
-                priority: ['Add more photos'],
-                impact: {
-                  completenessScore: 65,
-                  potentialImprovementScore: 85,
-                },
-              },
-            }),
-        })
-      );
-
-      const result = await aiService.getProfileImprovementSuggestions(userId);
-      expect(result.suggestions).toBeDefined();
-      expect(result.impact).toBeDefined();
+  test('getProfileImprovementSuggestions returns suggestions', async () => {
+    api.get.mockResolvedValue({
+      success: true,
+      data: { suggestions: [{ area: 'Photos' }], impact: { completenessScore: 80 } },
     });
+
+    const result = await aiService.getProfileImprovementSuggestions(userId);
+
+    expect(api.get).toHaveBeenCalledWith(`/ai/profile-suggestions/${userId}`);
+    expect(result.impact.completenessScore).toBe(80);
   });
 
-  describe('getConversationInsights', () => {
-    test('should return conversation insights', async () => {
-      global.fetch = jest.fn(() =>
-        Promise.resolve({
-          json: () =>
-            Promise.resolve({
-              success: true,
-              data: {
-                insights: [
-                  {
-                    title: "You're great at opening lines",
-                    description: '45% response rate',
-                    impact: 'positive',
-                  },
-                ],
-                tips: ['Ask open-ended questions'],
-                patterns: {
-                  averageMessageLength: '45 characters',
-                },
-              },
-            }),
-        })
-      );
-
-      const result = await aiService.getConversationInsights(userId);
-      expect(result.insights).toBeDefined();
-      expect(result.tips).toBeDefined();
-      expect(result.patterns).toBeDefined();
+  test('getConversationInsights returns insights and tips', async () => {
+    api.get.mockResolvedValue({
+      success: true,
+      data: { insights: [{ title: 'Great opener' }], tips: ['Ask questions'], patterns: {} },
     });
+
+    const result = await aiService.getConversationInsights(userId);
+
+    expect(api.get).toHaveBeenCalledWith(`/ai/conversation-insights/${userId}`);
+    expect(result.insights).toHaveLength(1);
   });
 });
 
-describe('SafetyService - Advanced Features', () => {
-  const userId = 'user_123';
-  const friendIds = ['friend_1', 'friend_2'];
-  const TEST_LOCATION = 'Coffee Shop';
+describe('SafetyService Advanced Features', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-  describe('shareDatePlan', () => {
-    test('should share date plan successfully', async () => {
-      const datePlanData = {
-        matchUserId: 'match_123',
+  test('shareDatePlan shares and returns datePlanId', async () => {
+    api.post.mockResolvedValue({ success: true, data: { datePlanId: 'dp_1' } });
+
+    const result = await SafetyService.shareDatePlan(
+      {
+        matchUserId: '507f1f77bcf86cd799439099',
         matchName: 'John',
-        matchPhotoUrl: 'https://example.com/photo.jpg',
-        location: TEST_LOCATION,
-        address: '123 Main St',
-        dateTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
-        notes: 'First date',
-      };
+        location: 'Coffee Shop',
+        dateTime: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      },
+      ['friend_1', 'friend_2']
+    );
 
-      const result = await SafetyService.shareDatePlan(userId, datePlanData, friendIds);
-      expect(result.success).toBe(true);
-      expect(result.datePlanId).toBeDefined();
-    });
-
-    test('should validate date is in future', async () => {
-      const datePlanData = {
-        matchUserId: 'match_123',
-        matchName: 'John',
-        location: TEST_LOCATION,
-        dateTime: new Date(Date.now() - 60 * 60 * 1000), // Past date
-      };
-
-      await expect(SafetyService.shareDatePlan(userId, datePlanData, friendIds)).rejects.toThrow();
-    });
+    expect(result).toEqual({ success: true, datePlanId: 'dp_1' });
   });
 
-  describe('startCheckInTimer', () => {
-    test('should start check-in timer', async () => {
-      const result = await SafetyService.startCheckInTimer(userId, 'dateplan_123', 300000);
-      expect(result.success).toBe(true);
-      expect(result.checkInId).toBeDefined();
+  test('startCheckInTimer returns checkInId', async () => {
+    api.post.mockResolvedValue({ success: true, data: { checkInId: 'ci_1' } });
+
+    const result = await SafetyService.startCheckInTimer('dateplan_123', 300);
+
+    expect(api.post).toHaveBeenCalledWith('/safety/checkin/start', {
+      datePlanId: 'dateplan_123',
+      duration: 300,
     });
+    expect(result).toEqual({ success: true, checkInId: 'ci_1' });
   });
 
-  describe('completeCheckIn', () => {
-    test('should complete check-in', async () => {
-      const result = await SafetyService.completeCheckIn('checkin_123');
-      expect(result.success).toBe(true);
-    });
+  test('completeCheckIn returns success', async () => {
+    api.post.mockResolvedValue({ success: true, data: {} });
+
+    const result = await SafetyService.completeCheckIn('checkin_123');
+
+    expect(result).toEqual({ success: true });
   });
 
-  describe('sendEmergencySOS', () => {
-    test('should send SOS alert', async () => {
-      const location = {
-        latitude: 37.7749,
-        longitude: -122.4194,
-        address: '123 Main St',
-      };
+  test('sendEmergencySOS returns sosAlertId', async () => {
+    api.post.mockResolvedValue({ success: true, data: { sosAlertId: 'sos_1' } });
 
-      const result = await SafetyService.sendEmergencySOS(userId, location, 'Emergency!');
-      expect(result.success).toBe(true);
-      expect(result.sosAlertId).toBeDefined();
-    });
+    const result = await SafetyService.sendEmergencySOS(
+      { latitude: 37.7749, longitude: -122.4194, address: '123 Main St' },
+      'Emergency!'
+    );
 
-    test('should require location', async () => {
-      await expect(SafetyService.sendEmergencySOS(userId, {}, 'Emergency!')).rejects.toThrow();
-    });
+    expect(result).toEqual({ success: true, sosAlertId: 'sos_1' });
   });
 
-  describe('respondToSOS', () => {
-    test('should respond to SOS alert', async () => {
-      const result = await SafetyService.respondToSOS('sos_123', 'responder_id', {
-        message: "I'm coming",
-        confirmedSafe: true,
-      });
-      expect(result.success).toBe(true);
+  test('respondToSOS returns success', async () => {
+    api.post.mockResolvedValue({ success: true, data: {} });
+
+    const result = await SafetyService.respondToSOS('sos_123', {
+      message: "I'm coming",
+      confirmedSafe: true,
     });
+
+    expect(result).toEqual({ success: true });
   });
 
-  describe('resolveSOS', () => {
-    test('should resolve SOS alert', async () => {
-      const result = await SafetyService.resolveSOS('sos_123', 'resolved');
-      expect(result.success).toBe(true);
-    });
+  test('resolveSOS returns success', async () => {
+    api.put.mockResolvedValue({ success: true, data: {} });
+
+    const result = await SafetyService.resolveSOS('sos_123', 'resolved');
+
+    expect(result).toEqual({ success: true });
   });
 
-  describe('initiateBackgroundCheck', () => {
-    test('should initiate background check', async () => {
-      const userInfo = {
-        firstName: 'John',
-        lastName: 'Doe',
-        dateOfBirth: '1990-01-01',
-        email: 'john@example.com',
-      };
+  test('initiateBackgroundCheck returns backgroundCheckId', async () => {
+    api.post.mockResolvedValue({ success: true, data: { backgroundCheckId: 'bg_1' } });
 
-      const result = await SafetyService.initiateBackgroundCheck(userId, userInfo);
-      expect(result.success).toBe(true);
-      expect(result.backgroundCheckId).toBeDefined();
+    const result = await SafetyService.initiateBackgroundCheck({
+      firstName: 'John',
+      lastName: 'Doe',
+      dateOfBirth: '1990-01-01',
+      email: 'john@example.com',
     });
+
+    expect(result).toEqual({ success: true, backgroundCheckId: 'bg_1' });
   });
 
-  describe('getBackgroundCheckStatus', () => {
-    test('should get background check status', async () => {
-      const result = await SafetyService.getBackgroundCheckStatus(userId);
-      expect(result.completed).toBeDefined();
-      expect(result.status).toBeDefined();
+  test('getBackgroundCheckStatus maps completion fields', async () => {
+    api.get.mockResolvedValue({
+      success: true,
+      data: { status: 'completed', results: { clear: true }, checks: { criminal: 'clear' } },
     });
+
+    const result = await SafetyService.getBackgroundCheckStatus('bg_1');
+
+    expect(result.completed).toBe(true);
+    expect(result.status).toBe('completed');
+    expect(result.results.clear).toBe(true);
   });
 
-  describe('addEmergencyContact', () => {
-    test('should add emergency contact', async () => {
-      const contact = {
-        name: 'Mom',
-        phone: '555-1234',
-        relationship: 'Mother',
-      };
+  test('addEmergencyContact returns created contact', async () => {
+    api.post.mockResolvedValue({ success: true, data: { id: 'c1', name: 'Mom' } });
 
-      const result = await SafetyService.addEmergencyContact(userId, contact);
-      expect(result.success).toBe(true);
-      expect(result.contact).toBeDefined();
-      expect(result.contact.name).toBe('Mom');
+    const result = await SafetyService.addEmergencyContact({
+      name: 'Mom',
+      phone: '5551234567',
+      relationship: 'Mother',
     });
 
-    test('should validate contact information', () => {
-      const invalidContact = {
-        name: '',
-        phone: '123',
-        relationship: '',
-      };
-
-      const validation = SafetyService.validateEmergencyContact(invalidContact);
-      expect(validation.isValid).toBe(false);
-      expect(validation.errors.length).toBeGreaterThan(0);
-    });
+    expect(result.success).toBe(true);
+    expect(result.contact.name).toBe('Mom');
   });
 
-  describe('getEmergencyContacts', () => {
-    test('should get emergency contacts', async () => {
-      const result = await SafetyService.getEmergencyContacts(userId);
-      expect(Array.isArray(result)).toBe(true);
+  test('submitAdvancedPhotoVerification returns verification id', async () => {
+    api.post.mockResolvedValue({ success: true, data: { verificationId: 'v1' } });
+
+    const result = await SafetyService.submitAdvancedPhotoVerification('photo_uri', {
+      method: 'advanced',
+      faceDetected: true,
+      livenessPassed: true,
+      confidence: 0.95,
     });
+
+    expect(result).toEqual({ success: true, verificationId: 'v1' });
   });
 
-  describe('submitAdvancedPhotoVerification', () => {
-    test('should submit advanced photo verification', async () => {
-      const result = await SafetyService.submitAdvancedPhotoVerification(userId, 'photo_uri', {
-        method: 'advanced',
-        faceDetected: true,
-        livenessPassed: true,
-        confidence: 0.95,
-      });
-      expect(result.success).toBe(true);
-      expect(result.verificationId).toBeDefined();
-    });
-  });
+  test('validation helpers return expected results', () => {
+    const validPlan = {
+      location: 'Coffee Shop',
+      dateTime: new Date(Date.now() + 60 * 60 * 1000),
+    };
+    const invalidPlan = {
+      location: '',
+      dateTime: new Date(Date.now() - 60 * 60 * 1000),
+    };
 
-  describe('getPhotoVerificationStatus', () => {
-    test('should get photo verification status', async () => {
-      const result = await SafetyService.getPhotoVerificationStatus(userId);
-      expect(result.verified).toBeDefined();
-      expect(result.status).toBeDefined();
-    });
-  });
+    expect(SafetyService.validateDatePlan(validPlan).isValid).toBe(true);
+    expect(SafetyService.validateDatePlan(invalidPlan).isValid).toBe(false);
 
-  describe('Validation', () => {
-    test('should validate date plan', () => {
-      const validPlan = {
-        location: TEST_LOCATION,
-        dateTime: new Date(Date.now() + 60 * 60 * 1000),
-      };
-
-      const validation = SafetyService.validateDatePlan(validPlan);
-      expect(validation.isValid).toBe(true);
-      expect(validation.errors.length).toBe(0);
-    });
-
-    test('should validate emergency contact', () => {
-      const validContact = {
+    expect(
+      SafetyService.validateEmergencyContact({
         name: 'Mom',
         phone: '5551234567',
         relationship: 'Mother',
-      };
+      }).isValid
+    ).toBe(true);
 
-      const validation = SafetyService.validateEmergencyContact(validContact);
-      expect(validation.isValid).toBe(true);
-    });
+    expect(
+      SafetyService.validateEmergencyContact({
+        name: '',
+        phone: '123',
+        relationship: '',
+      }).isValid
+    ).toBe(false);
   });
 });

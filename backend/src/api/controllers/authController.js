@@ -20,6 +20,7 @@ const {
   sendUnauthorized,
   asyncHandler,
 } = require('../../shared/utils/responseHelpers');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 /**
  * Email service for sending verification and password reset emails

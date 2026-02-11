@@ -61,7 +61,7 @@ export {
 } from './secureStorage';
 
 // Sanitization
-export { sanitizeInput, escapeHtml } from './sanitize';
+export { sanitizeInput as sanitizeFormInput, escapeHtml } from './sanitize';
 
 // Rate limiting
 export { default as rateLimiter } from './rateLimiter';
