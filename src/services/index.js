@@ -1,6 +1,6 @@
 /**
  * Services Barrel Export
- * 
+ *
  * Centralized exports for all service modules.
  * Import services from this file for cleaner imports.
  */
@@ -31,9 +31,8 @@ export { default as MediaMessagesService } from './MediaMessagesService';
 // Location
 export { default as LocationService } from './LocationService';
 
-// Analytics & Monitoring
+// Analytics
 export { default as AnalyticsService } from './AnalyticsService';
-export { default as MonitoringService } from './MonitoringService';
 export { default as UserBehaviorAnalytics } from './UserBehaviorAnalytics';
 
 // AI Services
@@ -59,10 +58,6 @@ export { default as AppInitializationService } from './AppInitializationService'
 export { default as UpdateService } from './UpdateService';
 export { default as OfflineService } from './OfflineService';
 export { default as PWAService } from './PWAService';
-
-// Feature Flags & Beta
-export { default as FeatureFlagService } from './FeatureFlagService';
-export { default as BetaTestingService } from './BetaTestingService';
 
 // Utilities
 export { default as ValidationService } from './ValidationService';

@@ -2,7 +2,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 import {
   Alert,
@@ -16,10 +15,11 @@ import {
   Platform,
 } from 'react-native';
 import BadgeShowcase from '../../../components/Gamification/BadgeShowcase';
-import { storage } from '../../../config/firebase';
 import { Colors } from '../../../constants/colors';
 import { useAuth } from '../../../context/AuthContext';
 import { ProfileService } from '../../../services/ProfileService';
+import api from '../../../services/api';
+import { API_URL } from '../../../config/api';
 import HapticFeedback from '../../../utils/haptics';
 import logger from '../../../utils/logger';
 import { shadowToWebBoxShadow, textShadowToWeb } from '../../../utils/stylePlatform';
@@ -117,54 +117,36 @@ const ProfileScreen = () => {
       HapticFeedback.mediumImpact();
       setLoading(true);
 
-      // Compress image before upload
       const compressedUri = await compressImage(uri);
 
-      if (storage) {
-        try {
-          const response = await fetch(compressedUri);
-          const blob = await response.blob();
+      const formData = new FormData();
+      formData.append('photos', {
+        uri: compressedUri,
+        name: `photo_${Date.now()}.jpg`,
+        type: 'image/jpeg',
+      });
 
-          // Check file size (limit to 2MB after compression)
-          if (blob.size > 2 * 1024 * 1024) {
-            Alert.alert('Error', 'Image is too large. Please choose a smaller image.');
-            setLoading(false);
-            return;
-          }
+      const token = await api.getAuthToken();
+      const uploadResponse = await fetch(`${API_URL}/upload/photo`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+        body: formData,
+      });
 
-          const imageRef = ref(storage, `profiles/${currentUser.uid}/${Date.now()}.jpg`);
-
-          await uploadBytes(imageRef, blob, {
-            contentType: 'image/jpeg',
-            customMetadata: {
-              uploadedBy: currentUser.uid,
-              uploadedAt: new Date().toISOString(),
-            },
-          });
-
-          const downloadURL = await getDownloadURL(imageRef);
-          setPhotoURL(downloadURL);
-          HapticFeedback.successNotification();
-          setLoading(false);
-          return;
-        } catch (storageError) {
-          logger.warn('Firebase Storage not available:', storageError);
-          setPhotoURL(compressedUri);
-          Alert.alert(
-            'Storage Not Available',
-            'Firebase Storage is not enabled. You can use an image URL instead.',
-            [{ text: 'OK' }]
-          );
-          setLoading(false);
-        }
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.status}`);
       }
 
-      setPhotoURL(compressedUri);
-      Alert.alert(
-        'Storage Not Available',
-        'Firebase Storage is not enabled. You can use an image URL instead.',
-        [{ text: 'OK' }]
-      );
+      const result = await uploadResponse.json();
+      const uploadResults = result?.data?.uploadResults || result?.uploadResults || [];
+      const firstSuccess = uploadResults.find((r) => r.success) || uploadResults[0] || {};
+      const downloadURL = firstSuccess.url || result?.data?.url || result?.url || compressedUri;
+
+      setPhotoURL(downloadURL);
+      HapticFeedback.successNotification();
       setLoading(false);
     } catch (error) {
       logger.error('Error uploading image:', error);

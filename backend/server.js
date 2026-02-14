@@ -42,7 +42,11 @@ const {
   metricsCollector,
   healthCheckService,
 } = require('./src/infrastructure/external/MonitoringService');
-const { logger, auditLogger, morganFormat } = require('./src/infrastructure/external/LoggingService');
+const {
+  logger,
+  auditLogger,
+  morganFormat,
+} = require('./src/infrastructure/external/LoggingService');
 
 // Database connection - use centralized connection
 const {
@@ -78,10 +82,6 @@ const socialFeaturesRoutes = require('./src/api/routes/socialFeatures');
 const privacyRoutes = require('./src/api/routes/privacy');
 const metricsRoutes = require('./src/api/routes/metrics');
 const usersRoutes = require('./src/api/routes/users');
-const syncRoutes = require('./src/api/routes/sync');
-const featureFlagsRoutes = require('./src/api/routes/featureFlags');
-const betaRoutes = require('./src/api/routes/beta');
-const performanceRoutes = require('./src/api/routes/performance');
 const uploadRoutes = require('./src/api/routes/upload');
 
 // Analytics metrics middleware
@@ -93,15 +93,11 @@ const {
   errorRateMiddleware,
 } = require('./src/api/middleware/metricsMiddleware');
 
-// Performance monitoring middleware
-const { performanceMonitoringMiddleware } = require('./src/api/middleware/performanceMonitoring');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Initialize monitoring services
 monitoringService.initSentry(app);
-datadogService.init();
 
 // Register health checks
 healthCheckService.registerCheck('mongodb', async () => {
@@ -181,7 +177,8 @@ healthCheckService.registerCheck('redis', async () => {
 });
 
 healthCheckService.registerCheck('backup', async () => {
-  const backupEnabled = String(process.env.MONGODB_BACKUP_ENABLED || 'false').toLowerCase() === 'true';
+  const backupEnabled =
+    String(process.env.MONGODB_BACKUP_ENABLED || 'false').toLowerCase() === 'true';
 
   if (!backupEnabled) {
     return {
@@ -250,9 +247,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use((req, res, next) => {
     // Check if request is already HTTPS
     const isHttps =
-      req.secure ||
-      req.headers['x-forwarded-proto'] === 'https' ||
-      req.protocol === 'https';
+      req.secure || req.headers['x-forwarded-proto'] === 'https' || req.protocol === 'https';
 
     if (!isHttps) {
       // Redirect to HTTPS
@@ -260,7 +255,7 @@ if (process.env.NODE_ENV === 'production') {
       logger.info('Redirecting HTTP to HTTPS', {
         from: `${req.protocol}://${req.headers.host}${req.url}`,
         to: httpsUrl,
-        ip: req.ip
+        ip: req.ip,
       });
       return res.redirect(301, httpsUrl);
     }
@@ -276,11 +271,8 @@ if (process.env.SENTRY_DSN) {
   app.use(monitoringService.getTracingHandler());
 }
 
-// Metrics collection middleware
+// Metrics collection middleware (no-op stub)
 app.use(metricsCollector.getMiddleware());
-
-// Performance monitoring middleware (comprehensive tracking)
-app.use(performanceMonitoringMiddleware);
 
 // Analytics metrics middleware
 app.use(metricsResponseTimeMiddleware);
@@ -295,35 +287,37 @@ app.use(requestTimeout({ logTimeouts: true })); // Request timeout handler - mus
 app.use(performanceHeaders); // Performance headers
 
 // Enhanced security headers with Helmet
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "wss:", "https:"],
-      fontSrc: ["'self'", "data:"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'", "blob:"],
-      frameSrc: ["'none'"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+        connectSrc: ["'self'", 'wss:', 'https:'],
+        fontSrc: ["'self'", 'data:'],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'", 'blob:'],
+        frameSrc: ["'none'"],
+      },
     },
-  },
-  crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  hsts: {
-    maxAge: 31536000, // 1 year
-    includeSubDomains: true,
-    preload: true,
-  },
-  frameguard: {
-    action: 'deny',
-  },
-  noSniff: true,
-  referrerPolicy: {
-    policy: 'strict-origin-when-cross-origin',
-  },
-}));
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    hsts: {
+      maxAge: 31536000, // 1 year
+      includeSubDomains: true,
+      preload: true,
+    },
+    frameguard: {
+      action: 'deny',
+    },
+    noSniff: true,
+    referrerPolicy: {
+      policy: 'strict-origin-when-cross-origin',
+    },
+  })
+);
 app.use(
   compression({
     // Compress responses
@@ -375,8 +369,8 @@ if (process.env.NODE_ENV !== 'production') {
 } else {
   // Production: Log the allowed origins for debugging
   logger.info('Production CORS origins configured', {
-    origins: allowedOrigins.filter(o => typeof o === 'string'),
-    patterns: allowedOrigins.filter(o => o instanceof RegExp).map(r => r.toString())
+    origins: allowedOrigins.filter((o) => typeof o === 'string'),
+    patterns: allowedOrigins.filter((o) => o instanceof RegExp).map((r) => r.toString()),
   });
 }
 
@@ -599,20 +593,17 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/chat/media', mediaMessagesRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/swipes', swipeRoutes);
-app.use('/api/interactions', advancedInteractionsRoutes);
+// Disabled: nice-to-have features (files kept in codebase)
+// app.use('/api/interactions', advancedInteractionsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/safety', safetyRoutes);
-app.use('/api/premium', premiumRoutes);
-app.use('/api/payment', paymentRoutes);
-app.use('/api/gamification', gamificationRoutes);
-app.use('/api/social', socialFeaturesRoutes);
+// app.use('/api/premium', premiumRoutes);
+// app.use('/api/payment', paymentRoutes);
+// app.use('/api/gamification', gamificationRoutes);
+// app.use('/api/social', socialFeaturesRoutes);
 app.use('/api/privacy', privacyRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/users', usersRoutes);
-app.use('/api/sync', syncRoutes);
-app.use('/api/feature-flags', featureFlagsRoutes);
-app.use('/api/beta', betaRoutes);
-app.use('/api/performance', performanceRoutes);
 app.use('/api/upload', uploadRoutes);
 
 // 404 handler for undefined routes
@@ -886,7 +877,7 @@ io.use(async (socket, next) => {
     }
 
     // Verify user exists and is active
-    const user = await User.findById(/** @type {any} */(socket).userId).select(
+    const user = await User.findById(/** @type {any} */ (socket).userId).select(
       '_id name isActive'
     );
     if (!user) {

@@ -1,7 +1,6 @@
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-import { storage } from '../config/firebase';
 import { Colors } from '../constants/colors';
 import logger from '../utils/logger';
+import { API_URL } from '../config/api';
 import api from './api';
 
 export class VerificationService {
@@ -43,18 +42,6 @@ export class VerificationService {
 
   static async uploadVerificationDocument(userId, fileUri, fileName, documentType) {
     try {
-      if (!storage) {
-        throw new Error('Firebase Storage is not available');
-      }
-
-      const response = await fetch(fileUri);
-      const blob = await response.blob();
-
-      // Check file size (limit to 5MB)
-      if (blob.size > 5 * 1024 * 1024) {
-        throw new Error('File size must be less than 5MB');
-      }
-
       const fileExtension = fileName.split('.').pop().toLowerCase();
       const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
 
@@ -62,19 +49,36 @@ export class VerificationService {
         throw new Error('File must be JPG, PNG, or PDF');
       }
 
-      // Upload to Firebase Storage for CDN hosting
-      const fileRef = ref(storage, `verifications/${userId}/${Date.now()}_${fileName}`);
+      const mimeType =
+        fileExtension === 'pdf'
+          ? 'application/pdf'
+          : `image/${fileExtension === 'jpg' ? 'jpeg' : fileExtension}`;
 
-      await uploadBytes(fileRef, blob, {
-        contentType: blob.type,
-        customMetadata: {
-          uploadedBy: userId,
-          documentType,
-          uploadedAt: new Date().toISOString(),
-        },
+      const formData = new FormData();
+      formData.append('photos', {
+        uri: fileUri,
+        name: fileName,
+        type: mimeType,
       });
 
-      const downloadURL = await getDownloadURL(fileRef);
+      const token = await api.getAuthToken();
+      const uploadResponse = await fetch(`${API_URL}/upload/verification`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
+        },
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.status}`);
+      }
+
+      const result = await uploadResponse.json();
+      const uploadResults = result?.data?.uploadResults || result?.uploadResults || [];
+      const firstSuccess = uploadResults.find((r) => r.success) || uploadResults[0] || {};
+      const downloadURL = firstSuccess.url || result?.data?.url || result?.url || '';
 
       return {
         success: true,

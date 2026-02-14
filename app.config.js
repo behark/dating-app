@@ -199,19 +199,6 @@ export default {
       sentryDsn:
         process.env.EXPO_PUBLIC_SENTRY_DSN ||
         'https://e21c92d839607c2d0f9378d08ca96903@o4510655194726400.ingest.de.sentry.io/4510655204687952',
-      // Firebase configuration
-      firebaseApiKey:
-        process.env.EXPO_PUBLIC_FIREBASE_API_KEY || 'AIzaSyBlk0u4pYjlfcumY3-eCrTZi1LWoTbtfO4',
-      firebaseAuthDomain:
-        process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || 'my-project-de65d.firebaseapp.com',
-      firebaseProjectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || 'my-project-de65d',
-      firebaseStorageBucket:
-        process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || 'my-project-de65d.firebasestorage.app',
-      firebaseMessagingSenderId:
-        process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '466295464562',
-      firebaseAppId:
-        process.env.EXPO_PUBLIC_FIREBASE_APP_ID || '1:466295464562:web:0edad1169197f22b3758eb',
-      firebaseMeasurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID || 'G-6SVJV18H0Q',
       // Google OAuth Client IDs (required for Google Sign-In)
       // - Web must be an OAuth Client ID ending with `.apps.googleusercontent.com`
       // - iOS/Android are optional unless you ship native builds

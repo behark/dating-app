@@ -101,15 +101,6 @@ const MainTabs = () => {
         }}
       />
       <Tab.Screen
-        name="Social"
-        component={GroupDatesScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people" size={size || 26} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{

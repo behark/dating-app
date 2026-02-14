@@ -9,7 +9,6 @@ export { useSwipeActions } from './useSwipeActions';
 export { useDebounce } from './useDebounce';
 export { useNetworkStatus } from './useNetworkStatus';
 export { useSocket } from './useSocket';
-export { useBetaTesting } from './useBetaTesting';
 export { useInAppPurchase } from './useInAppPurchase';
 export { useBehaviorAnalytics } from './useBehaviorAnalytics';
 export { useAuthState } from './useAuthState';

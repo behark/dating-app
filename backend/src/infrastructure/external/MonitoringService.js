@@ -182,195 +182,34 @@ class MonitoringService {
 }
 
 // =============================================
-// Datadog APM Integration
+// Datadog APM - Removed (stub for compatibility)
 // =============================================
 
 class DatadogService {
-  constructor() {
-    this.tracer = null;
-    this.StatsD = null;
-  }
-
-  /**
-   * Initialize Datadog APM
-   */
-  init() {
-    if (!process.env.DATADOG_API_KEY && !process.env.DD_API_KEY) {
-      console.log('⚠️  Datadog API key not configured, skipping Datadog initialization');
-      return;
-    }
-
-    try {
-      // Initialize tracer
-      // Note: DD_SITE should be set via environment variable for regional endpoints
-      this.tracer = require('dd-trace').init({
-        service: 'dating-app-api',
-        env: process.env.DD_ENV || process.env.NODE_ENV || 'development',
-        version: process.env.RELEASE_VERSION || '1.0.0',
-        logInjection: true,
-        runtimeMetrics: true,
-        profiling: true,
-        appsec: true,
-      });
-
-      // Initialize StatsD for custom metrics
-      const { StatsD } = require('hot-shots');
-      this.StatsD = new StatsD({
-        host: process.env.DD_AGENT_HOST || 'localhost',
-        port: 8125,
-        prefix: 'dating_app.',
-        globalTags: {
-          env: process.env.DD_ENV || process.env.NODE_ENV || 'development',
-          service: 'dating-app-api',
-          site: process.env.DD_SITE || 'datadoghq.com',
-        },
-      });
-
-      console.log('✅ Datadog APM initialized');
-    } catch (error) {
-      console.log(
-        '⚠️  Failed to initialize Datadog:',
-        error instanceof Error ? error.message : String(error)
-      );
-    }
-  }
-
-  /**
-   * Send custom metric
-   */
-  gauge(metric, value, tags = []) {
-    if (this.StatsD) {
-      this.StatsD.gauge(metric, value, tags);
-    }
-  }
-
-  /**
-   * Increment a counter
-   */
-  increment(metric, value = 1, tags = []) {
-    if (this.StatsD) {
-      this.StatsD.increment(metric, value, tags);
-    }
-  }
-
-  /**
-   * Record timing
-   */
-  timing(metric, value, tags = []) {
-    if (this.StatsD) {
-      this.StatsD.timing(metric, value, tags);
-    }
-  }
-
-  /**
-   * Record histogram
-   */
-  histogram(metric, value, tags = []) {
-    if (this.StatsD) {
-      this.StatsD.histogram(metric, value, tags);
-    }
-  }
-
-  /**
-   * Create a custom span
-   */
+  init() {}
+  gauge() {}
+  increment() {}
+  timing() {}
+  histogram() {}
   trace(operationName, options, callback) {
-    if (this.tracer) {
-      return this.tracer.trace(operationName, options, callback);
-    }
     return callback();
   }
-
-  /**
-   * Close Datadog connections
-   */
-  close() {
-    if (this.StatsD) {
-      this.StatsD.close();
-    }
-  }
+  close() {}
 }
 
 // =============================================
-// Custom Metrics Helper
+// Custom Metrics Helper (stub)
 // =============================================
 
 class MetricsCollector {
-  constructor(datadogService) {
-    this.datadog = datadogService;
-    this.counters = new Map();
-    this.startTime = Date.now();
-  }
-
-  /**
-   * Track API request metrics
-   */
-  trackRequest(req, res, duration) {
-    const tags = [
-      `method:${req.method}`,
-      `route:${req.route?.path || 'unknown'}`,
-      `status:${res.statusCode}`,
-      `status_class:${Math.floor(res.statusCode / 100)}xx`,
-    ];
-
-    this.datadog.increment('http.requests', 1, tags);
-    this.datadog.timing('http.request.duration', duration, tags);
-
-    if (res.statusCode >= 400) {
-      this.datadog.increment('http.errors', 1, tags);
-    }
-  }
-
-  /**
-   * Track database query metrics
-   */
-  trackDatabaseQuery(operation, collection, duration, success = true) {
-    const tags = [`operation:${operation}`, `collection:${collection}`, `success:${success}`];
-
-    this.datadog.increment('db.queries', 1, tags);
-    this.datadog.timing('db.query.duration', duration, tags);
-  }
-
-  /**
-   * Track cache metrics
-   */
-  trackCache(operation, hit = false) {
-    const tags = [`operation:${operation}`, `hit:${hit}`];
-    this.datadog.increment('cache.operations', 1, tags);
-
-    if (operation === 'get') {
-      this.datadog.increment(hit ? 'cache.hits' : 'cache.misses', 1);
-    }
-  }
-
-  /**
-   * Track user activity
-   */
-  trackUserActivity(activity, userId) {
-    this.datadog.increment('user.activity', 1, [`activity:${activity}`]);
-  }
-
-  /**
-   * Track business metrics
-   */
-  trackBusinessMetric(metric, value, tags = []) {
-    this.datadog.gauge(`business.${metric}`, value, tags);
-  }
-
-  /**
-   * Get Express middleware for request tracking
-   */
+  constructor() {}
+  trackRequest() {}
+  trackDatabaseQuery() {}
+  trackCache() {}
+  trackUserActivity() {}
+  trackBusinessMetric() {}
   getMiddleware() {
-    return (req, res, next) => {
-      const startTime = Date.now();
-
-      res.on('finish', () => {
-        const duration = Date.now() - startTime;
-        this.trackRequest(req, res, duration);
-      });
-
-      next();
-    };
+    return (req, res, next) => next();
   }
 }
 
