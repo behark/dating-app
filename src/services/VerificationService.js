@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { Colors } from '../constants/colors';
 import logger from '../utils/logger';
 import { API_URL } from '../config/api';
@@ -55,11 +56,17 @@ export class VerificationService {
           : `image/${fileExtension === 'jpg' ? 'jpeg' : fileExtension}`;
 
       const formData = new FormData();
-      formData.append('photos', {
-        uri: fileUri,
-        name: fileName,
-        type: mimeType,
-      });
+      if (Platform.OS === 'web') {
+        const response = await fetch(fileUri);
+        const blob = await response.blob();
+        formData.append('photos', blob, fileName);
+      } else {
+        formData.append('photos', {
+          uri: fileUri,
+          name: fileName,
+          type: mimeType,
+        });
+      }
 
       const token = await api.getAuthToken();
       const uploadResponse = await fetch(`${API_URL}/upload/verification`, {

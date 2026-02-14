@@ -120,11 +120,18 @@ const ProfileScreen = () => {
       const compressedUri = await compressImage(uri);
 
       const formData = new FormData();
-      formData.append('photos', {
-        uri: compressedUri,
-        name: `photo_${Date.now()}.jpg`,
-        type: 'image/jpeg',
-      });
+      if (Platform.OS === 'web') {
+        // On web, fetch the blob from the data URI / object URL
+        const response = await fetch(compressedUri);
+        const blob = await response.blob();
+        formData.append('photos', blob, `photo_${Date.now()}.jpg`);
+      } else {
+        formData.append('photos', {
+          uri: compressedUri,
+          name: `photo_${Date.now()}.jpg`,
+          type: 'image/jpeg',
+        });
+      }
 
       const token = await api.getAuthToken();
       const uploadResponse = await fetch(`${API_URL}/upload/photo`, {

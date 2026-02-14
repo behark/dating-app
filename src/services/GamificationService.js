@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../constants/colors';
-import BaseService from './BaseService';
 import logger from '../utils/logger';
+import BaseService from './BaseService';
 import api from './api';
 
 // XP amounts for different actions
@@ -288,14 +288,9 @@ export const GamificationService = {
   /**
    * Get user badges
    */
-  getUserBadges: async (userId) => {
-    try {
-      const response = await api.get(`/gamification/badges/${userId}`);
-      return response.data;
-    } catch (error) {
-      logger.error('Error getting badges', error, { userId });
-      throw error;
-    }
+  getUserBadges: async () => {
+    // Gamification routes disabled during infrastructure simplification
+    return [];
   },
 
   /**

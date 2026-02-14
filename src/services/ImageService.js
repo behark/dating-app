@@ -1,8 +1,6 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
-// Firebase imports removed for local upload strategy
-// import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-// import { storage } from '../config/firebase';
+import { Platform } from 'react-native';
 import logger from '../utils/logger';
 import { API_URL } from '../config/api';
 import api from './api';
@@ -108,11 +106,17 @@ export class ImageService {
 
       // Create FormData for upload (backend expects "photos" field)
       const formData = new FormData();
-      formData.append('photos', {
-        uri: compressedImage.uri,
-        name: `photo_${Date.now()}.jpg`,
-        type: 'image/jpeg',
-      });
+      if (Platform.OS === 'web') {
+        const response = await fetch(compressedImage.uri);
+        const blob = await response.blob();
+        formData.append('photos', blob, `photo_${Date.now()}.jpg`);
+      } else {
+        formData.append('photos', {
+          uri: compressedImage.uri,
+          name: `photo_${Date.now()}.jpg`,
+          type: 'image/jpeg',
+        });
+      }
 
       // Get auth token
       const token = await api.getAuthToken();
@@ -140,8 +144,7 @@ export class ImageService {
       }
 
       const uploadResults = uploadResult?.data?.uploadResults || uploadResult?.uploadResults || [];
-      const firstSuccess =
-        uploadResults.find((result) => result.success) || uploadResults[0] || {};
+      const firstSuccess = uploadResults.find((result) => result.success) || uploadResults[0] || {};
 
       const fullUrl =
         firstSuccess.url || uploadResult?.data?.url || uploadResult?.url || compressedImage.uri;
