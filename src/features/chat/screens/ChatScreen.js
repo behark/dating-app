@@ -180,7 +180,7 @@ const ChatScreen = ({ route, navigation }) => {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -259,7 +259,7 @@ const ChatScreen = ({ route, navigation }) => {
         },
         {
           text: 'Cancel',
-          onPress: () => { },
+          onPress: () => {},
           style: 'cancel',
         },
       ],
@@ -295,94 +295,109 @@ const ChatScreen = ({ route, navigation }) => {
 
   // Estimated message height for getItemLayout optimization
   const MESSAGE_HEIGHT = 80;
-  const getItemLayout = useCallback((data, index) => ({
-    length: MESSAGE_HEIGHT,
-    offset: MESSAGE_HEIGHT * index,
-    index,
-  }), []);
+  const getItemLayout = useCallback(
+    (data, index) => ({
+      length: MESSAGE_HEIGHT,
+      offset: MESSAGE_HEIGHT * index,
+      index,
+    }),
+    []
+  );
 
-  const renderMessage = useCallback(({ item }) => {
-    const isMe = item.senderId === currentUser.uid;
-    const time = new Date(item.createdAt).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const renderMessage = useCallback(
+    ({ item }) => {
+      const isMe = item.senderId === currentUser.uid;
+      const time = new Date(item.createdAt).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
 
-    const isDecryptionFailed = item._decryptionFailed === true;
-    const displayContent = isDecryptionFailed ? '🔒 Message could not be decrypted' : item.content;
-    const textStyle = isDecryptionFailed ? { fontStyle: 'italic', opacity: 0.8 } : {};
+      const isDecryptionFailed = item._decryptionFailed === true;
+      const displayContent = isDecryptionFailed
+        ? '🔒 Message could not be decrypted'
+        : item.content;
+      const textStyle = isDecryptionFailed ? { fontStyle: 'italic', opacity: 0.8 } : {};
 
-    // Send read receipt when message is rendered for non-sender
-    // Use ref-based approach instead of useEffect in render function
-    if (!isMe && !item.isRead && matchId) {
-      // Clear existing timer for this message
-      const existingTimer = readReceiptTimers.current.get(item._id);
-      if (existingTimer) {
-        clearTimeout(existingTimer);
+      // Send read receipt when message is rendered for non-sender
+      // Use ref-based approach instead of useEffect in render function
+      if (!isMe && !item.isRead && matchId) {
+        // Clear existing timer for this message
+        const existingTimer = readReceiptTimers.current.get(item._id);
+        if (existingTimer) {
+          clearTimeout(existingTimer);
+        }
+
+        // Set new timer
+        const timer = setTimeout(() => {
+          sendReadReceipt(item._id);
+          readReceiptTimers.current.delete(item._id);
+        }, 500);
+        readReceiptTimers.current.set(item._id, timer);
       }
 
-      // Set new timer
-      const timer = setTimeout(() => {
-        sendReadReceipt(item._id);
-        readReceiptTimers.current.delete(item._id);
-      }, 500);
-      readReceiptTimers.current.set(item._id, timer);
-    }
-
-    return (
-      <View
-        style={[styles.messageWrapper, isMe ? styles.myMessageWrapper : styles.theirMessageWrapper]}
-      >
-        {item.type === 'image' || item.type === 'gif' ? (
-          <View style={styles.imageMessageWrapper}>
-            <Image source={{ uri: item.imageUrl }} style={styles.messageImage} resizeMode="cover" />
-            {displayContent && (
-              <Text style={[isMe ? styles.myMessageText : styles.theirMessageText, textStyle]}>
-                {displayContent}
-              </Text>
-            )}
-            <Text style={isMe ? styles.myTimestamp : styles.theirTimestamp}>{time}</Text>
-            {isMe && (
-              <View style={styles.readReceiptContainer}>
-                {item.isRead ? (
-                  <Ionicons name="checkmark-done" size={12} color="rgba(255, 255, 255, 0.8)" />
-                ) : (
-                  <Ionicons name="checkmark" size={12} color="rgba(255, 255, 255, 0.6)" />
-                )}
-              </View>
-            )}
-          </View>
-        ) : isMe ? (
-          <LinearGradient colors={Colors.gradient.primary} style={styles.myMessage}>
-            <Text style={[styles.myMessageText, textStyle]}>{displayContent}</Text>
-            <View style={styles.messageFooter}>
-              <Text style={styles.myTimestamp}>{time}</Text>
-              {item.isRead ? (
-                <Ionicons
-                  name="checkmark-done"
-                  size={12}
-                  color="rgba(255, 255, 255, 0.8)"
-                  style={{ marginLeft: 5 }}
-                />
-              ) : (
-                <Ionicons
-                  name="checkmark"
-                  size={12}
-                  color="rgba(255, 255, 255, 0.6)"
-                  style={{ marginLeft: 5 }}
-                />
+      return (
+        <View
+          style={[
+            styles.messageWrapper,
+            isMe ? styles.myMessageWrapper : styles.theirMessageWrapper,
+          ]}
+        >
+          {item.type === 'image' || item.type === 'gif' ? (
+            <View style={styles.imageMessageWrapper}>
+              <Image
+                source={{ uri: item.imageUrl }}
+                style={styles.messageImage}
+                resizeMode="cover"
+              />
+              {displayContent && (
+                <Text style={[isMe ? styles.myMessageText : styles.theirMessageText, textStyle]}>
+                  {displayContent}
+                </Text>
+              )}
+              <Text style={isMe ? styles.myTimestamp : styles.theirTimestamp}>{time}</Text>
+              {isMe && (
+                <View style={styles.readReceiptContainer}>
+                  {item.isRead ? (
+                    <Ionicons name="checkmark-done" size={12} color="rgba(255, 255, 255, 0.8)" />
+                  ) : (
+                    <Ionicons name="checkmark" size={12} color="rgba(255, 255, 255, 0.6)" />
+                  )}
+                </View>
               )}
             </View>
-          </LinearGradient>
-        ) : (
-          <View style={styles.theirMessage}>
-            <Text style={[styles.theirMessageText, textStyle]}>{displayContent}</Text>
-            <Text style={styles.theirTimestamp}>{time}</Text>
-          </View>
-        )}
-      </View>
-    );
-  }, [currentUser.uid, matchId, sendReadReceipt, readReceiptTimers]);
+          ) : isMe ? (
+            <LinearGradient colors={Colors.gradient.primary} style={styles.myMessage}>
+              <Text style={[styles.myMessageText, textStyle]}>{displayContent}</Text>
+              <View style={styles.messageFooter}>
+                <Text style={styles.myTimestamp}>{time}</Text>
+                {item.isRead ? (
+                  <Ionicons
+                    name="checkmark-done"
+                    size={12}
+                    color="rgba(255, 255, 255, 0.8)"
+                    style={{ marginLeft: 5 }}
+                  />
+                ) : (
+                  <Ionicons
+                    name="checkmark"
+                    size={12}
+                    color="rgba(255, 255, 255, 0.6)"
+                    style={{ marginLeft: 5 }}
+                  />
+                )}
+              </View>
+            </LinearGradient>
+          ) : (
+            <View style={styles.theirMessage}>
+              <Text style={[styles.theirMessageText, textStyle]}>{displayContent}</Text>
+              <Text style={styles.theirTimestamp}>{time}</Text>
+            </View>
+          )}
+        </View>
+      );
+    },
+    [currentUser.uid, matchId, sendReadReceipt, readReceiptTimers]
+  );
 
   return (
     <LinearGradient colors={Colors.gradient.light} style={styles.container}>

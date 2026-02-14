@@ -92,7 +92,7 @@ const ProfileScreen = () => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [4, 3],
       quality: 0.8,
@@ -510,12 +510,12 @@ const ProfileScreen = () => {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity 
-            style={styles.logoutButton} 
+          <TouchableOpacity
+            style={styles.logoutButton}
             onPress={() => {
               HapticFeedback.warningNotification();
               logout();
-            }} 
+            }}
             activeOpacity={0.8}
           >
             <Ionicons

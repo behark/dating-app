@@ -18,8 +18,10 @@ import {
   View,
 } from 'react-native';
 import { Colors } from '../../../constants/colors';
+import { API_ENDPOINTS } from '../../../constants/constants';
 import { useAuth } from '../../../context/AuthContext';
 import { useChat } from '../../../context/ChatContext';
+import api from '../../../services/api';
 import logger from '../../../utils/logger';
 
 // Chat Components
@@ -27,10 +29,7 @@ import AnimatedTypingIndicator, {
   HeaderTypingIndicator,
 } from '../components/AnimatedTypingIndicator';
 import ChatThemes, { CHAT_THEMES, useChatTheme } from '../components/ChatThemes';
-import MessageReactions, {
-  QuickReactionButton,
-  REACTIONS,
-} from '../components/MessageReactions';
+import MessageReactions, { QuickReactionButton, REACTIONS } from '../components/MessageReactions';
 import MessageScheduler, { ScheduledMessagesList } from '../components/MessageScheduler';
 
 const EnhancedChatScreen = ({ route, navigation }) => {
@@ -244,7 +243,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,

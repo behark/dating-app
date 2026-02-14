@@ -1,100 +1,118 @@
-# 🚀 Deployment Environment Variables
+# Deployment Environment Variables
 
 Critical environment variables to add to Render and Vercel for production deployment.
 
 ---
 
-## ✅ Cloudinary Variables (REQUIRED for Photo Uploads)
+## Cloudinary Variables (REQUIRED for Photo Uploads)
 
 ### **Add to Render Dashboard:**
 
-Go to: Dashboard → Your Service → Environment → Add Environment Variables
+Go to: Dashboard > Your Service > Environment > Add Environment Variables
 
 ```
-CLOUDINARY_CLOUD_NAME=deypafphv
-CLOUDINARY_API_KEY=REDACTED-CLOUDINARY-KEY
-CLOUDINARY_API_SECRET=REDACTED-CLOUDINARY-SECRET
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 STORAGE_PROVIDER=cloudinary
 ```
 
 ### **Add to Vercel Dashboard:**
 
-Go to: Project Settings → Environment Variables
+Go to: Project Settings > Environment Variables
 
 ```
-CLOUDINARY_CLOUD_NAME=deypafphv
-CLOUDINARY_API_KEY=REDACTED-CLOUDINARY-KEY
-CLOUDINARY_API_SECRET=REDACTED-CLOUDINARY-SECRET
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 STORAGE_PROVIDER=cloudinary
 ```
 
 ---
 
-## 📋 All Required Environment Variables
+## All Required Environment Variables
 
 ### **For Render (Backend):**
 
 ```bash
 # Server
 NODE_ENV=production
-PORT=3000
+PORT=10000
 FRONTEND_URL=https://your-app.vercel.app
 
 # Database
-MONGODB_URI=mongodb+srv://beharkabashi19_db_user:REDACTED@cluster.mongodb.net/dating-app
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/dating-app
 
 # Redis
-REDIS_URL=redis://default:REDACTED-REDIS-PASSWORD@redis-18372.c99.us-east-1-4.ec2.cloud.redislabs.com:18372
+REDIS_URL=redis://your-redis-url
 
-# Authentication (CHANGE THESE!)
-JWT_SECRET=your-production-jwt-secret-min-64-chars
-JWT_REFRESH_SECRET=your-production-refresh-secret-min-64-chars
+# Authentication (GENERATE SECURE VALUES)
+JWT_SECRET=<generate-64-char-hex>
+JWT_REFRESH_SECRET=<generate-64-char-hex>
+HASH_SALT=<generate-32-char-hex>
+ENCRYPTION_KEY=<generate-32-char-hex>
 
 # Cloudinary (REQUIRED for uploads)
-CLOUDINARY_CLOUD_NAME=deypafphv
-CLOUDINARY_API_KEY=REDACTED-CLOUDINARY-KEY
-CLOUDINARY_API_SECRET=REDACTED-CLOUDINARY-SECRET
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 STORAGE_PROVIDER=cloudinary
 
 # Google OAuth
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 
+# Firebase
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_CLIENT_EMAIL=your-service-account@project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY=your-firebase-private-key
+
 # Sentry
-SENTRY_DSN=https://e21c92d839607c2d0f9378d08ca96903@o4510655194726400.ingest.de.sentry.io/4510655204687952
+SENTRY_DSN=your-sentry-dsn
 
 # Datadog
-DD_API_KEY=REDACTED-DD-KEY
+DD_API_KEY=your-datadog-api-key
 DD_SITE=datadoghq.eu
 DD_ENV=production
+DD_SERVICE=dating-app-backend
 
 # CORS
 CORS_ORIGIN=https://your-app.vercel.app
 
-# Security
-ENCRYPTION_KEY=your-32-char-encryption-key
-HASH_SALT=your-32-char-hash-salt
+# Backup Monitoring
+MONGODB_BACKUP_ENABLED=true
+MONGODB_BACKUP_MAX_AGE_HOURS=30
 ```
 
 ### **For Vercel (Frontend):**
 
 ```bash
 # API URL
-EXPO_PUBLIC_API_URL=https://your-backend.onrender.com
+EXPO_PUBLIC_API_URL=https://your-backend.onrender.com/api
+EXPO_PUBLIC_BACKEND_URL=https://your-backend.onrender.com
+
+# Firebase (public config)
+EXPO_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+EXPO_PUBLIC_FIREBASE_APP_ID=your-app-id
+
+# Google OAuth (public client ID)
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 
 # Cloudinary (for direct uploads from frontend)
-EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME=deypafphv
+EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
 EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your-upload-preset
 
-# Google OAuth (if using)
-EXPO_PUBLIC_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+# Monitoring
+EXPO_PUBLIC_SENTRY_DSN=your-sentry-dsn
 ```
 
 ---
 
-## ⚠️ IMPORTANT Security Notes
-
-### **1. Generate Secure Secrets:**
+## Generate Secure Secrets
 
 ```bash
 # Generate JWT secret (64+ characters)
@@ -102,125 +120,52 @@ node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 
 # Generate encryption key (32+ characters)
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
 
-### **2. Never Commit Secrets:**
-- ✅ Secrets are in `.env` (git-ignored)
-- ✅ Add to deployment platforms manually
-- ❌ Never commit `.env` to git
-- ❌ Never hardcode secrets in code
-
-### **3. Cloudinary Upload Preset:**
-
-**Create in Cloudinary Dashboard:**
-1. Go to Settings → Upload
-2. Add Upload Preset
-3. Name: `dating-app-uploads`
-4. Signing Mode: **Unsigned** (for direct uploads)
-5. Folder: `dating-app/photos`
-6. Save preset name
-
-Then add to Vercel:
-```
-EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET=dating-app-uploads
+# Generate hash salt (32+ characters)
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ---
 
-## 🔧 How to Add Variables
+## Security Notes
+
+- **NEVER** commit real secrets to git
+- Add secrets to deployment platforms (Render/Vercel) manually via their dashboards
+- Rotate secrets immediately if they are ever exposed
+- Use long, randomly generated values for all secrets
+
+---
+
+## How to Add Variables
 
 ### **Render:**
 
 1. Go to https://dashboard.render.com
 2. Select your backend service
 3. Click "Environment"
-4. Click "Add Environment Variable"
-5. Add each variable one by one
-6. Click "Save Changes"
-7. Service will auto-redeploy
+4. Add each variable
+5. Save and redeploy
 
 ### **Vercel:**
 
 1. Go to https://vercel.com/dashboard
 2. Select your project
-3. Go to Settings → Environment Variables
-4. Add each variable
-5. Select environments (Production/Preview/Development)
-6. Click "Save"
-7. Redeploy for changes to take effect
+3. Go to Settings > Environment Variables
+4. Add each variable for Production/Preview/Development
+5. Redeploy
 
 ---
 
-## ✅ Verification Checklist
+## Verification Checklist
 
-**After adding variables:**
+After adding variables:
 
-- [ ] Cloudinary variables added to Render
-- [ ] JWT secrets generated (new, not dev ones)
-- [ ] All required variables added
-- [ ] Frontend variables added to Vercel
-- [ ] Redeploy both services
-- [ ] Test photo upload in production
-- [ ] Test authentication works
+- [ ] All required backend variables set on Render
+- [ ] All required frontend variables set on Vercel
+- [ ] JWT secrets are freshly generated (not dev values)
+- [ ] Firebase credentials configured
+- [ ] Cloudinary configured
+- [ ] Both services redeployed
+- [ ] Test photo upload
+- [ ] Test authentication
 - [ ] Monitor error logs
-
----
-
-## 🚨 Critical for Photo Uploads
-
-**Without Cloudinary variables:**
-- ❌ Photo uploads will fail
-- ❌ Users can't complete profiles
-- ❌ App functionality broken
-
-**With Cloudinary variables:**
-- ✅ Photo uploads work
-- ✅ Users can add photos
-- ✅ Full app functionality
-
----
-
-## 📝 Quick Copy-Paste
-
-**Render (Backend) - Cloudinary Only:**
-```
-CLOUDINARY_CLOUD_NAME=deypafphv
-CLOUDINARY_API_KEY=REDACTED-CLOUDINARY-KEY
-CLOUDINARY_API_SECRET=REDACTED-CLOUDINARY-SECRET
-STORAGE_PROVIDER=cloudinary
-```
-
-**Vercel (Frontend) - Cloudinary Only:**
-```
-EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME=deypafphv
-```
-
----
-
-## 💡 Pro Tips
-
-1. **Use production secrets:**
-   - Don't use `dev-super-secret` in production
-   - Generate long, random secrets
-
-2. **Set CORS correctly:**
-   - Match your actual frontend URL
-   - Include https://
-
-3. **Monitor after deployment:**
-   - Check Sentry for errors
-   - Verify uploads work
-   - Test authentication
-
-4. **Document your setup:**
-   - Keep list of all variables
-   - Note which service needs which
-   - Update when you change them
-
----
-
-## 🎉 That's It!
-
-Add these variables to Render and Vercel, and your photo uploads will work in production!
-
-**Don't forget:** Redeploy after adding variables for changes to take effect!

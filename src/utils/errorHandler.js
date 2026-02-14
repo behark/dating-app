@@ -5,6 +5,7 @@
 
 import { Alert } from 'react-native';
 import { getUserFriendlyMessage, STANDARD_ERROR_MESSAGES } from './errorMessages';
+export { STANDARD_ERROR_MESSAGES };
 import logger from './logger';
 
 /**
