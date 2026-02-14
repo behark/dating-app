@@ -2,10 +2,6 @@ import Constants from 'expo-constants';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect } from 'react';
 import { Linking, Platform } from 'react-native';
-
-// Initialize Firebase before AnalyticsService (required for expo-firebase-analytics)
-import './src/config/firebase';
-
 import ErrorBoundary, { SimpleErrorBoundary } from './src/components/common/ErrorBoundary';
 import NetworkStatusBanner from './src/components/common/NetworkStatusBanner';
 import { AppProvider } from './src/context/AppContext';
