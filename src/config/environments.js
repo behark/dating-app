@@ -7,7 +7,6 @@ export const ENVIRONMENTS = {
 
 export class EnvironmentConfig {
   static getCurrentEnvironment() {
-    // Check for environment variables first
     if (process.env.NODE_ENV === 'production') {
       return ENVIRONMENTS.PRODUCTION;
     }
@@ -16,7 +15,6 @@ export class EnvironmentConfig {
       return ENVIRONMENTS.STAGING;
     }
 
-    // Default to development
     return ENVIRONMENTS.DEVELOPMENT;
   }
 
@@ -38,14 +36,6 @@ export class EnvironmentConfig {
     const configs = {
       [ENVIRONMENTS.DEVELOPMENT]: {
         apiUrl: 'http://localhost:3000',
-        firebase: {
-          apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-          authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-          projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-          storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-          messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-          appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-        },
         analyticsEnabled: false,
         errorReportingEnabled: false,
         debugMode: true,
@@ -54,14 +44,6 @@ export class EnvironmentConfig {
       },
       [ENVIRONMENTS.STAGING]: {
         apiUrl: 'https://staging.yourapp.com',
-        firebase: {
-          apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-          authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-          projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-          storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-          messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-          appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-        },
         analyticsEnabled: true,
         errorReportingEnabled: true,
         debugMode: true,
@@ -70,14 +52,6 @@ export class EnvironmentConfig {
       },
       [ENVIRONMENTS.PRODUCTION]: {
         apiUrl: 'https://yourapp.com',
-        firebase: {
-          apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-          authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-          projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-          storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
-          messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-          appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-        },
         analyticsEnabled: true,
         errorReportingEnabled: true,
         debugMode: false,
@@ -130,7 +104,6 @@ export class EnvironmentConfig {
     const config = this.getConfig();
     const features = this.getFeatureFlags();
 
-    // Import logger dynamically to avoid circular dependency
     const logger = require('../utils/logger').default;
     logger.info('Environment Configuration', {
       environment: env,
@@ -142,16 +115,8 @@ export class EnvironmentConfig {
     });
   }
 
-  // Validation helpers
   static validateEnvironmentVariables() {
-    const requiredVars = [
-      'EXPO_PUBLIC_FIREBASE_API_KEY',
-      'EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN',
-      'EXPO_PUBLIC_FIREBASE_PROJECT_ID',
-      'EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET',
-      'EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-      'EXPO_PUBLIC_FIREBASE_APP_ID',
-    ];
+    const requiredVars = ['EXPO_PUBLIC_API_URL', 'EXPO_PUBLIC_BACKEND_URL'];
 
     const missing = requiredVars.filter((varName) => !process.env[varName]);
 
