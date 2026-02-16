@@ -341,7 +341,7 @@ const ProfileScreen = () => {
                 name="checkmark-circle"
                 size={20}
                 color={Colors.background.white}
-                style={{ marginRight: 8 }}
+                style={styles.iconSpacing}
               />
               <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Profile'}</Text>
             </LinearGradient>
@@ -363,7 +363,7 @@ const ProfileScreen = () => {
                 name="settings"
                 size={20}
                 color={Colors.primary}
-                style={{ marginRight: 8 }}
+                style={styles.iconSpacing}
               />
               <Text style={styles.secondaryButtonText}>Preferences</Text>
             </TouchableOpacity>
@@ -376,7 +376,7 @@ const ProfileScreen = () => {
               }}
               activeOpacity={0.8}
             >
-              <Ionicons name="notifications" size={20} color="#FFA500" style={{ marginRight: 8 }} />
+              <Ionicons name="notifications" size={20} color="#FFA500" style={styles.iconSpacing} />
               <Text style={styles.secondaryButtonText}>Notifications</Text>
             </TouchableOpacity>
 
@@ -392,7 +392,7 @@ const ProfileScreen = () => {
                 name="shield-checkmark"
                 size={20}
                 color={Colors.accent.teal}
-                style={{ marginRight: 8 }}
+                style={styles.iconSpacing}
               />
               <Text style={styles.secondaryButtonText}>Verification</Text>
             </TouchableOpacity>
@@ -409,7 +409,7 @@ const ProfileScreen = () => {
                 name="images"
                 size={20}
                 color={Colors.accent.red}
-                style={{ marginRight: 8 }}
+                style={styles.iconSpacing}
               />
               <Text style={styles.secondaryButtonText}>Photo Gallery</Text>
             </TouchableOpacity>
@@ -422,7 +422,7 @@ const ProfileScreen = () => {
               }}
               activeOpacity={0.8}
             >
-              <Ionicons name="share-social" size={20} color="#1DB954" style={{ marginRight: 8 }} />
+              <Ionicons name="share-social" size={20} color="#1DB954" style={styles.iconSpacing} />
               <Text style={styles.secondaryButtonText}>Social Media</Text>
             </TouchableOpacity>
 
@@ -438,7 +438,7 @@ const ProfileScreen = () => {
                 name="eye"
                 size={20}
                 color={Colors.accent.teal}
-                style={{ marginRight: 8 }}
+                style={styles.iconSpacing}
               />
               <Text style={styles.secondaryButtonText}>Who Viewed Me</Text>
             </TouchableOpacity>
@@ -455,7 +455,7 @@ const ProfileScreen = () => {
                 name="shield-checkmark-outline"
                 size={20}
                 color={Colors.status.warning}
-                style={{ marginRight: 8 }}
+                style={styles.iconSpacing}
               />
               <Text style={styles.secondaryButtonText}>Safety Tips</Text>
             </TouchableOpacity>
@@ -472,7 +472,7 @@ const ProfileScreen = () => {
                 name="shield"
                 size={20}
                 color={Colors.accent.pink}
-                style={{ marginRight: 8 }}
+                style={styles.iconSpacing}
               />
               <Text style={styles.secondaryButtonText}>🛡️ Safety Center</Text>
             </TouchableOpacity>
@@ -493,7 +493,7 @@ const ProfileScreen = () => {
                   name="diamond"
                   size={20}
                   color={Colors.background.white}
-                  style={{ marginRight: 8 }}
+                  style={styles.iconSpacing}
                 />
                 <Text style={styles.premiumButtonText}>Go Premium</Text>
               </LinearGradient>
@@ -512,7 +512,7 @@ const ProfileScreen = () => {
               name="log-out-outline"
               size={20}
               color={Colors.accent.red}
-              style={{ marginRight: 8 }}
+              style={styles.iconSpacing}
             />
             <Text style={styles.logoutButtonText}>Logout</Text>
           </TouchableOpacity>
@@ -619,6 +619,9 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     marginRight: 10,
+  },
+  iconSpacing: {
+    marginRight: 8,
   },
   input: {
     flex: 1,

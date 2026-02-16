@@ -153,7 +153,7 @@ const SafetyAdvancedScreen = ({ route, navigation }) => {
             <Text style={styles.backButtonText}>‹ Back</Text>
           </TouchableOpacity>
           <Text style={styles.featureTitle}>{activeFeature.name}</Text>
-          <View style={{ width: 40 }} />
+          <View style={styles.featureHeaderSpacer} />
         </View>
 
         {activeFeature.id === 'emergency-contacts' ? (
@@ -373,8 +373,8 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
   },
-  featureContainerContent: {
-    flex: 1,
+  featureHeaderSpacer: {
+    width: 40,
   },
   contactsContainer: {
     padding: 16,

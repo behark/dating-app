@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Platform, View } from 'react-native';
+import { Animated, Platform, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../../constants/colors';
 import { useTheme } from '../../context/ThemeContext';
@@ -61,40 +61,21 @@ const HeartAnimation = ({ visible, onComplete }) => {
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
+  const heartTransformStyle = {
+    transform: [{ scale: scaleAnim }, { rotate }],
+    opacity: opacityAnim,
+  };
 
   if (!visible) return null;
 
   return (
-    <View
-      style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        marginLeft: -30,
-        marginTop: -30,
-        zIndex: 1000,
-      }}
-    >
-      <Animated.View
-        style={{
-          transform: [{ scale: scaleAnim }, { rotate }],
-          opacity: opacityAnim,
-        }}
-      >
+    <View style={styles.heartContainer}>
+      <Animated.View style={heartTransformStyle}>
         <Ionicons
           name="heart"
           size={60}
           color={theme.interactive.danger}
-          style={Platform.select({
-            web: {
-              textShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)',
-            },
-            default: {
-              textShadowColor: 'rgba(0, 0, 0, 0.3)',
-              textShadowOffset: { width: 0, height: 2 },
-              textShadowRadius: 4,
-            },
-          })}
+          style={styles.heartIconShadow}
         />
       </Animated.View>
     </View>
@@ -146,56 +127,79 @@ const SuccessAnimation = ({ visible, message, onComplete }) => {
       }, 2000);
     }
   }, [visible, onComplete, opacityAnim, slideAnim]);
+  const successBannerAnimationStyle = {
+    transform: [{ translateY: slideAnim }],
+    opacity: opacityAnim,
+  };
+  const successBannerColorStyle = {
+    backgroundColor: theme.status.success,
+  };
 
   if (!visible) return null;
 
   return (
-    <Animated.View
-      style={{
-        position: 'absolute',
-        top: 100,
-        left: 20,
-        right: 20,
-        transform: [{ translateY: slideAnim }],
-        opacity: opacityAnim,
-        zIndex: 1000,
-      }}
-    >
-      <View
-        style={{
-          backgroundColor: theme.status.success,
-          borderRadius: 25,
-          paddingVertical: 12,
-          paddingHorizontal: 20,
-          flexDirection: 'row',
-          alignItems: 'center',
-          shadowColor: Colors.text.primary,
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.25,
-          shadowRadius: 4,
-          elevation: 5,
-        }}
-      >
+    <Animated.View style={[styles.successAnimationContainer, successBannerAnimationStyle]}>
+      <View style={[styles.successBanner, successBannerColorStyle]}>
         <Ionicons
           name="checkmark-circle"
           size={24}
           color={Colors.background.white}
-          style={{ marginRight: 12 }}
+          style={styles.successIcon}
         />
-        <Animated.Text
-          style={{
-            color: '#FFFFFF',
-            fontSize: 16,
-            fontWeight: '600',
-            flex: 1,
-          }}
-        >
-          {message || 'Success!'}
-        </Animated.Text>
+        <Animated.Text style={styles.successText}>{message || 'Success!'}</Animated.Text>
       </View>
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  heartContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginLeft: -30,
+    marginTop: -30,
+    zIndex: 1000,
+  },
+  heartIconShadow: Platform.select({
+    web: {
+      textShadow: '0px 2px 4px rgba(0, 0, 0, 0.3)',
+    },
+    default: {
+      textShadowColor: 'rgba(0, 0, 0, 0.3)',
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 4,
+    },
+  }),
+  successAnimationContainer: {
+    position: 'absolute',
+    top: 100,
+    left: 20,
+    right: 20,
+    zIndex: 1000,
+  },
+  successBanner: {
+    borderRadius: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: Colors.text.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  successIcon: {
+    marginRight: 12,
+  },
+  successText: {
+    color: Colors.background.white,
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+  },
+});
 
 const MicroAnimations = {
   HeartAnimation,

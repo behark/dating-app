@@ -178,6 +178,11 @@ const ChatThemes = ({
     const theme = CHAT_THEMES[item];
     const isSelected = selectedTheme === item;
     const isLocked = theme.isPremium && !isPremiumUser;
+    const mySampleTextStyle = [styles.sampleMessageText, { color: theme.myMessage.textColor }];
+    const theirSampleTextStyle = [
+      styles.sampleMessageText,
+      { color: theme.theirMessage.textColor },
+    ];
 
     return (
       <TouchableOpacity
@@ -190,7 +195,7 @@ const ChatThemes = ({
           {/* Sample messages */}
           <View style={styles.sampleMessages}>
             <LinearGradient colors={theme.myMessage.gradient} style={styles.sampleMyMessage}>
-              <Text style={{ color: theme.myMessage.textColor, fontSize: 10 }}>Hey! 👋</Text>
+              <Text style={mySampleTextStyle}>Hey! 👋</Text>
             </LinearGradient>
             <View
               style={[
@@ -198,7 +203,7 @@ const ChatThemes = ({
                 { backgroundColor: theme.theirMessage.backgroundColor },
               ]}
             >
-              <Text style={{ color: theme.theirMessage.textColor, fontSize: 10 }}>Hi there!</Text>
+              <Text style={theirSampleTextStyle}>Hi there!</Text>
             </View>
           </View>
 
@@ -254,6 +259,10 @@ const ChatThemes = ({
 
   const renderPreview = () => {
     const theme = CHAT_THEMES[selectedTheme];
+    const getPatternEmojiStyle = (index) => ({
+      left: `${(index % 5) * 25}%`,
+      top: `${Math.floor(index / 5) * 25}%`,
+    });
 
     return (
       <View style={styles.previewContainer}>
@@ -264,16 +273,7 @@ const ChatThemes = ({
               {[...Array(20)].map((_, i) => (
                 <Text
                   key={i}
-                  style={[
-                    styles.patternEmoji,
-                    {
-                      position: 'absolute',
-                      left: `${(i % 5) * 25}%`,
-                      top: `${Math.floor(i / 5) * 25}%`,
-                      opacity: 0.1,
-                      fontSize: 24,
-                    },
-                  ]}
+                  style={[styles.patternEmoji, styles.patternOverlayEmoji, getPatternEmojiStyle(i)]}
                 >
                   {BACKGROUND_PATTERNS.find((p) => p.id === selectedPattern)?.emoji}
                 </Text>
@@ -571,6 +571,14 @@ const styles = StyleSheet.create({
   },
   patternEmoji: {
     fontSize: 16,
+  },
+  patternOverlayEmoji: {
+    position: 'absolute',
+    opacity: 0.1,
+    fontSize: 24,
+  },
+  sampleMessageText: {
+    fontSize: 10,
   },
   patternName: {
     fontSize: 12,

@@ -377,14 +377,14 @@ const ChatScreen = ({ route, navigation }) => {
                     name="checkmark-done"
                     size={12}
                     color="rgba(255, 255, 255, 0.8)"
-                    style={{ marginLeft: 5 }}
+                    style={styles.readStatusIcon}
                   />
                 ) : (
                   <Ionicons
                     name="checkmark"
                     size={12}
                     color="rgba(255, 255, 255, 0.6)"
-                    style={{ marginLeft: 5 }}
+                    style={styles.readStatusIcon}
                   />
                 )}
               </View>
@@ -424,7 +424,12 @@ const ChatScreen = ({ route, navigation }) => {
               {otherUserTyping && <Text style={styles.typingIndicator}>typing...</Text>}
             </View>
           </View>
-          <Ionicons name="heart" size={24} color={Colors.background.white} style={{ opacity: 0 }} />
+          <Ionicons
+            name="heart"
+            size={24}
+            color={Colors.background.white}
+            style={styles.headerIconPlaceholder}
+          />
         </LinearGradient>
 
         {loading && messages.length === 0 ? (
@@ -565,6 +570,9 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.8)',
     fontStyle: 'italic',
   },
+  headerIconPlaceholder: {
+    opacity: 0,
+  },
   messagesList: {
     padding: 15,
     paddingBottom: 10,
@@ -622,6 +630,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
+  },
+  readStatusIcon: {
+    marginLeft: 5,
   },
   messageImage: {
     width: 200,

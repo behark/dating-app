@@ -339,7 +339,7 @@ const PreferencesScreen = ({ navigation }) => {
                   : Colors.primary
               }
             />
-            <View style={{ flex: 1, marginLeft: 10 }}>
+            <View style={styles.optionDescriptionContainer}>
               <Text
                 style={[
                   styles.optionText,
@@ -428,7 +428,7 @@ const PreferencesScreen = ({ navigation }) => {
                 name="checkmark-circle"
                 size={24}
                 color={Colors.background.white}
-                style={{ marginRight: 8 }}
+                style={styles.saveButtonIcon}
               />
               <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save Preferences'}</Text>
             </LinearGradient>
@@ -504,65 +504,9 @@ const styles = StyleSheet.create({
     color: Colors.text.dark,
     marginBottom: 15,
   },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  inputGroup: {
+  optionDescriptionContainer: {
     flex: 1,
-    marginHorizontal: 5,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text.dark,
-    marginBottom: 10,
-  },
-  numberInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.background.lightest,
-    borderRadius: 10,
-    padding: 10,
-  },
-  adjustButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.background.white,
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 3,
-  },
-  numberText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.primary,
-    marginHorizontal: 20,
-    minWidth: 30,
-    textAlign: 'center',
-  },
-  sliderContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  sliderButton: {
-    padding: 10,
-  },
-  sliderTrack: {
-    flex: 1,
-    height: 6,
-    backgroundColor: Colors.border.gray,
-    borderRadius: 3,
-    marginHorizontal: 10,
-  },
-  sliderFill: {
-    height: '100%',
-    backgroundColor: Colors.primary,
-    borderRadius: 3,
+    marginLeft: 10,
   },
   optionGroup: {
     flexDirection: 'row',
@@ -705,6 +649,9 @@ const styles = StyleSheet.create({
     color: Colors.background.white,
     fontSize: 18,
     fontWeight: '700',
+  },
+  saveButtonIcon: {
+    marginRight: 8,
   },
   themeToggleContainer: {
     flexDirection: 'row',
