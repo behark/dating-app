@@ -114,8 +114,9 @@ router.delete('/delete-account', authenticate, deleteAccount);
 router.post(
   '/google',
   [
-    body('googleId').notEmpty().withMessage('Google ID is required'),
-    body('email').isEmail().normalizeEmail(),
+    body('idToken').notEmpty().withMessage('Google ID token is required'),
+    body('googleId').optional().notEmpty().withMessage('Google ID cannot be empty'),
+    body('email').optional().isEmail().normalizeEmail(),
   ],
   handleValidationErrors,
   googleAuth
@@ -125,7 +126,8 @@ router.post(
   '/facebook',
   [
     body('facebookId').notEmpty().withMessage('Facebook ID is required'),
-    body('email').isEmail().normalizeEmail(),
+    body('accessToken').notEmpty().withMessage('Facebook access token is required'),
+    body('email').optional().isEmail().normalizeEmail(),
   ],
   handleValidationErrors,
   facebookAuth
@@ -133,7 +135,11 @@ router.post(
 
 router.post(
   '/apple',
-  [body('appleId').notEmpty().withMessage('Apple ID is required')],
+  [
+    body('appleId').notEmpty().withMessage('Apple ID is required'),
+    body('identityToken').notEmpty().withMessage('Apple identity token is required'),
+    body('email').optional().isEmail().normalizeEmail(),
+  ],
   handleValidationErrors,
   appleAuth
 );

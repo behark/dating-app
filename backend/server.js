@@ -535,51 +535,53 @@ app.get('/health', (req, res) => {
 // Sentry test endpoint - triggers a test error to verify Sentry is working
 // Visit: http://localhost:3000/api/test-sentry (or your deployed URL)
 // Note: Only available in non-production environments for security
-app.get('/api/test-sentry', (req, res) => {
-  // Sentry is already imported at the top of the file
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/test-sentry', (req, res) => {
+    // Sentry is already imported at the top of the file
 
-  // Create test spans and metrics (as per Sentry's test code)
-  Sentry.startSpan(
-    {
-      name: 'test',
-      op: 'test',
-    },
-    () => {
-      Sentry.startSpan(
-        {
-          name: 'My First Test Span',
-          op: 'test.span',
-        },
-        () => {
-          // Log info message
-          logger.info('User triggered test error', {
-            action: 'test_error_span',
-            userId: 'test-user',
-          });
+    // Create test spans and metrics (as per Sentry's test code)
+    Sentry.startSpan(
+      {
+        name: 'test',
+        op: 'test',
+      },
+      () => {
+        Sentry.startSpan(
+          {
+            name: 'My First Test Span',
+            op: 'test.span',
+          },
+          () => {
+            // Log info message
+            logger.info('User triggered test error', {
+              action: 'test_error_span',
+              userId: 'test-user',
+            });
 
-          // Send a metric (increment is the correct API for counters)
-          Sentry.metrics.increment('test_counter', 1);
-        }
-      );
+            // Send a metric (increment is the correct API for counters)
+            Sentry.metrics.increment('test_counter', 1);
+          }
+        );
+      }
+    );
+
+    try {
+      // Intentionally trigger an error to test Sentry
+      throw new Error('Test error for Sentry - This is intentional to verify Sentry is working!');
+    } catch (e) {
+      // Capture the exception
+      Sentry.captureException(e);
+
+      res.status(500).json({
+        success: false,
+        message:
+          'Test error sent to Sentry! Check your Sentry dashboard at https://kabashi.sentry.io/issues/',
+        error: e instanceof Error ? e.message : String(e),
+        note: 'This error was intentionally triggered to test Sentry integration.',
+      });
     }
-  );
-
-  try {
-    // Intentionally trigger an error to test Sentry
-    throw new Error('Test error for Sentry - This is intentional to verify Sentry is working!');
-  } catch (e) {
-    // Capture the exception
-    Sentry.captureException(e);
-
-    res.status(500).json({
-      success: false,
-      message:
-        'Test error sent to Sentry! Check your Sentry dashboard at https://kabashi.sentry.io/issues/',
-      error: e instanceof Error ? e.message : String(e),
-      note: 'This error was intentionally triggered to test Sentry integration.',
-    });
-  }
-});
+  });
+}
 
 // API routes
 app.use('/api/auth', authRoutes);

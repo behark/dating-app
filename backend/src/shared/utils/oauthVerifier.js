@@ -26,10 +26,13 @@ const verifyGoogleToken = async (idToken, clientId = undefined) => {
 
   // Get the client ID to verify against
   const expectedClientId = clientId || process.env.GOOGLE_CLIENT_ID;
+  if (!expectedClientId) {
+    throw new Error(
+      'Google OAuth client configuration error. Check GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.'
+    );
+  }
 
-  // If no client ID configured, we'll still verify the token structure but skip audience check
-  // This allows for development/testing scenarios
-  const verifyOptions = expectedClientId ? { idToken, audience: expectedClientId } : { idToken };
+  const verifyOptions = { idToken, audience: expectedClientId };
 
   try {
     const ticket = await googleClient.verifyIdToken(verifyOptions);
@@ -104,15 +107,10 @@ const verifyFacebookToken = async (accessToken, facebookId) => {
   const appId = process.env.FACEBOOK_APP_ID;
   const appSecret = process.env.FACEBOOK_APP_SECRET;
 
-  // If no Facebook credentials configured, fall back to trust-but-verify mode
-  // This is less secure but allows operation during development
   if (!appId || !appSecret) {
-    console.warn('⚠️  Facebook OAuth credentials not configured - token verification skipped');
-    return {
-      facebookId,
-      tokenVerified: false,
-      warning: 'Token not verified - configure FACEBOOK_APP_ID and FACEBOOK_APP_SECRET',
-    };
+    throw new Error(
+      'Facebook OAuth client configuration error. Check FACEBOOK_APP_ID and FACEBOOK_APP_SECRET.'
+    );
   }
 
   try {
@@ -145,8 +143,24 @@ const verifyFacebookToken = async (accessToken, facebookId) => {
       throw new Error('Facebook access token has expired');
     }
 
+    // Fetch user profile details from Facebook with the validated access token.
+    const profileResponse = await axios.get('https://graph.facebook.com/me', {
+      params: {
+        fields: 'id,name,email,picture.type(large)',
+        access_token: accessToken,
+      },
+    });
+    const profile = profileResponse.data || {};
+
+    if (!profile.id || profile.id !== tokenData.user_id) {
+      throw new Error('Facebook profile mismatch');
+    }
+
     return {
-      facebookId: tokenData.user_id,
+      facebookId: profile.id,
+      email: profile.email,
+      name: profile.name,
+      photoUrl: profile.picture?.data?.url,
       tokenVerified: true,
       scopes: tokenData.scopes || [],
       expiresAt: tokenData.expires_at,
@@ -195,22 +209,18 @@ const verifyFacebookToken = async (accessToken, facebookId) => {
  * @throws {Error} If token verification fails
  */
 const verifyAppleToken = async (identityToken, appleId) => {
-  if (!identityToken && !appleId) {
-    throw new Error('Apple identity token or Apple ID is required');
-  }
-
-  // If only appleId is provided (legacy flow), trust it but warn
   if (!identityToken) {
-    console.warn('⚠️  Apple Sign-In without identity token - consider updating client');
-    return {
-      appleId,
-      tokenVerified: false,
-      warning: 'Identity token not provided - user info limited',
-    };
+    throw new Error('Apple identity token is required');
   }
 
   try {
     const jwt = require('jsonwebtoken');
+    const expectedAppleClientId = process.env.APPLE_CLIENT_ID;
+    if (!expectedAppleClientId) {
+      throw new Error(
+        'Apple OAuth client configuration error. Check APPLE_CLIENT_ID and related credentials.'
+      );
+    }
 
     // Decode the token header to get the key ID
     const tokenParts = identityToken.split('.');
@@ -245,6 +255,7 @@ const verifyAppleToken = async (identityToken, appleId) => {
     const decoded = jwt.verify(identityToken, publicKey, {
       algorithms: ['RS256'],
       issuer: 'https://appleid.apple.com',
+      audience: expectedAppleClientId,
     });
 
     // Handle both string and object decoded values

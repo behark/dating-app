@@ -53,9 +53,10 @@ const csrfProtection = (options = {}) => {
     // Get token from cookie and header
     const cookieToken = req.cookies?.[cookieName];
     const headerToken = req.headers[headerName.toLowerCase()];
+    let expectedToken = cookieToken;
 
-    // If no tokens exist, generate a new one
-    if (!cookieToken) {
+    // If no cookie token exists, generate a new one and require client retry.
+    if (!expectedToken) {
       const newToken = generateToken();
       res.cookie(cookieName, newToken, {
         httpOnly: true,
@@ -64,16 +65,19 @@ const csrfProtection = (options = {}) => {
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         ...cookieOptions,
       });
+      expectedToken = newToken;
+    }
 
-      // For first request, allow through but set token
-      if (!headerToken) {
-        req.csrfToken = () => newToken;
-        return next();
-      }
+    if (!headerToken) {
+      return res.status(403).json({
+        success: false,
+        message: 'CSRF token required. Call /api/csrf-token first, then retry with x-csrf-token.',
+        code: 'CSRF_TOKEN_MISSING',
+      });
     }
 
     // Validate tokens match
-    if (!cookieToken || !headerToken || cookieToken !== headerToken) {
+    if (expectedToken !== headerToken) {
       return res.status(403).json({
         success: false,
         message: 'Invalid CSRF token',
@@ -82,7 +86,7 @@ const csrfProtection = (options = {}) => {
     }
 
     // Tokens match, proceed
-    req.csrfToken = () => cookieToken;
+    req.csrfToken = () => expectedToken;
     next();
   };
 };

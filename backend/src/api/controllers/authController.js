@@ -262,7 +262,10 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     logger.error('Login error:', { error: error.message, stack: error.stack });
-    return sendError(res, 500, { message: 'Error during login', error: error instanceof Error ? error.message : String(error) });
+    return sendError(res, 500, {
+      message: 'Error during login',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -300,7 +303,10 @@ exports.verifyEmail = async (req, res) => {
     });
   } catch (error) {
     logger.error('Email verification error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error verifying email', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error verifying email',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -344,7 +350,10 @@ exports.forgotPassword = async (req, res) => {
     });
   } catch (error) {
     logger.error('Forgot password error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error processing password reset', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error processing password reset',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -388,7 +397,10 @@ exports.resetPassword = async (req, res) => {
     });
   } catch (error) {
     logger.error('Reset password error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error resetting password', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error resetting password',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -471,7 +483,10 @@ exports.logout = async (req, res) => {
     });
   } catch (error) {
     logger.error('Logout error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error during logout', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error during logout',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -508,7 +523,7 @@ exports.deleteAccount = async (req, res) => {
 
     // Clean up user data from related collections
     const cleanupPromises = [];
-    
+
     try {
       const Message = require('../../core/domain/Message');
       const Swipe = require('../../core/domain/Swipe');
@@ -520,66 +535,54 @@ exports.deleteAccount = async (req, res) => {
       const SuperLike = require('../../core/domain/SuperLike');
       const BoostProfile = require('../../core/domain/BoostProfile');
       const UserActivity = require('../../core/domain/UserActivity');
-      
+
       // Delete user's messages
       cleanupPromises.push(
         Message.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] })
       );
-      
+
       // Delete user's swipes
-      cleanupPromises.push(
-        Swipe.deleteMany({ $or: [{ swiperId: userId }, { swipedId: userId }] })
-      );
-      
+      cleanupPromises.push(Swipe.deleteMany({ $or: [{ swiperId: userId }, { swipedId: userId }] }));
+
       // Delete user's matches
-      cleanupPromises.push(
-        Match.deleteMany({ users: userId })
-      );
-      
+      cleanupPromises.push(Match.deleteMany({ users: userId }));
+
       // Delete user's notifications
-      cleanupPromises.push(
-        Notification.deleteMany({ userId })
-      );
-      
+      cleanupPromises.push(Notification.deleteMany({ userId }));
+
       // Delete reports filed by or against the user
       cleanupPromises.push(
         Report.deleteMany({ $or: [{ reporterId: userId }, { reportedUserId: userId }] })
       );
-      
+
       // Delete blocks involving the user
       cleanupPromises.push(
         Block.deleteMany({ $or: [{ blockerId: userId }, { blockedUserId: userId }] })
       );
-      
+
       // Delete subscription
-      cleanupPromises.push(
-        Subscription.deleteOne({ userId })
-      );
-      
+      cleanupPromises.push(Subscription.deleteOne({ userId }));
+
       // Delete super likes
       cleanupPromises.push(
         SuperLike.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] })
       );
-      
+
       // Delete boost profiles
-      cleanupPromises.push(
-        BoostProfile.deleteMany({ userId })
-      );
-      
+      cleanupPromises.push(BoostProfile.deleteMany({ userId }));
+
       // Delete user activity logs
-      cleanupPromises.push(
-        UserActivity.deleteMany({ userId })
-      );
-      
+      cleanupPromises.push(UserActivity.deleteMany({ userId }));
+
       // Execute all cleanup operations
       await Promise.allSettled(cleanupPromises);
-      
+
       logger.info('User data cleanup completed', { userId });
     } catch (cleanupError) {
       // Log but don't fail the deletion - user is already deleted
-      logger.error('Error during user data cleanup', { 
-        userId, 
-        error: cleanupError.message 
+      logger.error('Error during user data cleanup', {
+        userId,
+        error: cleanupError.message,
       });
     }
 
@@ -588,7 +591,10 @@ exports.deleteAccount = async (req, res) => {
     });
   } catch (error) {
     logger.error('Delete account error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error deleting account', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error deleting account',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -640,7 +646,10 @@ exports.refreshToken = async (req, res) => {
     });
   } catch (error) {
     logger.error('Refresh token error:', { error: error.message, stack: error.stack });
-    sendError(res, 401, { message: 'Invalid refresh token', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 401, {
+      message: 'Invalid refresh token',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -649,64 +658,68 @@ exports.refreshToken = async (req, res) => {
 // @access  Public
 exports.googleAuth = async (req, res) => {
   try {
-    const { googleId, email, name, photoUrl, idToken } = req.body;
+    const { googleId, email, idToken } = req.body;
 
     // Check OAuth configuration status
     const googleConfig = checkOAuthConfig('google');
-
-    let verifiedUser = null;
-
-    // If ID token is provided, verify it server-side (most secure)
-    if (idToken) {
-      try {
-        verifiedUser = await verifyGoogleToken(idToken);
-        // Use verified data instead of client-provided data
-        if (verifiedUser.googleId !== googleId) {
-          logger.warn('Google ID mismatch: client provided different ID than token');
-        }
-      } catch (verifyError) {
-        const errorMessage =
-          verifyError instanceof Error ? verifyError.message : String(verifyError);
-        console.error('Google token verification failed:', errorMessage);
-
-        // Check for specific OAuth errors
-        if (errorMessage.includes('redirect URI')) {
-          return res.status(400).json({
-            success: false,
-            message: 'OAuth configuration error: redirect URI mismatch. Please contact support.',
-            errorCode: 'REDIRECT_URI_MISMATCH',
-          });
-        }
-        if (errorMessage.includes('expired')) {
-          return res.status(401).json({
-            success: false,
-            message: 'Google session has expired. Please sign in again.',
-            errorCode: 'TOKEN_EXPIRED',
-          });
-        }
-        if (errorMessage.includes('client configuration')) {
-          return res.status(500).json({
-            success: false,
-            message: 'Google Sign-In is temporarily unavailable. Please try again later.',
-            errorCode: 'CLIENT_CONFIG_ERROR',
-          });
-        }
-
-        // If verification fails but we have client data, log warning and continue
-        // This allows graceful degradation during development
-        if (!googleConfig.configured) {
-          logger.warn('⚠️  Google OAuth not fully configured - proceeding with unverified token');
-        } else {
-          return sendError(res, 401, { message: 'Google authentication failed. Please try again.', error: verifyError instanceof Error ? verifyError.message : String(verifyError), });
-        }
-      }
+    if (!googleConfig.configured) {
+      return res.status(503).json({
+        success: false,
+        message: 'Google Sign-In is temporarily unavailable. Please try again later.',
+        errorCode: 'CLIENT_CONFIG_ERROR',
+      });
     }
 
-    // Use verified data if available, otherwise fall back to client data
-    const finalGoogleId = verifiedUser?.googleId || googleId;
-    const finalEmail = verifiedUser?.email || email;
-    const finalName = verifiedUser?.name || name;
-    const finalPhotoUrl = verifiedUser?.photoUrl || photoUrl;
+    if (!idToken) {
+      return sendError(res, 400, { message: 'Google ID token is required' });
+    }
+
+    let verifiedUser;
+    try {
+      verifiedUser = await verifyGoogleToken(idToken);
+    } catch (verifyError) {
+      const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
+      console.error('Google token verification failed:', errorMessage);
+
+      if (errorMessage.includes('redirect URI')) {
+        return res.status(400).json({
+          success: false,
+          message: 'OAuth configuration error: redirect URI mismatch. Please contact support.',
+          errorCode: 'REDIRECT_URI_MISMATCH',
+        });
+      }
+      if (errorMessage.includes('expired')) {
+        return res.status(401).json({
+          success: false,
+          message: 'Google session has expired. Please sign in again.',
+          errorCode: 'TOKEN_EXPIRED',
+        });
+      }
+      if (errorMessage.includes('client configuration')) {
+        return res.status(503).json({
+          success: false,
+          message: 'Google Sign-In is temporarily unavailable. Please try again later.',
+          errorCode: 'CLIENT_CONFIG_ERROR',
+        });
+      }
+
+      return sendError(res, 401, {
+        message: 'Google authentication failed. Please try again.',
+        error: verifyError instanceof Error ? verifyError.message : String(verifyError),
+      });
+    }
+
+    if (googleId && verifiedUser.googleId !== googleId) {
+      return sendError(res, 401, { message: 'Google ID mismatch in authentication payload' });
+    }
+    if (email && verifiedUser.email && verifiedUser.email.toLowerCase() !== email.toLowerCase()) {
+      return sendError(res, 401, { message: 'Google email mismatch in authentication payload' });
+    }
+
+    const finalGoogleId = verifiedUser.googleId;
+    const finalEmail = verifiedUser.email;
+    const finalName = verifiedUser.name;
+    const finalPhotoUrl = verifiedUser.photoUrl;
 
     if (!finalGoogleId || !finalEmail) {
       return sendError(res, 400, { message: 'Google ID and email are required' });
@@ -721,7 +734,7 @@ exports.googleAuth = async (req, res) => {
         email: finalEmail.toLowerCase(),
         name: finalName || (finalEmail.includes('@') ? finalEmail.split('@')[0] : finalEmail),
         oauthProviders: ['google'],
-        isEmailVerified: verifiedUser?.emailVerified || true,
+        isEmailVerified: !!verifiedUser.emailVerified,
         location: {
           type: 'Point',
           coordinates: [-122.4194, 37.7749], // Default: San Francisco
@@ -767,12 +780,15 @@ exports.googleAuth = async (req, res) => {
         },
         authToken,
         refreshToken,
-        tokenVerified: !!verifiedUser,
+        tokenVerified: true,
       },
     });
   } catch (error) {
     logger.error('Google auth error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error with Google authentication', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error with Google authentication',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -785,62 +801,95 @@ exports.facebookAuth = async (req, res) => {
 
     // Check OAuth configuration
     const facebookConfig = checkOAuthConfig('facebook');
+    if (!facebookConfig.configured) {
+      return res.status(503).json({
+        success: false,
+        message: 'Facebook Sign-In is temporarily unavailable. Please try again later.',
+        errorCode: 'CLIENT_CONFIG_ERROR',
+      });
+    }
+    if (!accessToken) {
+      return sendError(res, 400, { message: 'Facebook access token is required' });
+    }
 
-    // Verify Facebook token if provided and configured
-    if (accessToken && facebookConfig.configured) {
-      try {
-        const verificationResult = await verifyFacebookToken(accessToken, facebookId);
-        if (!verificationResult.tokenVerified) {
-          console.warn('Facebook token verification skipped:', verificationResult.warning);
-        }
-      } catch (verifyError) {
-        const errorMessage =
-          verifyError instanceof Error ? verifyError.message : String(verifyError);
-        console.error('Facebook token verification failed:', errorMessage);
+    let verificationResult;
+    try {
+      verificationResult = await verifyFacebookToken(accessToken, facebookId);
+    } catch (verifyError) {
+      const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
+      console.error('Facebook token verification failed:', errorMessage);
 
-        if (errorMessage.includes('expired')) {
-          return res.status(401).json({
-            success: false,
-            message: 'Facebook session has expired. Please sign in again.',
-            errorCode: 'TOKEN_EXPIRED',
-          });
-        }
-
-        return sendError(res, 401, { message: 'Facebook authentication failed. Please try again.', error: verifyError instanceof Error ? verifyError.message : String(verifyError), });
+      if (errorMessage.includes('expired')) {
+        return res.status(401).json({
+          success: false,
+          message: 'Facebook session has expired. Please sign in again.',
+          errorCode: 'TOKEN_EXPIRED',
+        });
       }
+      if (errorMessage.includes('client configuration')) {
+        return res.status(503).json({
+          success: false,
+          message: 'Facebook Sign-In is temporarily unavailable. Please try again later.',
+          errorCode: 'CLIENT_CONFIG_ERROR',
+        });
+      }
+
+      return sendError(res, 401, {
+        message: 'Facebook authentication failed. Please try again.',
+        error: verifyError instanceof Error ? verifyError.message : String(verifyError),
+      });
     }
 
-    if (!facebookId || !email) {
-      return sendError(res, 400, { message: 'Facebook ID and email are required' });
+    const verifiedFacebookId = verificationResult.facebookId;
+    const verifiedEmail = verificationResult.email ? verificationResult.email.toLowerCase() : null;
+    const verifiedName = verificationResult.name;
+    const verifiedPhotoUrl = verificationResult.photoUrl;
+
+    if (email && verifiedEmail && email.toLowerCase() !== verifiedEmail) {
+      return sendError(res, 401, { message: 'Facebook email mismatch in authentication payload' });
     }
 
-    let user = await User.findOne({ $or: [{ facebookId }, { email }] });
+    let user = await User.findOne({ facebookId: verifiedFacebookId });
+    if (!user && verifiedEmail) {
+      user = await User.findOne({ email: verifiedEmail });
+    }
 
     if (!user) {
+      if (!verifiedEmail) {
+        return sendError(res, 400, {
+          message:
+            'Facebook account did not provide an email. Please grant email permission and try again.',
+        });
+      }
+
       // Create new user with required location field
       user = new User({
-        facebookId,
-        email: email.toLowerCase(),
-        name: name || (email.includes('@') ? email.split('@')[0] : email),
+        facebookId: verifiedFacebookId,
+        email: verifiedEmail,
+        name:
+          verifiedName ||
+          name ||
+          (verifiedEmail.includes('@') ? verifiedEmail.split('@')[0] : 'Facebook User'),
         oauthProviders: ['facebook'],
         isEmailVerified: true,
         location: {
           type: 'Point',
           coordinates: [-122.4194, 37.7749], // Default: San Francisco
         },
-        photos: photoUrl
-          ? [
-              {
-                url: photoUrl,
-                order: 0,
-                moderationStatus: 'approved',
-              },
-            ]
-          : [],
+        photos:
+          verifiedPhotoUrl || photoUrl
+            ? [
+                {
+                  url: verifiedPhotoUrl || photoUrl,
+                  order: 0,
+                  moderationStatus: 'approved',
+                },
+              ]
+            : [],
       });
       await user.save();
     } else if (!user.facebookId) {
-      user.facebookId = facebookId;
+      user.facebookId = verifiedFacebookId;
       if (!user.oauthProviders) user.oauthProviders = [];
       if (!user.oauthProviders.includes('facebook')) {
         user.oauthProviders.push('facebook');
@@ -872,7 +921,10 @@ exports.facebookAuth = async (req, res) => {
     });
   } catch (error) {
     logger.error('Facebook auth error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error with Facebook authentication', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error with Facebook authentication',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -886,53 +938,80 @@ exports.appleAuth = async (req, res) => {
     if (!appleId) {
       return sendError(res, 400, { message: 'Apple ID is required' });
     }
-
-    // Verify Apple identity token if provided
-    let verifiedUser = null;
-    if (identityToken) {
-      try {
-        verifiedUser = await verifyAppleToken(identityToken, appleId);
-        if (!verifiedUser.tokenVerified) {
-          console.warn('Apple token verification skipped:', verifiedUser.warning);
-        }
-      } catch (verifyError) {
-        const errorMessage =
-          verifyError instanceof Error ? verifyError.message : String(verifyError);
-        console.error('Apple token verification failed:', errorMessage);
-
-        if (errorMessage.includes('expired')) {
-          return res.status(401).json({
-            success: false,
-            message: 'Apple session has expired. Please sign in again.',
-            errorCode: 'TOKEN_EXPIRED',
-          });
-        }
-
-        // Apple Sign-In can work without full verification in some cases
-        logger.warn('⚠️  Proceeding with Apple auth despite token verification failure');
-      }
+    if (!identityToken) {
+      return sendError(res, 400, { message: 'Apple identity token is required' });
     }
 
-    // Use verified data if available
-    const finalAppleId = verifiedUser?.appleId || appleId;
-    const finalEmail = verifiedUser?.email || email;
-    const isEmailVerified = verifiedUser?.emailVerified || !!email;
+    const appleConfig = checkOAuthConfig('apple');
+    if (!appleConfig.configured) {
+      return res.status(503).json({
+        success: false,
+        message: 'Apple Sign-In is temporarily unavailable. Please try again later.',
+        errorCode: 'CLIENT_CONFIG_ERROR',
+      });
+    }
+
+    let verifiedUser;
+    try {
+      verifiedUser = await verifyAppleToken(identityToken, appleId);
+    } catch (verifyError) {
+      const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
+      console.error('Apple token verification failed:', errorMessage);
+
+      if (errorMessage.includes('expired')) {
+        return res.status(401).json({
+          success: false,
+          message: 'Apple session has expired. Please sign in again.',
+          errorCode: 'TOKEN_EXPIRED',
+        });
+      }
+      if (errorMessage.includes('client configuration')) {
+        return res.status(503).json({
+          success: false,
+          message: 'Apple Sign-In is temporarily unavailable. Please try again later.',
+          errorCode: 'CLIENT_CONFIG_ERROR',
+        });
+      }
+
+      return sendError(res, 401, {
+        message: 'Apple authentication failed. Please try again.',
+        error: verifyError instanceof Error ? verifyError.message : String(verifyError),
+      });
+    }
+
+    if (email && verifiedUser.email && email.toLowerCase() !== verifiedUser.email.toLowerCase()) {
+      return sendError(res, 401, { message: 'Apple email mismatch in authentication payload' });
+    }
+
+    const finalAppleId = verifiedUser.appleId;
+    const finalEmail = verifiedUser.email ? verifiedUser.email.toLowerCase() : null;
+    const isEmailVerified = !!verifiedUser.emailVerified;
 
     let user = await User.findOne({ appleId: finalAppleId });
+    if (!user && finalEmail) {
+      user = await User.findOne({ email: finalEmail });
+    }
 
     if (!user) {
       // Create new user with required location field
       user = new User({
         appleId: finalAppleId,
-        email: finalEmail?.toLowerCase() || `${finalAppleId}@appleid.apple.com`,
+        email: finalEmail || `${finalAppleId}@appleid.apple.com`,
         name: name || 'Apple User',
         oauthProviders: ['apple'],
-        isEmailVerified: isEmailVerified,
+        isEmailVerified,
         location: {
           type: 'Point',
           coordinates: [-122.4194, 37.7749], // Default: San Francisco
         },
       });
+      await user.save();
+    } else if (!user.appleId) {
+      user.appleId = finalAppleId;
+      if (!user.oauthProviders) user.oauthProviders = [];
+      if (!user.oauthProviders.includes('apple')) {
+        user.oauthProviders.push('apple');
+      }
       await user.save();
     }
 
@@ -956,11 +1035,14 @@ exports.appleAuth = async (req, res) => {
         },
         authToken,
         refreshToken,
-        tokenVerified: verifiedUser?.tokenVerified || false,
+        tokenVerified: true,
       },
     });
   } catch (error) {
     logger.error('Apple auth error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error with Apple authentication', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error with Apple authentication',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
