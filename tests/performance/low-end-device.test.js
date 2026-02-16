@@ -5,6 +5,17 @@
 
 const { test, expect } = require('@playwright/test');
 
+const TEST_EMAIL = 'test@example.com';
+const TEST_PASSWORD = 'TestPassword123!';
+const EMAIL_INPUT = '[data-testid="email-input"]';
+const PASSWORD_INPUT = '[data-testid="password-input"]';
+const LOGIN_BUTTON = '[data-testid="login-button"]';
+const DISCOVER_URL_PATTERN = /.*discover/;
+const SIGN_IN_TEXT = 'Sign In';
+const LIKE_BUTTON = '[data-testid="like-button"]';
+const CHAT_TAB = '[data-testid="chat-tab"]';
+const DISCOVER_TAB = '[data-testid="discover-tab"]';
+
 describe('Low-End Device Performance Tests', () => {
   test.describe('CPU Throttling', () => {
     test('should handle reduced CPU performance', async ({ page, context }) => {
@@ -23,20 +34,20 @@ describe('Low-End Device Performance Tests', () => {
 
       // Should still load within reasonable time
       expect(loadTime).toBeLessThan(10000);
-      await expect(page.getByText('Sign In')).toBeVisible();
+      await expect(page.getByText(SIGN_IN_TEXT)).toBeVisible();
     });
 
     test('should handle animations smoothly on low-end CPU', async ({ page }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 10000 });
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
       // Check profile card animations
       const profileCard = page.locator('[data-testid="profile-card"]');
       if (await profileCard.isVisible()) {
-        const likeButton = page.locator('[data-testid="like-button"]');
+        const likeButton = page.locator(LIKE_BUTTON);
         await likeButton.click();
 
         // Animation should complete (may be slower but should complete)
@@ -50,15 +61,15 @@ describe('Low-End Device Performance Tests', () => {
     test('should handle limited memory', async ({ page }) => {
       // Simulate memory constraints by loading many elements
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 10000 });
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
       // Navigate through multiple screens to test memory usage
       for (let i = 0; i < 5; i++) {
-        const chatTab = page.locator('[data-testid="chat-tab"]');
-        const discoverTab = page.locator('[data-testid="discover-tab"]');
+        const chatTab = page.locator(CHAT_TAB);
+        const discoverTab = page.locator(DISCOVER_TAB);
         if (await chatTab.isVisible()) {
           await chatTab.click();
           await page.waitForTimeout(500);
@@ -68,18 +79,18 @@ describe('Low-End Device Performance Tests', () => {
       }
 
       // Page should still be responsive
-      await expect(page.locator('[data-testid="discover-tab"]')).toBeVisible();
+      await expect(page.locator(DISCOVER_TAB)).toBeVisible();
     });
 
     test('should not leak memory on repeated operations', async ({ page }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 10000 });
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
       // Perform many operations
-      const likeButton = page.locator('[data-testid="like-button"]');
+      const likeButton = page.locator(LIKE_BUTTON);
       for (let i = 0; i < 20; i++) {
         if (await likeButton.isVisible()) {
           await likeButton.click();
@@ -103,18 +114,18 @@ describe('Low-End Device Performance Tests', () => {
 
       // Initial render should be fast
       expect(renderTime).toBeLessThan(3000);
-      await expect(page.getByText('Sign In')).toBeVisible();
+      await expect(page.getByText(SIGN_IN_TEXT)).toBeVisible();
     });
 
     test('should handle large lists efficiently', async ({ page }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 10000 });
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
       // Navigate to matches (potentially large list)
-      const chatTab = page.locator('[data-testid="chat-tab"]');
+      const chatTab = page.locator(CHAT_TAB);
       if (await chatTab.isVisible()) {
         const startTime = Date.now();
         await chatTab.click();
@@ -128,10 +139,10 @@ describe('Low-End Device Performance Tests', () => {
 
     test('should handle image loading efficiently', async ({ page }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 10000 });
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
       // Check profile images load
       const profileImages = page.locator('[data-testid="profile-image"]');
@@ -158,11 +169,11 @@ describe('Low-End Device Performance Tests', () => {
   test.describe('Interaction Performance', () => {
     test('should respond quickly to user interactions', async ({ page }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
 
       const startTime = Date.now();
-      await page.click('[data-testid="login-button"]');
+      await page.click(LOGIN_BUTTON);
       // Should show immediate feedback
       const feedbackTime = Date.now() - startTime;
       expect(feedbackTime).toBeLessThan(500); // Immediate feedback
@@ -170,13 +181,13 @@ describe('Low-End Device Performance Tests', () => {
 
     test('should handle rapid button clicks', async ({ page }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 10000 });
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
       // Rapid clicks should be debounced/throttled
-      const likeButton = page.locator('[data-testid="like-button"]');
+      const likeButton = page.locator(LIKE_BUTTON);
       if (await likeButton.isVisible()) {
         for (let i = 0; i < 5; i++) {
           await likeButton.click({ clickCount: 1 });
@@ -189,10 +200,10 @@ describe('Low-End Device Performance Tests', () => {
 
     test('should handle scroll performance', async ({ page }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 10000 });
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
       // Scroll through profiles
       const startTime = Date.now();
@@ -210,10 +221,10 @@ describe('Low-End Device Performance Tests', () => {
   test.describe('Battery Optimization', () => {
     test('should minimize background processing', async ({ page }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 10000 });
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
       // Wait and check for unnecessary background activity
       await page.waitForTimeout(2000);
@@ -234,10 +245,10 @@ describe('Low-End Device Performance Tests', () => {
       await page.goto('/');
 
       const startTime = Date.now();
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 20000 });
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 20000 });
       const totalTime = Date.now() - startTime;
 
       // Should still complete within reasonable time
@@ -246,15 +257,15 @@ describe('Low-End Device Performance Tests', () => {
 
     test('should maintain usability under constraints', async ({ page }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 10000 });
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
       // All interactions should still work
-      const likeButton = page.locator('[data-testid="like-button"]');
+      const likeButton = page.locator(LIKE_BUTTON);
       const passButton = page.locator('[data-testid="pass-button"]');
-      const chatTab = page.locator('[data-testid="chat-tab"]');
+      const chatTab = page.locator(CHAT_TAB);
 
       expect(
         (await likeButton.isVisible().catch(() => false)) ||

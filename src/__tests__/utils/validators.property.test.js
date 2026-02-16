@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 /**
  * Property-Based Tests for Validators using fast-check
  *

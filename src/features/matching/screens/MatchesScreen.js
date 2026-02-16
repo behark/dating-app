@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';

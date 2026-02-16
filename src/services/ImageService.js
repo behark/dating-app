@@ -5,6 +5,11 @@ import logger from '../utils/logger';
 import { API_URL } from '../config/api';
 import api from './api';
 
+const VERY_LIKELY = 'VERY_LIKELY';
+const LIKELY = 'LIKELY';
+const MODERATION_REASON_REJECTED = 'Image contains inappropriate content';
+const MODERATION_REASON_APPROVED = 'Image approved by moderation service';
+
 export class ImageService {
   static async requestPermissions() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -379,11 +384,11 @@ export class ImageService {
 
       // Check for inappropriate content
       const isInappropriate =
-        safeSearch.adult === 'VERY_LIKELY' ||
-        safeSearch.adult === 'LIKELY' ||
-        safeSearch.violence === 'VERY_LIKELY' ||
-        safeSearch.violence === 'LIKELY' ||
-        safeSearch.racy === 'VERY_LIKELY';
+        safeSearch.adult === VERY_LIKELY ||
+        safeSearch.adult === LIKELY ||
+        safeSearch.violence === VERY_LIKELY ||
+        safeSearch.violence === LIKELY ||
+        safeSearch.racy === VERY_LIKELY;
 
       return {
         approved: !isInappropriate,
@@ -395,9 +400,7 @@ export class ImageService {
           medical: safeSearch.medical,
           spoof: safeSearch.spoof,
         },
-        reason: isInappropriate
-          ? 'Image contains inappropriate content'
-          : 'Image approved by moderation service',
+        reason: isInappropriate ? MODERATION_REASON_REJECTED : MODERATION_REASON_APPROVED,
       };
     } catch (error) {
       logger.error('Google Vision moderation error:', error);
@@ -464,9 +467,7 @@ export class ImageService {
           offensive: data.offensive,
           weapon: data.weapon,
         },
-        reason: isInappropriate
-          ? 'Image contains inappropriate content'
-          : 'Image approved by moderation service',
+        reason: isInappropriate ? MODERATION_REASON_REJECTED : MODERATION_REASON_APPROVED,
       };
     } catch (error) {
       logger.error('Sightengine moderation error:', error);
@@ -517,9 +518,7 @@ export class ImageService {
           nsfw: nsfwConcept?.value || 0,
           sfw: sfwConcept?.value || 0,
         },
-        reason: isInappropriate
-          ? 'Image contains inappropriate content'
-          : 'Image approved by moderation service',
+        reason: isInappropriate ? MODERATION_REASON_REJECTED : MODERATION_REASON_APPROVED,
       };
     } catch (error) {
       logger.error('Clarifai moderation error:', error);

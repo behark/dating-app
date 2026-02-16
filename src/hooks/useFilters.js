@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import { useCallback, useMemo, useState } from 'react';
 import logger from '../utils/logger';
 

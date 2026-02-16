@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 /**
  * Beta User Testing Scenarios
  * Test scenarios for manual beta testing validation

@@ -5,6 +5,13 @@
 
 const { test, expect } = require('@playwright/test');
 
+const TEST_EMAIL = 'test@example.com';
+const TEST_PASSWORD = 'TestPassword123!';
+const EMAIL_INPUT = '[data-testid="email-input"]';
+const PASSWORD_INPUT = '[data-testid="password-input"]';
+const LOGIN_BUTTON = '[data-testid="login-button"]';
+const DISCOVER_URL_PATTERN = /.*discover/;
+
 describe('Network Throttling Performance Tests', () => {
   test.describe('Slow 3G Network', () => {
     test.use({
@@ -33,11 +40,11 @@ describe('Network Throttling Performance Tests', () => {
       await page.goto('/');
 
       const startTime = Date.now();
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
 
-      await page.waitForURL(/.*discover/, { timeout: 30000 });
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 30000 });
       const loginTime = Date.now() - startTime;
 
       // Login should complete within 30 seconds on slow 3G
@@ -53,9 +60,9 @@ describe('Network Throttling Performance Tests', () => {
         await route.continue();
       });
 
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
 
       // Should show loading indicator
       const loadingIndicator = page.locator('[data-testid="loading"]');
@@ -79,12 +86,12 @@ describe('Network Throttling Performance Tests', () => {
 
     test('should handle API calls efficiently on fast 3G', async ({ page }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
 
       const startTime = Date.now();
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 15000 });
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 15000 });
       const apiTime = Date.now() - startTime;
 
       // API call should complete within 15 seconds on fast 3G
@@ -99,9 +106,9 @@ describe('Network Throttling Performance Tests', () => {
       // Go offline
       await context.setOffline(true);
 
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
 
       // Should show offline error message
       await expect(page.getByText(/offline|network|connection/i)).toBeVisible({ timeout: 5000 });
@@ -109,10 +116,10 @@ describe('Network Throttling Performance Tests', () => {
 
     test('should queue actions when offline', async ({ page, context }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 10000 });
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
       // Go offline
       await context.setOffline(true);
@@ -132,10 +139,10 @@ describe('Network Throttling Performance Tests', () => {
 
     test('should sync queued actions when back online', async ({ page, context }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 10000 });
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
       // Go offline and perform action
       await context.setOffline(true);
@@ -162,12 +169,12 @@ describe('Network Throttling Performance Tests', () => {
       });
 
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
 
       const startTime = Date.now();
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 20000 });
+      await page.click(LOGIN_BUTTON);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 20000 });
       const loginTime = Date.now() - startTime;
 
       // Should complete despite latency
@@ -184,9 +191,9 @@ describe('Network Throttling Performance Tests', () => {
       await page.goto('/');
 
       const startTime = Date.now();
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
 
       // Should show loading state
       await page.waitForTimeout(1000);
@@ -201,11 +208,11 @@ describe('Network Throttling Performance Tests', () => {
   test.describe('Network Interruption', () => {
     test('should handle network interruption during request', async ({ page, context }) => {
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
 
       // Start request
-      const loginPromise = page.click('[data-testid="login-button"]');
+      const loginPromise = page.click(LOGIN_BUTTON);
 
       // Interrupt network
       await page.waitForTimeout(500);
@@ -240,12 +247,12 @@ describe('Network Throttling Performance Tests', () => {
       });
 
       await page.goto('/');
-      await page.fill('[data-testid="email-input"]', 'test@example.com');
-      await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-      await page.click('[data-testid="login-button"]');
+      await page.fill(EMAIL_INPUT, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON);
 
       // Should eventually succeed after retries
-      await page.waitForURL(/.*discover/, { timeout: 30000 });
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 30000 });
       expect(requestCount).toBeGreaterThanOrEqual(1);
     });
   });

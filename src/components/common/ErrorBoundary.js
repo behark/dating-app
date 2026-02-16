@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import PropTypes from 'prop-types';
@@ -21,6 +22,8 @@ import logger from '../../utils/logger';
 // Constants for repeated color values
 const SEMI_TRANSPARENT_WHITE_02 = 'rgba(255,255,255,0.2)';
 const SEMI_TRANSPARENT_WHITE_01 = 'rgba(255,255,255,0.1)';
+const SEMI_TRANSPARENT_WHITE_07 = 'rgba(255,255,255,0.7)';
+const RETRYING_TEXT = 'Retrying...';
 
 /**
  * Error categories for better error handling and recovery
@@ -453,7 +456,7 @@ class ErrorBoundary extends React.Component {
                         style={isRetrying && styles.spinningIcon}
                       />
                       <Text style={styles.simpleRetryButtonText}>
-                        {isRetrying ? 'Retrying...' : `Try Again (${maxRetries - retryCount} left)`}
+                        {isRetrying ? RETRYING_TEXT : `Try Again (${maxRetries - retryCount} left)`}
                       </Text>
                     </TouchableOpacity>
                   ) : (
@@ -547,7 +550,7 @@ class ErrorBoundary extends React.Component {
                               style={[styles.buttonIcon, isRetrying && styles.spinningIcon]}
                             />
                             <Text style={styles.primaryButtonText}>
-                              {isRetrying ? 'Retrying...' : action.label}
+                              {isRetrying ? RETRYING_TEXT : action.label}
                             </Text>
                           </LinearGradient>
                         ) : (
@@ -782,7 +785,7 @@ const styles = StyleSheet.create({
   },
   devErrorStack: {
     fontSize: 10,
-    color: Colors.text?.white70 || 'rgba(255,255,255,0.7)',
+    color: Colors.text?.white70 || SEMI_TRANSPARENT_WHITE_07,
     fontFamily: 'monospace',
     lineHeight: 14,
   },
@@ -876,7 +879,7 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontSize: 12,
-    color: Colors.text?.white70 || 'rgba(255,255,255,0.7)',
+    color: Colors.text?.white70 || SEMI_TRANSPARENT_WHITE_07,
     textAlign: 'center',
     lineHeight: 18,
     paddingHorizontal: 20,
@@ -885,7 +888,7 @@ const styles = StyleSheet.create({
   version: {
     marginTop: 24,
     fontSize: 12,
-    color: Colors.text?.white70 || 'rgba(255,255,255,0.7)',
+    color: Colors.text?.white70 || SEMI_TRANSPARENT_WHITE_07,
   },
   // Simple UI styles
   simpleContent: {

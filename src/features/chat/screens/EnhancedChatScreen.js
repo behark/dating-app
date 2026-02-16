@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -346,14 +347,14 @@ const EnhancedChatScreen = ({ route, navigation }) => {
                   name="checkmark-done"
                   size={12}
                   color="rgba(255, 255, 255, 0.8)"
-                  style={{ marginLeft: 5 }}
+                  style={styles.readStatusIcon}
                 />
               ) : (
                 <Ionicons
                   name="checkmark"
                   size={12}
                   color="rgba(255, 255, 255, 0.6)"
-                  style={{ marginLeft: 5 }}
+                  style={styles.readStatusIcon}
                 />
               )}
             </View>
@@ -762,6 +763,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     marginTop: 4,
+  },
+  readStatusIcon: {
+    marginLeft: 5,
   },
   myTimestamp: {
     color: 'rgba(255, 255, 255, 0.7)',

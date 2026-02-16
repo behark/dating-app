@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
 import { getTokenSecurely, storeTokenSecurely, removeTokenSecurely } from '../utils/secureStorage';

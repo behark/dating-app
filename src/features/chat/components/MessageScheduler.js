@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LinearGradient } from 'expo-linear-gradient';

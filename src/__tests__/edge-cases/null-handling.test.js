@@ -6,6 +6,9 @@
 import { isEmpty, sanitizeInput } from '../../utils/validators';
 import api from '../../services/api';
 
+const TEST_EMAIL = 'test@example.com';
+const HELLO_GUEST = 'Hello, Guest';
+
 // Mock fetch globally
 global.fetch = jest.fn();
 
@@ -45,7 +48,7 @@ describe('Null/Undefined Handling', () => {
     it('should handle null in object properties', () => {
       const user = {
         name: 'Test User',
-        email: 'test@example.com',
+        email: TEST_EMAIL,
         bio: null,
         photos: null,
       };
@@ -82,7 +85,7 @@ describe('Null/Undefined Handling', () => {
     it('should handle undefined in object properties', () => {
       const user = {
         name: 'Test User',
-        email: 'test@example.com',
+        email: TEST_EMAIL,
         bio: undefined,
         photos: undefined,
       };
@@ -95,7 +98,7 @@ describe('Null/Undefined Handling', () => {
     it('should handle missing optional properties', () => {
       const user = {
         name: 'Test User',
-        email: 'test@example.com',
+        email: TEST_EMAIL,
         // bio and photos are missing
       };
 
@@ -206,13 +209,13 @@ describe('Null/Undefined Handling', () => {
     it('should handle null in string concatenation', () => {
       const name = null;
       const greeting = `Hello, ${name || 'Guest'}`;
-      expect(greeting).toBe('Hello, Guest');
+      expect(greeting).toBe(HELLO_GUEST);
     });
 
     it('should handle undefined in string concatenation', () => {
       const name = undefined;
       const greeting = `Hello, ${name || 'Guest'}`;
-      expect(greeting).toBe('Hello, Guest');
+      expect(greeting).toBe(HELLO_GUEST);
     });
   });
 

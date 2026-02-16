@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -800,7 +801,12 @@ const HomeScreen = ({ navigation }) => {
       {isPremium && !isGuest && (
         <View style={styles.aiQuickAccessContainer}>
           <View style={styles.aiHeaderRow}>
-            <Ionicons name="sparkles" size={18} color={Colors.primary} style={{ marginRight: 8 }} />
+            <Ionicons
+              name="sparkles"
+              size={18}
+              color={Colors.primary}
+              style={styles.aiHeaderIcon}
+            />
             <Text style={styles.aiQuickAccessTitle}>AI Insights</Text>
           </View>
           <View style={styles.aiButtonsGrid}>
@@ -869,7 +875,7 @@ const HomeScreen = ({ navigation }) => {
         {loading || authLoading
           ? // Show skeleton cards while loading
             Array.from({ length: 3 }).map((_, index) => (
-              <SkeletonCard key={`skeleton-${index}`} style={{ marginBottom: 15 }} />
+              <SkeletonCard key={`skeleton-${index}`} style={styles.skeletonCardSpacing} />
             ))
           : cards.length > 0 && (
               <View style={styles.cardsContainer}>

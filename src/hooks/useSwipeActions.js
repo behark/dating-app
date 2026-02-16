@@ -9,6 +9,7 @@ import logger from '../utils/logger';
 
 // Constants for swipe handling
 const SWIPE_DEBOUNCE_MS = 500;
+const DAILY_LIMIT_TITLE = 'Daily Limit Reached';
 
 /**
  * Custom hook for managing swipe actions and state
@@ -103,7 +104,7 @@ export const useSwipeActions = ({
         const limitCheck = await SwipeController.checkSwipeLimit(userId, isPremium);
         if (!limitCheck.canSwipe) {
           Alert.alert(
-            'Daily Limit Reached',
+            DAILY_LIMIT_TITLE,
             `You've reached your daily swipe limit. Upgrade to Premium for unlimited swipes!`,
             [
               { text: 'Keep Going', style: 'cancel' },
@@ -120,7 +121,7 @@ export const useSwipeActions = ({
         if (!result.success) {
           if (result.limitExceeded) {
             Alert.alert(
-              'Daily Limit Reached',
+              DAILY_LIMIT_TITLE,
               `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
             );
           } else if (!result.alreadyProcessed) {
@@ -190,7 +191,7 @@ export const useSwipeActions = ({
         const limitCheck = await SwipeController.checkSwipeLimit(userId, isPremium);
         if (!limitCheck.canSwipe) {
           Alert.alert(
-            'Daily Limit Reached',
+            DAILY_LIMIT_TITLE,
             `You've reached your daily swipe limit. Upgrade to Premium for unlimited swipes!`,
             [
               { text: 'Keep Going', style: 'cancel' },
@@ -207,7 +208,7 @@ export const useSwipeActions = ({
         if (!result.success) {
           if (result.limitExceeded) {
             Alert.alert(
-              'Daily Limit Reached',
+              DAILY_LIMIT_TITLE,
               `You've reached your daily swipe limit. ${result.remaining} swipes left tomorrow!`
             );
           }

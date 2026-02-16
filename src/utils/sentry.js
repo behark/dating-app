@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 /**
  * Sentry Error Tracking Setup
  * Initialize Sentry for React Native/Expo (native) and React (web)

@@ -15,6 +15,7 @@ import {
 import { Colors } from '../../../constants/colors';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const TRANSLUCENT_WHITE_50 = 'rgba(255, 255, 255, 0.5)';
 
 const InteractivePhotoGallery = ({
   photos = [],
@@ -141,8 +142,8 @@ const InteractivePhotoGallery = ({
         const backgroundColor =
           dotAnims[index]?.interpolate({
             inputRange: [0, 1],
-            outputRange: ['rgba(255, 255, 255, 0.5)', Colors.background.white],
-          }) || 'rgba(255, 255, 255, 0.5)';
+            outputRange: [TRANSLUCENT_WHITE_50, Colors.background.white],
+          }) || TRANSLUCENT_WHITE_50;
 
         return (
           <TouchableOpacity key={index} onPress={() => goToPhoto(index)}>

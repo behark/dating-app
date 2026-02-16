@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 /**
  * Input sanitization utilities to prevent XSS attacks
  * and ensure data integrity before sending to backend

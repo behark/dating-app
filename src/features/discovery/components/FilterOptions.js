@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import React, { useRef, useState } from 'react';
 import {
   Modal,

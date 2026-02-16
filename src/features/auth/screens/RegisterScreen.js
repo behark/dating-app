@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,

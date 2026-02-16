@@ -89,7 +89,7 @@ const GifPickerModal = ({ visible, onClose, onSelectGif, authToken }) => {
             <Ionicons name="close" size={28} color={Colors.text.dark} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Choose a GIF</Text>
-          <View style={{ width: 28 }} />
+          <View style={styles.headerSpacer} />
         </View>
 
         {/* Search Bar */}
@@ -159,6 +159,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: Colors.text.dark,
+  },
+  headerSpacer: {
+    width: 28,
   },
   searchContainer: {
     flexDirection: 'row',

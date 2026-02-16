@@ -3,6 +3,10 @@
  * Tests API endpoints under load conditions
  */
 
+const LOAD_TEST_PASSWORD = 'TestPass123!';
+const AUTH_LOGIN_URL = '/api/auth/login';
+const AUTHORIZATION_TOKEN_HEADER = 'Bearer {{ authToken }}';
+
 module.exports = {
   config: {
     target: process.env.API_URL || 'http://localhost:3001',
@@ -29,9 +33,9 @@ module.exports = {
     },
     variables: {
       testUsers: [
-        { email: 'load_test_1@example.com', password: 'TestPass123!' },
-        { email: 'load_test_2@example.com', password: 'TestPass123!' },
-        { email: 'load_test_3@example.com', password: 'TestPass123!' },
+        { email: 'load_test_1@example.com', password: LOAD_TEST_PASSWORD },
+        { email: 'load_test_2@example.com', password: LOAD_TEST_PASSWORD },
+        { email: 'load_test_3@example.com', password: LOAD_TEST_PASSWORD },
       ],
     },
     ensure: {
@@ -49,7 +53,7 @@ module.exports = {
       flow: [
         {
           post: {
-            url: '/api/auth/login',
+            url: AUTH_LOGIN_URL,
             json: {
               email: '{{ testUsers[0].email }}',
               password: '{{ testUsers[0].password }}',
@@ -68,7 +72,7 @@ module.exports = {
           get: {
             url: '/api/profile/me',
             headers: {
-              Authorization: 'Bearer {{ authToken }}',
+              Authorization: AUTHORIZATION_TOKEN_HEADER,
             },
             expect: [{ statusCode: 200 }],
           },
@@ -83,7 +87,7 @@ module.exports = {
       flow: [
         {
           post: {
-            url: '/api/auth/login',
+            url: AUTH_LOGIN_URL,
             json: {
               email: '{{ testUsers[1].email }}',
               password: '{{ testUsers[1].password }}',
@@ -100,7 +104,7 @@ module.exports = {
               get: {
                 url: '/api/discovery/profiles?limit=20',
                 headers: {
-                  Authorization: 'Bearer {{ authToken }}',
+                  Authorization: AUTHORIZATION_TOKEN_HEADER,
                 },
                 capture: {
                   json: '$.profiles[0].id',
@@ -116,7 +120,7 @@ module.exports = {
               post: {
                 url: '/api/discovery/swipe',
                 headers: {
-                  Authorization: 'Bearer {{ authToken }}',
+                  Authorization: AUTHORIZATION_TOKEN_HEADER,
                 },
                 json: {
                   targetUserId: '{{ profileId }}',
@@ -141,7 +145,7 @@ module.exports = {
       flow: [
         {
           post: {
-            url: '/api/auth/login',
+            url: AUTH_LOGIN_URL,
             json: {
               email: '{{ testUsers[2].email }}',
               password: '{{ testUsers[2].password }}',
@@ -156,7 +160,7 @@ module.exports = {
           get: {
             url: '/api/chat/conversations',
             headers: {
-              Authorization: 'Bearer {{ authToken }}',
+              Authorization: AUTHORIZATION_TOKEN_HEADER,
             },
             capture: {
               json: '$.conversations[0].id',
@@ -170,7 +174,7 @@ module.exports = {
               get: {
                 url: '/api/chat/messages/{{ conversationId }}?limit=50',
                 headers: {
-                  Authorization: 'Bearer {{ authToken }}',
+                  Authorization: AUTHORIZATION_TOKEN_HEADER,
                 },
                 expect: [{ statusCode: 200 }],
               },
@@ -182,7 +186,7 @@ module.exports = {
               post: {
                 url: '/api/chat/send',
                 headers: {
-                  Authorization: 'Bearer {{ authToken }}',
+                  Authorization: AUTHORIZATION_TOKEN_HEADER,
                 },
                 json: {
                   conversationId: '{{ conversationId }}',
@@ -207,7 +211,7 @@ module.exports = {
       flow: [
         {
           post: {
-            url: '/api/auth/login',
+            url: AUTH_LOGIN_URL,
             json: {
               email: '{{ testUsers[0].email }}',
               password: '{{ testUsers[0].password }}',
@@ -222,7 +226,7 @@ module.exports = {
           put: {
             url: '/api/profile/me',
             headers: {
-              Authorization: 'Bearer {{ authToken }}',
+              Authorization: AUTHORIZATION_TOKEN_HEADER,
             },
             json: {
               bio: 'Updated bio at {{ $timestamp }}',

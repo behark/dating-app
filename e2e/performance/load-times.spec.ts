@@ -7,6 +7,10 @@ import { expect, test } from '@playwright/test';
 
 const TEST_EMAIL = 'test@example.com';
 const TEST_PASSWORD = 'TestPassword123!';
+const EMAIL_INPUT_TESTID = '[data-testid="email-input"]';
+const PASSWORD_INPUT_TESTID = '[data-testid="password-input"]';
+const LOGIN_BUTTON_TESTID = '[data-testid="login-button"]';
+const DISCOVER_URL_PATTERN = /.*discover/;
 
 test.describe('Load Time Performance', () => {
   test('should load login page within 3 seconds', async ({ page }) => {
@@ -23,10 +27,10 @@ test.describe('Load Time Performance', () => {
     await page.goto('/');
 
     const startTime = Date.now();
-    await page.fill('[data-testid="email-input"]', TEST_EMAIL);
-    await page.fill('[data-testid="password-input"]', TEST_PASSWORD);
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL(/.*discover/, { timeout: 10000 });
+    await page.fill(EMAIL_INPUT_TESTID, TEST_EMAIL);
+    await page.fill(PASSWORD_INPUT_TESTID, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON_TESTID);
+    await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
     const loginTime = Date.now() - startTime;
 
     expect(loginTime).toBeLessThan(5000);
@@ -34,10 +38,10 @@ test.describe('Load Time Performance', () => {
 
   test('should load discover page within 2 seconds after login', async ({ page }) => {
     await page.goto('/');
-    await page.fill('[data-testid="email-input"]', TEST_EMAIL);
-    await page.fill('[data-testid="password-input"]', TEST_PASSWORD);
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL(/.*discover/, { timeout: 10000 });
+    await page.fill(EMAIL_INPUT_TESTID, TEST_EMAIL);
+    await page.fill(PASSWORD_INPUT_TESTID, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON_TESTID);
+    await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
     const startTime = Date.now();
     await page.reload();
@@ -49,10 +53,10 @@ test.describe('Load Time Performance', () => {
 
   test('should load profile cards quickly', async ({ page }) => {
     await page.goto('/');
-    await page.fill('[data-testid="email-input"]', TEST_EMAIL);
-    await page.fill('[data-testid="password-input"]', TEST_PASSWORD);
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL(/.*discover/, { timeout: 10000 });
+    await page.fill(EMAIL_INPUT_TESTID, TEST_EMAIL);
+    await page.fill(PASSWORD_INPUT_TESTID, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON_TESTID);
+    await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
     const startTime = Date.now();
     const profileCard = page.locator('[data-testid="profile-card"]');
@@ -64,10 +68,10 @@ test.describe('Load Time Performance', () => {
 
   test('should navigate between screens quickly', async ({ page }) => {
     await page.goto('/');
-    await page.fill('[data-testid="email-input"]', TEST_EMAIL);
-    await page.fill('[data-testid="password-input"]', TEST_PASSWORD);
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL(/.*discover/, { timeout: 10000 });
+    await page.fill(EMAIL_INPUT_TESTID, TEST_EMAIL);
+    await page.fill(PASSWORD_INPUT_TESTID, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON_TESTID);
+    await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
     // Navigate to chat
     const startTime = Date.now();
@@ -81,10 +85,10 @@ test.describe('Load Time Performance', () => {
 
   test('should send messages quickly', async ({ page }) => {
     await page.goto('/');
-    await page.fill('[data-testid="email-input"]', TEST_EMAIL);
-    await page.fill('[data-testid="password-input"]', TEST_PASSWORD);
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL(/.*discover/, { timeout: 10000 });
+    await page.fill(EMAIL_INPUT_TESTID, TEST_EMAIL);
+    await page.fill(PASSWORD_INPUT_TESTID, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON_TESTID);
+    await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
     // Navigate to chat
     const chatTab = page.locator('[data-testid="chat-tab"]');
@@ -112,10 +116,10 @@ test.describe('Load Time Performance', () => {
 
   test('should handle swipe actions quickly', async ({ page }) => {
     await page.goto('/');
-    await page.fill('[data-testid="email-input"]', TEST_EMAIL);
-    await page.fill('[data-testid="password-input"]', TEST_PASSWORD);
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL(/.*discover/, { timeout: 10000 });
+    await page.fill(EMAIL_INPUT_TESTID, TEST_EMAIL);
+    await page.fill(PASSWORD_INPUT_TESTID, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON_TESTID);
+    await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
     const likeButton = page.locator('[data-testid="like-button"]');
     if (await likeButton.isVisible()) {
@@ -135,7 +139,7 @@ test.describe('Load Time Performance', () => {
     await page.waitForLoadState('networkidle');
 
     // Wait for interactive elements
-    await expect(page.locator('[data-testid="email-input"]')).toBeVisible();
+    await expect(page.locator(EMAIL_INPUT_TESTID)).toBeVisible();
     const tti = Date.now() - startTime;
 
     // TTI should be reasonable

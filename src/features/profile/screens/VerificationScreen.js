@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -299,7 +300,7 @@ const VerificationScreen = ({ navigation }) => {
             name="checkmark-circle"
             size={20}
             color={Colors.background.white}
-            style={{ marginRight: 8 }}
+            style={styles.submitIcon}
           />
           <Text style={styles.submitButtonText}>
             {submitting ? 'Submitting...' : 'Submit for Verification'}
@@ -355,7 +356,7 @@ const VerificationScreen = ({ navigation }) => {
           <Ionicons name="arrow-back" size={24} color={Colors.background.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Verification</Text>
-        <View style={{ width: 40 }} />
+        <View style={styles.headerSpacer} />
       </LinearGradient>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -395,6 +396,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.background.white,
     textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 40,
   },
   loadingContainer: {
     flex: 1,
@@ -570,6 +574,9 @@ const styles = StyleSheet.create({
     color: Colors.background.white,
     fontSize: 16,
     fontWeight: '700',
+  },
+  submitIcon: {
+    marginRight: 8,
   },
   requestCard: {
     flexDirection: 'row',

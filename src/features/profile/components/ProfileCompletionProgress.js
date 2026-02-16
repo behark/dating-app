@@ -131,6 +131,8 @@ const ProfileCompletionProgress = ({
     const strokeWidth = compact ? 6 : 10;
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
+    const progressTextSize = compact ? styles.progressTextCompact : styles.progressTextLarge;
+    const progressLabelSize = compact ? styles.progressLabelCompact : styles.progressLabelLarge;
 
     const strokeDashoffset = circleAnim.interpolate({
       inputRange: [0, 1],
@@ -169,8 +171,6 @@ const ProfileCompletionProgress = ({
                 borderRadius: size / 2,
                 borderWidth: strokeWidth,
                 borderColor: totalProgress >= 100 ? Colors.accent.teal : Colors.primary,
-                borderTopColor: 'transparent',
-                borderRightColor: 'transparent',
                 transform: [
                   {
                     rotate: progressAnim.interpolate({
@@ -180,16 +180,17 @@ const ProfileCompletionProgress = ({
                   },
                 ],
               },
+              styles.progressArcMask,
             ]}
           />
         </View>
 
         {/* Center content */}
         <View style={styles.circularCenter}>
-          <Animated.Text style={[styles.progressText, { fontSize: compact ? 20 : 28 }]}>
+          <Animated.Text style={[styles.progressText, progressTextSize]}>
             {totalProgress}%
           </Animated.Text>
-          <Text style={[styles.progressLabel, { fontSize: compact ? 10 : 12 }]}>Complete</Text>
+          <Text style={[styles.progressLabel, progressLabelSize]}>Complete</Text>
         </View>
       </Animated.View>
     );
@@ -432,9 +433,25 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.text.dark,
   },
+  progressTextCompact: {
+    fontSize: 20,
+  },
+  progressTextLarge: {
+    fontSize: 28,
+  },
   progressLabel: {
     color: Colors.text.tertiary,
     fontWeight: '500',
+  },
+  progressLabelCompact: {
+    fontSize: 10,
+  },
+  progressLabelLarge: {
+    fontSize: 12,
+  },
+  progressArcMask: {
+    borderTopColor: 'transparent',
+    borderRightColor: 'transparent',
   },
   encourageText: {
     marginTop: 12,

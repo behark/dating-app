@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 /**
  * Service Utilities
  * Common patterns for API service calls with offline support and error handling

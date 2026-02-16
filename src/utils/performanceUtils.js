@@ -4,7 +4,7 @@
  */
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, InteractionManager, View } from 'react-native';
+import { ActivityIndicator, InteractionManager, StyleSheet, View } from 'react-native';
 import { Colors } from '../constants/colors';
 
 // ==================== LAZY LOADING ====================
@@ -29,11 +29,19 @@ export const lazyLoad = (importFn, fallback = null) => {
  * Default loading fallback component
  */
 const DefaultLoadingFallback = () => (
-  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+  <View style={styles.defaultLoadingFallback}>
     <ActivityIndicator size="large" color={Colors.primary} />
   </View>
 );
 DefaultLoadingFallback.displayName = 'DefaultLoadingFallback';
+
+const styles = StyleSheet.create({
+  defaultLoadingFallback: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 // ==================== DEFERRED RENDERING ====================
 

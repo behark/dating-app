@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';

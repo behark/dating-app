@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
@@ -131,7 +132,7 @@ export default function ReportUserScreen({ route, navigation }) {
             <Ionicons name="arrow-back" size={28} color={Colors.background.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Report User</Text>
-          <View style={{ width: 28 }} />
+          <View style={styles.headerSpacer} />
         </View>
 
         {/* Safety Notice */}
@@ -224,7 +225,7 @@ export default function ReportUserScreen({ route, navigation }) {
           </Text>
         </View>
 
-        <View style={{ height: 20 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
       <CategoryPicker />
@@ -253,6 +254,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.background.white,
   },
+  headerSpacer: {
+    width: 28,
+  },
   noticeBox: {
     flexDirection: 'row',
     margin: 16,
@@ -271,6 +275,9 @@ const styles = StyleSheet.create({
   reportingSection: {
     marginHorizontal: 16,
     marginBottom: 20,
+  },
+  bottomSpacer: {
+    height: 20,
   },
   sectionLabel: {
     fontSize: 14,

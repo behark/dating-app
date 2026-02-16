@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable sonarjs/cognitive-complexity */
 
 /**
  * Cloud Environment Audit

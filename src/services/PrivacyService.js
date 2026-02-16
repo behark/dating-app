@@ -6,6 +6,8 @@
 import logger from '../utils/logger';
 import api from './api';
 
+const PRIVACY_CONSENT_ENDPOINT = '/privacy/consent';
+
 class PrivacyService {
   /**
    * Export all user data (GDPR Data Portability)
@@ -102,7 +104,7 @@ class PrivacyService {
    */
   async getConsentStatus() {
     try {
-      const response = await api.get('/privacy/consent');
+      const response = await api.get(PRIVACY_CONSENT_ENDPOINT);
       return response.data;
     } catch (error) {
       logger.error('Error fetching consent status:', error);
@@ -117,7 +119,7 @@ class PrivacyService {
    */
   async recordConsent(consent) {
     try {
-      const response = await api.post('/privacy/consent', consent);
+      const response = await api.post(PRIVACY_CONSENT_ENDPOINT, consent);
       return response.data;
     } catch (error) {
       logger.error('Error recording consent:', error);
@@ -132,7 +134,7 @@ class PrivacyService {
    */
   async withdrawConsent(consentType) {
     try {
-      const response = await api.delete('/privacy/consent', {
+      const response = await api.delete(PRIVACY_CONSENT_ENDPOINT, {
         data: { consentType },
       });
       return response.data;

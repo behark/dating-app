@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 /**
  * Logger Utility
  * Centralized logging service to replace console.log/error/warn

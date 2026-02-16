@@ -86,7 +86,7 @@ const StickerPickerModal = ({ visible, onClose, onSelectSticker, authToken }) =>
             <Ionicons name="close" size={28} color={Colors.text.dark} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Choose a Sticker</Text>
-          <View style={{ width: 28 }} />
+          <View style={styles.headerSpacer} />
         </View>
 
         {/* Pack Tabs */}
@@ -154,6 +154,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: Colors.text.dark,
+  },
+  headerSpacer: {
+    width: 28,
   },
   packTabs: {
     paddingHorizontal: 8,

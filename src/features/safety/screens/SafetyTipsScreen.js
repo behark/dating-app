@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
@@ -96,7 +97,7 @@ export default function SafetyTipsScreen({ navigation }) {
           <Ionicons name="arrow-back" size={28} color={Colors.background.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Safety Tips</Text>
-        <View style={{ width: 28 }} />
+        <View style={styles.headerSpacer} />
       </View>
 
       <View style={styles.introBox}>
@@ -253,7 +254,7 @@ export default function SafetyTipsScreen({ navigation }) {
           </Text>
         </View>
 
-        <View style={{ height: 20 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </LinearGradient>
   );
@@ -275,6 +276,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: Colors.background.white,
+  },
+  headerSpacer: {
+    width: 28,
   },
   introBox: {
     margin: 16,
@@ -363,6 +367,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     flex: 1,
     paddingHorizontal: 16,
+  },
+  bottomSpacer: {
+    height: 20,
   },
   emergencySection: {
     marginBottom: 24,

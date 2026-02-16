@@ -355,7 +355,7 @@ const EnhancedProfileScreen = () => {
               <Ionicons name="create-outline" size={24} color={Colors.background.white} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>My Profile</Text>
-            <View style={{ width: 24 }} />
+            <View style={styles.headerSpacer} />
           </View>
 
           {/* Verification Badges */}
@@ -454,6 +454,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: Colors.background.white,
+  },
+  headerSpacer: {
+    width: 24,
   },
   verificationBadges: {
     marginBottom: 15,

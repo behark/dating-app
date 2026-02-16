@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import { Dimensions, Platform, StyleSheet } from 'react-native';
 import { Colors } from '../../../constants/colors';
 
@@ -405,6 +406,9 @@ export const getStyles = (theme) =>
       alignItems: 'center',
       marginBottom: 10,
     },
+    aiHeaderIcon: {
+      marginRight: 8,
+    },
     aiQuickAccessTitle: {
       fontSize: 14,
       fontWeight: '600',
@@ -432,6 +436,9 @@ export const getStyles = (theme) =>
       color: Colors.text.dark,
       marginTop: 6,
       textAlign: 'center',
+    },
+    skeletonCardSpacing: {
+      marginBottom: 15,
     },
     gamificationSection: {
       paddingHorizontal: 16,

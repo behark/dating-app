@@ -7,11 +7,16 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { View, Text } from 'react-native';
 
+const EMPTY_MATCHES_TEST_ID = 'empty-matches';
+const EMPTY_MESSAGES_TEST_ID = 'empty-messages';
+const EMPTY_PROFILES_TEST_ID = 'empty-profiles';
+const MATCHES_API_PATH = '/api/matches';
+
 // Mock components that show empty states
 const EmptyMatchesList = ({ matches }) => {
   if (!matches || matches.length === 0) {
     return (
-      <View testID="empty-matches">
+      <View testID={EMPTY_MATCHES_TEST_ID}>
         <Text>No matches yet</Text>
         <Text>Keep swiping to find your match!</Text>
       </View>
@@ -29,7 +34,7 @@ const EmptyMatchesList = ({ matches }) => {
 const EmptyMessagesList = ({ messages }) => {
   if (!messages || messages.length === 0) {
     return (
-      <View testID="empty-messages">
+      <View testID={EMPTY_MESSAGES_TEST_ID}>
         <Text>No messages yet</Text>
         <Text>Start the conversation!</Text>
       </View>
@@ -47,7 +52,7 @@ const EmptyMessagesList = ({ messages }) => {
 const EmptyProfilesList = ({ profiles }) => {
   if (!profiles || profiles.length === 0) {
     return (
-      <View testID="empty-profiles">
+      <View testID={EMPTY_PROFILES_TEST_ID}>
         <Text>No profiles found</Text>
         <Text>Try adjusting your filters</Text>
       </View>
@@ -66,18 +71,18 @@ describe('Empty State Handling', () => {
   describe('Empty Matches List', () => {
     it('should display empty state when matches array is empty', () => {
       const { getByTestId, getByText } = render(<EmptyMatchesList matches={[]} />);
-      expect(getByTestId('empty-matches')).toBeTruthy();
+      expect(getByTestId(EMPTY_MATCHES_TEST_ID)).toBeTruthy();
       expect(getByText('No matches yet')).toBeTruthy();
     });
 
     it('should display empty state when matches is null', () => {
       const { getByTestId } = render(<EmptyMatchesList matches={null} />);
-      expect(getByTestId('empty-matches')).toBeTruthy();
+      expect(getByTestId(EMPTY_MATCHES_TEST_ID)).toBeTruthy();
     });
 
     it('should display empty state when matches is undefined', () => {
       const { getByTestId } = render(<EmptyMatchesList matches={undefined} />);
-      expect(getByTestId('empty-matches')).toBeTruthy();
+      expect(getByTestId(EMPTY_MATCHES_TEST_ID)).toBeTruthy();
     });
 
     it('should display matches list when matches exist', () => {
@@ -90,18 +95,18 @@ describe('Empty State Handling', () => {
   describe('Empty Messages List', () => {
     it('should display empty state when messages array is empty', () => {
       const { getByTestId, getByText } = render(<EmptyMessagesList messages={[]} />);
-      expect(getByTestId('empty-messages')).toBeTruthy();
+      expect(getByTestId(EMPTY_MESSAGES_TEST_ID)).toBeTruthy();
       expect(getByText('No messages yet')).toBeTruthy();
     });
 
     it('should display empty state when messages is null', () => {
       const { getByTestId } = render(<EmptyMessagesList messages={null} />);
-      expect(getByTestId('empty-messages')).toBeTruthy();
+      expect(getByTestId(EMPTY_MESSAGES_TEST_ID)).toBeTruthy();
     });
 
     it('should display empty state when messages is undefined', () => {
       const { getByTestId } = render(<EmptyMessagesList messages={undefined} />);
-      expect(getByTestId('empty-messages')).toBeTruthy();
+      expect(getByTestId(EMPTY_MESSAGES_TEST_ID)).toBeTruthy();
     });
 
     it('should display messages list when messages exist', () => {
@@ -114,18 +119,18 @@ describe('Empty State Handling', () => {
   describe('Empty Profiles List', () => {
     it('should display empty state when profiles array is empty', () => {
       const { getByTestId, getByText } = render(<EmptyProfilesList profiles={[]} />);
-      expect(getByTestId('empty-profiles')).toBeTruthy();
+      expect(getByTestId(EMPTY_PROFILES_TEST_ID)).toBeTruthy();
       expect(getByText('No profiles found')).toBeTruthy();
     });
 
     it('should display empty state when profiles is null', () => {
       const { getByTestId } = render(<EmptyProfilesList profiles={null} />);
-      expect(getByTestId('empty-profiles')).toBeTruthy();
+      expect(getByTestId(EMPTY_PROFILES_TEST_ID)).toBeTruthy();
     });
 
     it('should display empty state when profiles is undefined', () => {
       const { getByTestId } = render(<EmptyProfilesList profiles={undefined} />);
-      expect(getByTestId('empty-profiles')).toBeTruthy();
+      expect(getByTestId(EMPTY_PROFILES_TEST_ID)).toBeTruthy();
     });
 
     it('should display profiles list when profiles exist', () => {
@@ -142,7 +147,7 @@ describe('Empty State Handling', () => {
         json: () => Promise.resolve({ success: true, data: { matches: [] } }),
       });
 
-      const response = await fetch('/api/matches');
+      const response = await fetch(MATCHES_API_PATH);
       const data = await response.json();
 
       expect(data.data.matches).toEqual([]);
@@ -155,7 +160,7 @@ describe('Empty State Handling', () => {
         json: () => Promise.resolve({ success: true, data: null }),
       });
 
-      const response = await fetch('/api/matches');
+      const response = await fetch(MATCHES_API_PATH);
       const data = await response.json();
 
       expect(data.data).toBeNull();
@@ -167,7 +172,7 @@ describe('Empty State Handling', () => {
         json: () => Promise.resolve({ success: true }),
       });
 
-      const response = await fetch('/api/matches');
+      const response = await fetch(MATCHES_API_PATH);
       const data = await response.json();
 
       expect(data.data).toBeUndefined();

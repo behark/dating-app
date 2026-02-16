@@ -16,6 +16,8 @@ import api from '../../../services/api';
 import logger from '../../../utils/logger';
 import { useAuth } from '../../../context/AuthContext';
 
+const TRANSLUCENT_WHITE_10 = 'rgba(255, 255, 255, 0.1)';
+
 const SuperLikeScreen = ({ route, navigation }) => {
   const { userId } = route.params || {};
   const { user } = useAuth();
@@ -114,7 +116,7 @@ const SuperLikeScreen = ({ route, navigation }) => {
             <Ionicons name="close" size={28} color={Colors.background.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Send Super Like</Text>
-          <View style={{ width: 28 }} />
+          <View style={styles.headerSpacer} />
         </View>
 
         {/* Info Card */}
@@ -195,7 +197,7 @@ const SuperLikeScreen = ({ route, navigation }) => {
       {/* Send Button */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.sendButton, loading && { opacity: 0.7 }]}
+          style={[styles.sendButton, loading && styles.sendButtonLoading]}
           onPress={handleSuperLike}
           disabled={loading}
         >
@@ -233,6 +235,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.background.white,
   },
+  headerSpacer: {
+    width: 28,
+  },
   infoCard: {
     backgroundColor: Colors.background.white95,
     marginHorizontal: 16,
@@ -258,7 +263,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   quotaCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: TRANSLUCENT_WHITE_10,
     marginHorizontal: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -304,7 +309,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: TRANSLUCENT_WHITE_10,
     borderRadius: 12,
   },
   toggleText: {
@@ -333,7 +338,7 @@ const styles = StyleSheet.create({
   },
   benefitsSection: {
     marginHorizontal: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: TRANSLUCENT_WHITE_10,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 16,
@@ -363,7 +368,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: 'rgba(0, 0, 0, 0.2)',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopColor: TRANSLUCENT_WHITE_10,
   },
   sendButton: {
     backgroundColor: Colors.accent.gold,
@@ -372,6 +377,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderRadius: 12,
+  },
+  sendButtonLoading: {
+    opacity: 0.7,
   },
   sendButtonText: {
     color: Colors.primary,

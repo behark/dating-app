@@ -2,6 +2,8 @@ import { Colors } from '../constants/colors';
 import logger from '../utils/logger';
 import api from './api';
 
+const PHOTO_VERIFICATION_FAILURE = 'Failed to submit verification';
+
 export class SafetyService {
   // Block/Unblock users
   static async blockUser(blockedUserId) {
@@ -129,7 +131,7 @@ export class SafetyService {
       });
     } catch (error) {
       logger.error('Error submitting photo verification', error);
-      return { success: false, error: error.message || 'Failed to submit verification' };
+      return { success: false, error: error.message || PHOTO_VERIFICATION_FAILURE };
     }
   }
 
@@ -751,7 +753,7 @@ export class SafetyService {
 
       if (!response.success) {
         logger.error('Error submitting advanced verification', new Error(response.message));
-        return { success: false, error: response.message || 'Failed to submit verification' };
+        return { success: false, error: response.message || PHOTO_VERIFICATION_FAILURE };
       }
 
       const verificationId = response.data?.verificationId || response.data?.verification?.id;
@@ -763,7 +765,7 @@ export class SafetyService {
       return { success: true, verificationId };
     } catch (error) {
       logger.error('Error submitting advanced verification', error);
-      return { success: false, error: error.message || 'Failed to submit verification' };
+      return { success: false, error: error.message || PHOTO_VERIFICATION_FAILURE };
     }
   }
 

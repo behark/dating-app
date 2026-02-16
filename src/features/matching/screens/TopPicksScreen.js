@@ -19,6 +19,7 @@ import { calculateDistance } from '../../../utils/distanceCalculator';
 import logger from '../../../utils/logger';
 
 const { width } = Dimensions.get('window');
+const TRANSLUCENT_WHITE_20 = 'rgba(255, 255, 255, 0.2)';
 
 const TopPicksScreen = ({ navigation }) => {
   useAuth(); // Ensure user is authenticated
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
   scoreBar: {
     flex: 1,
     height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: TRANSLUCENT_WHITE_20,
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -457,7 +458,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: TRANSLUCENT_WHITE_20,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -511,7 +512,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: TRANSLUCENT_WHITE_20,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,

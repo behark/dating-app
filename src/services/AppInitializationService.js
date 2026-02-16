@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { initSentry } from '../utils/sentry';

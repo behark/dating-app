@@ -5,18 +5,27 @@
 
 const { test, expect } = require('@playwright/test');
 
+const TEST_EMAIL = 'test@example.com';
+const TEST_PASSWORD = 'TestPassword123!';
+const EMAIL_INPUT = '[data-testid="email-input"]';
+const PASSWORD_INPUT = '[data-testid="password-input"]';
+const LOGIN_BUTTON = '[data-testid="login-button"]';
+const DISCOVER_URL_PATTERN = /.*discover/;
+const DISCOVER_TAB = '[data-testid="discover-tab"]';
+const CHAT_TAB = '[data-testid="chat-tab"]';
+
 describe('Memory Leak Detection', () => {
   test('should not leak memory on repeated navigation', async ({ page }) => {
     await page.goto('/');
-    await page.fill('[data-testid="email-input"]', 'test@example.com');
-    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL(/.*discover/, { timeout: 10000 });
+    await page.fill(EMAIL_INPUT, TEST_EMAIL);
+    await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON);
+    await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
     // Navigate multiple times
     for (let i = 0; i < 10; i++) {
-      const chatTab = page.locator('[data-testid="chat-tab"]');
-      const discoverTab = page.locator('[data-testid="discover-tab"]');
+      const chatTab = page.locator(CHAT_TAB);
+      const discoverTab = page.locator(DISCOVER_TAB);
       if (await chatTab.isVisible()) {
         await chatTab.click();
         await page.waitForTimeout(200);
@@ -26,15 +35,15 @@ describe('Memory Leak Detection', () => {
     }
 
     // Page should still be responsive
-    await expect(page.locator('[data-testid="discover-tab"]')).toBeVisible();
+    await expect(page.locator(DISCOVER_TAB)).toBeVisible();
   });
 
   test('should not leak memory on repeated swipes', async ({ page }) => {
     await page.goto('/');
-    await page.fill('[data-testid="email-input"]', 'test@example.com');
-    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL(/.*discover/, { timeout: 10000 });
+    await page.fill(EMAIL_INPUT, TEST_EMAIL);
+    await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON);
+    await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
     // Perform many swipes
     const likeButton = page.locator('[data-testid="like-button"]');
@@ -57,13 +66,13 @@ describe('Memory Leak Detection', () => {
 
   test('should not leak memory on message sending', async ({ page }) => {
     await page.goto('/');
-    await page.fill('[data-testid="email-input"]', 'test@example.com');
-    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL(/.*discover/, { timeout: 10000 });
+    await page.fill(EMAIL_INPUT, TEST_EMAIL);
+    await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON);
+    await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
     // Navigate to chat
-    const chatTab = page.locator('[data-testid="chat-tab"]');
+    const chatTab = page.locator(CHAT_TAB);
     await chatTab.click();
 
     // Open conversation
@@ -98,15 +107,15 @@ describe('Memory Leak Detection', () => {
     });
 
     // Perform actions
-    await page.fill('[data-testid="email-input"]', 'test@example.com');
-    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL(/.*discover/, { timeout: 10000 });
+    await page.fill(EMAIL_INPUT, TEST_EMAIL);
+    await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON);
+    await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
     // Navigate around
     for (let i = 0; i < 5; i++) {
-      const chatTab = page.locator('[data-testid="chat-tab"]');
-      const discoverTab = page.locator('[data-testid="discover-tab"]');
+      const chatTab = page.locator(CHAT_TAB);
+      const discoverTab = page.locator(DISCOVER_TAB);
       if (await chatTab.isVisible()) {
         await chatTab.click();
         await page.waitForTimeout(200);
@@ -127,10 +136,10 @@ describe('Memory Leak Detection', () => {
 
   test('should handle large data sets without memory issues', async ({ page }) => {
     await page.goto('/');
-    await page.fill('[data-testid="email-input"]', 'test@example.com');
-    await page.fill('[data-testid="password-input"]', 'TestPassword123!');
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL(/.*discover/, { timeout: 10000 });
+    await page.fill(EMAIL_INPUT, TEST_EMAIL);
+    await page.fill(PASSWORD_INPUT, TEST_PASSWORD);
+    await page.click(LOGIN_BUTTON);
+    await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
     // Simulate loading many profiles
     for (let i = 0; i < 100; i++) {
@@ -144,6 +153,6 @@ describe('Memory Leak Detection', () => {
     }
 
     // Page should still be responsive
-    await expect(page.locator('[data-testid="discover-tab"]')).toBeVisible();
+    await expect(page.locator(DISCOVER_TAB)).toBeVisible();
   });
 });

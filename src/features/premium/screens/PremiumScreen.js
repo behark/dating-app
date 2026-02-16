@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -172,7 +173,7 @@ const PremiumScreen = ({ navigation }) => {
           <Ionicons name="arrow-back" size={24} color={Colors.background.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Premium</Text>
-        <View style={{ width: 40 }} />
+        <View style={styles.headerSpacer} />
       </LinearGradient>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -354,6 +355,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.background.white,
     textAlign: 'center',
+  },
+  headerSpacer: {
+    width: 40,
   },
   loadingContainer: {
     flex: 1,

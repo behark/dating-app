@@ -14,6 +14,8 @@ import { handleApiResponse } from '../utils/apiResponseHandler';
 import logger from '../utils/logger';
 import api from './api';
 
+const AUTH_TOKEN_REQUIRED_ERROR = 'Authentication token is required';
+
 export class PaymentService {
   // ==================== SUBSCRIPTION TIERS ====================
 
@@ -37,7 +39,7 @@ export class PaymentService {
   static async getPaymentStatus(token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       const response = await api.get('/payment/status', {
         headers: { Authorization: `Bearer ${token}` },
@@ -56,7 +58,7 @@ export class PaymentService {
   static async getBillingHistory(token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       const response = await api.get('/payment/history', {
         headers: { Authorization: `Bearer ${token}` },
@@ -77,7 +79,7 @@ export class PaymentService {
   static async createStripeCheckout(planType, token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       if (!['monthly', 'yearly'].includes(planType)) {
         throw new Error('Plan type must be monthly or yearly');
@@ -106,7 +108,7 @@ export class PaymentService {
   static async createStripePaymentIntent(productType, productId, quantity, token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       if (!productType || !productId) {
         throw new Error('Product type and product ID are required');
@@ -157,7 +159,7 @@ export class PaymentService {
   static async createPayPalSubscription(planType, token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       if (!['monthly', 'yearly'].includes(planType)) {
         throw new Error('Plan type must be monthly or yearly');
@@ -186,7 +188,7 @@ export class PaymentService {
   static async activatePayPalSubscription(subscriptionId, token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       if (!subscriptionId) {
         throw new Error('Subscription ID is required');
@@ -210,7 +212,7 @@ export class PaymentService {
   static async createPayPalOrder(productType, productId, quantity, token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       if (!productType || !productId) {
         throw new Error('Product type and product ID are required');
@@ -243,7 +245,7 @@ export class PaymentService {
   static async capturePayPalOrder(orderId, token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       if (!orderId) {
         throw new Error('Order ID is required');
@@ -269,7 +271,7 @@ export class PaymentService {
   static async validateAppleReceipt(receiptData, productId, token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       if (!receiptData || !productId) {
         throw new Error('Receipt data and product ID are required');
@@ -293,7 +295,7 @@ export class PaymentService {
   static async restoreApplePurchases(receiptData, token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       if (!receiptData) {
         throw new Error('Receipt data is required');
@@ -319,7 +321,7 @@ export class PaymentService {
   static async validateGooglePurchase(purchaseToken, productId, isSubscription, token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       if (!purchaseToken || !productId) {
         throw new Error('Purchase token and product ID are required');
@@ -343,7 +345,7 @@ export class PaymentService {
   static async restoreGooglePurchases(purchases, token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       if (!Array.isArray(purchases)) {
         throw new Error('Purchases must be an array');
@@ -369,7 +371,7 @@ export class PaymentService {
   static async cancelSubscription(immediately, token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       const response = await api.post(
         '/payment/subscription/cancel',
@@ -390,7 +392,7 @@ export class PaymentService {
   static async resumeSubscription(token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       const response = await api.post(
         '/payment/subscription/resume',
@@ -413,7 +415,7 @@ export class PaymentService {
   static async requestRefund(transactionId, reason, amount, token) {
     try {
       if (!token || typeof token !== 'string') {
-        throw new Error('Authentication token is required');
+        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
       }
       if (!transactionId || !reason) {
         throw new Error('Transaction ID and reason are required');

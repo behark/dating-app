@@ -227,7 +227,7 @@ const PhotoGalleryScreen = ({ navigation, route }) => {
               name="sparkles"
               size={18}
               color={Colors.accent.gold}
-              style={{ marginRight: 4 }}
+              style={styles.analyzeIcon}
             />
             <Text style={styles.analyzeButtonText}>Analyze</Text>
           </TouchableOpacity>
@@ -514,6 +514,9 @@ const styles = StyleSheet.create({
     color: Colors.background.white,
     fontSize: 12,
     fontWeight: '600',
+  },
+  analyzeIcon: {
+    marginRight: 4,
   },
 });
 

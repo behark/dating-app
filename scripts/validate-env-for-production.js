@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable sonarjs/cognitive-complexity */
 
 /**
  * Environment Variables Validation Script
@@ -15,6 +16,8 @@ const CHECK = '✅';
 const FAIL = '❌';
 const WARN = '⚠️';
 const INFO = 'ℹ️';
+const HTTPS_PRODUCTION_MESSAGE = 'Must be HTTPS in production';
+const IMAGE_STORAGE_DESCRIPTION = 'Image storage';
 
 // =============================================================================
 // BACKEND VARIABLE DEFINITIONS
@@ -58,7 +61,7 @@ const BACKEND_VARS = {
       name: 'FRONTEND_URL',
       description: 'Frontend URL for CORS',
       pattern: /^https:\/\//,
-      patternMessage: 'Must be HTTPS in production',
+      patternMessage: HTTPS_PRODUCTION_MESSAGE,
     },
     {
       name: 'REDIS_URL',
@@ -70,7 +73,7 @@ const BACKEND_VARS = {
       alternatives: ['CORS_ORIGINS'],
       description: 'Allowed CORS origins',
       pattern: /^https:\/\//,
-      patternMessage: 'Must be HTTPS in production',
+      patternMessage: HTTPS_PRODUCTION_MESSAGE,
     },
   ],
 
@@ -78,9 +81,9 @@ const BACKEND_VARS = {
     { name: 'SENTRY_DSN', description: 'Error tracking' },
     { name: 'EMAIL_USER', description: 'Email service' },
     { name: 'EMAIL_PASSWORD', description: 'Email password' },
-    { name: 'CLOUDINARY_CLOUD_NAME', description: 'Image storage' },
-    { name: 'CLOUDINARY_API_KEY', description: 'Image storage' },
-    { name: 'CLOUDINARY_API_SECRET', description: 'Image storage' },
+    { name: 'CLOUDINARY_CLOUD_NAME', description: IMAGE_STORAGE_DESCRIPTION },
+    { name: 'CLOUDINARY_API_KEY', description: IMAGE_STORAGE_DESCRIPTION },
+    { name: 'CLOUDINARY_API_SECRET', description: IMAGE_STORAGE_DESCRIPTION },
     { name: 'STRIPE_SECRET_KEY', description: 'Payment processing' },
   ],
 };
@@ -96,7 +99,7 @@ const FRONTEND_VARS = {
       alternatives: ['EXPO_PUBLIC_BACKEND_URL', 'EXPO_PUBLIC_API_URL_PRODUCTION'],
       description: 'Backend API URL',
       pattern: /^https:\/\//,
-      patternMessage: 'Must be HTTPS in production',
+      patternMessage: HTTPS_PRODUCTION_MESSAGE,
     },
   ],
 

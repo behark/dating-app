@@ -56,6 +56,11 @@ const VERIFICATION_TYPES = {
   },
 };
 
+const getGroupBadgeStyle = (index, maxDisplay) => ({
+  marginLeft: index > 0 ? -8 : 0,
+  zIndex: maxDisplay - index,
+});
+
 const VerificationBadge = ({
   type = 'PHOTO',
   size = 'medium',
@@ -263,13 +268,7 @@ export const VerificationBadgeGroup = ({
   return (
     <View style={styles.groupContainer}>
       {displayedBadges.map((type, index) => (
-        <View
-          key={type}
-          style={[
-            styles.groupBadge,
-            { marginLeft: index > 0 ? -8 : 0, zIndex: maxDisplay - index },
-          ]}
-        >
+        <View key={type} style={[styles.groupBadge, getGroupBadgeStyle(index, maxDisplay)]}>
           <VerificationBadge
             type={type}
             size={size}

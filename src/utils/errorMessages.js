@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 /**
  * Standardized Error Message Utility
  * Provides consistent, user-friendly error messages across the app

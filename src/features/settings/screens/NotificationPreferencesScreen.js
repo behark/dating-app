@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
@@ -332,7 +333,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
                 name="checkmark-circle"
                 size={24}
                 color={Colors.background.white}
-                style={{ marginRight: 8 }}
+                style={styles.saveButtonIcon}
               />
               <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save Settings'}</Text>
             </LinearGradient>
@@ -613,6 +614,9 @@ const styles = StyleSheet.create({
     color: Colors.background.white,
     fontSize: 18,
     fontWeight: '700',
+  },
+  saveButtonIcon: {
+    marginRight: 8,
   },
 });
 

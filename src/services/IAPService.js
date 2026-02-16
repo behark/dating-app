@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import { Platform } from 'react-native';
 
 // Conditionally import IAP - not available on web

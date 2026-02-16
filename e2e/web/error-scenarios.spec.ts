@@ -10,6 +10,11 @@ const TEST_PASSWORD = 'TestPassword123!';
 const EMAIL_INPUT_TESTID = '[data-testid="email-input"]';
 const PASSWORD_INPUT_TESTID = '[data-testid="password-input"]';
 const LOGIN_BUTTON_TESTID = '[data-testid="login-button"]';
+const NAME_INPUT_TESTID = '[data-testid="name-input"]';
+const REGISTER_BUTTON_TESTID = '[data-testid="register-button"]';
+const CREATE_ACCOUNT_TEXT = 'text=Create Account';
+const DISCOVER_URL_PATTERN = /.*discover/;
+const LIKE_BUTTON_TESTID = '[data-testid="like-button"]';
 
 test.describe('Error Scenarios - E2E', () => {
   test.beforeEach(async ({ page }) => {
@@ -84,31 +89,24 @@ test.describe('Error Scenarios - E2E', () => {
     });
 
     test('should show error for short password during signup', async ({ page }) => {
-      await page.click('text=Create Account');
+      await page.click(CREATE_ACCOUNT_TEXT);
 
-      const emailInput = '[data-testid="email-input"]';
-      const passwordInput = '[data-testid="password-input"]';
-      const nameInput = '[data-testid="name-input"]';
-      const registerButton = '[data-testid="register-button"]';
-
-      await page.fill(nameInput, 'Test User');
-      await page.fill(emailInput, 'test@example.com');
-      await page.fill(passwordInput, 'short'); // Too short
-      await page.click(registerButton);
+      await page.fill(NAME_INPUT_TESTID, 'Test User');
+      await page.fill(EMAIL_INPUT_TESTID, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT_TESTID, 'short'); // Too short
+      await page.click(REGISTER_BUTTON_TESTID);
 
       await expect(page.getByText(/password|8|characters/i)).toBeVisible();
     });
 
     test('should show error for mismatched passwords', async ({ page }) => {
-      await page.click('text=Create Account');
+      await page.click(CREATE_ACCOUNT_TEXT);
 
-      const passwordInput = '[data-testid="password-input"]';
       const confirmPasswordInput = '[data-testid="confirm-password-input"]';
-      const registerButton = '[data-testid="register-button"]';
 
-      await page.fill(passwordInput, 'Password123!');
+      await page.fill(PASSWORD_INPUT_TESTID, 'Password123!');
       await page.fill(confirmPasswordInput, 'Different123!');
-      await page.click(registerButton);
+      await page.click(REGISTER_BUTTON_TESTID);
 
       await expect(page.getByText(/password|match|same/i)).toBeVisible();
     });
@@ -141,17 +139,12 @@ test.describe('Error Scenarios - E2E', () => {
         });
       });
 
-      await page.click('text=Create Account');
+      await page.click(CREATE_ACCOUNT_TEXT);
 
-      const emailInput = '[data-testid="email-input"]';
-      const passwordInput = '[data-testid="password-input"]';
-      const nameInput = '[data-testid="name-input"]';
-      const registerButton = '[data-testid="register-button"]';
-
-      await page.fill(nameInput, 'Test User');
-      await page.fill(emailInput, 'existing@example.com');
-      await page.fill(passwordInput, 'Password123!');
-      await page.click(registerButton);
+      await page.fill(NAME_INPUT_TESTID, 'Test User');
+      await page.fill(EMAIL_INPUT_TESTID, 'existing@example.com');
+      await page.fill(PASSWORD_INPUT_TESTID, 'Password123!');
+      await page.click(REGISTER_BUTTON_TESTID);
 
       await expect(page.getByText(/already exists|taken/i)).toBeVisible();
     });
@@ -189,11 +182,10 @@ test.describe('Error Scenarios - E2E', () => {
       await page.fill(EMAIL_INPUT_TESTID, TEST_EMAIL);
       await page.fill(PASSWORD_INPUT_TESTID, TEST_PASSWORD);
       await page.click(LOGIN_BUTTON_TESTID);
-      await page.waitForURL(/.*discover/);
+      await page.waitForURL(DISCOVER_URL_PATTERN);
 
       // Try to swipe
-      const likeButton = '[data-testid="like-button"]';
-      await page.click(likeButton);
+      await page.click(LIKE_BUTTON_TESTID);
 
       await expect(page.getByText(/rate limit|too many|try again/i)).toBeVisible();
     });
@@ -217,7 +209,7 @@ test.describe('Error Scenarios - E2E', () => {
       await page.click(LOGIN_BUTTON_TESTID);
 
       // Should eventually succeed
-      await expect(page).toHaveURL(/.*discover/, { timeout: 10000 });
+      await expect(page).toHaveURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
     });
 
     test('should clear error messages on new input', async ({ page }) => {
@@ -233,7 +225,7 @@ test.describe('Error Scenarios - E2E', () => {
 
       // Error should clear or be replaced
       await page.click(LOGIN_BUTTON_TESTID);
-      await expect(page).toHaveURL(/.*discover/, { timeout: 10000 });
+      await expect(page).toHaveURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
     });
   });
 });

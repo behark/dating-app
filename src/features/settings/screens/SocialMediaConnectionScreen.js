@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,

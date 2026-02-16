@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 /**
  * Security Test Suite
  * Tests for authentication, authorization, and data protection

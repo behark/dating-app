@@ -11,6 +11,7 @@ const PROFILE_CARD_TESTID = '[data-testid="profile-card"]';
 const PROFILE_NAME_TESTID = '[data-testid="profile-name"]';
 const PROFILE_AGE_TESTID = '[data-testid="profile-age"]';
 const LIKE_BUTTON_TESTID = '[data-testid="like-button"]';
+const CREATE_ACCOUNT_TEXT = 'text=Create Account';
 
 // Common test IDs to avoid duplication
 const DATA_TESTID_PREFIX = '[data-testid="';
@@ -46,12 +47,12 @@ test.describe('Authentication', () => {
   });
 
   test('should navigate to registration', async ({ page }) => {
-    await page.click('text=Create Account');
+    await page.click(CREATE_ACCOUNT_TEXT);
     await expect(page.getByText('Sign Up')).toBeVisible();
   });
 
   test('should register new user', async ({ page }) => {
-    await page.click('text=Create Account');
+    await page.click(CREATE_ACCOUNT_TEXT);
 
     const nameInput = `${DATA_TESTID_PREFIX}name-input${DATA_TESTID_SUFFIX}`;
     const emailInput = `${DATA_TESTID_PREFIX}email-input${DATA_TESTID_SUFFIX}`;

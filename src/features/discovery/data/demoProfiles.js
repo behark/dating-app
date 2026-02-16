@@ -10,6 +10,12 @@ const daysAgo = (days) => {
   return date.toISOString();
 };
 
+const PHOTO_ALEX_NOAH = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400';
+const PHOTO_TAYLOR_DIEGO = 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400';
+const PHOTO_SAM_HANA = 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400';
+const PHOTO_SHARED_B = 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400';
+const PHOTO_MAYA_PRIYA = 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400';
+
 export const GUEST_DEMO_PROFILES = [
   {
     id: 'demo_1',
@@ -17,11 +23,8 @@ export const GUEST_DEMO_PROFILES = [
     name: 'Alex',
     age: 28,
     bio: 'Love hiking, coffee, and good conversations. Looking for someone to explore the city with!',
-    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-    photos: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
-    ],
+    photoURL: PHOTO_ALEX_NOAH,
+    photos: [PHOTO_ALEX_NOAH, 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400'],
     interests: ['hiking', 'coffee', 'travel', 'photography'],
     distance: 5,
     isVerified: true,
@@ -53,9 +56,9 @@ export const GUEST_DEMO_PROFILES = [
     name: 'Taylor',
     age: 30,
     bio: "Fitness enthusiast, dog lover, and weekend explorer. Let's make memories together!",
-    photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+    photoURL: PHOTO_TAYLOR_DIEGO,
     photos: [
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      PHOTO_TAYLOR_DIEGO,
       'https://images.unsplash.com/photo-1504257432389-52343af06ae3?w=400',
     ],
     interests: ['fitness', 'dogs', 'travel', 'cooking'],
@@ -72,10 +75,7 @@ export const GUEST_DEMO_PROFILES = [
     age: 27,
     bio: 'Creative soul, music lover, and sunset chaser. Looking for my person to share adventures with.',
     photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
-    photos: [
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
-      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
-    ],
+    photos: ['https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400', PHOTO_SAM_HANA],
     interests: ['music', 'art', 'beach', 'photography'],
     distance: 15,
     isVerified: false,
@@ -90,10 +90,7 @@ export const GUEST_DEMO_PROFILES = [
     age: 29,
     bio: "Tech enthusiast, coffee addict, and weekend warrior. Let's build something amazing together!",
     photoURL: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
-    photos: [
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
-      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400',
-    ],
+    photos: ['https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400', PHOTO_SHARED_B],
     interests: ['technology', 'coffee', 'hiking', 'gaming'],
     distance: 20,
     isVerified: true,
@@ -107,11 +104,8 @@ export const GUEST_DEMO_PROFILES = [
     name: 'Maya',
     age: 27,
     bio: 'Photographer, tea lover, and weekend trail runner. Always chasing golden hour.',
-    photoURL: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400',
-    photos: [
-      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400',
-      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400',
-    ],
+    photoURL: PHOTO_MAYA_PRIYA,
+    photos: [PHOTO_MAYA_PRIYA, PHOTO_SHARED_B],
     interests: ['photography', 'running', 'travel', 'art'],
     distance: 9,
     isVerified: true,
@@ -125,9 +119,9 @@ export const GUEST_DEMO_PROFILES = [
     name: 'Diego',
     age: 31,
     bio: "Chef by day, salsa dancer by night. Let's find the best tacos in town.",
-    photoURL: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+    photoURL: PHOTO_TAYLOR_DIEGO,
     photos: [
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
+      PHOTO_TAYLOR_DIEGO,
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400',
     ],
     interests: ['cooking', 'dance', 'food', 'music'],
@@ -146,7 +140,7 @@ export const GUEST_DEMO_PROFILES = [
     photoURL: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400',
     photos: [
       'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400',
-      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400',
+      PHOTO_MAYA_PRIYA,
     ],
     interests: ['design', 'movies', 'museums', 'coffee'],
     distance: 6,
@@ -161,11 +155,8 @@ export const GUEST_DEMO_PROFILES = [
     name: 'Hana',
     age: 24,
     bio: 'Bookshop explorer, brunch enthusiast, and watercolor artist.',
-    photoURL: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
-    photos: [
-      'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400',
-      'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400',
-    ],
+    photoURL: PHOTO_SAM_HANA,
+    photos: [PHOTO_SAM_HANA, PHOTO_SHARED_B],
     interests: ['art', 'books', 'brunch', 'travel'],
     distance: 11,
     isVerified: false,
@@ -179,11 +170,8 @@ export const GUEST_DEMO_PROFILES = [
     name: 'Noah',
     age: 32,
     bio: 'Runner, podcast addict, and aspiring home barista.',
-    photoURL: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-    photos: [
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400',
-    ],
+    photoURL: PHOTO_ALEX_NOAH,
+    photos: [PHOTO_ALEX_NOAH, PHOTO_TAYLOR_DIEGO],
     interests: ['running', 'coffee', 'podcasts', 'travel'],
     distance: 4,
     isVerified: true,

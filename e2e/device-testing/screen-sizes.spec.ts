@@ -7,6 +7,10 @@ import { expect, test } from '@playwright/test';
 
 const TEST_EMAIL = 'test@example.com';
 const TEST_PASSWORD = 'TestPassword123!';
+const EMAIL_INPUT_TESTID = '[data-testid="email-input"]';
+const PASSWORD_INPUT_TESTID = '[data-testid="password-input"]';
+const LOGIN_BUTTON_TESTID = '[data-testid="login-button"]';
+const DISCOVER_URL_PATTERN = /.*discover/;
 
 // Viewport configurations
 const VIEWPORTS = {
@@ -40,7 +44,7 @@ test.describe('Screen Size Testing', () => {
         await page.goto('/');
 
         // Check that login form is visible and properly sized
-        const emailInput = page.locator('[data-testid="email-input"]');
+        const emailInput = page.locator(EMAIL_INPUT_TESTID);
         await expect(emailInput).toBeVisible();
 
         // Check that content fits within viewport
@@ -54,10 +58,10 @@ test.describe('Screen Size Testing', () => {
         await page.goto('/');
 
         // Login
-        await page.fill('[data-testid="email-input"]', TEST_EMAIL);
-        await page.fill('[data-testid="password-input"]', TEST_PASSWORD);
-        await page.click('[data-testid="login-button"]');
-        await page.waitForURL(/.*discover/, { timeout: 10000 });
+        await page.fill(EMAIL_INPUT_TESTID, TEST_EMAIL);
+        await page.fill(PASSWORD_INPUT_TESTID, TEST_PASSWORD);
+        await page.click(LOGIN_BUTTON_TESTID);
+        await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
         // Check navigation tabs are visible
         const chatTab = page.locator('[data-testid="chat-tab"]');
@@ -75,7 +79,7 @@ test.describe('Screen Size Testing', () => {
         await page.goto('/');
 
         // Check layout adapts for tablet
-        const emailInput = page.locator('[data-testid="email-input"]');
+        const emailInput = page.locator(EMAIL_INPUT_TESTID);
         await expect(emailInput).toBeVisible();
 
         // Tablet should have more horizontal space
@@ -88,7 +92,7 @@ test.describe('Screen Size Testing', () => {
         await page.setViewportSize({ width: viewport.height, height: viewport.width }); // Landscape
         await page.goto('/');
 
-        const emailInput = page.locator('[data-testid="email-input"]');
+        const emailInput = page.locator(EMAIL_INPUT_TESTID);
         await expect(emailInput).toBeVisible();
       });
     }
@@ -103,7 +107,7 @@ test.describe('Screen Size Testing', () => {
         await page.goto('/');
 
         // Desktop should have centered content with max-width
-        const emailInput = page.locator('[data-testid="email-input"]');
+        const emailInput = page.locator(EMAIL_INPUT_TESTID);
         await expect(emailInput).toBeVisible();
 
         // Check content is centered on large screens
@@ -125,7 +129,7 @@ test.describe('Screen Size Testing', () => {
       await page.setViewportSize({ width: 375, height: 812 });
       await page.goto('/');
 
-      const emailInput = page.locator('[data-testid="email-input"]');
+      const emailInput = page.locator(EMAIL_INPUT_TESTID);
       await expect(emailInput).toBeVisible();
 
       // Rotate to landscape
@@ -143,7 +147,7 @@ test.describe('Screen Size Testing', () => {
       await page.setViewportSize({ width: 812, height: 375 });
       await page.goto('/');
 
-      const emailInput = page.locator('[data-testid="email-input"]');
+      const emailInput = page.locator(EMAIL_INPUT_TESTID);
       await expect(emailInput).toBeVisible();
 
       // Rotate to portrait
@@ -168,7 +172,7 @@ test.describe('Screen Size Testing', () => {
       await page.goto('/');
 
       // Tablet layout should be active
-      const emailInput = page.locator('[data-testid="email-input"]');
+      const emailInput = page.locator(EMAIL_INPUT_TESTID);
       await expect(emailInput).toBeVisible();
     });
 
@@ -177,7 +181,7 @@ test.describe('Screen Size Testing', () => {
       await page.goto('/');
 
       // Desktop layout should be active
-      const emailInput = page.locator('[data-testid="email-input"]');
+      const emailInput = page.locator(EMAIL_INPUT_TESTID);
       await expect(emailInput).toBeVisible();
     });
   });
@@ -198,10 +202,10 @@ test.describe('Screen Size Testing', () => {
       await page.goto('/');
 
       // Login and navigate
-      await page.fill('[data-testid="email-input"]', TEST_EMAIL);
-      await page.fill('[data-testid="password-input"]', TEST_PASSWORD);
-      await page.click('[data-testid="login-button"]');
-      await page.waitForURL(/.*discover/, { timeout: 10000 });
+      await page.fill(EMAIL_INPUT_TESTID, TEST_EMAIL);
+      await page.fill(PASSWORD_INPUT_TESTID, TEST_PASSWORD);
+      await page.click(LOGIN_BUTTON_TESTID);
+      await page.waitForURL(DISCOVER_URL_PATTERN, { timeout: 10000 });
 
       // Check profile cards fit
       const profileCard = page.locator('[data-testid="profile-card"]');

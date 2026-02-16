@@ -26,6 +26,10 @@ jest.mock('../OfflineService', () => ({
 
 describe('ProfileService', () => {
   const validUserId = '507f1f77bcf86cd799439011';
+  const PHOTO_1 = 'photo1.jpg';
+  const PHOTO_2 = 'photo2.jpg';
+  const UPLOAD_PHOTO_1 = 'base64data1';
+  const UPLOAD_PHOTO_2 = 'base64data2';
   const mockProfile = {
     _id: validUserId,
     name: 'John Doe',
@@ -156,38 +160,38 @@ describe('ProfileService', () => {
     it('uploads photos', async () => {
       api.post.mockResolvedValue({
         success: true,
-        data: { photos: ['photo1.jpg', 'photo2.jpg'] },
+        data: { photos: [PHOTO_1, PHOTO_2] },
       });
 
-      const result = await ProfileService.uploadPhotos(['base64data1', 'base64data2']);
+      const result = await ProfileService.uploadPhotos([UPLOAD_PHOTO_1, UPLOAD_PHOTO_2]);
 
       expect(result).toHaveLength(2);
       expect(api.post).toHaveBeenCalledWith('/profile/photos/upload', {
-        photos: ['base64data1', 'base64data2'],
+        photos: [UPLOAD_PHOTO_1, UPLOAD_PHOTO_2],
       });
     });
 
     it('reorders photos', async () => {
       api.put.mockResolvedValue({
         success: true,
-        data: { photos: ['photo2.jpg', 'photo1.jpg'] },
+        data: { photos: [PHOTO_2, PHOTO_1] },
       });
 
       const result = await ProfileService.reorderPhotos(['2', '1']);
 
-      expect(result).toEqual(['photo2.jpg', 'photo1.jpg']);
+      expect(result).toEqual([PHOTO_2, PHOTO_1]);
       expect(api.put).toHaveBeenCalledWith('/profile/photos/reorder', { photoIds: ['2', '1'] });
     });
 
     it('deletes a photo', async () => {
       api.delete.mockResolvedValue({
         success: true,
-        data: { photos: ['photo1.jpg'] },
+        data: { photos: [PHOTO_1] },
       });
 
       const result = await ProfileService.deletePhoto('photo123');
 
-      expect(result).toEqual(['photo1.jpg']);
+      expect(result).toEqual([PHOTO_1]);
       expect(api.delete).toHaveBeenCalledWith('/profile/photos/photo123');
     });
 
