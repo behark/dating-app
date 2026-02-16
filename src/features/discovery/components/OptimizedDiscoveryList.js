@@ -70,38 +70,44 @@ const OptimizedDiscoveryList = ({
   }, [ListEmptyComponent, emptyComponent]);
 
   // Memoized key extractor with fallback
-  const getKeyExtractor = useCallback((item, index) => {
-    if (keyExtractor) return keyExtractor(item, index);
-    return item.id || item._id || `item-${index}`;
-  }, [keyExtractor]);
+  const getKeyExtractor = useCallback(
+    (item, index) => {
+      if (keyExtractor) return keyExtractor(item, index);
+      return item.id || item._id || `item-${index}`;
+    },
+    [keyExtractor]
+  );
 
   // Memoized render item with error boundary
-  const getRenderItem = useCallback(({ item, index }) => {
-    try {
-      const renderedItem = renderItem({ item, index });
+  const getRenderItem = useCallback(
+    ({ item, index }) => {
+      try {
+        const renderedItem = renderItem({ item, index });
 
-      // Add accessibility wrapper if not already present
-      if (renderedItem && !renderedItem.props.accessibilityLabel) {
-        return React.cloneElement(renderedItem, {
-          accessibilityLabel: `Item ${index + 1}`,
-          accessibilityRole: 'button',
-        });
+        // Add accessibility wrapper if not already present
+        if (renderedItem && !renderedItem.props.accessibilityLabel) {
+          return React.cloneElement(renderedItem, {
+            accessibilityLabel: `Item ${index + 1}`,
+            accessibilityRole: 'button',
+          });
+        }
+
+        return renderedItem;
+      } catch (error) {
+        console.error('Error rendering item:', error);
+        return (
+          <View
+            style={styles.errorItem}
+            accessibilityLabel="Error loading item"
+            accessibilityRole="text"
+          >
+            <Text style={styles.errorText}>Failed to load item</Text>
+          </View>
+        );
       }
-
-      return renderedItem;
-    } catch (error) {
-      console.error('Error rendering item:', error);
-      return (
-        <View
-          style={styles.errorItem}
-          accessibilityLabel="Error loading item"
-          accessibilityRole="text"
-        >
-          <Text style={styles.errorText}>Failed to load item</Text>
-        </View>
-      );
-    }
-  }, [renderItem]);
+    },
+    [renderItem]
+  );
 
   // Handle end reached with debouncing
   const handleEndReached = useCallback(() => {
@@ -165,15 +171,12 @@ const OptimizedDiscoveryList = ({
   }, [ErrorFooter, LoadingFooter]);
 
   // Container style
-  const containerStyle = useMemo(() => [
-    styles.container,
-    contentContainerStyle,
-  ], [contentContainerStyle]);
+  const containerStyle = useMemo(
+    () => [styles.container, contentContainerStyle],
+    [contentContainerStyle]
+  );
 
-  const listStyle = useMemo(() => [
-    styles.list,
-    style,
-  ], [style]);
+  const listStyle = useMemo(() => [styles.list, style], [style]);
 
   return (
     <ErrorBoundary
@@ -252,11 +255,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  errorText: {
-    fontSize: 14,
-    color: Colors.accent.red,
-    textAlign: 'center',
   },
   errorItem: {
     height: 100,

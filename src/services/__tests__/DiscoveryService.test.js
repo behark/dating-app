@@ -43,7 +43,9 @@ describe('DiscoveryService', () => {
   });
 
   it('rejects invalid coordinates in exploreUsers', async () => {
-    await expect(service.exploreUsers(200, -74.006)).rejects.toThrow('Invalid coordinates provided');
+    await expect(service.exploreUsers(200, -74.006)).rejects.toThrow(
+      'Invalid coordinates provided'
+    );
   });
 
   it('gets top picks', async () => {

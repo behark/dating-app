@@ -35,21 +35,11 @@ const EmptyState = ({
 }) => (
   <View style={[styles.container, style]}>
     <LinearGradient colors={gradientColors} style={styles.card}>
-      {icon && (
-        <Ionicons name={icon} size={iconSize} color={Colors.primary} />
-      )}
-      {title && (
-        <Text style={styles.title}>{title}</Text>
-      )}
-      {description && (
-        <Text style={styles.description}>{description}</Text>
-      )}
+      {icon && <Ionicons name={icon} size={iconSize} color={Colors.primary} />}
+      {title && <Text style={styles.title}>{title}</Text>}
+      {description && <Text style={styles.description}>{description}</Text>}
       {buttonText && onButtonPress && (
-        <TouchableOpacity
-          style={styles.button}
-          onPress={onButtonPress}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={styles.button} onPress={onButtonPress} activeOpacity={0.8}>
           <LinearGradient colors={Colors.gradient.primary} style={styles.buttonGradient}>
             <Text style={styles.buttonText}>{buttonText}</Text>
           </LinearGradient>

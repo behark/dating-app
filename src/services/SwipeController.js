@@ -127,7 +127,7 @@ export class SwipeController {
       const likes = swipes.filter(
         (swipe) => swipe.action === 'like' || swipe.action === 'superlike'
       );
-      
+
       return likes.map((swipeData) => {
         if (swipeData instanceof Swipe) {
           return swipeData;
@@ -136,7 +136,7 @@ export class SwipeController {
         // swipedId is populated with user data from backend
         const swipedUser = swipeData.swipedId || {};
         const userIdValue = swipedUser._id || swipedUser.id || swipeData.swipedId;
-        
+
         return {
           id: swipeData._id || swipeData.id,
           swiper: userId,

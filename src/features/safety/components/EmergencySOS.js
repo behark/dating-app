@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import * as Location from 'expo-location';
 import { Colors } from '../../../constants/colors';
 import { SafetyService } from '../../../services/SafetyService';
@@ -113,9 +107,7 @@ const EmergencySOS = ({ userId }) => {
           <Text style={styles.historyTitle}>Recent Alerts</Text>
           {sosHistory.map((sos) => (
             <View key={sos._id} style={styles.sosHistoryCard}>
-              <Text style={styles.sosTime}>
-                {new Date(sos.createdAt).toLocaleString()}
-              </Text>
+              <Text style={styles.sosTime}>{new Date(sos.createdAt).toLocaleString()}</Text>
               <Text style={styles.sosLocation}>{sos.location?.address || 'Unknown location'}</Text>
               {sos.status === 'active' && (
                 <TouchableOpacity

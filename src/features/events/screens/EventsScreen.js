@@ -208,7 +208,7 @@ const EventsScreen = ({ navigation }) => {
           description={
             selectedCategory
               ? `No ${selectedCategory.replace('_', ' ')} events in your area right now. Try another category or check back soon!`
-              : "There are no events in your area right now. Be the first to create one!"
+              : 'There are no events in your area right now. Be the first to create one!'
           }
           buttonText="Create Event"
           onButtonPress={() => {

@@ -97,7 +97,10 @@ const validateUrlLike = (name, value, label) => {
   if (value.includes('\\n') || value.includes('\n')) {
     fail(`${label}: ${name} contains newline characters; remove trailing \\n/line breaks`);
   }
-  if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
     fail(`${label}: ${name} is wrapped in quotes; store raw value without outer quotes`);
   }
 };
@@ -119,7 +122,9 @@ const validateBackend = (envObj) => {
   for (const def of required) {
     const found = getVar(envObj, def.key, def.alternatives || []);
     if (!found) {
-      fail(`backend: missing ${def.key}${def.alternatives ? ` (or ${def.alternatives.join(', ')})` : ''}`);
+      fail(
+        `backend: missing ${def.key}${def.alternatives ? ` (or ${def.alternatives.join(', ')})` : ''}`
+      );
       continue;
     }
     const { key, value } = found;
@@ -139,9 +144,15 @@ const validateBackend = (envObj) => {
   }
 
   // URL/DSN formatting checks
-  ['MONGODB_URI', 'MONGODB_URL', 'FRONTEND_URL', 'CORS_ORIGIN', 'CORS_ORIGINS', 'SENTRY_DSN', 'REDIS_URL'].forEach((k) =>
-    validateUrlLike(k, envObj[k], 'backend')
-  );
+  [
+    'MONGODB_URI',
+    'MONGODB_URL',
+    'FRONTEND_URL',
+    'CORS_ORIGIN',
+    'CORS_ORIGINS',
+    'SENTRY_DSN',
+    'REDIS_URL',
+  ].forEach((k) => validateUrlLike(k, envObj[k], 'backend'));
 
   // Special private key formatting
   if (envObj.FIREBASE_PRIVATE_KEY) {
@@ -191,9 +202,13 @@ const validateFrontend = (envObj, label) => {
     }
   });
 
-  ['EXPO_PUBLIC_API_URL', 'EXPO_PUBLIC_BACKEND_URL', 'EXPO_PUBLIC_PRIVACY_POLICY_URL', 'EXPO_PUBLIC_TERMS_OF_SERVICE_URL', 'EXPO_PUBLIC_SENTRY_DSN'].forEach(
-    (k) => validateUrlLike(k, envObj[k], label)
-  );
+  [
+    'EXPO_PUBLIC_API_URL',
+    'EXPO_PUBLIC_BACKEND_URL',
+    'EXPO_PUBLIC_PRIVACY_POLICY_URL',
+    'EXPO_PUBLIC_TERMS_OF_SERVICE_URL',
+    'EXPO_PUBLIC_SENTRY_DSN',
+  ].forEach((k) => validateUrlLike(k, envObj[k], label));
 
   // Prevent secret leaks into EXPO_PUBLIC*
   Object.keys(envObj)
@@ -240,7 +255,9 @@ const compareCloudPublicVars = (vercelEnv, easEnv) => {
     const v = vercelEnv[key];
     const e = easEnv[key];
     if (!v || !e) {
-      warn(`cloud: ${key} missing in ${!v ? 'Vercel' : ''}${!v && !e ? ' and ' : ''}${!e ? 'EAS' : ''}`);
+      warn(
+        `cloud: ${key} missing in ${!v ? 'Vercel' : ''}${!v && !e ? ' and ' : ''}${!e ? 'EAS' : ''}`
+      );
       driftCount += 1;
       continue;
     }

@@ -7,8 +7,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Alert, Platform } from 'react-native';
 import { API_URL } from '../../config/api';
 import { ERROR_MESSAGES } from '../../constants/constants';
-import api from '../../services/api';
-import { setSessionExpiredCallback } from '../../services/api';
+import api, { setSessionExpiredCallback } from '../../services/api';
 import { LocationService } from '../../services/LocationService';
 import { NotificationService } from '../../services/NotificationService';
 import { getUserFriendlyMessage } from '../../utils/errorMessages';
@@ -711,8 +710,6 @@ export const AuthProvider = ({ children }) => {
     logger.debug('Session expired, clearing local data...');
     await logout();
   };
-
-
 
   const signInWithGoogle = async (idToken) => {
     try {

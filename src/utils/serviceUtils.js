@@ -25,8 +25,8 @@
  * );
  */
 
-import logger from './logger';
 import OfflineService from '../services/OfflineService';
+import logger from './logger';
 import { handleApiResponse } from './apiResponseHandler';
 
 /**
@@ -71,7 +71,9 @@ export const withOfflineCache = async (apiFn, cacheFn, operationName, options = 
 
     // If offline and no cache, throw
     if (!isOnline) {
-      throw new Error(`No cached data available for ${operationName}. Please check your connection.`);
+      throw new Error(
+        `No cached data available for ${operationName}. Please check your connection.`
+      );
     }
   }
 

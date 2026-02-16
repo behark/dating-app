@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Colors } from '../../../constants/colors';
 import { SafetyService } from '../../../services/SafetyService';
 
@@ -36,7 +30,7 @@ const SafetyCheckIn = ({ datePlanId, onCheckInComplete }) => {
       await SafetyService.startCheckInTimer(datePlanId, 5);
       setCheckInActive(true);
       setCheckInStarted(true);
-      Alert.alert('Check-in Started', 'Timer set for 5 minutes. Confirm when you\'re safe!');
+      Alert.alert('Check-in Started', 'Timer set for 5 minutes. Confirm when you are safe!');
     } catch (error) {
       Alert.alert('Error', error.message);
     }
@@ -46,10 +40,7 @@ const SafetyCheckIn = ({ datePlanId, onCheckInComplete }) => {
     try {
       await SafetyService.completeCheckIn('checkin_id_placeholder');
       setCheckInActive(false);
-      Alert.alert(
-        'Success',
-        'Check-in confirmed! Friends have been notified that you\'re safe.'
-      );
+      Alert.alert('Success', 'Check-in confirmed! Friends have been notified that you are safe.');
       onCheckInComplete?.();
     } catch (error) {
       Alert.alert('Error', error.message);
@@ -88,7 +79,7 @@ const SafetyCheckIn = ({ datePlanId, onCheckInComplete }) => {
             onPress={handleCheckInComplete}
             disabled={!checkInActive}
           >
-            <Text style={styles.buttonText}>✓ I'm Safe - Confirm Check-in</Text>
+            <Text style={styles.buttonText}>✓ I&apos;m Safe - Confirm Check-in</Text>
           </TouchableOpacity>
 
           {timeRemaining === 0 && (

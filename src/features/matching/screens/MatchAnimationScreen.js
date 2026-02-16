@@ -58,7 +58,7 @@ const MatchAnimationScreen = ({ navigation, route }) => {
 
         {showContent && (
           <View style={styles.content}>
-            <Text style={styles.title}>It's a Match! 🎉</Text>
+            <Text style={styles.title}>It&apos;s a Match! 🎉</Text>
             {matchedUser?.name && (
               <Text style={styles.subtitle}>You and {matchedUser.name} liked each other!</Text>
             )}

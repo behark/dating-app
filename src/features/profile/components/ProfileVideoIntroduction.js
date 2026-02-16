@@ -59,7 +59,8 @@ const ProfileVideoIntroduction = ({
 
     const updateStatus = () => {
       const currentTime = typeof player.currentTime === 'number' ? player.currentTime : 0;
-      const duration = typeof player.duration === 'number' && player.duration > 0 ? player.duration : 1;
+      const duration =
+        typeof player.duration === 'number' && player.duration > 0 ? player.duration : 1;
       setVideoStatus({
         positionMillis: currentTime * 1000,
         durationMillis: duration * 1000,

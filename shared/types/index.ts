@@ -16,4 +16,11 @@ export * from './match';
 export * from './common';
 
 // API response types (extends common types)
-export type { SuccessResponse, ErrorResponse as ApiErrorResponse, PaginatedResponse as ApiPaginatedResponse, PaginationInfo, SuccessResponseOptions, ErrorResponseOptions } from './api';
+export type {
+  SuccessResponse,
+  ErrorResponse as ApiErrorResponse,
+  PaginatedResponse as ApiPaginatedResponse,
+  PaginationInfo,
+  SuccessResponseOptions,
+  ErrorResponseOptions,
+} from './api';

@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { Colors } from '../../../constants/colors';
 import { SafetyService } from '../../../services/SafetyService';
 
@@ -78,7 +71,8 @@ const IdentityVerification = ({ userId }) => {
       ) : (
         <>
           <Text style={styles.description}>
-            Get verified to show other users that you're a real person. Verified profiles get more matches!
+            Get verified to show other users that you&apos;re a real person. Verified profiles get
+            more matches!
           </Text>
 
           <TouchableOpacity

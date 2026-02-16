@@ -1,6 +1,6 @@
 /**
  * Safety Services Barrel Export
- * 
+ *
  * Modular safety services split from the monolithic SafetyService.js
  */
 

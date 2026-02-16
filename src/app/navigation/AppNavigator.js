@@ -3,11 +3,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
 import ConsentBanner from '../../components/ConsentBanner';
 import { useAuth } from '../providers/AuthProvider';
+import PrivacyService from '../../services/PrivacyService';
+import { UserBehaviorAnalytics } from '../../services/UserBehaviorAnalytics';
 import { useDeepLinking } from './DeepLinkHandler';
 import AuthStack from './AuthStack';
 import MainStack from './MainStack';
-import PrivacyService from '../../services/PrivacyService';
-import { UserBehaviorAnalytics } from '../../services/UserBehaviorAnalytics';
 
 // Main navigator component
 

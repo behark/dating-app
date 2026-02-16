@@ -310,7 +310,9 @@ const PrivacySettingsScreen = ({ navigation }) => {
             <View style={styles.settingRow}>
               <View style={styles.settingContent}>
                 <Text style={styles.settingLabel}>Show Online Status</Text>
-                <Text style={styles.settingDescription}>Let others see when you're online</Text>
+                <Text style={styles.settingDescription}>
+                  Let others see when you&apos;re online
+                </Text>
               </View>
               <Switch
                 value={privacySettings.showOnlineStatus !== false}

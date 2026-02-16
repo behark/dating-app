@@ -93,9 +93,7 @@ const DatePlansSharing = ({ userId, onPlanShared }) => {
             <View key={plan.id} style={styles.planCard}>
               <Text style={styles.planTitle}>{plan.matchName}</Text>
               <Text style={styles.planLocation}>{plan.location}</Text>
-              <Text style={styles.planTime}>
-                {new Date(plan.dateTime).toLocaleString()}
-              </Text>
+              <Text style={styles.planTime}>{new Date(plan.dateTime).toLocaleString()}</Text>
             </View>
           ))}
         </View>

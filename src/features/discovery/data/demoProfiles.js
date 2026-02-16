@@ -1,3 +1,4 @@
+/* eslint-disable no-secrets/no-secrets */
 // Demo profiles for guest mode preview
 // App launched January 2025 - profiles have varying join dates
 export const GUEST_FREE_VIEWS = 10;

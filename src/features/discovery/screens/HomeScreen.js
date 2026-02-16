@@ -401,7 +401,10 @@ const HomeScreen = ({ navigation }) => {
         logger.warn('Discovery payload not an array', {
           source: isGuestMode ? 'guest' : 'auth',
           type: availableUsers === null ? 'null' : typeof availableUsers,
-          keys: availableUsers && typeof availableUsers === 'object' ? Object.keys(availableUsers) : null,
+          keys:
+            availableUsers && typeof availableUsers === 'object'
+              ? Object.keys(availableUsers)
+              : null,
         });
       }
 

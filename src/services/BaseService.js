@@ -118,7 +118,7 @@ export class BaseService {
    * Validate required parameters
    */
   validateRequired(params, requiredFields) {
-    const missing = requiredFields.filter(field => !params[field]);
+    const missing = requiredFields.filter((field) => !params[field]);
     if (missing.length > 0) {
       throw new Error(`Missing required parameters: ${missing.join(', ')}`);
     }

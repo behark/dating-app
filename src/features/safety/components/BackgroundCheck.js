@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  StyleSheet,
-  Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { Colors } from '../../../constants/colors';
 import { SafetyService } from '../../../services/SafetyService';
 
@@ -92,7 +85,7 @@ const BackgroundCheck = ({ userId, isPremium }) => {
       ) : (
         <>
           <Text style={styles.description}>
-            Let matches know you've passed a background check. This builds trust and increases
+            Let matches know you&apos;ve passed a background check. This builds trust and increases
             match quality.
           </Text>
 
@@ -109,7 +102,7 @@ const BackgroundCheck = ({ userId, isPremium }) => {
           </TouchableOpacity>
 
           <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>What's included:</Text>
+            <Text style={styles.infoTitle}>What&apos;s included:</Text>
             <Text style={styles.infoItem}>✓ Criminal record check</Text>
             <Text style={styles.infoItem}>✓ Sex offender registry</Text>
             <Text style={styles.infoItem}>✓ Address history</Text>

@@ -146,7 +146,7 @@ const EventDetailScreen = ({ navigation, route }) => {
           {isRegistered && (
             <View style={styles.registeredBadge}>
               <Ionicons name="checkmark-circle" size={24} color={Colors.status.success} />
-              <Text style={styles.registeredText}>You're registered for this event!</Text>
+              <Text style={styles.registeredText}>You&apos;re registered for this event!</Text>
             </View>
           )}
         </View>

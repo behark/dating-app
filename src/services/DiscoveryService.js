@@ -73,7 +73,6 @@ class DiscoveryService {
       // Add guest parameter if guest mode is enabled
       if (guest) {
         queryParams.append('guest', 'true');
-      } else {
       }
 
       // For guest requests, bypass authentication retry logic

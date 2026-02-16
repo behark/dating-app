@@ -9,16 +9,12 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../../constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from '../../../constants/colors';
 
 const FilterSection = ({ title, children, expanded, onToggle }) => (
   <View style={styles.filterSection}>
-    <TouchableOpacity
-      style={styles.sectionHeader}
-      onPress={onToggle}
-      activeOpacity={0.7}
-    >
+    <TouchableOpacity style={styles.sectionHeader} onPress={onToggle} activeOpacity={0.7}>
       <Text style={styles.sectionTitle}>{title}</Text>
       <Ionicons
         name={expanded ? 'chevron-up' : 'chevron-down'}
@@ -30,15 +26,7 @@ const FilterSection = ({ title, children, expanded, onToggle }) => (
   </View>
 );
 
-const RangeSlider = ({
-  label,
-  min,
-  max,
-  value,
-  onValueChange,
-  step = 1,
-  unit = '',
-}) => {
+const RangeSlider = ({ label, min, max, value, onValueChange, step = 1, unit = '' }) => {
   const trackRef = useRef(null);
   const [dragging, setDragging] = useState(null); // 'min' or 'max'
 
@@ -47,52 +35,53 @@ const RangeSlider = ({
 
   // Convert percentage position to value
   const percentToValue = (percent) => {
-    const rawValue = min + ((percent / 100) * (max - min));
+    const rawValue = min + (percent / 100) * (max - min);
     const stepped = Math.round(rawValue / step) * step;
     return Math.max(min, Math.min(max, stepped));
   };
 
   // Create pan responder for a thumb
-  const createPanResponder = (thumbType) => PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: () => {
-      setDragging(thumbType);
-    },
-    onPanResponderMove: (evt, gestureState) => {
-      if (!trackRef.current) return;
+  const createPanResponder = (thumbType) =>
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        setDragging(thumbType);
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        if (!trackRef.current) return;
 
-      trackRef.current.measure((x, y, width, height, pageX, pageY) => {
-        const touchX = evt.nativeEvent.pageX - pageX;
-        const percent = Math.max(0, Math.min(100, (touchX / width) * 100));
-        const newValue = percentToValue(percent);
+        trackRef.current.measure((x, y, width, height, pageX, pageY) => {
+          const touchX = evt.nativeEvent.pageX - pageX;
+          const percent = Math.max(0, Math.min(100, (touchX / width) * 100));
+          const newValue = percentToValue(percent);
 
-        if (thumbType === 'min') {
-          // Ensure min thumb doesn't go past max thumb (maintain minimum gap)
-          const maxValue = value[1];
-          const minGap = step * 2; // Minimum gap between thumbs
-          const constrainedValue = Math.min(newValue, maxValue - minGap);
-          // Ensure doesn't go below minimum
-          const finalValue = Math.max(min, constrainedValue);
-          onValueChange([finalValue, maxValue]);
-        } else {
-          // Ensure max thumb doesn't go before min thumb
-          const minValue = value[0];
-          const minGap = step * 2; // Minimum gap between thumbs
-          const constrainedValue = Math.max(newValue, minValue + minGap);
-          // Ensure doesn't go above maximum
-          const finalValue = Math.min(max, constrainedValue);
-          onValueChange([minValue, finalValue]);
-        }
-      });
-    },
-    onPanResponderRelease: () => {
-      setDragging(null);
-    },
-    onPanResponderTerminate: () => {
-      setDragging(null);
-    },
-  });
+          if (thumbType === 'min') {
+            // Ensure min thumb doesn't go past max thumb (maintain minimum gap)
+            const maxValue = value[1];
+            const minGap = step * 2; // Minimum gap between thumbs
+            const constrainedValue = Math.min(newValue, maxValue - minGap);
+            // Ensure doesn't go below minimum
+            const finalValue = Math.max(min, constrainedValue);
+            onValueChange([finalValue, maxValue]);
+          } else {
+            // Ensure max thumb doesn't go before min thumb
+            const minValue = value[0];
+            const minGap = step * 2; // Minimum gap between thumbs
+            const constrainedValue = Math.max(newValue, minValue + minGap);
+            // Ensure doesn't go above maximum
+            const finalValue = Math.min(max, constrainedValue);
+            onValueChange([minValue, finalValue]);
+          }
+        });
+      },
+      onPanResponderRelease: () => {
+        setDragging(null);
+      },
+      onPanResponderTerminate: () => {
+        setDragging(null);
+      },
+    });
 
   const minPanResponder = createPanResponder('min');
   const maxPanResponder = createPanResponder('max');
@@ -108,7 +97,11 @@ const RangeSlider = ({
       <View
         ref={trackRef}
         style={styles.sliderTrack}
-        {...(dragging ? (dragging === 'min' ? minPanResponder.panHandlers : maxPanResponder.panHandlers) : {})}
+        {...(dragging
+          ? dragging === 'min'
+            ? minPanResponder.panHandlers
+            : maxPanResponder.panHandlers
+          : {})}
       >
         <View
           style={[
@@ -124,7 +117,7 @@ const RangeSlider = ({
             styles.sliderThumb,
             {
               left: `${valueToPercent(value[0])}%`,
-              backgroundColor: dragging === 'min' ? Colors.primary : Colors.primary,
+              backgroundColor: Colors.primary,
               transform: [{ scale: dragging === 'min' ? 1.2 : 1 }],
             },
           ]}
@@ -139,7 +132,7 @@ const RangeSlider = ({
             styles.sliderThumb,
             {
               left: `${valueToPercent(value[1])}%`,
-              backgroundColor: dragging === 'max' ? Colors.primary : Colors.primary,
+              backgroundColor: Colors.primary,
               transform: [{ scale: dragging === 'max' ? 1.2 : 1 }],
             },
           ]}
@@ -165,9 +158,7 @@ const CheckboxOption = ({ label, checked, onPress }) => (
     accessibilityHint={`${checked ? 'Uncheck' : 'Check'} ${label.toLowerCase()}`}
   >
     <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-      {checked && (
-        <Ionicons name="checkmark" size={16} color={Colors.background.white} />
-      )}
+      {checked && <Ionicons name="checkmark" size={16} color={Colors.background.white} />}
     </View>
     <Text style={styles.checkboxLabel}>{label}</Text>
   </TouchableOpacity>
@@ -189,7 +180,7 @@ const FilterOptions = ({
   });
 
   const toggleSection = (section) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
     }));
@@ -205,7 +196,7 @@ const FilterOptions = ({
   const handleCheckboxChange = (key, option) => {
     const currentValues = filters[key] || [];
     const newValues = currentValues.includes(option)
-      ? currentValues.filter(v => v !== option)
+      ? currentValues.filter((v) => v !== option)
       : [...currentValues, option];
 
     onFiltersChange({
@@ -261,10 +252,12 @@ const FilterOptions = ({
             <CheckboxOption
               label="Show only verified locations"
               checked={filters.verifiedLocation || false}
-              onPress={() => onFiltersChange({
-                ...filters,
-                verifiedLocation: !filters.verifiedLocation,
-              })}
+              onPress={() =>
+                onFiltersChange({
+                  ...filters,
+                  verifiedLocation: !filters.verifiedLocation,
+                })
+              }
             />
           </FilterSection>
 
@@ -306,26 +299,32 @@ const FilterOptions = ({
             <CheckboxOption
               label="Show online users only"
               checked={filters.onlineOnly || false}
-              onPress={() => onFiltersChange({
-                ...filters,
-                onlineOnly: !filters.onlineOnly,
-              })}
+              onPress={() =>
+                onFiltersChange({
+                  ...filters,
+                  onlineOnly: !filters.onlineOnly,
+                })
+              }
             />
             <CheckboxOption
               label="Photo verified only"
               checked={filters.photoVerifiedOnly || false}
-              onPress={() => onFiltersChange({
-                ...filters,
-                photoVerifiedOnly: !filters.photoVerifiedOnly,
-              })}
+              onPress={() =>
+                onFiltersChange({
+                  ...filters,
+                  photoVerifiedOnly: !filters.photoVerifiedOnly,
+                })
+              }
             />
             <CheckboxOption
               label="Premium users only"
               checked={filters.premiumOnly || false}
-              onPress={() => onFiltersChange({
-                ...filters,
-                premiumOnly: !filters.premiumOnly,
-              })}
+              onPress={() =>
+                onFiltersChange({
+                  ...filters,
+                  premiumOnly: !filters.premiumOnly,
+                })
+              }
             />
           </FilterSection>
         </ScrollView>

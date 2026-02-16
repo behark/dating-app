@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { SwipeController } from '../services/SwipeController';
 import { GamificationService } from '../services/GamificationService';
-import { AdvancedInteractionsService } from '../services/AdvancedInteractionsService';
+import AdvancedInteractionsService from '../services/AdvancedInteractionsService';
 import AnalyticsService from '../services/AnalyticsService';
 import HapticFeedback from '../utils/haptics';
 import logger from '../utils/logger';
@@ -141,7 +141,7 @@ export const useSwipeActions = ({
         trackGamificationSwipe('like');
 
         // Update counters
-        setSwipesUsedToday(prev => prev + 1);
+        setSwipesUsedToday((prev) => prev + 1);
       } catch (error) {
         logger.error('Error handling swipe right:', error);
         Alert.alert('Error', 'Failed to process swipe');
@@ -213,23 +213,14 @@ export const useSwipeActions = ({
         }
 
         setLastSwipedCard({ card, direction: 'left', swipeId: result.swipeId });
-        setSwipesUsedToday(prev => prev + 1);
+        setSwipesUsedToday((prev) => prev + 1);
       } catch (error) {
         logger.error('Error handling swipe left:', error);
       } finally {
         endSwipe();
       }
     },
-    [
-      userId,
-      isPremium,
-      navigation,
-      isGuest,
-      canSwipe,
-      startSwipe,
-      endSwipe,
-      onOptimisticUpdate,
-    ]
+    [userId, isPremium, navigation, isGuest, canSwipe, startSwipe, endSwipe, onOptimisticUpdate]
   );
 
   /**
@@ -266,7 +257,7 @@ export const useSwipeActions = ({
         }
 
         // Update counters
-        setSuperLikesUsed(prev => prev + 1);
+        setSuperLikesUsed((prev) => prev + 1);
 
         // Analytics and feedback
         AnalyticsService.logSwipe('superlike', targetId);
@@ -283,13 +274,7 @@ export const useSwipeActions = ({
         Alert.alert('Error', 'Failed to use super like');
       }
     },
-    [
-      isGuest,
-      promptLogin,
-      premiumFeatures.superLikesPerDay,
-      navigation,
-      onOptimisticUpdate,
-    ]
+    [isGuest, promptLogin, premiumFeatures.superLikesPerDay, navigation, onOptimisticUpdate]
   );
 
   /**
@@ -323,13 +308,16 @@ export const useSwipeActions = ({
   /**
    * Track gamification swipe
    */
-  const trackGamificationSwipe = useCallback(async (swipeType) => {
-    try {
-      await GamificationService.trackSwipe(userId, swipeType);
-    } catch (error) {
-      logger.error('Error tracking swipe for gamification:', error);
-    }
-  }, [userId]);
+  const trackGamificationSwipe = useCallback(
+    async (swipeType) => {
+      try {
+        await GamificationService.trackSwipe(userId, swipeType);
+      } catch (error) {
+        logger.error('Error tracking swipe for gamification:', error);
+      }
+    },
+    [userId]
+  );
 
   /**
    * Reconcile swipe counters

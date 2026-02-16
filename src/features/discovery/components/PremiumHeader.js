@@ -23,10 +23,7 @@ const PremiumHeader = ({
             <Text style={styles.premiumText}>PREMIUM</Text>
           </LinearGradient>
         ) : (
-          <TouchableOpacity
-            style={styles.upgradePrompt}
-            onPress={onUpgradePress}
-          >
+          <TouchableOpacity style={styles.upgradePrompt} onPress={onUpgradePress}>
             <Ionicons name="diamond-outline" size={16} color={Colors.accent.gold} />
             <Text style={styles.upgradeText}>Upgrade</Text>
           </TouchableOpacity>
@@ -41,16 +38,10 @@ const PremiumHeader = ({
       </View>
 
       <View style={styles.headerRightSection}>
-        <TouchableOpacity
-          style={styles.discoveryButton}
-          onPress={onTopPicksPress}
-        >
+        <TouchableOpacity style={styles.discoveryButton} onPress={onTopPicksPress}>
           <Ionicons name="trophy" size={18} color={Colors.accent.gold} />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.discoveryButton}
-          onPress={onExplorePress}
-        >
+        <TouchableOpacity style={styles.discoveryButton} onPress={onExplorePress}>
           <Ionicons name="compass" size={18} color={Colors.accent.teal} />
         </TouchableOpacity>
         {userLocation && (

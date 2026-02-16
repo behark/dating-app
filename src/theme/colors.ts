@@ -1,13 +1,13 @@
 export const colors = {
   primary: '#667eea',
   secondary: '#4ECDC4',
-  background: { 
-    light: '#fff', 
-    dark: '#121212' 
+  background: {
+    light: '#fff',
+    dark: '#121212',
   },
-  text: { 
-    primary: '#000', 
-    secondary: '#666' 
+  text: {
+    primary: '#000',
+    secondary: '#666',
   },
   // Additional colors
   accent: {

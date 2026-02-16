@@ -1,7 +1,15 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
-import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import {
+  Dimensions,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { Colors } from '../../../constants/colors';
 import { UniversalImage } from '../../../components/Image';
 import { LocationService } from '../../../services/LocationService';
@@ -45,16 +53,16 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
   // Use dynamic dimensions for better web support
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   // On web, use window dimensions; on native use static dimensions
-  const screenWidth = Platform.OS === 'web' ? (windowWidth || SCREEN_WIDTH) : SCREEN_WIDTH;
-  const cardHeight = (Platform.OS === 'web' ? (windowHeight || SCREEN_HEIGHT) : SCREEN_HEIGHT) * 0.75;
-  
+  const screenWidth = Platform.OS === 'web' ? windowWidth || SCREEN_WIDTH : SCREEN_WIDTH;
+  const cardHeight = (Platform.OS === 'web' ? windowHeight || SCREEN_HEIGHT : SCREEN_HEIGHT) * 0.75;
+
   // Calculate card dimensions - use actual window width
   const cardWidth = Math.max(300, screenWidth - 40); // Ensure minimum width
   // Calculate center position: parent is 100% width, so center is (100% - cardWidth) / 2
   // Since parent uses 100% width, we calculate based on screenWidth but account for any padding
   // The parent has no horizontal padding, so we can use screenWidth directly
   const cardLeft = (screenWidth - cardWidth) / 2;
-  
+
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -149,10 +157,10 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
 
   return (
     <PanGestureHandler onGestureEvent={gestureHandler}>
-      <Animated.View 
+      <Animated.View
         ref={cardRef}
         style={[
-          styles.card, 
+          styles.card,
           {
             // Apply dimensions
             width: cardWidth,
@@ -173,7 +181,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
           },
           // Apply animated transforms
           cardStyle,
-        ]} 
+        ]}
         testID="swipe-card"
       >
         <UniversalImage
@@ -287,7 +295,6 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
-    
   },
   infoButton: {
     position: 'absolute',

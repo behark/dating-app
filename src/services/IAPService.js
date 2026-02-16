@@ -91,8 +91,7 @@ class IAPService {
     try {
       await this.initialize();
 
-      const subscriptions = await IAP.getSubscriptions(subscriptionIds);
-      return subscriptions;
+      return await IAP.getSubscriptions(subscriptionIds);
     } catch (error) {
       if (__DEV__) console.error('Error getting subscriptions:', error);
       throw error;

@@ -23,13 +23,11 @@ describe('Network Failure Scenarios', () => {
   });
 
   it('can recover after temporary network failure', async () => {
-    global.fetch
-      .mockRejectedValueOnce(new Error('Network request failed'))
-      .mockResolvedValueOnce({
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve({ success: true, data: { ok: true } }),
-      });
+    global.fetch.mockRejectedValueOnce(new Error('Network request failed')).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({ success: true, data: { ok: true } }),
+    });
 
     await expect(api.get('/api/recover', { retry: false })).rejects.toThrow();
 

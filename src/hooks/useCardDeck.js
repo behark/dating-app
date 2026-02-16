@@ -47,25 +47,26 @@ export const useCardDeck = ({
   /**
    * Add new cards to the deck
    */
-  const addCards = useCallback((newCards) => {
-    setCards(prevCards => {
-      // Avoid duplicates
-      const existingIds = new Set(prevCards.map(card => card.id || card._id));
-      const filteredNewCards = newCards.filter(card =>
-        !existingIds.has(card.id || card._id)
-      );
+  const addCards = useCallback(
+    (newCards) => {
+      setCards((prevCards) => {
+        // Avoid duplicates
+        const existingIds = new Set(prevCards.map((card) => card.id || card._id));
+        const filteredNewCards = newCards.filter((card) => !existingIds.has(card.id || card._id));
 
-      const updatedCards = [...prevCards, ...filteredNewCards];
+        const updatedCards = [...prevCards, ...filteredNewCards];
 
-      // Limit memory usage by keeping only recent cards
-      if (updatedCards.length > maxCardsInMemory) {
-        const keepFromIndex = Math.max(0, currentIndex - 5);
-        return updatedCards.slice(keepFromIndex);
-      }
+        // Limit memory usage by keeping only recent cards
+        if (updatedCards.length > maxCardsInMemory) {
+          const keepFromIndex = Math.max(0, currentIndex - 5);
+          return updatedCards.slice(keepFromIndex);
+        }
 
-      return updatedCards;
-    });
-  }, [currentIndex, maxCardsInMemory]);
+        return updatedCards;
+      });
+    },
+    [currentIndex, maxCardsInMemory]
+  );
 
   /**
    * Move to next card
@@ -81,7 +82,7 @@ export const useCardDeck = ({
       processedCardsRef.current.add(card.id || card._id);
     }
 
-    setCurrentIndex(prev => prev + 1);
+    setCurrentIndex((prev) => prev + 1);
     return true;
   }, [cards, currentIndex, onCardsExhausted]);
 
@@ -91,19 +92,22 @@ export const useCardDeck = ({
   const previous = useCallback(() => {
     if (currentIndex <= 0) return false;
 
-    setCurrentIndex(prev => prev - 1);
+    setCurrentIndex((prev) => prev - 1);
     return true;
   }, [currentIndex]);
 
   /**
    * Jump to specific card index
    */
-  const jumpTo = useCallback((index) => {
-    if (index < 0 || index >= cards.length) return false;
+  const jumpTo = useCallback(
+    (index) => {
+      if (index < 0 || index >= cards.length) return false;
 
-    setCurrentIndex(index);
-    return true;
-  }, [cards.length]);
+      setCurrentIndex(index);
+      return true;
+    },
+    [cards.length]
+  );
 
   /**
    * Reset deck to beginning
@@ -117,7 +121,7 @@ export const useCardDeck = ({
    * Shuffle remaining cards
    */
   const shuffle = useCallback(() => {
-    setCards(prevCards => {
+    setCards((prevCards) => {
       const remaining = prevCards.slice(currentIndex);
       const processed = prevCards.slice(0, currentIndex);
 
@@ -134,18 +138,21 @@ export const useCardDeck = ({
   /**
    * Remove specific card from deck
    */
-  const removeCard = useCallback((cardId) => {
-    setCards(prevCards => {
-      const filtered = prevCards.filter(card => (card.id || card._id) !== cardId);
+  const removeCard = useCallback(
+    (cardId) => {
+      setCards((prevCards) => {
+        const filtered = prevCards.filter((card) => (card.id || card._id) !== cardId);
 
-      // Adjust current index if necessary
-      if (currentIndex >= filtered.length && filtered.length > 0) {
-        setCurrentIndex(filtered.length - 1);
-      }
+        // Adjust current index if necessary
+        if (currentIndex >= filtered.length && filtered.length > 0) {
+          setCurrentIndex(filtered.length - 1);
+        }
 
-      return filtered;
-    });
-  }, [currentIndex]);
+        return filtered;
+      });
+    },
+    [currentIndex]
+  );
 
   /**
    * Get deck statistics

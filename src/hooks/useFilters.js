@@ -37,9 +37,10 @@ export const useFilters = ({
    */
   const resetFilters = useCallback(() => {
     const defaultFilters = Object.keys(defaultFilterOptions).reduce((acc, key) => {
-      acc[key] = defaultFilterOptions[key].default !== undefined
-        ? defaultFilterOptions[key].default
-        : defaultFilterOptions[key];
+      acc[key] =
+        defaultFilterOptions[key].default !== undefined
+          ? defaultFilterOptions[key].default
+          : defaultFilterOptions[key];
       return acc;
     }, {});
 
@@ -61,35 +62,44 @@ export const useFilters = ({
   /**
    * Update a specific filter
    */
-  const updateFilter = useCallback((key, value) => {
-    setFilters(prev => {
-      const newFilters = { ...prev, [key]: value };
-      onFiltersChange?.(newFilters);
-      return newFilters;
-    });
-  }, [onFiltersChange]);
+  const updateFilter = useCallback(
+    (key, value) => {
+      setFilters((prev) => {
+        const newFilters = { ...prev, [key]: value };
+        onFiltersChange?.(newFilters);
+        return newFilters;
+      });
+    },
+    [onFiltersChange]
+  );
 
   /**
    * Update multiple filters at once
    */
-  const updateFilters = useCallback((newFilters) => {
-    setFilters(prev => {
-      const updated = { ...prev, ...newFilters };
-      onFiltersChange?.(updated);
-      return updated;
-    });
-  }, [onFiltersChange]);
+  const updateFilters = useCallback(
+    (newFilters) => {
+      setFilters((prev) => {
+        const updated = { ...prev, ...newFilters };
+        onFiltersChange?.(updated);
+        return updated;
+      });
+    },
+    [onFiltersChange]
+  );
 
   /**
    * Toggle a boolean filter
    */
-  const toggleFilter = useCallback((key) => {
-    setFilters(prev => {
-      const newFilters = { ...prev, [key]: !prev[key] };
-      onFiltersChange?.(newFilters);
-      return newFilters;
-    });
-  }, [onFiltersChange]);
+  const toggleFilter = useCallback(
+    (key) => {
+      setFilters((prev) => {
+        const newFilters = { ...prev, [key]: !prev[key] };
+        onFiltersChange?.(newFilters);
+        return newFilters;
+      });
+    },
+    [onFiltersChange]
+  );
 
   /**
    * Set sort option
@@ -118,83 +128,92 @@ export const useFilters = ({
   /**
    * Apply filters to a dataset
    */
-  const applyFilters = useCallback((data) => {
-    if (!Array.isArray(data)) return [];
+  const applyFilters = useCallback(
+    (data) => {
+      if (!Array.isArray(data)) return [];
 
-    return data.filter(item => {
-      // Distance filter
-      if (filters.distance && item.distance !== undefined) {
-        const [min, max] = filters.distance;
-        if (item.distance < min || item.distance > max) return false;
-      }
+      return data.filter((item) => {
+        // Distance filter
+        if (filters.distance && item.distance !== undefined) {
+          const [min, max] = filters.distance;
+          if (item.distance < min || item.distance > max) return false;
+        }
 
-      // Age range filter
-      if (filters.ageRange && item.age !== undefined) {
-        const [minAge, maxAge] = filters.ageRange;
-        if (item.age < minAge || item.age > maxAge) return false;
-      }
+        // Age range filter
+        if (filters.ageRange && item.age !== undefined) {
+          const [minAge, maxAge] = filters.ageRange;
+          if (item.age < minAge || item.age > maxAge) return false;
+        }
 
-      // Interests filter
-      if (filters.interests && filters.interests.length > 0 && item.interests) {
-        const itemInterests = Array.isArray(item.interests) ? item.interests : [];
-        const hasMatchingInterest = filters.interests.some(filterInterest =>
-          itemInterests.some(itemInterest =>
-            itemInterest.toLowerCase().includes(filterInterest.toLowerCase())
-          )
-        );
-        if (!hasMatchingInterest) return false;
-      }
+        // Interests filter
+        if (filters.interests && filters.interests.length > 0 && item.interests) {
+          const itemInterests = Array.isArray(item.interests) ? item.interests : [];
+          const hasMatchingInterest = filters.interests.some((filterInterest) =>
+            itemInterests.some((itemInterest) =>
+              itemInterest.toLowerCase().includes(filterInterest.toLowerCase())
+            )
+          );
+          if (!hasMatchingInterest) return false;
+        }
 
-      // Online only filter
-      if (filters.onlineOnly && !item.isOnline) return false;
+        // Online only filter
+        if (filters.onlineOnly && !item.isOnline) return false;
 
-      // Photo verified only filter
-      if (filters.photoVerifiedOnly && !item.isPhotoVerified) return false;
+        // Photo verified only filter
+        if (filters.photoVerifiedOnly && !item.isPhotoVerified) return false;
 
-      // Premium only filter
-      if (filters.premiumOnly && !item.isPremium) return false;
+        // Premium only filter
+        if (filters.premiumOnly && !item.isPremium) return false;
 
-      // Verified location filter
-      if (filters.verifiedLocation && !item.hasVerifiedLocation) return false;
+        // Verified location filter
+        if (filters.verifiedLocation && !item.hasVerifiedLocation) return false;
 
-      return true;
-    });
-  }, [filters]);
+        return true;
+      });
+    },
+    [filters]
+  );
 
   /**
    * Apply sorting to a dataset
    */
-  const applySorting = useCallback((data) => {
-    if (!Array.isArray(data)) return [];
+  const applySorting = useCallback(
+    (data) => {
+      if (!Array.isArray(data)) return [];
 
-    return [...data].sort((a, b) => {
-      let aValue = a[sortBy];
-      let bValue = b[sortBy];
+      return [...data].sort((a, b) => {
+        let aValue = a[sortBy];
+        let bValue = b[sortBy];
 
-      // Handle undefined values
-      if (aValue === undefined && bValue === undefined) return 0;
-      if (aValue === undefined) return sortOrder === 'asc' ? 1 : -1;
-      if (bValue === undefined) return sortOrder === 'asc' ? -1 : 1;
+        // Handle undefined values
+        if (aValue === undefined && bValue === undefined) return 0;
+        if (aValue === undefined) return sortOrder === 'asc' ? 1 : -1;
+        if (bValue === undefined) return sortOrder === 'asc' ? -1 : 1;
 
-      // Handle string comparison
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
+        // Handle string comparison
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
 
-      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }, [sortBy, sortOrder]);
+        if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+      });
+    },
+    [sortBy, sortOrder]
+  );
 
   /**
    * Apply both filters and sorting
    */
-  const applyFiltersAndSorting = useCallback((data) => {
-    const filtered = applyFilters(data);
-    return applySorting(filtered);
-  }, [applyFilters, applySorting]);
+  const applyFiltersAndSorting = useCallback(
+    (data) => {
+      const filtered = applyFilters(data);
+      return applySorting(filtered);
+    },
+    [applyFilters, applySorting]
+  );
 
   /**
    * Get filter summary for display

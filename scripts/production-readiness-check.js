@@ -109,14 +109,23 @@ class ProductionChecker {
       this.warn(`NODE_ENV is "${process.env.NODE_ENV}" (should be "production")`);
     }
 
-    const malformedUrlVars = ['CORS_ORIGIN', 'CORS_ORIGINS', 'SENTRY_DSN', 'FRONTEND_URL', 'MONGODB_URI'];
+    const malformedUrlVars = [
+      'CORS_ORIGIN',
+      'CORS_ORIGINS',
+      'SENTRY_DSN',
+      'FRONTEND_URL',
+      'MONGODB_URI',
+    ];
     malformedUrlVars.forEach((name) => {
       const value = process.env[name];
       if (!value) return;
       if (value.includes('\\n') || value.includes('\n')) {
         this.fail(`${name} contains newline characters (remove trailing \\n / line breaks)`);
       }
-      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
         this.warn(`${name} appears wrapped in quotes; prefer raw value without surrounding quotes`);
       }
     });

@@ -33,27 +33,36 @@ const LazyImage = ({
     setError(false);
   }, []);
 
-  const handleLoad = useCallback((event) => {
-    setLoading(false);
-    setError(false);
-    onLoad?.(event);
-  }, [onLoad]);
+  const handleLoad = useCallback(
+    (event) => {
+      setLoading(false);
+      setError(false);
+      onLoad?.(event);
+    },
+    [onLoad]
+  );
 
-  const handleError = useCallback((errorEvent) => {
-    setLoading(false);
-    setError(true);
+  const handleError = useCallback(
+    (errorEvent) => {
+      setLoading(false);
+      setError(true);
 
-    // Auto-retry logic
-    if (retryAttempts < retryCount) {
-      setTimeout(() => {
-        setRetryAttempts(prev => prev + 1);
-        setLoading(true);
-        setError(false);
-      }, 1000 * (retryAttempts + 1)); // Exponential backoff
-    }
+      // Auto-retry logic
+      if (retryAttempts < retryCount) {
+        setTimeout(
+          () => {
+            setRetryAttempts((prev) => prev + 1);
+            setLoading(true);
+            setError(false);
+          },
+          1000 * (retryAttempts + 1)
+        ); // Exponential backoff
+      }
 
-    onError?.(errorEvent);
-  }, [onError, retryAttempts, retryCount]);
+      onError?.(errorEvent);
+    },
+    [onError, retryAttempts, retryCount]
+  );
 
   const handleRetry = useCallback(() => {
     setRetryAttempts(0);
@@ -75,11 +84,7 @@ const LazyImage = ({
     <View style={[styles.container, style]}>
       <Image
         source={source}
-        style={[
-          styles.image,
-          loading && styles.hidden,
-          style,
-        ]}
+        style={[styles.image, loading && styles.hidden, style]}
         resizeMode={resizeMode}
         onLoadStart={handleLoadStart}
         onLoad={handleLoad}
@@ -99,19 +104,10 @@ const LazyImage = ({
 /**
  * ProfileImage - Specialized lazy image for profile photos
  */
-export const ProfileImage = ({
-  source,
-  size = 100,
-  style,
-  ...props
-}) => (
+export const ProfileImage = ({ source, size = 100, style, ...props }) => (
   <LazyImage
     source={source}
-    style={[
-      styles.profileImage,
-      { width: size, height: size, borderRadius: size / 2 },
-      style,
-    ]}
+    style={[styles.profileImage, { width: size, height: size, borderRadius: size / 2 }, style]}
     placeholderStyle={styles.profilePlaceholder}
     resizeMode="cover"
     {...props}
@@ -121,29 +117,20 @@ export const ProfileImage = ({
 /**
  * OptimizedImage - Image with advanced caching and optimization
  */
-export const OptimizedImage = ({
-  source,
-  style,
-  enableCache = true,
-  ...props
-}) => {
+export const OptimizedImage = ({ source, style, enableCache = true, ...props }) => {
   // For Expo apps, images are automatically optimized
   // Add additional caching logic if needed
-  const optimizedSource = enableCache ? {
-    ...source,
-    headers: {
-      'Cache-Control': 'public, max-age=31536000',
-      ...source.headers,
-    },
-  } : source;
+  const optimizedSource = enableCache
+    ? {
+        ...source,
+        headers: {
+          'Cache-Control': 'public, max-age=31536000',
+          ...source.headers,
+        },
+      }
+    : source;
 
-  return (
-    <LazyImage
-      source={optimizedSource}
-      style={style}
-      {...props}
-    />
-  );
+  return <LazyImage source={optimizedSource} style={style} {...props} />;
 };
 
 const styles = StyleSheet.create({

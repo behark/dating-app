@@ -7,8 +7,8 @@ import api from '../../services/api';
 import logger from '../../utils/logger';
 import { getUserFriendlyMessage } from '../../utils/errorMessages';
 import { sanitizeString } from '../../utils/sanitize';
-import { useSocketContext } from './SocketProvider';
 import OfflineService from '../../services/OfflineService';
+import { useSocketContext } from './SocketProvider';
 import { useAuth } from './AuthProvider';
 
 const ChatContext = createContext();
@@ -38,6 +38,8 @@ export const ChatProvider = ({ children }) => {
   const conversationsRef = useRef(conversations);
   const messagesRef = useRef(messages);
   const currentMatchIdRef = useRef(currentMatchId);
+  const markAsReadRef = useRef(async () => {});
+  const loadMessagesFromStorageRef = useRef(async () => null);
 
   // Queue for messages sent during disconnection
   const messageQueueRef = useRef([]);
@@ -286,7 +288,7 @@ export const ChatProvider = ({ children }) => {
         // Try to load from cache on error
         if (page === 1) {
           const cachedMessages = await OfflineService.getCachedMessages(matchId);
-          const persistedMessages = await loadMessagesFromStorage(matchId);
+          const persistedMessages = await loadMessagesFromStorageRef.current(matchId);
 
           // Use persisted messages if available (more complete than cache)
           const fallbackMessages = persistedMessages || cachedMessages;
@@ -309,7 +311,7 @@ export const ChatProvider = ({ children }) => {
         }
       }
     },
-    [currentUser?.uid, currentUser?._id]
+    [currentUser?.uid, currentUser?._id, persistMessagesToStorage]
   );
 
   // Load messages from AsyncStorage
@@ -328,6 +330,10 @@ export const ChatProvider = ({ children }) => {
     }
   }, []);
 
+  useEffect(() => {
+    loadMessagesFromStorageRef.current = loadMessagesFromStorage;
+  }, [loadMessagesFromStorage]);
+
   // Join a chat room
   const joinRoom = useCallback(
     async (matchId) => {
@@ -343,7 +349,7 @@ export const ChatProvider = ({ children }) => {
       if (socket && isConnected && matchId) {
         socket.emit('join_room', matchId);
         // Mark messages as read
-        markAsRead(matchId);
+        markAsReadRef.current(matchId);
       }
 
       // Also load from API to get latest
@@ -434,6 +440,10 @@ export const ChatProvider = ({ children }) => {
     },
     [currentUser?.uid, currentUser?._id, conversations]
   );
+
+  useEffect(() => {
+    markAsReadRef.current = markAsRead;
+  }, [markAsRead]);
 
   // Typing indicators
   const startTyping = useCallback(() => {

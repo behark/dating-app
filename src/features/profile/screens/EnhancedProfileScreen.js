@@ -20,10 +20,7 @@ import logger from '../../../utils/logger';
 import InteractivePhotoGallery from '../components/InteractivePhotoGallery';
 import ProfileCompletionProgress from '../components/ProfileCompletionProgress';
 import ProfileVideoIntroduction from '../components/ProfileVideoIntroduction';
-import {
-  VerificationBadgeGroup,
-  VerificationStatus,
-} from '../components/VerificationBadge';
+import { VerificationBadgeGroup, VerificationStatus } from '../components/VerificationBadge';
 
 // Gamification Components
 import { AchievementShowcase } from '../../../components/Gamification/AchievementBadgeAnimated';

@@ -1,4 +1,4 @@
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useOffline } from '../useOffline';
 import { OfflineService } from '../../services/OfflineService';
 

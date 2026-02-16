@@ -40,11 +40,7 @@ const ActionButtons = ({
   return (
     <View style={styles.actionButtonsContainer}>
       {lastSwipedCard && (
-        <TouchableOpacity
-          style={styles.undoButton}
-          onPress={onUndo}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={styles.undoButton} onPress={onUndo} activeOpacity={0.8}>
           <Ionicons name="arrow-undo" size={24} color={Colors.primary} />
         </TouchableOpacity>
       )}
@@ -60,20 +56,13 @@ const ActionButtons = ({
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[
-          styles.superLikeButton,
-          !canSuperLike && styles.disabledButton,
-        ]}
+        style={[styles.superLikeButton, !canSuperLike && styles.disabledButton]}
         onPress={handleSuperLikePress}
         activeOpacity={0.8}
         disabled={!canSuperLike}
       >
         <LinearGradient
-          colors={
-            canSuperLike
-              ? Colors.gradient.teal
-              : Colors.gradient.disabled
-          }
+          colors={canSuperLike ? Colors.gradient.teal : Colors.gradient.disabled}
           style={styles.actionButtonCircle}
         >
           <Ionicons name="star" size={28} color={Colors.background.white} />

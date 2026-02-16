@@ -8,86 +8,85 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const getLoginPromptMessage = (reason, viewCount) => {
   switch (reason) {
     case 'swipe':
-      return { title: '💕 Ready to Match?', subtitle: 'Create a free account to start swiping and find your match!' };
+      return {
+        title: '💕 Ready to Match?',
+        subtitle: 'Create a free account to start swiping and find your match!',
+      };
     case 'like':
-      return { title: '❤️ Like This Person?', subtitle: 'Sign up to let them know you\'re interested!' };
+      return {
+        title: '❤️ Like This Person?',
+        subtitle: "Sign up to let them know you're interested!",
+      };
     case 'superlike':
-      return { title: '⭐ Super Like?', subtitle: 'Create an account to send Super Likes and stand out!' };
+      return {
+        title: '⭐ Super Like?',
+        subtitle: 'Create an account to send Super Likes and stand out!',
+      };
     case 'view':
-      return { title: '👀 Want to See More?', subtitle: 'Sign up to view full profiles and photos!' };
+      return {
+        title: '👀 Want to See More?',
+        subtitle: 'Sign up to view full profiles and photos!',
+      };
     case 'limit':
-      return { 
-        title: '🔥 You\'re on Fire!', 
-        subtitle: `You've viewed ${viewCount} profiles! Sign up free to see unlimited matches.` 
+      return {
+        title: "🔥 You're on Fire!",
+        subtitle: `You've viewed ${viewCount} profiles! Sign up free to see unlimited matches.`,
       };
     case 'banner':
-      return { 
-        title: '💕 Ready to Match?', 
-        subtitle: 'Join thousands of singles and start your dating journey today!' 
+      return {
+        title: '💕 Ready to Match?',
+        subtitle: 'Join thousands of singles and start your dating journey today!',
       };
     default:
-      return { 
-        title: 'Join Our Community!', 
-        subtitle: 'Create a free account to unlock all features and start matching!' 
+      return {
+        title: 'Join Our Community!',
+        subtitle: 'Create a free account to unlock all features and start matching!',
       };
   }
 };
 
-const LoginPromptModal = memo(({
-  visible,
-  reason,
-  viewCount,
-  onClose,
-  onLogin,
-  onRegister,
-  theme,
-}) => {
-  const message = getLoginPromptMessage(reason, viewCount);
+const LoginPromptModal = memo(
+  ({ visible, reason, viewCount, onClose, onLogin, onRegister, theme }) => {
+    const message = getLoginPromptMessage(reason, viewCount);
 
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <View style={styles.overlay}>
-        <View style={[styles.container, { backgroundColor: theme?.cardBackground || '#fff' }]}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={24} color={theme?.text || '#333'} />
-          </TouchableOpacity>
-          
-          <Text style={[styles.title, { color: theme?.text || '#333' }]}>
-            {message.title}
-          </Text>
-          <Text style={[styles.subtitle, { color: theme?.textSecondary || '#666' }]}>
-            {message.subtitle}
-          </Text>
+    return (
+      <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+        <View style={styles.overlay}>
+          <View style={[styles.container, { backgroundColor: theme?.cardBackground || '#fff' }]}>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Ionicons name="close" size={24} color={theme?.text || '#333'} />
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={onRegister}>
-            <LinearGradient
-              colors={['#FF6B6B', '#FF8E53']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.primaryButton}
-            >
-              <Text style={styles.primaryButtonText}>Create Free Account</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.secondaryButton, { borderColor: theme?.border || '#ddd' }]} 
-            onPress={onLogin}
-          >
-            <Text style={[styles.secondaryButtonText, { color: theme?.text || '#333' }]}>
-              I Already Have an Account
+            <Text style={[styles.title, { color: theme?.text || '#333' }]}>{message.title}</Text>
+            <Text style={[styles.subtitle, { color: theme?.textSecondary || '#666' }]}>
+              {message.subtitle}
             </Text>
-          </TouchableOpacity>
+
+            <TouchableOpacity onPress={onRegister}>
+              <LinearGradient
+                colors={['#FF6B6B', '#FF8E53']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.primaryButton}
+              >
+                <Text style={styles.primaryButtonText}>Create Free Account</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.secondaryButton, { borderColor: theme?.border || '#ddd' }]}
+              onPress={onLogin}
+            >
+              <Text style={[styles.secondaryButtonText, { color: theme?.text || '#333' }]}>
+                I Already Have an Account
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </Modal>
-  );
-});
+      </Modal>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   overlay: {

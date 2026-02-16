@@ -216,14 +216,17 @@ class EnvValidator {
 
     if (
       typeof value === 'string' &&
-      ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'")))
+      ((value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'")))
     ) {
       this.warn(`${varDef.name}: Value appears wrapped in quotes`);
     }
 
     // Check minimum length
     if (varDef.minLength && normalizedValue.length < varDef.minLength) {
-      this.fail(`${varDef.name}: Too short (${normalizedValue.length} chars, need ${varDef.minLength})`);
+      this.fail(
+        `${varDef.name}: Too short (${normalizedValue.length} chars, need ${varDef.minLength})`
+      );
       return false;
     }
 

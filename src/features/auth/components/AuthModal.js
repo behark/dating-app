@@ -15,14 +15,7 @@ import { Colors } from '../../../constants/colors';
  * @param {React.Component} props.children - Content to display in the modal
  * @param {Object} props.style - Additional styling for the modal container
  */
-const AuthModal = ({
-  visible,
-  onClose,
-  title,
-  subtitle,
-  children,
-  style,
-}) => (
+const AuthModal = ({ visible, onClose, title, subtitle, children, style }) => (
   <Modal
     visible={visible}
     animationType="slide"
@@ -42,9 +35,7 @@ const AuthModal = ({
         {title && <Text style={styles.title}>{title}</Text>}
         {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
       </View>
-      <View style={styles.content}>
-        {children}
-      </View>
+      <View style={styles.content}>{children}</View>
     </SafeAreaView>
   </Modal>
 );

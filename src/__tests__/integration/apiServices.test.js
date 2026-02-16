@@ -71,7 +71,9 @@ describe('API Services Integration Tests', () => {
     global.fetch.mockResolvedValue({
       ok: true,
       status: 200,
-      json: jest.fn().mockResolvedValue({ success: true, data: { isPremium: false, features: {} } }),
+      json: jest
+        .fn()
+        .mockResolvedValue({ success: true, data: { isPremium: false, features: {} } }),
     });
 
     const valid = await PremiumService.checkPremiumStatus('507f1f77bcf86cd799439011', 'token');
@@ -82,7 +84,11 @@ describe('API Services Integration Tests', () => {
   });
 
   it('returns structured error for invalid premium upgrade plan', async () => {
-    const result = await PremiumService.upgradeToPremium('507f1f77bcf86cd799439011', 'invalid', 'token');
+    const result = await PremiumService.upgradeToPremium(
+      '507f1f77bcf86cd799439011',
+      'invalid',
+      'token'
+    );
 
     expect(result.success).toBe(false);
     expect(result.error).toContain('Plan type must be monthly or yearly');

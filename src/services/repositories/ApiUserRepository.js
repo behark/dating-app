@@ -123,7 +123,7 @@ export class ApiUserRepository extends UserRepository {
       // Build query params - lat and lng are required by backend
       // If not provided, use NYC as default (where many demo profiles are) instead of (0,0)
       const finalLat = lat || 40.7128; // New York City
-      const finalLng = lng || -74.0060;
+      const finalLng = lng || -74.006;
 
       if (!lat || !lng) {
         logger.warn(

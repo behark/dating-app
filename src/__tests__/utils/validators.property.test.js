@@ -400,9 +400,12 @@ describe('Validators - Property-Based Tests', () => {
   describe('validateNotEmpty - Property Tests', () => {
     it('should return true for non-empty strings', () => {
       fc.assert(
-        fc.property(fc.string({ minLength: 1 }).filter((str) => str.trim().length > 0), (str) => {
-          return validateNotEmpty(str) === true;
-        }),
+        fc.property(
+          fc.string({ minLength: 1 }).filter((str) => str.trim().length > 0),
+          (str) => {
+            return validateNotEmpty(str) === true;
+          }
+        ),
         { numRuns: 200, timeout: DEFAULT_TIMEOUT }
       );
     });

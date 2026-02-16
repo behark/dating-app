@@ -60,9 +60,7 @@ export const useLocation = (options = {}) => {
       }
 
       const locationOptions = {
-        accuracy: enableHighAccuracy
-          ? Location.Accuracy.High
-          : Location.Accuracy.Balanced,
+        accuracy: enableHighAccuracy ? Location.Accuracy.High : Location.Accuracy.Balanced,
         timeout,
         maximumAge,
       };

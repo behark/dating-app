@@ -6,7 +6,7 @@ import logger from '../../utils/logger';
 /**
  * Deep Link Handler
  * Handles deep linking navigation for the app
- * 
+ *
  * Supported URL schemes:
  * - dating-app://profile/:userId
  * - dating-app://chat/:matchId
@@ -124,7 +124,7 @@ export const useDeepLinking = (navigationRef) => {
 
       if (route) {
         logger.debug('Navigating to:', route.screen, route.params);
-        
+
         // Navigate to the parsed route using NavigationContainer ref
         try {
           if (navigationRef.current) {
@@ -173,7 +173,7 @@ export const useDeepLinking = (navigationRef) => {
  */
 export const createDeepLink = (screen, params = {}) => {
   const baseUrl = 'dating-app://';
-  
+
   // Map screen names to URL paths
   const screenPaths = {
     ViewProfile: 'profile',
@@ -185,10 +185,10 @@ export const createDeepLink = (screen, params = {}) => {
   };
 
   const path = screenPaths[screen] || screen.toLowerCase();
-  
+
   // Build URL with parameters
   let url = `${baseUrl}${path}`;
-  
+
   // Add ID parameter if present
   if (params.userId) {
     url += `/${params.userId}`;

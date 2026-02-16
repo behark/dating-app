@@ -92,7 +92,7 @@ export const estimateMemoryUsage = {
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   },
 };
 
@@ -167,7 +167,7 @@ export const imageOptimizations = {
    * Generate responsive image URLs
    */
   generateResponsiveUrls: (baseUrl, sizes = [320, 640, 1024]) => {
-    return sizes.map(size => ({
+    return sizes.map((size) => ({
       uri: `${baseUrl}?w=${size}&fit=crop&auto=format`,
       width: size,
     }));
@@ -200,7 +200,7 @@ export const throttle = (func, limit) => {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
+      setTimeout(() => (inThrottle = false), limit);
     }
   };
 };
@@ -232,7 +232,9 @@ export const memoryWarnings = {
     const threshold = 50 * 1024 * 1024; // 50MB threshold
 
     if (estimatedMemory > threshold) {
-      console.warn(`High memory usage detected: ${estimateMemoryUsage.formatBytes(estimatedMemory)} for ${itemCount} ${itemType}`);
+      console.warn(
+        `High memory usage detected: ${estimateMemoryUsage.formatBytes(estimatedMemory)} for ${itemCount} ${itemType}`
+      );
       return true;
     }
 

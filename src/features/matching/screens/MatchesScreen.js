@@ -428,8 +428,10 @@ const MatchesScreen = () => {
           description="Don't worry, your perfect match is out there! Start swiping to find them and make meaningful connections."
           buttonText="Start Swiping 🔥"
           onButtonPress={() => navigation.navigate('Discover')}
-          secondaryButtonText={isPremium ? "View Likes" : "Get Premium"}
-          onSecondaryButtonPress={() => isPremium ? setShowLikes(true) : navigation.navigate('Premium')}
+          secondaryButtonText={isPremium ? 'View Likes' : 'Get Premium'}
+          onSecondaryButtonPress={() =>
+            isPremium ? setShowLikes(true) : navigation.navigate('Premium')
+          }
           variant="gradient"
           iconSize={80}
         />

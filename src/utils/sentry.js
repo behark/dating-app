@@ -1,7 +1,7 @@
 /**
-* Sentry Error Tracking Setup
-* Initialize Sentry for React Native/Expo (native) and React (web)
-*/
+ * Sentry Error Tracking Setup
+ * Initialize Sentry for React Native/Expo (native) and React (web)
+ */
 
 import { Platform } from 'react-native';
 

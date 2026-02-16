@@ -322,14 +322,11 @@ const ExploreScreen = ({ navigation }) => {
       ) : (
         <View style={styles.emptyContainer}>
           <Ionicons name="person-outline" size={64} color={Colors.text.light} />
-          <Text style={styles.emptyText}>
-            {isGuest ? 'Sign in to explore' : 'No users found'}
-          </Text>
+          <Text style={styles.emptyText}>{isGuest ? 'Sign in to explore' : 'No users found'}</Text>
           <Text style={styles.emptySubText}>
             {isGuest
               ? 'Create an account to discover and connect with amazing people!'
-              : 'Try adjusting your filters'
-            }
+              : 'Try adjusting your filters'}
           </Text>
           {isGuest && (
             <TouchableOpacity

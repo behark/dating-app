@@ -852,7 +852,10 @@ export class SafetyService {
       });
 
       if (!response.success) {
-        logger.error('Error creating notification', new Error(response.message), { userId, type: notificationData.type });
+        logger.error('Error creating notification', new Error(response.message), {
+          userId,
+          type: notificationData.type,
+        });
         return false;
       }
 

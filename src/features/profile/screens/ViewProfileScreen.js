@@ -26,7 +26,7 @@ const ViewProfileScreen = ({ route, navigation }) => {
   useEffect(() => {
     if (!userId) {
       Alert.alert('Error', 'Profile not found', [
-        { text: 'Go Back', onPress: () => navigation.goBack() }
+        { text: 'Go Back', onPress: () => navigation.goBack() },
       ]);
       return;
     }

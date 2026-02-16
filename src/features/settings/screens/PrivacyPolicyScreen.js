@@ -111,7 +111,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>8. Children's Privacy</Text>
+            <Text style={styles.sectionTitle}>8. Children&apos;s Privacy</Text>
             <Text style={styles.sectionText}>
               Our service is not intended for users under 18 years of age. We do not knowingly
               collect personal information from children under 18.
@@ -122,7 +122,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <Text style={styles.sectionTitle}>9. Changes to This Policy</Text>
             <Text style={styles.sectionText}>
               We may update this Privacy Policy from time to time. We will notify you of any changes
-              by posting the new Privacy Policy on this page and updating the "Last Updated" date.
+              by posting the new Privacy Policy on this page and updating the Last Updated date.
             </Text>
           </View>
 

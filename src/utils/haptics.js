@@ -1,6 +1,6 @@
 /**
  * Haptic Feedback Utility
- * 
+ *
  * Provides consistent haptic feedback across the app.
  * Uses expo-haptics for iOS and Android support.
  */
@@ -12,13 +12,8 @@ import logger from './logger';
  * Check if haptics are available on this device
  */
 const isHapticsAvailable = async () => {
-  try {
-    // Expo Haptics is available on iOS and Android
-    return true;
-  } catch (error) {
-    logger.warn('Haptics not available on this device');
-    return false;
-  }
+  // Expo Haptics is available on supported native platforms.
+  return true;
 };
 
 /**
@@ -114,9 +109,9 @@ export const matchCelebration = async () => {
   try {
     // Triple burst for celebration
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   } catch (error) {
     logger.debug('Match celebration haptic failed:', error);

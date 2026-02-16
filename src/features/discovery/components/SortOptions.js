@@ -8,25 +8,19 @@ const SortOption = ({ label, value, isActive, onPress }) => (
     onPress={() => onPress(value)}
     activeOpacity={0.7}
   >
-    <Text style={[styles.sortOptionText, isActive && styles.sortOptionTextActive]}>
-      {label}
-    </Text>
+    <Text style={[styles.sortOptionText, isActive && styles.sortOptionTextActive]}>{label}</Text>
   </TouchableOpacity>
 );
 
-const SortOptions = ({
-  options = [],
-  activeValue,
-  onValueChange,
-  style,
-  horizontal = true,
-}) => {
+const SortOptions = ({ options = [], activeValue, onValueChange, style, horizontal = true }) => {
   const Container = horizontal ? ScrollView : View;
-  const containerProps = horizontal ? {
-    horizontal: true,
-    showsHorizontalScrollIndicator: false,
-    contentContainerStyle: styles.horizontalContainer,
-  } : {};
+  const containerProps = horizontal
+    ? {
+        horizontal: true,
+        showsHorizontalScrollIndicator: false,
+        contentContainerStyle: styles.horizontalContainer,
+      }
+    : {};
 
   return (
     <Container style={[styles.container, style]} {...containerProps}>

@@ -113,8 +113,9 @@ const TermsOfServiceScreen = ({ navigation }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>8. Disclaimers</Text>
             <Text style={styles.sectionText}>
-              The service is provided &ldquo;as is&rdquo; without warranties of any kind. We do not guarantee
-              that you will find matches or that the service will be uninterrupted or error-free.
+              The service is provided &ldquo;as is&rdquo; without warranties of any kind. We do not
+              guarantee that you will find matches or that the service will be uninterrupted or
+              error-free.
             </Text>
           </View>
 

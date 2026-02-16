@@ -159,7 +159,7 @@ const api = {
       logger.debug('Attempting to refresh auth token...', {
         apiUrl: API_URL,
         refreshUrl,
-        hasRefreshToken: !!refreshToken
+        hasRefreshToken: !!refreshToken,
       });
 
       let response;
@@ -180,7 +180,9 @@ const api = {
           stack: fetchError.stack,
         });
         // Re-throw to be handled by outer catch
-        throw new Error(`Failed to connect to backend: ${fetchError.message}. Check API_URL: ${API_URL}`);
+        throw new Error(
+          `Failed to connect to backend: ${fetchError.message}. Check API_URL: ${API_URL}`
+        );
       }
 
       if (!response.ok) {

@@ -3,11 +3,7 @@ import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { Colors } from '../../../constants/colors';
 
-const GuestModeBanner = ({
-  guestViewCount,
-  GUEST_FREE_VIEWS,
-  onSignUpPress
-}) => {
+const GuestModeBanner = ({ guestViewCount, GUEST_FREE_VIEWS, onSignUpPress }) => {
   const hasReachedLimit = guestViewCount >= GUEST_FREE_VIEWS;
 
   return (
@@ -15,9 +11,7 @@ const GuestModeBanner = ({
       <View style={styles.guestBannerContent}>
         <Ionicons name="eye-outline" size={18} color={Colors.primary} />
         <Text style={styles.guestBannerText}>
-          {hasReachedLimit
-            ? '🔥 Last chance!'
-            : 'Browsing as Guest'}
+          {hasReachedLimit ? '🔥 Last chance!' : 'Browsing as Guest'}
         </Text>
         {!hasReachedLimit && (
           <Text style={styles.guestBannerCount}>
@@ -26,10 +20,7 @@ const GuestModeBanner = ({
         )}
       </View>
       <TouchableOpacity
-        style={[
-          styles.guestSignUpButton,
-          hasReachedLimit && styles.guestSignUpButtonUrgent
-        ]}
+        style={[styles.guestSignUpButton, hasReachedLimit && styles.guestSignUpButtonUrgent]}
         onPress={onSignUpPress}
         activeOpacity={0.8}
       >

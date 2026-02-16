@@ -34,134 +34,157 @@ export const SocketProvider = ({ children }) => {
   const socketRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const eventListenersRef = useRef(new Map());
+  const heartbeatIntervalRef = useRef(null);
+
+  /**
+   * Heartbeat mechanism to keep connection alive
+   */
+  const startHeartbeat = useCallback((socketInstance) => {
+    // Send heartbeat every 20 seconds
+    heartbeatIntervalRef.current = setInterval(() => {
+      if (socketInstance?.connected) {
+        socketInstance.emit('heartbeat');
+      }
+    }, 20000);
+  }, []);
+
+  const stopHeartbeat = useCallback(() => {
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+  }, []);
 
   /**
    * Initialize socket connection with authentication
    */
-  const connect = useCallback(async (userId) => {
-    try {
-      // Don't reconnect if already connected
-      if (socketRef.current?.connected) {
-        logger.debug('[Socket] Already connected');
-        return socketRef.current;
-      }
-
-      // Clean up existing connection if any
-      if (socketRef.current) {
-        // Remove specific listeners we tracked to avoid leaks across reconnects
-        if (eventListenersRef.current.size > 0) {
-          eventListenersRef.current.forEach((handlers, event) => {
-            handlers.forEach((handler) => {
-              socketRef.current.off(event, handler);
-            });
-          });
-          eventListenersRef.current.clear();
+  const connect = useCallback(
+    async (userId) => {
+      try {
+        // Don't reconnect if already connected
+        if (socketRef.current?.connected) {
+          logger.debug('[Socket] Already connected');
+          return socketRef.current;
         }
-        socketRef.current.removeAllListeners();
-        socketRef.current.disconnect();
-      }
 
-      setConnectionState(SOCKET_STATES.CONNECTING);
-      setError(null);
+        // Clean up existing connection if any
+        if (socketRef.current) {
+          // Remove specific listeners we tracked to avoid leaks across reconnects
+          if (eventListenersRef.current.size > 0) {
+            eventListenersRef.current.forEach((handlers, event) => {
+              handlers.forEach((handler) => {
+                socketRef.current.off(event, handler);
+              });
+            });
+            eventListenersRef.current.clear();
+          }
+          socketRef.current.removeAllListeners();
+          socketRef.current.disconnect();
+        }
 
-      // Get authentication token
-      const token = await AsyncStorage.getItem('authToken');
+        setConnectionState(SOCKET_STATES.CONNECTING);
+        setError(null);
 
-      if (!token && !userId) {
-        logger.warn('[Socket] No authentication token or userId available');
-        setConnectionState(SOCKET_STATES.DISCONNECTED);
+        // Get authentication token
+        const token = await AsyncStorage.getItem('authToken');
+
+        if (!token && !userId) {
+          logger.warn('[Socket] No authentication token or userId available');
+          setConnectionState(SOCKET_STATES.DISCONNECTED);
+          return null;
+        }
+
+        logger.debug('[Socket] Connecting to:', SOCKET_URL);
+
+        // Create socket connection
+        const newSocket = io(SOCKET_URL, {
+          transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          reconnectionAttempts: 5,
+          timeout: 20000,
+          auth: {
+            token,
+            userId,
+          },
+        });
+
+        // Connection event handlers
+        newSocket.on('connect', () => {
+          logger.info('[Socket] Connected successfully', { socketId: newSocket.id });
+          setIsConnected(true);
+          setConnectionState(SOCKET_STATES.CONNECTED);
+          setError(null);
+
+          // Start heartbeat
+          startHeartbeat(newSocket);
+        });
+
+        newSocket.on('disconnect', (reason) => {
+          logger.info('[Socket] Disconnected:', reason);
+          setIsConnected(false);
+          setConnectionState(SOCKET_STATES.DISCONNECTED);
+
+          // Stop heartbeat
+          stopHeartbeat();
+
+          // Attempt reconnection for certain reasons
+          if (reason === 'io server disconnect') {
+            // Server disconnected, manually reconnect
+            newSocket.connect();
+          }
+        });
+
+        newSocket.on('connect_error', (err) => {
+          logger.error('[Socket] Connection error:', err.message);
+          setError(err.message);
+          setConnectionState(SOCKET_STATES.ERROR);
+          setIsConnected(false);
+        });
+
+        newSocket.on('reconnect', (attemptNumber) => {
+          logger.info('[Socket] Reconnected after', attemptNumber, 'attempts');
+          setIsConnected(true);
+          setConnectionState(SOCKET_STATES.CONNECTED);
+          setError(null);
+        });
+
+        newSocket.on('reconnect_attempt', (attemptNumber) => {
+          logger.debug('[Socket] Reconnection attempt:', attemptNumber);
+          setConnectionState(SOCKET_STATES.RECONNECTING);
+        });
+
+        newSocket.on('reconnect_error', (err) => {
+          logger.error('[Socket] Reconnection error:', err.message);
+          setError(err.message);
+        });
+
+        newSocket.on('reconnect_failed', () => {
+          logger.error('[Socket] Reconnection failed - max attempts reached');
+          setError('Failed to reconnect to server');
+          setConnectionState(SOCKET_STATES.ERROR);
+        });
+
+        // Server error handler
+        newSocket.on('error', (err) => {
+          logger.error('[Socket] Server error:', err);
+          setError(err.message || 'Socket error occurred');
+        });
+
+        socketRef.current = newSocket;
+        setSocket(newSocket);
+
+        return newSocket;
+      } catch (err) {
+        logger.error('[Socket] Connection initialization error:', err);
+        setError(err.message || 'Failed to initialize socket connection');
+        setConnectionState(SOCKET_STATES.ERROR);
         return null;
       }
-
-      logger.debug('[Socket] Connecting to:', SOCKET_URL);
-
-      // Create socket connection
-      const newSocket = io(SOCKET_URL, {
-        transports: ['websocket', 'polling'],
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: 5,
-        timeout: 20000,
-        auth: {
-          token,
-          userId,
-        },
-      });
-
-      // Connection event handlers
-      newSocket.on('connect', () => {
-        logger.info('[Socket] Connected successfully', { socketId: newSocket.id });
-        setIsConnected(true);
-        setConnectionState(SOCKET_STATES.CONNECTED);
-        setError(null);
-
-        // Start heartbeat
-        startHeartbeat(newSocket);
-      });
-
-      newSocket.on('disconnect', (reason) => {
-        logger.info('[Socket] Disconnected:', reason);
-        setIsConnected(false);
-        setConnectionState(SOCKET_STATES.DISCONNECTED);
-
-        // Stop heartbeat
-        stopHeartbeat();
-
-        // Attempt reconnection for certain reasons
-        if (reason === 'io server disconnect') {
-          // Server disconnected, manually reconnect
-          newSocket.connect();
-        }
-      });
-
-      newSocket.on('connect_error', (err) => {
-        logger.error('[Socket] Connection error:', err.message);
-        setError(err.message);
-        setConnectionState(SOCKET_STATES.ERROR);
-        setIsConnected(false);
-      });
-
-      newSocket.on('reconnect', (attemptNumber) => {
-        logger.info('[Socket] Reconnected after', attemptNumber, 'attempts');
-        setIsConnected(true);
-        setConnectionState(SOCKET_STATES.CONNECTED);
-        setError(null);
-      });
-
-      newSocket.on('reconnect_attempt', (attemptNumber) => {
-        logger.debug('[Socket] Reconnection attempt:', attemptNumber);
-        setConnectionState(SOCKET_STATES.RECONNECTING);
-      });
-
-      newSocket.on('reconnect_error', (err) => {
-        logger.error('[Socket] Reconnection error:', err.message);
-        setError(err.message);
-      });
-
-      newSocket.on('reconnect_failed', () => {
-        logger.error('[Socket] Reconnection failed - max attempts reached');
-        setError('Failed to reconnect to server');
-        setConnectionState(SOCKET_STATES.ERROR);
-      });
-
-      // Server error handler
-      newSocket.on('error', (err) => {
-        logger.error('[Socket] Server error:', err);
-        setError(err.message || 'Socket error occurred');
-      });
-
-      socketRef.current = newSocket;
-      setSocket(newSocket);
-
-      return newSocket;
-    } catch (err) {
-      logger.error('[Socket] Connection initialization error:', err);
-      setError(err.message || 'Failed to initialize socket connection');
-      setConnectionState(SOCKET_STATES.ERROR);
-      return null;
-    }
-  }, []);
+    },
+    [startHeartbeat, stopHeartbeat]
+  );
 
   /**
    * Disconnect socket
@@ -178,7 +201,7 @@ export const SocketProvider = ({ children }) => {
       setConnectionState(SOCKET_STATES.DISCONNECTED);
       eventListenersRef.current.clear();
     }
-  }, []);
+  }, [stopHeartbeat]);
 
   /**
    * Emit an event to the server
@@ -242,46 +265,28 @@ export const SocketProvider = ({ children }) => {
   }, []);
 
   /**
-   * Heartbeat mechanism to keep connection alive
-   */
-  const heartbeatIntervalRef = useRef(null);
-
-  const startHeartbeat = useCallback((socketInstance) => {
-    // Send heartbeat every 20 seconds
-    heartbeatIntervalRef.current = setInterval(() => {
-      if (socketInstance?.connected) {
-        socketInstance.emit('heartbeat');
-      }
-    }, 20000);
-  }, []);
-
-  const stopHeartbeat = useCallback(() => {
-    if (heartbeatIntervalRef.current) {
-      clearInterval(heartbeatIntervalRef.current);
-      heartbeatIntervalRef.current = null;
-    }
-  }, []);
-
-  /**
    * Cleanup on unmount
    */
   useEffect(() => {
     return () => {
       stopHeartbeat();
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
+      const reconnectTimeout = reconnectTimeoutRef.current;
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
       }
-      if (socketRef.current) {
-        if (eventListenersRef.current.size > 0) {
-          eventListenersRef.current.forEach((handlers, event) => {
+      const socketInstance = socketRef.current;
+      const trackedListeners = eventListenersRef.current;
+      if (socketInstance) {
+        if (trackedListeners.size > 0) {
+          trackedListeners.forEach((handlers, event) => {
             handlers.forEach((handler) => {
-              socketRef.current.off(event, handler);
+              socketInstance.off(event, handler);
             });
           });
-          eventListenersRef.current.clear();
+          trackedListeners.clear();
         }
-        socketRef.current.removeAllListeners();
-        socketRef.current.disconnect();
+        socketInstance.removeAllListeners();
+        socketInstance.disconnect();
       }
     };
   }, [stopHeartbeat]);

@@ -164,10 +164,16 @@ export const removeDangerousChars = (input) => {
     return input;
   }
 
+  // Keep printable chars and preserve tabs/newlines for user-entered text formatting.
+  const withoutControlChars = [...input]
+    .filter((char) => {
+      const code = char.charCodeAt(0);
+      return code === 9 || code === 10 || (code >= 32 && code !== 127);
+    })
+    .join('');
+
   // Remove null bytes, control characters (except newlines and tabs), and other dangerous patterns
-  return input
-    .replace(/\0/g, '') // Remove null bytes
-    .replace(/[\x01-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters except \n and \t
+  return withoutControlChars
     .replace(/javascript:/gi, '') // Remove javascript: protocol
     .replace(/on\w+\s*=/gi, '') // Remove event handlers like onclick=
     .trim();

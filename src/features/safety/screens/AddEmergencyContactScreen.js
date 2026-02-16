@@ -32,7 +32,7 @@ const AddEmergencyContactScreen = ({ navigation, route }) => {
     }
 
     // Basic phone validation
-    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+    const phoneRegex = /^[\d\s+()-]+$/;
     if (!phoneRegex.test(phone.trim())) {
       Alert.alert('Error', 'Please enter a valid phone number');
       return;

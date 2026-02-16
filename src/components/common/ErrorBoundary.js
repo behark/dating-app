@@ -410,9 +410,10 @@ class ErrorBoundary extends React.Component {
       if (message) errorDetails.message = message;
       if (icon) errorDetails.icon = icon;
 
-      const recoveryActions = enableCategorization && enableRecoveryActions
-        ? getRecoveryActions(errorCategory)
-        : [{ id: 'retry', label: 'Try Again', icon: 'refresh' }];
+      const recoveryActions =
+        enableCategorization && enableRecoveryActions
+          ? getRecoveryActions(errorCategory)
+          : [{ id: 'retry', label: 'Try Again', icon: 'refresh' }];
 
       const canRetry = showRetry && retryCount < maxRetries;
 
@@ -474,7 +475,10 @@ class ErrorBoundary extends React.Component {
 
       // Advanced UI mode (with gradient and animations)
       return (
-        <LinearGradient colors={[Colors.primary, Colors.primaryDark]} style={[styles.container, style]}>
+        <LinearGradient
+          colors={[Colors.primary, Colors.primaryDark]}
+          style={[styles.container, style]}
+        >
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}

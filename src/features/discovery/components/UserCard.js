@@ -5,22 +5,8 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors } from '../../../constants/colors';
 import { UniversalImage } from '../../../components/Image';
 
-const UserCard = ({
-  user,
-  cardWidth,
-  onPress,
-  showBadges = true,
-  distance,
-  style,
-}) => {
-  const {
-    name,
-    age,
-    photos,
-    isBoosted,
-    isProfileVerified,
-    _id,
-  } = user;
+const UserCard = ({ user, cardWidth, onPress, showBadges = true, distance, style }) => {
+  const { name, age, photos, isBoosted, isProfileVerified, _id } = user;
 
   return (
     <TouchableOpacity
@@ -62,10 +48,7 @@ const UserCard = ({
       )}
 
       {/* Gradient Overlay */}
-      <LinearGradient
-        colors={['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.7)']}
-        style={styles.gradient}
-      />
+      <LinearGradient colors={['rgba(0, 0, 0, 0)', 'rgba(0, 0, 0, 0.7)']} style={styles.gradient} />
 
       {/* Card Content */}
       <View style={styles.cardContent}>
@@ -98,7 +81,6 @@ const styles = StyleSheet.create({
   userImage: {
     width: '100%',
     height: '100%',
-    
   },
   placeholderImage: {
     backgroundColor: Colors.background.light,

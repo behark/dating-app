@@ -153,7 +153,7 @@ const GroupDateDetailScreen = ({ navigation, route }) => {
           {isJoined && (
             <View style={styles.joinedBadge}>
               <Ionicons name="checkmark-circle" size={24} color={Colors.status.success} />
-              <Text style={styles.joinedText}>You're going!</Text>
+              <Text style={styles.joinedText}>You&apos;re going!</Text>
             </View>
           )}
         </View>

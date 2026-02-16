@@ -11,7 +11,7 @@ import { GUEST_DEMO_PROFILES, GUEST_FREE_VIEWS } from '../data/demoProfiles';
 
 export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
   const userRepository = useMemo(() => getUserRepository(authToken), [authToken]);
-  
+
   const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -42,33 +42,36 @@ export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
     return null;
   }, []);
 
-  const loadCards = useCallback(async (location = null, guestMode = false) => {
-    setLoading(true);
-    try {
-      if (guestMode) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setCards(GUEST_DEMO_PROFILES);
-        setCurrentIndex(0);
-        return;
-      }
+  const loadCards = useCallback(
+    async (location = null, guestMode = false) => {
+      setLoading(true);
+      try {
+        if (guestMode) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          setCards(GUEST_DEMO_PROFILES);
+          setCurrentIndex(0);
+          return;
+        }
 
-      const preferences = await PreferencesService.getPreferences();
-      const profiles = await userRepository.getDiscoveryProfiles({
-        location: location?.coords || userLocation?.coords,
-        radius: discoveryRadius,
-        preferences,
-      });
-      
-      setCards(profiles || []);
-      setCurrentIndex(0);
-      AnalyticsService.logEvent('profiles_loaded', { count: profiles?.length || 0 });
-    } catch (error) {
-      logger.error('Error loading cards:', error);
-      setCards([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [userRepository, userLocation, discoveryRadius]);
+        const preferences = await PreferencesService.getPreferences();
+        const profiles = await userRepository.getDiscoveryProfiles({
+          location: location?.coords || userLocation?.coords,
+          radius: discoveryRadius,
+          preferences,
+        });
+
+        setCards(profiles || []);
+        setCurrentIndex(0);
+        AnalyticsService.logEvent('profiles_loaded', { count: profiles?.length || 0 });
+      } catch (error) {
+        logger.error('Error loading cards:', error);
+        setCards([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [userRepository, userLocation, discoveryRadius]
+  );
 
   const loadPremiumStatus = useCallback(async () => {
     if (!userId) return;
@@ -91,7 +94,7 @@ export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
 
   const advanceCard = useCallback(() => {
     startTransition(() => {
-      setCurrentIndex(prev => prev + 1);
+      setCurrentIndex((prev) => prev + 1);
       const newCount = swipesUsedToday + 1;
       setSwipesUsedToday(newCount);
       if (!isPremium) {
