@@ -79,7 +79,7 @@ superLikeSchema.statics.getRemainingForToday = async function (userId) {
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   // @ts-ignore - Mongoose static method context
-  return await this.countDocuments({
+  return this.countDocuments({
     senderId: userId,
     createdAt: { $gte: today, $lt: tomorrow },
   });

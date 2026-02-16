@@ -111,7 +111,7 @@ exports.getProfile = async (req, res) => {
     const user = await cache.getOrSet(
       cacheKey,
       async () => {
-        return await User.findById(userId)
+        return User.findById(userId)
           .select('-password -passwordResetToken -emailVerificationToken -phoneVerificationCode')
           .lean();
       },

@@ -44,7 +44,7 @@ const getTimeoutForRequest = (req) => {
  * Create timeout promise that rejects after specified time
  */
 const createTimeoutPromise = (timeout, operationName) => {
-  return new Promise((_, reject) => {
+  return new Promise((_resolve, reject) => {
     const timeoutId = setTimeout(() => {
       reject(new Error(`${operationName} timed out after ${timeout}ms`));
     }, timeout);
@@ -154,7 +154,7 @@ const queuedRequestTimeout = (options = {}) => {
 const controllerWithTimeout = (controllerFn, timeout = DEFAULT_TIMEOUT) => {
   return async (req, res, next) => {
     try {
-      const timeoutPromise = new Promise((_, reject) => {
+      const timeoutPromise = new Promise((_resolve, reject) => {
         setTimeout(() => {
           reject(new Error(`Controller timeout after ${timeout}ms`));
         }, timeout);
@@ -187,7 +187,7 @@ const controllerWithTimeout = (controllerFn, timeout = DEFAULT_TIMEOUT) => {
  * Queue service wrapper with timeout
  */
 const queueWithTimeout = async (queueFn, timeout = QUEUED_REQUEST_TIMEOUT) => {
-  const timeoutPromise = new Promise((_, reject) => {
+  const timeoutPromise = new Promise((_resolve, reject) => {
     setTimeout(() => {
       reject(new Error(`Queue operation timed out after ${timeout}ms`));
     }, timeout);

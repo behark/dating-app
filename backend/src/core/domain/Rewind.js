@@ -67,7 +67,7 @@ rewindSchema.statics.getRemainingForToday = async function (userId) {
   // @ts-ignore
   // @ts-ignore
   // @ts-ignore
-  return await this.countDocuments({
+  return this.countDocuments({
     userId: userId,
     success: true,
     createdAt: { $gte: today, $lt: tomorrow },
@@ -77,7 +77,7 @@ rewindSchema.statics.getRemainingForToday = async function (userId) {
 // Static method to get total rewind count for user (all time)
 rewindSchema.statics.getTotalRewindCount = async function (userId) {
   // @ts-ignore - Mongoose static method context
-  return await this.countDocuments({
+  return this.countDocuments({
     userId: userId,
     success: true,
   });

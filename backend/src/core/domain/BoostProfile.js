@@ -91,7 +91,7 @@ boostProfileSchema.statics.getRemainingForToday = async function (userId) {
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   // @ts-ignore - Mongoose static method context
-  return await this.countDocuments({
+  return this.countDocuments({
     userId: userId,
     startedAt: { $gte: today, $lt: tomorrow },
   });
@@ -101,7 +101,7 @@ boostProfileSchema.statics.getRemainingForToday = async function (userId) {
 // @ts-ignore - Mongoose static method context
 boostProfileSchema.statics.getActiveBoost = async function (userId) {
   // @ts-ignore
-  return await this.findOne({
+  return this.findOne({
     userId: userId,
     isActive: true,
     endsAt: { $gt: new Date() },
@@ -112,7 +112,7 @@ boostProfileSchema.statics.getActiveBoost = async function (userId) {
 // Static method to deactivate expired boosts
 boostProfileSchema.statics.deactivateExpired = async function () {
   // @ts-ignore
-  return await this.updateMany(
+  return this.updateMany(
     {
       isActive: true,
       endsAt: { $lte: new Date() },

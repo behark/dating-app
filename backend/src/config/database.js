@@ -80,7 +80,7 @@ const connectDB = async () => {
         mongoURI,
         /** @type {mongoose.ConnectOptions} */ (mongoOptions)
       );
-      const timeoutPromise = new Promise((_, reject) => {
+      const timeoutPromise = new Promise((_resolve, reject) => {
         setTimeout(() => reject(new Error('Connection timeout after 15 seconds')), 15000);
       });
 
@@ -390,7 +390,7 @@ const createIndexes = async () => {
     };
 
     // Race between index creation and timeout (30 seconds)
-    const timeoutPromise = new Promise((_, reject) => {
+    const timeoutPromise = new Promise((_resolve, reject) => {
       setTimeout(() => reject(new Error('Index creation timeout after 30 seconds')), 30000);
     });
 

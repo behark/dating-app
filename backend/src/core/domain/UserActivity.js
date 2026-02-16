@@ -65,7 +65,7 @@ userActivitySchema.statics.getRecentlyActiveUsers = async function (
   timeframe.setHours(timeframe.getHours() - lookbackHours);
 
   // @ts-ignore - Mongoose static method context
-  return await this.aggregate([
+  return this.aggregate([
     {
       $match: {
         activityType: { $in: ['login', 'message', 'swipe', 'profile_view'] },
@@ -162,7 +162,7 @@ userActivitySchema.statics.getActivitySummary = async function (userId, days = 7
     : userId;
 
   // @ts-ignore
-  return await this.aggregate([
+  return this.aggregate([
     {
       $match: {
         userId: userObjectId,

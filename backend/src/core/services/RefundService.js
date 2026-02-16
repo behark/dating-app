@@ -427,7 +427,7 @@ class RefundService {
       const { logger } = require('../../infrastructure/external/LoggingService');
       logger.error('Failed to send refund denial notification', {
         userId: transaction.userId,
-        error: notifError.message
+        error: notifError.message,
       });
     }
 
@@ -474,7 +474,7 @@ class RefundService {
         logger.error('Subscription cancellation failed: No subscription found', {
           userId,
           action: 'cancelSubscription',
-          cancelAtPeriodEnd
+          cancelAtPeriodEnd,
         });
         return { success: false, message: 'User not found', statusCode: 404 };
       }
@@ -489,7 +489,7 @@ class RefundService {
       let result;
 
       switch (subscription.paymentMethod) {
-        case 'stripe':
+        case 'stripe': {
           // Get Stripe subscription ID
           const User = require('../domain/User');
           const user = await User.findById(userId);
@@ -502,6 +502,7 @@ class RefundService {
             );
           }
           break;
+        }
 
         case 'paypal':
           result = await PayPalService.cancelSubscription(
@@ -510,11 +511,12 @@ class RefundService {
           );
           break;
 
-        case 'google':
+        case 'google': {
           const GooglePlayService = require('./GooglePlayService');
           // For Google, cancellation is done client-side
           // We just update our records
           break;
+        }
 
         case 'apple':
           // For Apple, cancellation is done by user in Settings
@@ -581,7 +583,7 @@ class RefundService {
       }
 
       switch (subscription.paymentMethod) {
-        case 'stripe':
+        case 'stripe': {
           const User = require('../domain/User');
           const user = await User.findById(userId);
           const stripeSubscription = await StripeService.getActiveSubscription(user);
@@ -590,6 +592,7 @@ class RefundService {
             await StripeService.resumeSubscription(stripeSubscription.id);
           }
           break;
+        }
 
         case 'paypal':
           await PayPalService.reactivateSubscription(subscription.paymentId);
