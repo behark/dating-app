@@ -158,7 +158,9 @@ healthCheckService.registerCheck('redis', async () => {
     // Test Redis connection with PING
     const result = await Promise.race([
       redisClient.ping(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Redis ping timeout')), 5000)),
+      new Promise((_resolve, reject) =>
+        setTimeout(() => reject(new Error('Redis ping timeout')), 5000)
+      ),
     ]);
 
     if (result === 'PONG' || result === true) {

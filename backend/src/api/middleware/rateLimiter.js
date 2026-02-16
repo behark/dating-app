@@ -6,6 +6,34 @@
 const { rateLimiter, cache, CACHE_KEYS } = require('../../config/redis');
 const { RATE_LIMIT_MESSAGES, ERROR_MESSAGES } = require('../../shared/constants/messages');
 const { logger } = require('../../infrastructure/external/LoggingService');
+const jwt = require('jsonwebtoken');
+
+/**
+ * Best-effort extraction of authenticated user ID from Bearer token.
+ * This middleware runs before route-level auth, so we decode early for user-based limits.
+ */
+const extractUserIdFromAuthorization = (req) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token || !process.env.JWT_SECRET) {
+    return null;
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded && typeof decoded === 'object' && decoded.userId) {
+      return decoded.userId;
+    }
+  } catch (error) {
+    // Ignore invalid/expired tokens here; auth middleware will enforce access.
+  }
+
+  return null;
+};
 
 /**
  * Create rate limiter middleware
@@ -90,19 +118,17 @@ const authLimiter = createRateLimiter({
 const swipeLimiter = async (req, res, next) => {
   try {
     const userId = req.userId || req.user?.id;
+    let tier = 'free';
+    let limiterScope = `ip:${req.ip}`;
 
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: ERROR_MESSAGES.AUTH_REQUIRED,
-      });
+    if (userId) {
+      // Get user subscription tier for authenticated users
+      const User = require('../../core/domain/User');
+      const user = await User.findById(userId).select('subscription').lean();
+      tier = user?.subscription?.tier || 'free';
+      limiterScope = userId;
     }
 
-    // Get user subscription tier
-    const User = require('../../core/domain/User');
-    const user = await User.findById(userId).select('subscription').lean();
-
-    const tier = user?.subscription?.tier || 'free';
     const limits = {
       free: parseInt(process.env.FREE_DAILY_SWIPE_LIMIT || '100', 10) || 100,
       gold: parseInt(process.env.PREMIUM_DAILY_SWIPE_LIMIT || '500', 10) || 500,
@@ -116,7 +142,7 @@ const swipeLimiter = async (req, res, next) => {
       return next();
     }
 
-    const key = `swipe:${userId}`;
+    const key = `swipe:${limiterScope}`;
     const today = new Date().toISOString().split('T')[0];
     const fullKey = `${key}:${today}`;
 
@@ -277,26 +303,31 @@ const endpointRateLimits = {
   'POST /api/auth/reset-password': passwordResetLimiter,
   'POST /api/auth/verify-email': verificationLimiter,
   'POST /api/auth/verify-phone': verificationLimiter,
-  'POST /api/auth/resend-verification': verificationLimiter,
+  'POST /api/auth/resend-phone-verification': verificationLimiter,
 
   // Profile endpoints
-  'GET /api/profile': profileViewLimiter,
-  'PUT /api/profile': apiLimiter,
-  'POST /api/profile/photos': uploadLimiter,
+  'GET /api/profile/me': profileViewLimiter,
+  'GET /api/profile/:userId': profileViewLimiter,
+  'PUT /api/profile/update': apiLimiter,
+  'POST /api/profile/photos/upload': uploadLimiter,
 
   // Discovery endpoints
-  'GET /api/discovery': discoveryLimiter,
-  'GET /api/discovery/nearby': discoveryLimiter,
-  'GET /api/discovery/recommended': discoveryLimiter,
+  'GET /api/discover': discoveryLimiter,
+  'GET /api/discover/settings': discoveryLimiter,
+  'PUT /api/discover/location': discoveryLimiter,
+  'GET /api/discovery/explore': discoveryLimiter,
+  'GET /api/discovery/top-picks': discoveryLimiter,
 
   // Swipe endpoints
-  'POST /api/swipe': swipeLimiter,
-  'GET /api/swipe/matches': apiLimiter,
+  'POST /api/swipes': swipeLimiter,
+  'POST /api/swipes/undo': swipeLimiter,
+  'GET /api/swipes/matches': apiLimiter,
 
   // Chat endpoints
-  'POST /api/chat/messages': messageLimiter,
+  'POST /api/chat/messages/encrypted': messageLimiter,
+  'POST /api/chat/messages/reactions': messageLimiter,
   'GET /api/chat/conversations': apiLimiter,
-  'GET /api/chat/messages': apiLimiter,
+  'GET /api/chat/messages/:matchId': apiLimiter,
 
   // Payment endpoints
   'POST /api/payment': paymentLimiter,
@@ -328,6 +359,10 @@ const dynamicRateLimiter = (customLimits = {}) => {
   const limits = { ...endpointRateLimits, ...customLimits };
 
   return async (req, res, next) => {
+    if (!req.userId) {
+      req.userId = extractUserIdFromAuthorization(req);
+    }
+
     const routeKey = `${req.method} ${req.baseUrl}${req.path}`.replace(/\/[a-f0-9]{24}/gi, '/:id');
 
     // Find matching rate limiter

@@ -17,6 +17,7 @@ const {
   sendSuccess,
   sendError,
   sendValidationError,
+  sendNotFound,
   sendUnauthorized,
   asyncHandler,
 } = require('../../shared/utils/responseHelpers');
