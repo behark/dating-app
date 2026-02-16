@@ -135,7 +135,7 @@ const DailyChallenges = ({
         useNativeDriver: true,
       })
     ).start();
-  }, [progress]);
+  }, [progress, progressAnims, shineAnim]);
 
   const formatTimeRemaining = (seconds) => {
     const hours = Math.floor(seconds / 3600);

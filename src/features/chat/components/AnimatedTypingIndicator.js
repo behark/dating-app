@@ -83,6 +83,7 @@ const AnimatedTypingIndicator = ({
       dot2Anim.stopAnimation();
       dot3Anim.stopAnimation();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [animationType]);
 
   const startDotsAnimation = () => {
@@ -387,7 +388,7 @@ export const HeaderTypingIndicator = memo(({ isTyping, userName }) => {
       duration: 200,
       useNativeDriver: true,
     }).start();
-  }, [isTyping]);
+  }, [isTyping, fadeAnim]);
 
   if (!isTyping) return null;
 

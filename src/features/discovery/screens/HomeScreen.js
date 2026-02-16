@@ -222,6 +222,7 @@ const HomeScreen = ({ navigation }) => {
       return () => {
         isActive = false;
       };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId, isGuest, authLoading])
   );
 
@@ -484,7 +485,7 @@ const HomeScreen = ({ navigation }) => {
       }
       return true;
     },
-    [guestViewCount, applySwipeUIOptimistic, promptLogin, GUEST_FREE_VIEWS]
+    [guestViewCount, applySwipeUIOptimistic, promptLogin]
   );
 
   // Swipe handlers using the swipe actions hook
@@ -579,7 +580,6 @@ const HomeScreen = ({ navigation }) => {
       });
     },
     [
-      userId,
       premiumFeatures.superLikesPerDay,
       authToken,
       isGuest,

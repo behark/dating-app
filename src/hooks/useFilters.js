@@ -22,15 +22,18 @@ export const useFilters = ({
   const [sortOrder, setSortOrder] = useState('asc');
 
   // Default filter options
-  const defaultFilterOptions = {
-    distance: { min: 1, max: 100, default: [1, 50] },
-    ageRange: { min: 18, max: 80, default: [18, 35] },
-    interests: [],
-    onlineOnly: false,
-    photoVerifiedOnly: false,
-    premiumOnly: false,
-    verifiedLocation: false,
-  };
+  const defaultFilterOptions = useMemo(
+    () => ({
+      distance: { min: 1, max: 100, default: [1, 50] },
+      ageRange: { min: 18, max: 80, default: [18, 35] },
+      interests: [],
+      onlineOnly: false,
+      photoVerifiedOnly: false,
+      premiumOnly: false,
+      verifiedLocation: false,
+    }),
+    []
+  );
 
   /**
    * Reset filters to defaults

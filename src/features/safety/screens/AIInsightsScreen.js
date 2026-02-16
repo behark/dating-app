@@ -28,6 +28,7 @@ const AIInsightsScreen = ({ navigation }) => {
 
   useEffect(() => {
     checkPremiumAndLoad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkPremiumAndLoad = async () => {
@@ -68,6 +69,7 @@ const AIInsightsScreen = ({ navigation }) => {
     if (isPremium && activeTab) {
       loadInsights();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, isPremium]);
 
   const handleUpgrade = () => {

@@ -126,14 +126,17 @@ const EnhancedChatScreen = ({ route, navigation }) => {
 
   // Cleanup timers on unmount
   useEffect(() => {
+    const readTimers = readReceiptTimers.current;
+    const reactionTimers = messageReactionTimers.current;
+
     return () => {
       // Clear all read receipt timers
-      readReceiptTimers.current.forEach((timer) => clearTimeout(timer));
-      readReceiptTimers.current.clear();
+      readTimers.forEach((timer) => clearTimeout(timer));
+      readTimers.clear();
 
       // Clear all message reaction timers
-      messageReactionTimers.current.forEach((timer) => clearTimeout(timer));
-      messageReactionTimers.current.clear();
+      reactionTimers.forEach((timer) => clearTimeout(timer));
+      reactionTimers.clear();
 
       // Clear typing timeout
       if (typingTimeoutRef.current) {

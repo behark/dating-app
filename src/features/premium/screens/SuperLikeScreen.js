@@ -26,6 +26,7 @@ const SuperLikeScreen = ({ route, navigation }) => {
 
   useEffect(() => {
     fetchQuota();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchQuota = async () => {

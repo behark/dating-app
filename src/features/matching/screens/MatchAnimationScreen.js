@@ -1,14 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors } from '../../../constants/colors';
 
 const MatchAnimationScreen = ({ navigation, route }) => {
   const { matchedUser } = route.params || {};
   const [showContent, setShowContent] = useState(false);
-  const scaleAnim = new Animated.Value(0);
-  const opacityAnim = new Animated.Value(0);
+  const scaleAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     // Animate in
@@ -28,7 +28,7 @@ const MatchAnimationScreen = ({ navigation, route }) => {
 
     // Show content after animation
     setTimeout(() => setShowContent(true), 500);
-  }, []);
+  }, [opacityAnim, scaleAnim]);
 
   const handleContinue = () => {
     navigation.navigate('Chat', {

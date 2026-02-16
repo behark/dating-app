@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors } from '../../constants/colors';
 
@@ -17,6 +17,24 @@ export const ErrorNotification = ({
 }) => {
   const slideAnim = useRef(new Animated.Value(position === 'top' ? -100 : 100)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  const handleDismiss = useCallback(() => {
+    const nativeDriver = Platform.OS !== 'web';
+    Animated.parallel([
+      Animated.timing(slideAnim, {
+        toValue: position === 'top' ? -100 : 100,
+        duration: 200,
+        useNativeDriver: nativeDriver,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: nativeDriver,
+      }),
+    ]).start(() => {
+      onDismiss?.();
+    });
+  }, [onDismiss, opacityAnim, position, slideAnim]);
 
   useEffect(() => {
     const nativeDriver = Platform.OS !== 'web';
@@ -47,25 +65,7 @@ export const ErrorNotification = ({
       slideAnim.setValue(position === 'top' ? -100 : 100);
       opacityAnim.setValue(0);
     }
-  }, [visible, autoHideDuration, position]);
-
-  const handleDismiss = () => {
-    const nativeDriver = Platform.OS !== 'web';
-    Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue: position === 'top' ? -100 : 100,
-        duration: 200,
-        useNativeDriver: nativeDriver,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: nativeDriver,
-      }),
-    ]).start(() => {
-      onDismiss?.();
-    });
-  };
+  }, [visible, autoHideDuration, position, handleDismiss, opacityAnim, slideAnim]);
 
   if (!visible && opacityAnim._value === 0) return null;
 

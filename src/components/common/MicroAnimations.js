@@ -55,7 +55,7 @@ const HeartAnimation = ({ visible, onComplete }) => {
         });
       }, 800);
     }
-  }, [visible]);
+  }, [visible, onComplete, opacityAnim, rotateAnim, scaleAnim]);
 
   const rotate = rotateAnim.interpolate({
     inputRange: [0, 1],
@@ -145,7 +145,7 @@ const SuccessAnimation = ({ visible, message, onComplete }) => {
         });
       }, 2000);
     }
-  }, [visible]);
+  }, [visible, onComplete, opacityAnim, slideAnim]);
 
   if (!visible) return null;
 

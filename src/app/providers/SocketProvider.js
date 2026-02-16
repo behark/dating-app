@@ -268,14 +268,15 @@ export const SocketProvider = ({ children }) => {
    * Cleanup on unmount
    */
   useEffect(() => {
+    const reconnectTimeout = reconnectTimeoutRef.current;
+    const socketInstance = socketRef.current;
+    const trackedListeners = eventListenersRef.current;
+
     return () => {
       stopHeartbeat();
-      const reconnectTimeout = reconnectTimeoutRef.current;
       if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);
       }
-      const socketInstance = socketRef.current;
-      const trackedListeners = eventListenersRef.current;
       if (socketInstance) {
         if (trackedListeners.size > 0) {
           trackedListeners.forEach((handlers, event) => {

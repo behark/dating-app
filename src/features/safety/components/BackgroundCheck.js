@@ -12,6 +12,7 @@ const BackgroundCheck = ({ userId, isPremium }) => {
     if (backgroundCheckId) {
       loadCheckStatus();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backgroundCheckId]);
 
   const loadCheckStatus = async () => {

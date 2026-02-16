@@ -52,7 +52,7 @@ const InteractivePhotoGallery = ({
       duration: 200,
       useNativeDriver: false,
     }).start();
-  }, [activeIndex, photos.length]);
+  }, [activeIndex, photos.length, dotAnims, progressAnim]);
 
   const handleScroll = useCallback(
     (event) => {

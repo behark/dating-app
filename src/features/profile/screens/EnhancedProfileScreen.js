@@ -64,6 +64,7 @@ const EnhancedProfileScreen = () => {
 
   useEffect(() => {
     loadAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadAllData = async () => {
@@ -127,6 +128,7 @@ const EnhancedProfileScreen = () => {
     setRefreshing(true);
     await loadAllData();
     setRefreshing(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleVideoChange = async (videoUrl) => {

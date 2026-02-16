@@ -13,6 +13,7 @@ const ProfileSharingScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchSharedProfiles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchSharedProfiles = async () => {

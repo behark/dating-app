@@ -16,6 +16,7 @@ const PremiumScreen = ({ navigation }) => {
 
   useEffect(() => {
     loadPremiumStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadPremiumStatus = async () => {

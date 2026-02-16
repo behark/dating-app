@@ -73,7 +73,7 @@ const MessageReactions = ({
       pickerAnim.setValue(0);
       reactionAnims.forEach((anim) => anim.setValue(0));
     }
-  }, [showPicker]);
+  }, [showPicker, pickerAnim, reactionAnims]);
 
   const triggerBurstAnimation = (_reaction) => {
     const nativeDriver = Platform.OS !== 'web';

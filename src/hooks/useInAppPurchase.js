@@ -108,6 +108,7 @@ export const useInAppPurchase = () => {
         iapModule.endConnection();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle successful purchase

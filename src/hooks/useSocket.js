@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useSocketContext } from '../context/SocketContext';
 import logger from '../utils/logger';
 
+const EMPTY_DEPENDENCIES = [];
+
 /**
  * Custom hook for socket operations
  * Provides convenient methods for socket event handling with automatic cleanup
@@ -131,7 +133,7 @@ export const useSocket = () => {
  * @param {function} handler - Handler function
  * @param {array} dependencies - Optional dependencies array
  */
-export const useSocketEvent = (event, handler, dependencies = []) => {
+export const useSocketEvent = (event, handler, dependencies = EMPTY_DEPENDENCIES) => {
   const { socket, on } = useSocketContext();
 
   useEffect(() => {
@@ -144,7 +146,7 @@ export const useSocketEvent = (event, handler, dependencies = []) => {
       logger.debug('[useSocketEvent] Unsubscribing from:', event);
       unsubscribe();
     };
-  }, [socket, event, on, ...dependencies]);
+  }, [socket, event, on, handler, dependencies]);
 };
 
 /**

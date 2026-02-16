@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Dimensions,
   FlatList,
@@ -131,11 +131,7 @@ const ChatThemes = ({
   const [selectedPattern, setSelectedPattern] = useState('none');
   const [previewMode, setPreviewMode] = useState(false);
 
-  useEffect(() => {
-    loadSavedTheme();
-  }, [matchId]);
-
-  const loadSavedTheme = async () => {
+  const loadSavedTheme = useCallback(async () => {
     try {
       const savedTheme = await AsyncStorage.getItem(getChatThemeKey(matchId));
       const savedPattern = await AsyncStorage.getItem(getChatPatternKey(matchId));
@@ -144,7 +140,11 @@ const ChatThemes = ({
     } catch (error) {
       logger.error('Error loading theme', error, { matchId });
     }
-  };
+  }, [matchId]);
+
+  useEffect(() => {
+    loadSavedTheme();
+  }, [loadSavedTheme]);
 
   const handleSelectTheme = async (themeId) => {
     const theme = CHAT_THEMES[themeId];
@@ -395,11 +395,7 @@ export const useChatTheme = (matchId, defaultTheme = 'default') => {
   const [theme, setTheme] = useState(CHAT_THEMES[defaultTheme]);
   const [pattern, setPattern] = useState('none');
 
-  useEffect(() => {
-    loadTheme();
-  }, [matchId]);
-
-  const loadTheme = async () => {
+  const loadTheme = useCallback(async () => {
     try {
       const savedThemeId = await AsyncStorage.getItem(getChatThemeKey(matchId));
       const savedPattern = await AsyncStorage.getItem(getChatPatternKey(matchId));
@@ -413,7 +409,11 @@ export const useChatTheme = (matchId, defaultTheme = 'default') => {
     } catch (error) {
       logger.error('Error loading theme', error, { matchId });
     }
-  };
+  }, [matchId]);
+
+  useEffect(() => {
+    loadTheme();
+  }, [loadTheme]);
 
   return { theme, pattern, refreshTheme: loadTheme };
 };

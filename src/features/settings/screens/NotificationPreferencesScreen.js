@@ -27,6 +27,7 @@ const NotificationPreferencesScreen = ({ navigation }) => {
 
   useEffect(() => {
     loadPreferences();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadPreferences = async () => {

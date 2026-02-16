@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -24,7 +24,7 @@ const StickerPickerModal = ({ visible, onClose, onSelectSticker, authToken }) =>
   const [packs, setPacks] = useState([]);
   const [selectedPackId, setSelectedPackId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const mediaService = new MediaMessagesService(authToken);
+  const mediaService = useMemo(() => new MediaMessagesService(authToken), [authToken]);
 
   const loadStickerPacks = useCallback(async () => {
     setLoading(true);

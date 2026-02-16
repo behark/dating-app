@@ -289,7 +289,16 @@ const AchievementBadgeAnimated = ({
     } else {
       scaleAnim.setValue(unlocked ? 1 : 0.9);
     }
-  }, [unlocked, animate]);
+  }, [
+    unlocked,
+    animate,
+    achievement?.rarity,
+    floatAnim,
+    glowAnim,
+    rotateAnim,
+    scaleAnim,
+    shimmerAnim,
+  ]);
 
   const triggerUnlockAnimation = () => {
     // Particle burst

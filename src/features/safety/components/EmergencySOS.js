@@ -13,6 +13,7 @@ const EmergencySOS = ({ userId }) => {
   useEffect(() => {
     loadSOSHistory();
     requestLocationPermission();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const requestLocationPermission = async () => {

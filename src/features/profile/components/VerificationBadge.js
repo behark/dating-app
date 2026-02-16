@@ -136,7 +136,7 @@ const VerificationBadge = ({
       scaleAnim.setValue(1);
       rotateAnim.setValue(1);
     }
-  }, [animated, verified, type]);
+  }, [animated, verified, type, pulseAnim, rotateAnim, scaleAnim, shimmerAnim]);
 
   const handlePress = () => {
     if (showTooltip) {

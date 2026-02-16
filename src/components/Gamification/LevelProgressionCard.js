@@ -117,6 +117,7 @@ const LevelProgressionCard = ({
         ])
       ).start();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentXP]);
 
   useEffect(() => {

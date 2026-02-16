@@ -80,6 +80,7 @@ export const useSwipeActions = ({
   /**
    * Handle swipe right (like)
    */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleSwipeRight = useCallback(
     async (card) => {
       // Guest mode handling
@@ -149,6 +150,7 @@ export const useSwipeActions = ({
         endSwipe();
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       userId,
       isPremium,

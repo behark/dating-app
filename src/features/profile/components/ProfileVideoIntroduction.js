@@ -3,7 +3,7 @@ import { useEvent } from 'expo';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -46,13 +46,30 @@ const ProfileVideoIntroduction = ({
   const recordingAnim = useRef(new Animated.Value(0)).current;
   const playButtonAnim = useRef(new Animated.Value(1)).current;
 
+  const startRecordingPulse = useCallback(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.2,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, [pulseAnim]);
+
   useEffect(() => {
     if (recording) {
       startRecordingPulse();
     } else {
       pulseAnim.setValue(1);
     }
-  }, [recording]);
+  }, [recording, pulseAnim, startRecordingPulse]);
 
   useEffect(() => {
     if (!player) return undefined;
@@ -73,23 +90,6 @@ const ProfileVideoIntroduction = ({
     const intervalId = setInterval(updateStatus, 250);
     return () => clearInterval(intervalId);
   }, [player, videoUrl]);
-
-  const startRecordingPulse = () => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.2,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  };
 
   const animatePlayButton = () => {
     Animated.sequence([

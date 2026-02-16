@@ -31,6 +31,7 @@ const ViewProfileScreen = ({ route, navigation }) => {
       return;
     }
     loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const loadProfile = async () => {

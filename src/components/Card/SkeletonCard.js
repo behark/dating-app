@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Platform, StyleSheet, View } from 'react-native';
 import { Colors } from '../../constants/colors';
 import { useTheme } from '../../context/ThemeContext';
@@ -12,7 +12,7 @@ const CARD_WIDTH = SCREEN_WIDTH - 40; // Match SwipeCard width calculation
 
 const SkeletonCard = ({ style }) => {
   const { theme } = useTheme();
-  const shimmerAnimation = new Animated.Value(0);
+  const shimmerAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const startShimmer = () => {
@@ -33,7 +33,7 @@ const SkeletonCard = ({ style }) => {
     };
 
     startShimmer();
-  }, []);
+  }, [shimmerAnimation]);
 
   const shimmerOpacity = shimmerAnimation.interpolate({
     inputRange: [0, 1],

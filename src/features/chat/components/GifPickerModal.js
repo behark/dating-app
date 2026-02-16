@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -25,7 +25,7 @@ const GifPickerModal = ({ visible, onClose, onSelectGif, authToken }) => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
-  const mediaService = new MediaMessagesService(authToken);
+  const mediaService = useMemo(() => new MediaMessagesService(authToken), [authToken]);
 
   const loadPopularGifs = useCallback(async () => {
     setLoading(true);

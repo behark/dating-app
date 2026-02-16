@@ -89,6 +89,7 @@ const ProfileCompletionProgress = ({
         ])
       ).start();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileData, progressAnim, circleAnim, pulseAnim, sectionAnims]);
 
   useEffect(() => {

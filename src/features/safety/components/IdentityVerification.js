@@ -9,6 +9,7 @@ const IdentityVerification = ({ userId }) => {
 
   useEffect(() => {
     loadVerificationStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const loadVerificationStatus = async () => {

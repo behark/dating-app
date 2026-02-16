@@ -123,9 +123,11 @@ const ChatScreen = ({ route, navigation }) => {
 
   // Cleanup read receipt timers on unmount to prevent memory leaks
   useEffect(() => {
+    const timers = readReceiptTimers.current;
+
     return () => {
-      readReceiptTimers.current.forEach((timer) => clearTimeout(timer));
-      readReceiptTimers.current.clear();
+      timers.forEach((timer) => clearTimeout(timer));
+      timers.clear();
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }

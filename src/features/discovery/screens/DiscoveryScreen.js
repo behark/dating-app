@@ -219,6 +219,7 @@ const HomeScreen = ({ navigation }) => {
       return () => {
         isActive = false;
       };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId, isGuest, authLoading])
   );
 
@@ -492,7 +493,7 @@ const HomeScreen = ({ navigation }) => {
       }
       swipeActions.handleSwipeLeft(card);
     },
-    [isGuest, guestViewCount, promptLogin, swipeActions, GUEST_FREE_VIEWS]
+    [isGuest, guestViewCount, promptLogin, swipeActions]
   );
 
   const handleSuperLike = useCallback(
@@ -564,7 +565,6 @@ const HomeScreen = ({ navigation }) => {
       });
     },
     [
-      userId,
       premiumFeatures.superLikesPerDay,
       authToken,
       isGuest,

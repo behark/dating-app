@@ -19,6 +19,7 @@ const VerificationScreen = ({ navigation }) => {
 
   useEffect(() => {
     loadVerificationStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadVerificationStatus = async () => {

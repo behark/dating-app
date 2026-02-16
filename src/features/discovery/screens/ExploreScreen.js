@@ -41,9 +41,8 @@ const ExploreScreen = ({ navigation }) => {
   const [showFilters, setShowFilters] = useState(false);
   const [location, setLocation] = useState(null);
 
-  useEffect(() => {
-    getLocation();
-  }, []);
+  // Don't load if user is not authenticated
+  const isGuest = !user;
 
   const getLocation = useCallback(async () => {
     try {
@@ -158,11 +157,8 @@ const ExploreScreen = ({ navigation }) => {
         setLoadingMore(false);
       }
     },
-    [location, sortBy, filters, user, authToken, page, hasMore, loadingMore, isGuest]
+    [location, sortBy, filters, page, hasMore, loadingMore, isGuest]
   );
-
-  // Don't load if user is not authenticated
-  const isGuest = !user;
 
   useEffect(() => {
     getLocation();
