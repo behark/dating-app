@@ -228,7 +228,7 @@ function printExampleEnv() {
   console.log(`JWT_REFRESH_SECRET=${secrets.JWT_REFRESH_SECRET}`);
   console.log(`HASH_SALT=${secrets.HASH_SALT}`);
   console.log('\n# Database');
-  console.log('MONGODB_URI=mongodb://localhost:27017/dating-app');
+  console.log('MONGODB_URI=YOUR_DATABASE_URI');
   console.log('\n# Server');
   console.log('PORT=3000');
   console.log('NODE_ENV=development');

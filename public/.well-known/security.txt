@@ -1,0 +1,6 @@
+Contact: mailto:support@behar-enterprise.com
+Contact: mailto:privacy@behar-enterprise.com
+Expires: 2027-02-17T23:59:59.000Z
+Preferred-Languages: en
+Policy: https://dating-app-seven-peach.vercel.app/privacy-policy.html
+Canonical: https://dating-app-seven-peach.vercel.app/.well-known/security.txt

@@ -1,8 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../../config/api';
 import logger from '../../utils/logger';
+import { getAuthToken } from '../../utils/secureStorage';
 
 /**
  * Socket.io Context for real-time communication
@@ -86,7 +86,7 @@ export const SocketProvider = ({ children }) => {
         setError(null);
 
         // Get authentication token
-        const token = await AsyncStorage.getItem('authToken');
+        const token = await getAuthToken();
 
         if (!token && !userId) {
           logger.warn('[Socket] No authentication token or userId available');

@@ -46,7 +46,7 @@ const encodeCursor = (doc, sortFields = ['_id']) => {
  * @param {string} cursor - Base64-encoded cursor string
  * @returns {Object|null} Decoded cursor data or null if invalid
  * @example
- * const cursorData = decodeCursor('eyJjcmVhdGVkQXQiOiIyMDI0LTAxLTAxIn0=');
+ * const cursorData = decodeCursor('<base64-cursor>');
  */
 const decodeCursor = (cursor) => {
   try {

@@ -10,4 +10,4 @@ Allow: /terms-of-service.html
 Disallow: /api/
 
 # Sitemap location
-Sitemap: https://dating-app.com/sitemap.xml
+Sitemap: https://dating-app-seven-peach.vercel.app/sitemap.xml

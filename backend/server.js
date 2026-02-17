@@ -47,6 +47,7 @@ const {
   auditLogger,
   morganFormat,
 } = require('./src/infrastructure/external/LoggingService');
+const { ForbiddenError } = require('./src/shared/utils/AppError');
 
 // Database connection - use centralized connection
 const {
@@ -399,7 +400,9 @@ const corsOptions = {
           // Note: Can't log IP here as req is not available in CORS callback
         });
         callback(
-          new Error('Origin required in production. Use API key for server-to-server requests.')
+          new ForbiddenError(
+            'Origin required in production for browser requests. Use API key for server-to-server requests.'
+          )
         );
         return;
       }
@@ -414,7 +417,7 @@ const corsOptions = {
     } else {
       // Block unauthorized origins
       logger.warn('CORS: Blocked unauthorized origin', { origin });
-      callback(new Error('Not allowed by CORS'));
+      callback(new ForbiddenError('Origin is not allowed by CORS policy.'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -462,6 +465,27 @@ const SAFE_NO_ORIGIN_PATHS = [
 
 // Apply CORS conditionally - allow safe paths without origin
 app.use((req, res, next) => {
+  const hasValidApiKeyNoOriginRequest =
+    process.env.NODE_ENV === 'production' &&
+    Boolean(process.env.API_KEY) &&
+    !req.headers.origin &&
+    req.headers['x-api-key'] === process.env.API_KEY;
+
+  if (hasValidApiKeyNoOriginRequest) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, X-User-ID, X-Request-ID, X-API-Key'
+    );
+
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+
+    return next();
+  }
+
   // Check if this is a safe path that doesn't require origin
   const isSafePath = SAFE_NO_ORIGIN_PATHS.some((path) => {
     // Exact match or path starts with the safe path followed by /
@@ -609,19 +633,6 @@ app.use('/api/privacy', privacyRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/upload', uploadRoutes);
-
-// 404 handler for undefined routes
-app.use('*', (req, res) => {
-  // Don't send response if headers already sent
-  if (res.headersSent) {
-    return;
-  }
-
-  res.status(404).json({
-    success: false,
-    message: 'Route not found',
-  });
-});
 
 // Sentry error handler (must be before other error handlers)
 if (process.env.SENTRY_DSN) {
