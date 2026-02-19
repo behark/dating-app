@@ -411,7 +411,7 @@ export const AuthProvider = ({ children }) => {
                 location: finalLocation,
               }),
             },
-            15000 // 15 second timeout
+            60000 // 60 second timeout (Render free-tier cold start can take 30-50s)
           );
           break; // Success - exit retry loop
         } catch (error) {
@@ -491,7 +491,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Helper function for fetch with timeout
-  const fetchWithTimeout = async (url, options, timeoutMs = 15000) => {
+  const fetchWithTimeout = async (url, options, timeoutMs = 60000) => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -537,7 +537,7 @@ export const AuthProvider = ({ children }) => {
               },
               body: JSON.stringify({ email, password }),
             },
-            15000 // 15 second timeout
+            60000 // 60 second timeout (Render free-tier cold start can take 30-50s)
           );
           break; // Success - exit retry loop
         } catch (error) {

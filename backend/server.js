@@ -1260,6 +1260,23 @@ const startServer = async () => {
       });
     });
 
+    // Keep-alive self-ping to prevent Render free-tier from sleeping
+    // Pings /health every 10 minutes to keep the service warm
+    if (process.env.NODE_ENV === 'production' && process.env.RENDER) {
+      const KEEP_ALIVE_INTERVAL = 10 * 60 * 1000; // 10 minutes
+      setInterval(() => {
+        const http = require('http');
+        http
+          .get(`http://localhost:${PORT}/health`, (res) => {
+            logger.debug('Keep-alive ping', { status: res.statusCode });
+          })
+          .on('error', (err) => {
+            logger.warn('Keep-alive ping failed', { error: err.message });
+          });
+      }, KEEP_ALIVE_INTERVAL);
+      logger.info('Keep-alive self-ping enabled (every 10 minutes)');
+    }
+
     // Setup graceful shutdown
     gracefulShutdown(server, async () => {
       logger.info('Closing database connections...');
