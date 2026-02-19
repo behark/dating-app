@@ -182,7 +182,7 @@ const processProfileImage = async (file, userId) => {
         processedAt: new Date().toISOString(),
       },
     };
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Image processing error:', error);
     return {
       success: false,
@@ -220,7 +220,7 @@ const processChatImage = async (file, senderId, receiverId) => {
         thumbnail: thumbnailUrl,
       },
     };
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Chat image processing error:', error);
     return {
       success: false,
@@ -303,7 +303,7 @@ const extractDominantColors = async (buffer, count = 5) => {
       },
       mean: channels.map((c) => Math.round(c.mean)),
     };
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     return null;
   }
 };
@@ -316,7 +316,7 @@ const generateBlurPlaceholder = async (buffer) => {
     const tiny = await sharp(buffer).resize(20, 20, { fit: 'inside' }).blur(5).toBuffer();
 
     return `data:image/jpeg;base64,${tiny.toString('base64')}`;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     return null;
   }
 };

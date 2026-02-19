@@ -133,7 +133,7 @@ healthCheckService.registerCheck('mongodb', async () => {
         status: totalConnections > 45 ? 'warning' : 'ok',
       };
     }
-  } catch (e) {
+  } catch (/** @type {any} */ e) {
     // Ignore pool stat errors
   }
 
@@ -169,7 +169,7 @@ healthCheckService.registerCheck('redis', async () => {
     }
 
     throw new Error('Redis ping did not return PONG');
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.warn('Redis health check failed', {
       error: error instanceof Error ? error.message : String(error),
     });
@@ -207,7 +207,7 @@ healthCheckService.registerCheck('backup', async () => {
             source = `file:${statusFilePath}`;
           }
         }
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         throw new Error(
           `Failed to read MONGODB_BACKUP_STATUS_FILE (${statusFilePath}): ${error instanceof Error ? error.message : String(error)}`
         );
@@ -582,7 +582,7 @@ if (process.env.NODE_ENV !== 'production') {
     try {
       // Intentionally trigger an error to test Sentry
       throw new Error('Test error for Sentry - This is intentional to verify Sentry is working!');
-    } catch (e) {
+    } catch (/** @type {any} */ e) {
       // Capture the exception
       Sentry.captureException(e);
 
@@ -765,7 +765,7 @@ const connectDB = async () => {
     const connection = await connectDatabase();
     // connectDatabase returns the connection object or null
     return connection !== null;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('MongoDB connection failed', {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
@@ -837,7 +837,7 @@ io.use(async (socket, next) => {
       try {
         const decoded = /** @type {any} */ (jwtProd.verify(token, jwtSecretProd));
         /** @type {any} */ (socket).userId = decoded.userId || decoded.id;
-      } catch (jwtError) {
+      } catch (/** @type {any} */ jwtError) {
         logger.warn('Socket.io JWT verification failed', {
           error: jwtError instanceof Error ? jwtError.message : String(jwtError),
           ip: socket.handshake.address,
@@ -856,7 +856,7 @@ io.use(async (socket, next) => {
         try {
           const decoded = /** @type {any} */ (jwtDev.verify(token, jwtSecretDev));
           /** @type {any} */ (socket).userId = decoded.userId || decoded.id;
-        } catch (jwtError) {
+        } catch (/** @type {any} */ jwtError) {
           // Fall through to userId check if JWT fails in dev
           logger.debug('JWT verification failed in dev mode, falling back to userId');
         }
@@ -900,7 +900,7 @@ io.use(async (socket, next) => {
     }
 
     next();
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Socket.io authentication error', {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
@@ -966,7 +966,7 @@ io.on('connection', (socket) => {
       });
 
       socket.emit('joined_room', { matchId });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       logger.error('WebSocket error joining room', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
@@ -1096,7 +1096,7 @@ io.on('connection', (socket) => {
           });
           // In production, send via Expo push notification service
         }
-      } catch (notifError) {
+      } catch (/** @type {any} */ notifError) {
         logger.error('Error sending message notification', {
           error: notifError instanceof Error ? notifError.message : String(notifError),
           stack: notifError instanceof Error ? notifError.stack : undefined,
@@ -1125,7 +1125,7 @@ io.on('connection', (socket) => {
         messageId: message._id,
         timestamp: message.createdAt,
       });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       logger.error('WebSocket error sending message', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
@@ -1163,7 +1163,7 @@ io.on('connection', (socket) => {
           readAt: message.readAt,
         });
       }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       logger.error('WebSocket error handling message_read', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
@@ -1266,7 +1266,7 @@ const startServer = async () => {
       await dbGracefulShutdown('SIGTERM');
       logger.info('Database connections closed');
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Failed to start server', {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,

@@ -137,7 +137,7 @@ const withTimeout = (fn, timeout = DEFAULT_TIMEOUT) => {
 
     try {
       await Promise.race([fn(req, res, next), timeoutPromise]);
-    } catch (err) {
+    } catch (/** @type {any} */ err) {
       const error = err instanceof Error ? err : new Error(String(err));
       if (error.message.includes('timed out')) {
         logger.error('Controller timeout', { method: req.method, url: req.originalUrl });

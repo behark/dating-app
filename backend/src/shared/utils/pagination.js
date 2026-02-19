@@ -61,7 +61,7 @@ const decodeCursor = (cursor) => {
     });
 
     return data;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     return null;
   }
 };

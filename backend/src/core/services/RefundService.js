@@ -62,7 +62,7 @@ class RefundService {
           estimatedReviewTime: '24-48 hours',
         };
       }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error requesting refund:', error);
       throw error;
     }
@@ -177,7 +177,7 @@ class RefundService {
       }
 
       return refundResult;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error processing refund:', error);
       throw error;
     }
@@ -200,7 +200,7 @@ class RefundService {
         amount: refund.amount,
         status: refund.status,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Stripe refund error:', error);
       return {
         success: false,
@@ -239,7 +239,7 @@ class RefundService {
         amount: parseFloat(refund.amount),
         status: refund.status,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('PayPal refund error:', error);
       return {
         success: false,
@@ -276,7 +276,7 @@ class RefundService {
         amount,
         status: 'refunded',
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Google refund error:', error);
       return {
         success: false,
@@ -422,7 +422,7 @@ class RefundService {
         },
         priority: 'high',
       });
-    } catch (notifError) {
+    } catch (/** @type {any} */ notifError) {
       // Log but don't fail the denial
       const { logger } = require('../../infrastructure/external/LoggingService');
       logger.error('Failed to send refund denial notification', {
@@ -551,7 +551,7 @@ class RefundService {
           : 'Subscription cancelled immediately',
         endDate: subscription.endDate,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error cancelling subscription:', error);
       throw error;
     }
@@ -606,7 +606,7 @@ class RefundService {
         success: true,
         message: 'Subscription resumed successfully',
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error resuming subscription:', error);
       throw error;
     }

@@ -39,7 +39,7 @@ const responseTimeMiddleware = (req, res, next) => {
         res.statusCode,
         durationMs
       );
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       // Silently fail metrics tracking to avoid blocking response
       logger.error('Error tracking metrics:', { error: error.message || error });
     }
@@ -48,7 +48,7 @@ const responseTimeMiddleware = (req, res, next) => {
     if (!res.headersSent) {
       try {
         res.setHeader('X-Response-Time', `${durationMs.toFixed(2)}ms`);
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         // Headers already sent, ignore
       }
     }
@@ -56,7 +56,11 @@ const responseTimeMiddleware = (req, res, next) => {
     // Log slow requests (> 1000ms) - async to avoid blocking
     if (durationMs > 1000) {
       setImmediate(() => {
-        logger.warn('Slow request detected', { method: req.method, route: baseRoute, durationMs: durationMs.toFixed(2) });
+        logger.warn('Slow request detected', {
+          method: req.method,
+          route: baseRoute,
+          durationMs: durationMs.toFixed(2),
+        });
       });
     }
 

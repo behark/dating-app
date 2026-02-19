@@ -638,7 +638,7 @@ userSchema.pre('save', async function (next) {
     const salt = await bcrypt.genSalt(12);
     this.password = await bcrypt.hash(this.password, salt);
     next();
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     // @ts-ignore
     next(error);
   }
@@ -729,7 +729,7 @@ userSchema.methods.updateLocation = function (longitude, latitude) {
 };
 
 // Static method to find users near a location
-/** @this {import('../types/index').UserModel} */
+/** @this {import('../../../types/index').UserModel} */
 // @ts-ignore
 userSchema.statics.findNearby = function (longitude, latitude, maxDistance, options = {}) {
   // Base query for all users
@@ -746,6 +746,7 @@ userSchema.statics.findNearby = function (longitude, latitude, maxDistance, opti
 
   // CRITICAL FIX: MongoDB $near cannot be inside $or
   // Solution: Query regular profiles with location, demo profiles will be queried separately in controller
+  /** @type {any} */
   const regularQuery = {
     ...baseQuery,
     isDemo: { $ne: true }, // Exclude demo profiles (they're handled separately)
@@ -777,8 +778,8 @@ userSchema.statics.findNearby = function (longitude, latitude, maxDistance, opti
 };
 
 /**
- * @typedef {import('../types/index').UserDocument} UserDocument
- * @typedef {import('../types/index').UserModel} UserModel
+ * @typedef {import('../../../types/index').UserDocument} UserDocument
+ * @typedef {import('../../../types/index').UserModel} UserModel
  */
 
 /** @type {UserModel} */

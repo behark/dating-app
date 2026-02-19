@@ -62,12 +62,15 @@ exports.updateNotificationPreferences = async (req, res) => {
         preferences: user.notificationPreferences,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Update notification preferences error:', {
       error: error.message,
       stack: error.stack,
     });
-    sendError(res, 500, { message: 'Error updating notification preferences', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error updating notification preferences',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -100,12 +103,15 @@ exports.getNotificationPreferences = async (req, res) => {
       success: true,
       data: { preferences },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get notification preferences error:', {
       error: error.message,
       stack: error.stack,
     });
-    sendError(res, 500, { message: 'Error fetching notification preferences', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error fetching notification preferences',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -118,7 +124,9 @@ exports.sendNotification = async (req, res) => {
 
     // Validate required fields
     if (!toUserId || !type || !title || !message) {
-      return sendError(res, 400, { message: 'Missing required fields: toUserId, type, title, message' });
+      return sendError(res, 400, {
+        message: 'Missing required fields: toUserId, type, title, message',
+      });
     }
 
     // Validate notification type
@@ -200,7 +208,7 @@ exports.sendNotification = async (req, res) => {
       toUserId,
       type,
       title,
-      messagePreview: message.substring(0, 50)
+      messagePreview: message.substring(0, 50),
     });
 
     // Store notification in database
@@ -221,9 +229,12 @@ exports.sendNotification = async (req, res) => {
       message: 'Notification sent successfully',
       data: { sent: true },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Send notification error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error sending notification', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error sending notification',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -282,7 +293,7 @@ exports.sendBulkNotification = async (req, res) => {
 
         successCount++;
         results.push({ userId, success: true });
-      } catch (err) {
+      } catch (/** @type {any} */ err) {
         failureCount++;
         results.push({
           userId,
@@ -301,9 +312,12 @@ exports.sendBulkNotification = async (req, res) => {
         results,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Send bulk notification error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error sending bulk notification', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error sending bulk notification',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -342,9 +356,12 @@ exports.enableNotifications = async (req, res) => {
       message: 'All notifications enabled',
       data: { preferences: user.notificationPreferences },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Enable notifications error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error enabling notifications', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error enabling notifications',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -383,9 +400,12 @@ exports.disableNotifications = async (req, res) => {
       message: 'All notifications disabled',
       data: { preferences: user.notificationPreferences },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Disable notifications error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error disabling notifications', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error disabling notifications',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -438,9 +458,12 @@ exports.getNotifications = async (req, res) => {
         unreadCount,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get notifications error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error fetching notifications', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error fetching notifications',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -475,9 +498,12 @@ exports.markNotificationAsRead = async (req, res) => {
       message: 'Notification marked as read',
       data: { notification },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Mark notification as read error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error marking notification as read', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error marking notification as read',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -498,11 +524,14 @@ exports.markAllAsRead = async (req, res) => {
         updatedCount: result.modifiedCount,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Mark all notifications as read error:', {
       error: error.message,
       stack: error.stack,
     });
-    sendError(res, 500, { message: 'Error marking all notifications as read', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error marking all notifications as read',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };

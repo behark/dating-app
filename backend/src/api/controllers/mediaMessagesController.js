@@ -49,8 +49,8 @@ const sendGifMessage = async (req, res) => {
       messageType: 'gif',
     });
 
-    return sendSuccess(res, 201, { message: 'GIF sent successfully', data: message, });
-  } catch (error) {
+    return sendSuccess(res, 201, { message: 'GIF sent successfully', data: message });
+  } catch (/** @type {any} */ error) {
     logger.error('Error sending GIF:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -93,8 +93,8 @@ const sendStickerMessage = async (req, res) => {
       messageType: 'sticker',
     });
 
-    return sendSuccess(res, 201, { message: 'Sticker sent successfully', data: message, });
-  } catch (error) {
+    return sendSuccess(res, 201, { message: 'Sticker sent successfully', data: message });
+  } catch (/** @type {any} */ error) {
     logger.error('Error sending sticker:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -116,7 +116,9 @@ const sendVoiceMessage = async (req, res) => {
     }
 
     if (duration < 1 || duration > 300) {
-      return sendError(res, 400, { message: 'Voice message duration must be between 1 and 300 seconds' });
+      return sendError(res, 400, {
+        message: 'Voice message duration must be between 1 and 300 seconds',
+      });
     }
 
     // Create message
@@ -143,8 +145,8 @@ const sendVoiceMessage = async (req, res) => {
       duration,
     });
 
-    return sendSuccess(res, 201, { message: 'Voice message sent successfully', data: message, });
-  } catch (error) {
+    return sendSuccess(res, 201, { message: 'Voice message sent successfully', data: message });
+  } catch (/** @type {any} */ error) {
     logger.error('Error sending voice message:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -195,7 +197,7 @@ const transcribeVoiceMessage = async (req, res) => {
         language: message.voiceMessage.language,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error transcribing voice message:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -248,7 +250,7 @@ const initiateVideoCall = async (req, res) => {
         status: 'pending',
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error initiating video call:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -304,8 +306,8 @@ const updateVideoCallStatus = async (req, res) => {
       duration: duration || 0,
     });
 
-    return sendSuccess(res, 200, { message: 'Video call status updated', data: message.videoCall, });
-  } catch (error) {
+    return sendSuccess(res, 200, { message: 'Video call status updated', data: message.videoCall });
+  } catch (/** @type {any} */ error) {
     logger.error('Error updating video call status:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -345,7 +347,7 @@ const getPopularGifs = async (req, res) => {
         offset: parseInt(offset),
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting GIFs:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -384,7 +386,7 @@ const searchGifs = async (req, res) => {
         offset: parseInt(offset),
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error searching GIFs:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -424,7 +426,7 @@ const getStickerPacks = async (req, res) => {
         packs: mockPacks,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting sticker packs:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,

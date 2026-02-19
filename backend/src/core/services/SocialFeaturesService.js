@@ -38,7 +38,7 @@ class SocialFeaturesService {
       await groupDate.save();
       await groupDate.populate('hostId', 'name photos');
       return groupDate;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error creating group date:', error);
       throw error;
     }
@@ -81,7 +81,7 @@ class SocialFeaturesService {
       await groupDate.save();
       await groupDate.populate('currentParticipants.userId', 'name photos');
       return groupDate;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error joining group date:', error);
       throw error;
     }
@@ -110,7 +110,7 @@ class SocialFeaturesService {
 
       await groupDate.save();
       return groupDate;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error leaving group date:', error);
       throw error;
     }
@@ -136,7 +136,7 @@ class SocialFeaturesService {
       })
         .populate('hostId', 'name photos')
         .sort({ startTime: 1 });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting nearby group dates:', error);
       throw error;
     }
@@ -176,7 +176,7 @@ class SocialFeaturesService {
 
       await review.save();
       return review;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error creating friend review:', error);
       throw error;
     }
@@ -196,7 +196,7 @@ class SocialFeaturesService {
       return await FriendReview.find(query)
         .populate('reviewerId', 'name photos')
         .sort({ createdAt: -1 });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting user reviews:', error);
       throw error;
     }
@@ -258,7 +258,7 @@ class SocialFeaturesService {
         ).toFixed(0),
         categories: categoryStats,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting user review stats:', error);
       throw error;
     }
@@ -298,7 +298,7 @@ class SocialFeaturesService {
       await event.save();
       await event.populate('organizerId', 'name photos');
       return event;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error creating event:', error);
       throw error;
     }
@@ -308,8 +308,8 @@ class SocialFeaturesService {
    * Register for an event
    * @param {string} eventId - Event ID
    * @param {string} userId - User ID
-   * @param {Object} options - Additional options
-   * @param {boolean} options.emitSocketEvent - Whether to emit Socket.io event (default: true)
+   * @param {Object} [options] - Additional options
+   * @param {boolean} [options.emitSocketEvent] - Whether to emit Socket.io event (default: true)
    * @returns {Promise<Object>} Updated event with user info
    */
   static async registerForEvent(eventId, userId, options = {}) {
@@ -345,6 +345,7 @@ class SocialFeaturesService {
       }
 
       // Get user info for Socket.io event
+      /** @type {any} */
       const user = await User.findById(userId).select('name photos').lean();
 
       // Add attendee
@@ -364,7 +365,7 @@ class SocialFeaturesService {
         try {
           const WebSocketService = require('./WebSocketService');
           const io = WebSocketService.getIO();
-          
+
           if (io) {
             // Emit to event room
             WebSocketService.emitEventUpdate(event._id.toString(), 'user_joined', {
@@ -388,7 +389,7 @@ class SocialFeaturesService {
               });
             }
           }
-        } catch (socketError) {
+        } catch (/** @type {any} */ socketError) {
           // Log but don't fail the registration if Socket.io fails
           console.error('Error emitting Socket.io event:', socketError);
         }
@@ -399,7 +400,7 @@ class SocialFeaturesService {
         attendeeCount: event.currentAttendeeCount,
         isFull,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error registering for event:', error);
       throw error;
     }
@@ -409,8 +410,8 @@ class SocialFeaturesService {
    * Leave an event
    * @param {string} eventId - Event ID
    * @param {string} userId - User ID
-   * @param {Object} options - Additional options
-   * @param {boolean} options.emitSocketEvent - Whether to emit Socket.io event (default: true)
+   * @param {Object} [options] - Additional options
+   * @param {boolean} [options.emitSocketEvent] - Whether to emit Socket.io event (default: true)
    * @returns {Promise<Object>} Updated event
    */
   static async leaveEvent(eventId, userId, options = {}) {
@@ -447,7 +448,7 @@ class SocialFeaturesService {
         try {
           const WebSocketService = require('./WebSocketService');
           const io = WebSocketService.getIO();
-          
+
           if (io) {
             // Emit to event room
             WebSocketService.emitEventUpdate(event._id.toString(), 'user_left', {
@@ -456,7 +457,7 @@ class SocialFeaturesService {
               isFull: event.maxAttendees && event.attendees.length >= event.maxAttendees,
             });
           }
-        } catch (socketError) {
+        } catch (/** @type {any} */ socketError) {
           // Log but don't fail the leave operation if Socket.io fails
           console.error('Error emitting Socket.io event:', socketError);
         }
@@ -466,7 +467,7 @@ class SocialFeaturesService {
         event,
         attendeeCount: event.currentAttendeeCount,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error leaving event:', error);
       throw error;
     }
@@ -479,9 +480,9 @@ class SocialFeaturesService {
    * @param {number} maxDistance - Maximum distance in meters
    * @param {string|null} category - Event category filter
    * @param {string|null} userId - Current user ID for filtering and preferences
-   * @param {Object} options - Additional options
-   * @param {number} options.page - Page number (default: 1)
-   * @param {number} options.limit - Results per page (default: 20, max: 50)
+   * @param {Object} [options] - Additional options
+   * @param {number} [options.page] - Page number (default: 1)
+   * @param {number} [options.limit] - Results per page (default: 20, max: 50)
    * @returns {Promise<Object>} Events with pagination info
    */
   static async getNearbyEvents(
@@ -490,11 +491,11 @@ class SocialFeaturesService {
     maxDistance = 10000,
     category = null,
     userId = null,
-    options = {}
+    options = /** @type {any} */ ({})
   ) {
     try {
-      const page = Math.max(1, parseInt(options.page) || 1);
-      const limit = Math.min(50, Math.max(1, parseInt(options.limit) || 20));
+      const page = Math.max(1, parseInt(String(options.page)) || 1);
+      const limit = Math.min(50, Math.max(1, parseInt(String(options.limit)) || 20));
       const skip = (page - 1) * limit;
 
       // Build base query
@@ -511,10 +512,7 @@ class SocialFeaturesService {
           },
         },
         // Only show future events or ongoing events
-        $or: [
-          { startTime: { $gte: new Date() } },
-          { status: 'ongoing' },
-        ],
+        $or: [{ startTime: { $gte: new Date() } }, { status: 'ongoing' }],
       };
 
       // Add category filter
@@ -543,7 +541,9 @@ class SocialFeaturesService {
             // Get events user has already joined
             const userEvents = await Event.find({
               'attendees.userId': userId,
-            }).select('_id').lean();
+            })
+              .select('_id')
+              .lean();
             userJoinedEventIds = userEvents.map((e) => e._id.toString());
 
             // Adjust visibility based on premium status
@@ -554,7 +554,7 @@ class SocialFeaturesService {
             // Add friends_only if user has matches (simplified - could be enhanced)
             // For now, we'll keep it simple and only show public events
           }
-        } catch (userError) {
+        } catch (/** @type {any} */ userError) {
           console.error('Error fetching user preferences:', userError);
           // Continue without user preferences
         }
@@ -611,7 +611,7 @@ class SocialFeaturesService {
           hasPrev: page > 1,
         },
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting nearby events:', error);
       throw error;
     }
@@ -654,7 +654,7 @@ class SocialFeaturesService {
       }
 
       return false;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error checking event access:', error);
       return false;
     }
@@ -687,7 +687,7 @@ class SocialFeaturesService {
         // @ts-ignore - expiresAt exists on the model but not in the type definition
         expiresAt: sharedProfile.expiresAt,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error creating shareable profile link:', error);
       throw error;
     }
@@ -709,7 +709,7 @@ class SocialFeaturesService {
 
       await sharedProfile.save();
       return sharedProfile;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error sharing profile:', error);
       throw error;
     }
@@ -748,7 +748,7 @@ class SocialFeaturesService {
         customMessage: sharedProfile.customMessage,
         sharedAt: sharedProfile.createdAt,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting shared profile:', error);
       throw error;
     }
@@ -763,7 +763,7 @@ class SocialFeaturesService {
         userId,
         isActive: true,
       }).sort({ createdAt: -1 });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting user shared profiles:', error);
       throw error;
     }
@@ -779,7 +779,7 @@ class SocialFeaturesService {
         { isActive: false },
         { new: true }
       );
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error deactivating share link:', error);
       throw error;
     }
@@ -799,14 +799,14 @@ class SocialFeaturesService {
         quality: 0.92,
         margin: 1,
         color: {
-          dark: '#000000',  // Black squares
-          light: '#FFFFFF'  // White background
+          dark: '#000000', // Black squares
+          light: '#FFFFFF', // White background
         },
         width: 256, // Standard size
       });
 
       return qrCodeDataURL;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error generating QR code:', error);
       return null;
     }

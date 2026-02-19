@@ -106,7 +106,7 @@ exports.getUser = async (req, res) => {
       success: true,
       data: { user, matches },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Get user error:', error);
     res.status(500).json({
       success: false,
@@ -217,7 +217,7 @@ exports.getDashboard = async (req, res) => {
         stats,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Dashboard error:', error);
     res.status(500).json({
       success: false,
@@ -250,7 +250,7 @@ exports.sendBulkNotifications = async (req, res) => {
       success: true,
       data: summary,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Bulk notification error:', error);
     res.status(500).json({
       success: false,
@@ -307,7 +307,7 @@ exports.createMatchWithNotification = async (req, res) => {
       success: true,
       data: { match: match[0] },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     await session.abortTransaction();
     console.error('Match creation error:', error);
     res.status(500).json({
@@ -332,7 +332,7 @@ const retryWithBackoff = async (fn, maxRetries = 3, baseDelay = 1000) => {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       lastError = error;
 
       if (attempt < maxRetries - 1) {
@@ -365,7 +365,7 @@ exports.processAllUsers = async (req, res) => {
       try {
         await processUser(user);
         processed++;
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         console.error(`Error processing user ${user._id}:`, error);
         errors++;
       }
@@ -375,7 +375,7 @@ exports.processAllUsers = async (req, res) => {
       success: true,
       data: { processed, errors },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Batch processing error:', error);
     res.status(500).json({
       success: false,

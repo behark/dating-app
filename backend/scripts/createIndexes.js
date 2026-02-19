@@ -27,7 +27,7 @@ async function createIndexSafely(collection, indexSpec, options, description) {
     await collection.createIndex(indexSpec, options);
     console.log(`   ✅ ${description}`);
     return true;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     if (error.code === 86 || error.code === 85) {
       // Code 86: Index already exists with same spec
       // Code 85: Index exists with different name/options but equivalent functionality
@@ -45,7 +45,7 @@ async function createIndexSafely(collection, indexSpec, options, description) {
 async function createIndexes() {
   try {
     console.log('🔌 Connecting to MongoDB...');
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(/** @type {string} */ (process.env.MONGODB_URI));
     console.log('✅ Connected to MongoDB');
 
     console.log('\n📊 Creating indexes...\n');
@@ -236,7 +236,7 @@ async function createIndexes() {
     console.log('\n💡 Tip: Run this script after schema changes or database migrations.');
 
     process.exit(0);
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('\n❌ Error creating indexes:', error);
     logger.error('Index creation failed', {
       error: error.message,

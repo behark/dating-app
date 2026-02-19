@@ -54,7 +54,7 @@ exports.updateOnlineStatus = async (req, res) => {
         lastOnlineAt: user.lastOnlineAt,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Update online status error:', errorMessage);
     return sendError(res, 500, {
@@ -106,7 +106,7 @@ exports.getOnlineStatus = async (req, res) => {
         lastOnlineAt: user.lastOnlineAt,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Get online status error:', errorMessage);
     return sendError(res, 500, {
@@ -138,9 +138,7 @@ exports.viewProfile = async (req, res) => {
       });
     }
 
-    const profileViews = (user.profileViewedBy || []).filter(
-      (view) => view && view.userId
-    );
+    const profileViews = (user.profileViewedBy || []).filter((view) => view && view.userId);
     user.profileViewedBy = profileViews;
 
     const existingView = profileViews.find(
@@ -172,7 +170,7 @@ exports.viewProfile = async (req, res) => {
     return sendSuccess(res, 200, {
       message: 'Profile view recorded',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('View profile error:', errorMessage);
     return sendError(res, 500, {
@@ -235,7 +233,7 @@ exports.getProfileViews = async (req, res) => {
         viewers,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error('Get profile views error:', errorMessage);
     return sendError(res, 500, {
@@ -323,10 +321,10 @@ exports.getMultipleStatus = async (req, res) => {
         statusMap,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Get multiple status error:', errorMessage);
-    sendError(res, 500, { message: 'Error fetching status', error: errorMessage, });
+    sendError(res, 500, { message: 'Error fetching status', error: errorMessage });
   }
 };
 
@@ -343,9 +341,9 @@ exports.heartbeat = async (req, res) => {
       success: true,
       message: 'Heartbeat recorded',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('Heartbeat error:', errorMessage);
-    sendError(res, 500, { message: 'Error recording heartbeat', error: errorMessage, });
+    sendError(res, 500, { message: 'Error recording heartbeat', error: errorMessage });
   }
 };

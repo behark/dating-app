@@ -2,6 +2,7 @@ const Swipe = require('../domain/Swipe');
 const Match = require('../domain/Match');
 const User = require('../domain/User');
 const mongoose = require('mongoose');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 /**
  * SwipeService - Handles the "Double-Opt-In" Match Transaction
@@ -31,7 +32,6 @@ class SwipeService {
    */
   static async processSwipe(swiperId, targetId, action, options = { isPriority: false }) {
     const { isPriority = false } = options;
-    const { logger } = require('../../infrastructure/external/LoggingService');
 
     logger.debug('Processing swipe', { swiperId, targetId, action, isPriority });
 
@@ -60,7 +60,7 @@ class SwipeService {
         User.findById(swiperId).select('_id').lean(),
         User.findById(targetId).select('_id').lean(),
       ]);
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       logger.error('Error checking user existence', {
         error: error.message,
         stack: error.stack,
@@ -93,7 +93,7 @@ class SwipeService {
           isPriority,
         })
       );
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       // Handle MongoDB duplicate key error (E11000) gracefully
       // This can still happen in edge cases with high concurrency
       if (
@@ -155,10 +155,9 @@ class SwipeService {
             },
           },
         });
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         // Log error but don't fail the swipe - receivedLikes is a nice-to-have feature
         // This can happen if user was deleted or there's a schema validation issue
-        const { logger } = require('../../infrastructure/external/LoggingService');
         logger.warn('Failed to update receivedLikes for user:', {
           targetId,
           swiperId,
@@ -184,9 +183,8 @@ class SwipeService {
       await User.findByIdAndUpdate(swiperId, {
         $inc: { totalSwipes: 1 },
       });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       // Log error but don't fail the swipe - statistics update is secondary
-      const { logger } = require('../../infrastructure/external/LoggingService');
       logger.warn('Failed to update swipe statistics for user:', {
         swiperId,
         error: error.message,
@@ -217,8 +215,6 @@ class SwipeService {
    * @returns {Promise<Object>} Match result with isMatch flag and match data
    */
   static async checkAndCreateMatch(swiperId, targetId, action) {
-    const { logger } = require('../../infrastructure/external/LoggingService');
-    
     try {
       // Check if target user has already liked the current user
       const reverseSwipe = await Swipe.findOne({
@@ -250,7 +246,7 @@ class SwipeService {
         match = matchResult.match;
         isNew = matchResult.isNew;
         reactivated = matchResult.reactivated;
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         logger.error('Failed to create match:', {
           swiperId,
           targetId,
@@ -276,7 +272,7 @@ class SwipeService {
               $addToSet: { matches: swiperId },
             }),
           ]);
-        } catch (error) {
+        } catch (/** @type {any} */ error) {
           // Log error but don't fail - match was created successfully
           logger.warn('Failed to update match counts for users:', {
             swiperId,
@@ -292,7 +288,7 @@ class SwipeService {
       let matchedUser = null;
       try {
         matchedUser = await User.findById(targetId).select('name photos age bio').lean();
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         logger.warn('Failed to get matched user info:', {
           targetId,
           error: error.message,
@@ -317,7 +313,7 @@ class SwipeService {
           },
         },
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       // Catch any unexpected errors in the match checking process
       logger.error('Unexpected error in checkAndCreateMatch:', {
         swiperId,

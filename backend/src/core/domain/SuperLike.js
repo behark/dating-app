@@ -86,8 +86,8 @@ superLikeSchema.statics.getRemainingForToday = async function (userId) {
 };
 
 /**
- * @typedef {import('../types/index').SuperLikeDocument} SuperLikeDocument
- * @typedef {import('../types/index').SuperLikeModel} SuperLikeModel
+ * @typedef {import('../../../types/index').SuperLikeDocument} SuperLikeDocument
+ * @typedef {import('../../../types/index').SuperLikeModel} SuperLikeModel
  */
 
 /** @type {SuperLikeModel} */

@@ -78,7 +78,7 @@ const emailService = {
         html,
       });
       return true;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       logger.error('Email sending failed:', { error: error.message, stack: error.stack });
       return false;
     }
@@ -188,7 +188,7 @@ exports.register = async (req, res) => {
         refreshToken,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Registration error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Error during registration',
@@ -261,7 +261,7 @@ exports.login = async (req, res) => {
         refreshToken,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Login error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Error during login',
@@ -302,7 +302,7 @@ exports.verifyEmail = async (req, res) => {
     return sendSuccess(res, 200, {
       message: 'Email verified successfully',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Email verification error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error verifying email',
@@ -349,7 +349,7 @@ exports.forgotPassword = async (req, res) => {
       success: true,
       message: 'If email exists, a password reset link has been sent',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Forgot password error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error processing password reset',
@@ -396,7 +396,7 @@ exports.resetPassword = async (req, res) => {
       success: true,
       message: 'Password reset successfully',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Reset password error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error resetting password',
@@ -438,7 +438,7 @@ exports.logout = async (req, res) => {
               const userId = 'userId' in decoded ? decoded.userId : null;
               logger.info('Token blacklisted in Redis', { userId });
             }
-          } catch (redisError) {
+          } catch (/** @type {any} */ redisError) {
             // Redis failed - use MongoDB fallback
             logger.warn('Redis unavailable for token blacklisting, using MongoDB fallback', {
               error: redisError instanceof Error ? redisError.message : String(redisError),
@@ -459,7 +459,7 @@ exports.logout = async (req, res) => {
                 { upsert: true, new: true }
               );
               logger.info('Token blacklisted in MongoDB (fallback)', { userId });
-            } catch (mongoError) {
+            } catch (/** @type {any} */ mongoError) {
               // Both Redis and MongoDB failed - log error but don't block logout
               const userId = 'userId' in decoded ? decoded.userId : null;
               logger.error('Failed to blacklist token in both Redis and MongoDB', {
@@ -471,7 +471,7 @@ exports.logout = async (req, res) => {
           }
         }
       }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       // Log error but don't fail logout
       logger.error('Error during token blacklisting', {
         error: error instanceof Error ? error.message : String(error),
@@ -482,7 +482,7 @@ exports.logout = async (req, res) => {
       success: true,
       message: 'Logged out successfully',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Logout error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error during logout',
@@ -579,7 +579,7 @@ exports.deleteAccount = async (req, res) => {
       await Promise.allSettled(cleanupPromises);
 
       logger.info('User data cleanup completed', { userId });
-    } catch (cleanupError) {
+    } catch (/** @type {any} */ cleanupError) {
       // Log but don't fail the deletion - user is already deleted
       logger.error('Error during user data cleanup', {
         userId,
@@ -590,7 +590,7 @@ exports.deleteAccount = async (req, res) => {
     return sendSuccess(res, 200, {
       message: 'Account deleted successfully',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Delete account error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error deleting account',
@@ -645,7 +645,7 @@ exports.refreshToken = async (req, res) => {
         refreshToken: newRefreshToken,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Refresh token error:', { error: error.message, stack: error.stack });
     sendError(res, 401, {
       message: 'Invalid refresh token',
@@ -678,7 +678,7 @@ exports.googleAuth = async (req, res) => {
     let verifiedUser;
     try {
       verifiedUser = await verifyGoogleToken(idToken);
-    } catch (verifyError) {
+    } catch (/** @type {any} */ verifyError) {
       const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
       console.error('Google token verification failed:', errorMessage);
 
@@ -784,7 +784,7 @@ exports.googleAuth = async (req, res) => {
         tokenVerified: true,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Google auth error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error with Google authentication',
@@ -816,7 +816,7 @@ exports.facebookAuth = async (req, res) => {
     let verificationResult;
     try {
       verificationResult = await verifyFacebookToken(accessToken, facebookId);
-    } catch (verifyError) {
+    } catch (/** @type {any} */ verifyError) {
       const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
       console.error('Facebook token verification failed:', errorMessage);
 
@@ -920,7 +920,7 @@ exports.facebookAuth = async (req, res) => {
         refreshToken,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Facebook auth error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error with Facebook authentication',
@@ -955,7 +955,7 @@ exports.appleAuth = async (req, res) => {
     let verifiedUser;
     try {
       verifiedUser = await verifyAppleToken(identityToken, appleId);
-    } catch (verifyError) {
+    } catch (/** @type {any} */ verifyError) {
       const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
       console.error('Apple token verification failed:', errorMessage);
 
@@ -1039,7 +1039,7 @@ exports.appleAuth = async (req, res) => {
         tokenVerified: true,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Apple auth error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error with Apple authentication',

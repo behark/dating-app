@@ -20,7 +20,7 @@ class SwipeRepository {
 
   async getSwipedUserIds(userId) {
     const swipes = await Swipe.find({ swiperId: userId }).select('swipedId');
-    return swipes.map(s => s.swipedId);
+    return swipes.map((s) => s.swipedId);
   }
 
   async getUsersWhoLiked(userId, options = {}) {
@@ -37,8 +37,16 @@ class SwipeRepository {
 
   async checkMutualLike(userId1, userId2) {
     const [swipe1, swipe2] = await Promise.all([
-      Swipe.findOne({ swiperId: userId1, swipedId: userId2, action: { $in: ['like', 'superlike'] } }),
-      Swipe.findOne({ swiperId: userId2, swipedId: userId1, action: { $in: ['like', 'superlike'] } }),
+      Swipe.findOne({
+        swiperId: userId1,
+        swipedId: userId2,
+        action: { $in: ['like', 'superlike'] },
+      }),
+      Swipe.findOne({
+        swiperId: userId2,
+        swipedId: userId1,
+        action: { $in: ['like', 'superlike'] },
+      }),
     ]);
     return { swipe1, swipe2, isMutual: !!(swipe1 && swipe2) };
   }
@@ -65,4 +73,6 @@ class SwipeRepository {
   }
 }
 
-module.exports = new SwipeRepository();
+/** @type {any} */
+const swipeRepository = new SwipeRepository();
+module.exports = swipeRepository;

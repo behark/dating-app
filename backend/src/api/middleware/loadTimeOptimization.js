@@ -44,7 +44,11 @@ const performanceHeaders = (req, res, next) => {
     // Just log for monitoring purposes
     if (duration > 1000) {
       setImmediate(() => {
-        logger.info('Performance warning', { method: req.method, path: req.path, durationMs: duration.toFixed(2) });
+        logger.info('Performance warning', {
+          method: req.method,
+          path: req.path,
+          durationMs: duration.toFixed(2),
+        });
       });
     }
   });
@@ -86,7 +90,7 @@ const etagMiddleware = (req, res, next) => {
         if (ifNoneMatch === etag && !res.headersSent) {
           return res.status(304).end();
         }
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         // If ETag generation fails, just continue with normal response
         logger.error('ETag generation error:', { error: error.message || error });
       }

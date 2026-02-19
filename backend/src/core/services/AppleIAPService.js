@@ -36,7 +36,7 @@ class AppleIAPService {
       }
 
       return this.parseReceiptResponse(response.data);
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error validating Apple receipt:', error);
       throw error;
     }
@@ -218,7 +218,7 @@ class AppleIAPService {
         success: false,
         error: 'Product not found in receipt',
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error processing Apple purchase:', error);
       throw error;
     }
@@ -323,7 +323,7 @@ class AppleIAPService {
         restored,
         latestReceipt: validation.latestReceipt,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error restoring Apple purchases:', error);
       throw error;
     }
@@ -382,7 +382,7 @@ class AppleIAPService {
       );
 
       return response.data;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
       console.error('Error getting subscription status:', errorData || error);
@@ -409,7 +409,7 @@ class AppleIAPService {
       });
 
       return response.data;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
       console.error('Error looking up order:', errorData || error);
@@ -462,7 +462,7 @@ class AppleIAPService {
       });
 
       return { success: true, notificationType };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error processing Apple notification:', error);
       throw error;
     }

@@ -39,9 +39,12 @@ exports.getAllPrompts = async (req, res) => {
         prompts: PROFILE_PROMPTS,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get prompts error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error fetching prompts', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error fetching prompts',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -96,9 +99,12 @@ exports.updatePrompts = async (req, res) => {
         prompts: user.profilePrompts,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Update prompts error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error updating prompts', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error updating prompts',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -136,9 +142,12 @@ exports.updateEducation = async (req, res) => {
         education: user.education,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Update education error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error updating education', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error updating education',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -175,9 +184,12 @@ exports.updateOccupation = async (req, res) => {
         occupation: user.occupation,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Update occupation error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error updating occupation', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error updating occupation',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -216,9 +228,12 @@ exports.updateHeight = async (req, res) => {
         height: user.height,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Update height error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error updating height', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error updating height',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -258,8 +273,11 @@ exports.updateEthnicity = async (req, res) => {
         ethnicity: user.ethnicity,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Update ethnicity error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error updating ethnicity', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error updating ethnicity',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };

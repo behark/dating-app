@@ -139,8 +139,8 @@ groupDateSchema.pre('save', function (next) {
 });
 
 /**
- * @typedef {import('../types/index').GroupDateDocument} GroupDateDocument
- * @typedef {import('../types/index').GroupDateModel} GroupDateModel
+ * @typedef {import('../../../types/index').GroupDateDocument} GroupDateDocument
+ * @typedef {import('../../../types/index').GroupDateModel} GroupDateModel
  */
 
 /** @type {GroupDateModel} */

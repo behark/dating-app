@@ -153,7 +153,7 @@ messageSchema.virtual('age').get(function () {
 });
 
 // Method to mark message as read
-/** @this {import('../types/index').MessageDocument} */
+/** @this {import('../../../types/index').MessageDocument} */
 messageSchema.methods.markAsRead = function (timestamp = new Date()) {
   this.isRead = true;
   this.readAt = timestamp;
@@ -161,7 +161,7 @@ messageSchema.methods.markAsRead = function (timestamp = new Date()) {
 };
 
 // Static method to get all messages for a match
-/** @this {import('../types/index').MessageModel} */
+/** @this {import('../../../types/index').MessageModel} */
 // @ts-ignore
 messageSchema.statics.getMessagesForMatch = function (matchId, limit = 50, skip = 0) {
   return this.find({ matchId })
@@ -174,7 +174,7 @@ messageSchema.statics.getMessagesForMatch = function (matchId, limit = 50, skip 
 };
 
 // Static method to get unread messages count for a user
-/** @this {import('../types/index').MessageModel} */
+/** @this {import('../../../types/index').MessageModel} */
 // @ts-ignore
 messageSchema.statics.getUnreadCount = function (userId) {
   return this.countDocuments({
@@ -184,7 +184,7 @@ messageSchema.statics.getUnreadCount = function (userId) {
 };
 
 // Static method to mark all messages as read for a match
-/** @this {import('../types/index').MessageModel} */
+/** @this {import('../../../types/index').MessageModel} */
 // @ts-ignore
 messageSchema.statics.markMatchAsRead = function (matchId, userId) {
   return this.updateMany(
@@ -198,10 +198,10 @@ messageSchema.statics.markMatchAsRead = function (matchId, userId) {
 };
 
 // Method to add a reaction to the message
-/** @this {import('../types/index').MessageDocument} */
+/** @this {import('../../../types/index').MessageDocument} */
 messageSchema.methods.addReaction = function (userId, emoji) {
   // Remove existing reaction from this user for this emoji if it exists
-  this.reactions = this.reactions.filter(
+  this.reactions = (this.reactions || []).filter(
     (reaction) => !(reaction.userId.toString() === userId.toString() && reaction.emoji === emoji)
   );
 
@@ -216,9 +216,9 @@ messageSchema.methods.addReaction = function (userId, emoji) {
 };
 
 // Method to remove a reaction from the message
-/** @this {import('../types/index').MessageDocument} */
+/** @this {import('../../../types/index').MessageDocument} */
 messageSchema.methods.removeReaction = function (userId, emoji) {
-  this.reactions = this.reactions.filter(
+  this.reactions = (this.reactions || []).filter(
     (reaction) => !(reaction.userId.toString() === userId.toString() && reaction.emoji === emoji)
   );
 
@@ -237,8 +237,8 @@ messageSchema.pre('save', function (next) {
 });
 
 /**
- * @typedef {import('../types/index').MessageDocument} MessageDocument
- * @typedef {import('../types/index').MessageModel} MessageModel
+ * @typedef {import('../../../types/index').MessageDocument} MessageDocument
+ * @typedef {import('../../../types/index').MessageModel} MessageModel
  */
 
 /** @type {MessageModel} */

@@ -7,7 +7,10 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const { connectDB, gracefulShutdown: dbGracefulShutdown } = require('./src/config/database');
 const { initRedis } = require('./src/config/redis');
-const { initializeProcessors, scheduleRecurringJobs } = require('./src/core/services/JobProcessors');
+const {
+  initializeProcessors,
+  scheduleRecurringJobs,
+} = require('./src/core/services/JobProcessors');
 
 // Graceful shutdown flag
 let isShuttingDown = false;
@@ -24,7 +27,7 @@ const connectWorkerDB = async () => {
       throw new Error('Failed to connect to MongoDB');
     }
     console.log('Worker connected to MongoDB');
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error(
       'Worker MongoDB connection failed:',
       error instanceof Error ? error.message : String(error)
@@ -58,7 +61,7 @@ const startWorker = async () => {
 
     console.log('Worker started successfully');
     console.log('Listening for jobs...');
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Failed to start worker:', error);
     process.exit(1);
   }
@@ -87,7 +90,7 @@ const shutdown = async (signal) => {
 
     console.log('Worker shut down gracefully');
     process.exit(0);
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error during shutdown:', error);
     process.exit(1);
   }

@@ -86,7 +86,7 @@ exports.updateProfile = async (req, res) => {
         },
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Profile update error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error updating profile',
@@ -167,7 +167,7 @@ exports.getProfile = async (req, res) => {
         },
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get profile error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error fetching profile',
@@ -203,7 +203,7 @@ exports.getMyProfile = async (req, res) => {
         },
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get my profile error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error fetching profile',
@@ -281,7 +281,7 @@ exports.uploadPhotos = async (req, res) => {
         photos: user.photos,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Photo upload error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error uploading photos',
@@ -342,7 +342,7 @@ exports.reorderPhotos = async (req, res) => {
         photos: user.photos,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Photo reorder error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error reordering photos',
@@ -378,7 +378,7 @@ exports.deletePhoto = async (req, res) => {
         photos: user.photos,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Photo delete error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error deleting photo',
@@ -426,7 +426,7 @@ exports.approvePhoto = async (req, res) => {
       success: true,
       message: 'Photo approved',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Approve photo error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error approving photo',
@@ -476,7 +476,7 @@ exports.rejectPhoto = async (req, res) => {
       success: true,
       message: 'Photo rejected',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Reject photo error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error rejecting photo',
@@ -522,7 +522,7 @@ exports.getPendingPhotos = async (req, res) => {
         total: pendingPhotos.length,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get pending photos error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error fetching pending photos',

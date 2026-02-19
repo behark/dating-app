@@ -362,7 +362,7 @@ describe('Database Integration Tests', () => {
             await mockUserModel.findByIdAndUpdate('user_2', { $push: { matches: 'match_123' } });
 
             await session.commitTransaction();
-          } catch (error) {
+          } catch (/** @type {any} */ error) {
             await session.abortTransaction();
             throw error;
           } finally {

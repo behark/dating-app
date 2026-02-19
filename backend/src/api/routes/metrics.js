@@ -32,7 +32,7 @@ router.get('/dashboard', isAdmin, async (req, res) => {
       success: true,
       data: dashboard,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error fetching dashboard metrics:', error);
     res.status(500).json({
       success: false,
@@ -58,7 +58,7 @@ router.get('/dau', isAdmin, async (req, res) => {
       success: true,
       data: dau,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error fetching DAU:', error);
     res.status(500).json({
       success: false,
@@ -90,7 +90,7 @@ router.get('/active-users', isAdmin, async (req, res) => {
         stickiness: mau.count > 0 ? parseFloat(((dau.count / mau.count) * 100).toFixed(2)) : 0,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error fetching active users:', error);
     res.status(500).json({
       success: false,
@@ -121,7 +121,7 @@ router.get('/retention', isAdmin, async (req, res) => {
       success: true,
       data: retention,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error fetching retention:', error);
     res.status(500).json({
       success: false,
@@ -147,7 +147,7 @@ router.get('/retention/rolling', isAdmin, async (req, res) => {
       success: true,
       data: retention,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error fetching rolling retention:', error);
     res.status(500).json({
       success: false,
@@ -182,7 +182,7 @@ router.get('/matches', isAdmin, async (req, res) => {
         swipeConversion,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error fetching match metrics:', error);
     res.status(500).json({
       success: false,
@@ -217,7 +217,7 @@ router.get('/messages', isAdmin, async (req, res) => {
         avgMessages,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error fetching message metrics:', error);
     res.status(500).json({
       success: false,
@@ -252,7 +252,7 @@ router.get('/premium', isAdmin, async (req, res) => {
         churnRate,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error fetching premium metrics:', error);
     res.status(500).json({
       success: false,
@@ -281,7 +281,7 @@ router.get('/photos', isAdmin, async (req, res) => {
       success: true,
       data: uploadMetrics,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error fetching photo metrics:', error);
     res.status(500).json({
       success: false,
@@ -311,7 +311,7 @@ router.post('/crash', async (req, res) => {
       success: true,
       message: 'Crash reported',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error reporting crash:', error);
     res.status(500).json({
       success: false,
@@ -360,7 +360,7 @@ router.get('/export', isAdmin, async (req, res) => {
       `attachment; filename=metrics-${new Date().toISOString().split('T')[0]}.csv`
     );
     res.send(csvRows.join('\n'));
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error exporting metrics:', error);
     res.status(500).json({
       success: false,

@@ -68,7 +68,7 @@ const shareDatePlan = async (req, res) => {
       message: 'Date plan shared successfully',
       data: { datePlanId, datePlan },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error sharing date plan:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to share date plan',
@@ -114,7 +114,7 @@ const startCheckIn = async (req, res) => {
         expiresIn: duration * 60, // seconds
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error starting check-in:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to start check-in',
@@ -148,7 +148,7 @@ const completeCheckIn = async (req, res) => {
       message: 'Check-in completed - friends notified of your safety',
       data: completedCheckIn,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error completing check-in:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to complete check-in',
@@ -206,7 +206,7 @@ const sendEmergencySOS = async (req, res) => {
         sosAlert,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error sending SOS:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to send SOS',
@@ -235,7 +235,7 @@ const getActiveSOS = async (req, res) => {
       success: true,
       data: activeAlerts,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting active SOS:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to get SOS alerts',
@@ -270,7 +270,7 @@ const respondToSOS = async (req, res) => {
     logger.info('SOS Response recorded', { response });
 
     return sendSuccess(res, 200, { message: 'Response recorded', data: response });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error responding to SOS:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to respond to SOS',
@@ -303,7 +303,7 @@ const resolveSOS = async (req, res) => {
         resolvedAt: new Date(),
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error resolving SOS:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to resolve SOS',
@@ -367,7 +367,7 @@ const initiateBackgroundCheck = async (req, res) => {
         estimatedDuration: '24-48 hours',
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error initiating background check:', {
       error: error.message,
       stack: error.stack,
@@ -411,7 +411,7 @@ const getBackgroundCheckStatus = async (req, res) => {
       success: true,
       data: status,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting background check status:', {
       error: error.message,
       stack: error.stack,
@@ -455,7 +455,7 @@ const addEmergencyContact = async (req, res) => {
     // In production, save to database
 
     return sendSuccess(res, 200, { message: 'Emergency contact added', data: contact });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error adding emergency contact:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to add emergency contact',
@@ -484,7 +484,7 @@ const getEmergencyContacts = async (req, res) => {
       success: true,
       data: contacts,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting emergency contacts:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to get emergency contacts',
@@ -512,7 +512,7 @@ const deleteEmergencyContact = async (req, res) => {
       message: 'Emergency contact deleted',
       data: { contactId },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error deleting emergency contact:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to delete emergency contact',
@@ -572,7 +572,7 @@ const submitAdvancedPhotoVerification = async (req, res) => {
         verification,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error submitting photo verification:', {
       error: error.message,
       stack: error.stack,
@@ -604,7 +604,7 @@ const getActiveDatePlans = async (req, res) => {
       success: true,
       data: datePlans,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting date plans:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to get date plans',
@@ -633,7 +633,7 @@ const getSharedDatePlans = async (req, res) => {
       success: true,
       data: sharedPlans,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting shared date plans:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to get shared date plans',
@@ -675,7 +675,7 @@ const updateDatePlan = async (req, res) => {
     };
 
     return sendSuccess(res, 200, { message: 'Date plan updated', data: updatedPlan });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error updating date plan:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to update date plan',
@@ -704,7 +704,7 @@ const getActiveCheckIns = async (req, res) => {
       success: true,
       data: activeCheckIns,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting active check-ins:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to get active check-ins',
@@ -741,7 +741,7 @@ const getPhotoVerificationStatus = async (req, res) => {
       success: true,
       data: verificationStatus,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting photo verification status:', {
       error: error.message,
       stack: error.stack,
@@ -788,7 +788,7 @@ const updateBackgroundCheck = async (req, res) => {
     };
 
     return sendSuccess(res, 200, { message: 'Background check updated', data: updatedCheck });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error updating background check:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to update background check',

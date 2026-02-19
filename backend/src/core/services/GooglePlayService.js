@@ -75,7 +75,7 @@ class GooglePlayService {
         linkedPurchaseToken: subscription.linkedPurchaseToken,
         isActive: parseInt(subscription.expiryTimeMillis || '0') > Date.now(),
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error validating Google subscription:', error);
 
       if ((error instanceof Error && 'code' in error ? error.code : 'UNKNOWN_ERROR') === 410) {
@@ -116,7 +116,7 @@ class GooglePlayService {
         acknowledgementState: purchase.acknowledgementState,
         quantity: purchase.quantity || 1,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error validating Google product:', error);
       throw error;
     }
@@ -141,7 +141,7 @@ class GooglePlayService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error acknowledging Google subscription:', error);
       throw error;
     }
@@ -166,7 +166,7 @@ class GooglePlayService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error acknowledging Google product:', error);
       throw error;
     }
@@ -188,7 +188,7 @@ class GooglePlayService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error consuming Google product:', error);
       throw error;
     }
@@ -210,7 +210,7 @@ class GooglePlayService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error cancelling Google subscription:', error);
       throw error;
     }
@@ -232,7 +232,7 @@ class GooglePlayService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error refunding Google subscription:', error);
       throw error;
     }
@@ -254,7 +254,7 @@ class GooglePlayService {
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error revoking Google subscription:', error);
       throw error;
     }
@@ -317,7 +317,7 @@ class GooglePlayService {
         success: true,
         subscription: validation,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error processing Google subscription:', error);
       throw error;
     }
@@ -375,7 +375,7 @@ class GooglePlayService {
         success: true,
         purchase: validation,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error processing Google product:', error);
       throw error;
     }
@@ -444,7 +444,7 @@ class GooglePlayService {
             restored.subscriptions.push(result.subscription);
           }
         }
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         console.error('Error restoring purchase:', error);
       }
     }
@@ -484,7 +484,7 @@ class GooglePlayService {
       }
 
       return { success: true };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error processing Google RTDN:', error);
       throw error;
     }

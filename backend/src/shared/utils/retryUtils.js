@@ -55,7 +55,7 @@ class CircuitBreaker {
       }
 
       return result;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       this.recordFailure(context);
       throw error;
     }
@@ -152,7 +152,7 @@ const retryWithBackoff = async (fn, options = {}) => {
       }
 
       return await fn();
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       lastError = error;
 
       // Don't retry on the last attempt
@@ -227,7 +227,7 @@ const retryableFetch = async (url, options = {}) => {
     }
 
     return response;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     clearTimeout(timeoutId);
 
     if (error instanceof Error && error.name === 'AbortError') {

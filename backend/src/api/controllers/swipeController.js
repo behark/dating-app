@@ -45,7 +45,7 @@ const sendNotificationInternal = async (toUserId, type, title, message, data) =>
       });
       logger.info(`[NOTIFICATION] Queued notification for user ${toUserId}`);
     }
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error sending notification:', { error: error.message, stack: error.stack });
   }
 };
@@ -98,7 +98,7 @@ const createSwipe = async (req, res) => {
     let targetUser;
     try {
       targetUser = await User.findById(targetId).select('_id').lean();
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       logger.error('Error finding target user', {
         error: error.message,
         stack: error.stack,
@@ -222,7 +222,7 @@ const createSwipe = async (req, res) => {
         remaining: (limitCheck.remaining ?? 0) - 1,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     // Log error with full context
     logger.error('Error creating swipe', {
       error: error.message,
@@ -363,7 +363,7 @@ const getSwipeCountToday = async (req, res) => {
         isPremium: false,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting swipe count:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -387,7 +387,7 @@ const undoSwipe = async (req, res) => {
     const result = await SwipeService.undoSwipe(swipeId, userId);
 
     sendSuccess(res, 200, { message: 'Swipe undone successfully', data: result.undoneSwipe });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error undoing swipe:', { error: error.message, stack: error.stack });
 
     if ((error instanceof Error ? error.message : String(error)) === 'Swipe not found') {
@@ -432,7 +432,7 @@ const getUserSwipes = async (req, res) => {
         count: swipes.length,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting user swipes:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -463,7 +463,7 @@ const getReceivedSwipes = async (req, res) => {
         count: swipes.length,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting received swipes:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -566,7 +566,7 @@ const getMatches = async (req, res) => {
         },
       },
     ])
-      .maxTimeMS(MATCH_QUERY_TIMEOUT_MS)
+      .option({ maxTimeMS: MATCH_QUERY_TIMEOUT_MS })
       .allowDiskUse(true); // Allow disk use for large result sets
 
     // Get total count (only if needed for pagination)
@@ -634,7 +634,7 @@ const getMatches = async (req, res) => {
     }
 
     res.json(response);
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const queryTime = Date.now() - startTime;
     logger.error('Error getting matches', {
       error: error.message,
@@ -708,7 +708,7 @@ const unmatch = async (req, res) => {
         message: 'Match not found',
       });
     }
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error unmatching:', { error: error.message, stack: error.stack });
 
     if ((error instanceof Error ? error.message : String(error)) === 'Match not found') {
@@ -746,7 +746,7 @@ const getSwipeStats = async (req, res) => {
       success: true,
       data: stats,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting swipe stats:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -794,7 +794,7 @@ const getPendingLikes = async (req, res) => {
         isPremium: true,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting pending likes:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,

@@ -200,8 +200,8 @@ eventSchema.pre('save', function (next) {
 });
 
 /**
- * @typedef {import('../types/index').EventDocument} EventDocument
- * @typedef {import('../types/index').EventModel} EventModel
+ * @typedef {import('../../../types/index').EventDocument} EventDocument
+ * @typedef {import('../../../types/index').EventModel} EventModel
  */
 
 /** @type {EventModel} */

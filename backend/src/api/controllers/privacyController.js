@@ -105,9 +105,12 @@ exports.exportUserData = async (req, res) => {
       success: true,
       data: exportData,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Data export error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Failed to export user data', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Failed to export user data',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -139,7 +142,7 @@ exports.getPrivacySettings = async (req, res) => {
         consentHistory: user.privacySettings?.consentHistory || [],
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get privacy settings error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -197,8 +200,11 @@ exports.updatePrivacySettings = async (req, res) => {
       });
     }
 
-    sendSuccess(res, 200, { message: 'Privacy settings updated successfully', data: user.privacySettings, });
-  } catch (error) {
+    sendSuccess(res, 200, {
+      message: 'Privacy settings updated successfully',
+      data: user.privacySettings,
+    });
+  } catch (/** @type {any} */ error) {
     logger.error('Update privacy settings error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -238,7 +244,7 @@ exports.doNotSell = async (req, res) => {
           ? 'Your personal information will not be sold to third parties'
           : 'Do Not Sell preference has been disabled',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Do Not Sell error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -297,7 +303,7 @@ exports.deleteAccount = async (req, res) => {
       success: true,
       message: 'Your account and all associated data have been permanently deleted',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Account deletion error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -337,8 +343,8 @@ exports.rectifyData = async (req, res) => {
       });
     }
 
-    sendSuccess(res, 200, { message: 'Personal data updated successfully', data: user, });
-  } catch (error) {
+    sendSuccess(res, 200, { message: 'Personal data updated successfully', data: user });
+  } catch (/** @type {any} */ error) {
     logger.error('Data rectification error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -376,7 +382,7 @@ exports.getConsentStatus = async (req, res) => {
         accountAge: user.createdAt,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get consent status error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -418,7 +424,7 @@ exports.recordConsent = async (req, res) => {
       success: true,
       message: 'Consent recorded successfully',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Record consent error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -466,7 +472,7 @@ exports.withdrawConsent = async (req, res) => {
       success: true,
       message: 'Consent preferences updated',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Withdraw consent error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,

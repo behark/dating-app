@@ -250,6 +250,41 @@ export interface IUser {
   advancedFilters?: any;
   adsPreferences?: any;
   language?: string;
+  // Verification tracking
+  verificationSubmittedAt?: Date;
+  verifiedAt?: Date;
+  // Push notifications
+  expoPushToken?: string;
+  // Photo URL (legacy/shortcut)
+  photoURL?: string;
+  // Encryption
+  encryptionPublicKey?: string;
+  encryptionPrivateKeyEncrypted?: string;
+  encryptionKeyVersion?: number;
+  // Premium expiry
+  premiumExpiresAt?: Date;
+  // Suspend/appeal
+  suspendReason?: string;
+  appealReason?: string;
+  appealedAt?: Date;
+  // Location history
+  lastLocationUpdate?: Date;
+  locationHistoryEnabled?: boolean;
+  // Activity
+  lastActivityAt?: Date;
+  totalConversations?: number;
+  // Usage tracking
+  superLikeUsageToday?: number;
+  superLikeUsageResetTime?: Date;
+  rewindUsageToday?: number;
+  rewindUsageResetTime?: Date;
+  boostUsageToday?: number;
+  boostUsageResetTime?: Date;
+  // Swipe stats
+  swipeStats?: any;
+  // Gamification
+  gamification?: any;
+  points?: number;
 }
 
 export interface UserDocument extends IUser, Document {
@@ -312,6 +347,10 @@ export interface ISwipe {
   swipedId: Types.ObjectId;
   action: 'like' | 'dislike' | 'superlike';
   isMatch?: boolean;
+  isPriority?: boolean;
+  prioritySentAt?: Date;
+  isSuperLike?: boolean;
+  matchId?: Types.ObjectId;
   createdAt?: Date;
 }
 
@@ -390,6 +429,16 @@ export interface IMessage {
   replyTo?: Types.ObjectId;
   createdAt?: Date;
   metadata?: Record<string, any>;
+  // Encryption metadata
+  encryptionMetadata?: any;
+  // Media metadata
+  mediaMetadata?: any;
+  // Reactions
+  reactions?: Array<{
+    userId: Types.ObjectId;
+    emoji: string;
+    createdAt: Date;
+  }>;
   // Media message fields
   voiceMessage?: {
     url: string;
@@ -411,6 +460,8 @@ export interface IMessage {
 export interface MessageDocument extends IMessage, Document {
   _id: Types.ObjectId;
   markAsRead(timestamp?: Date): void;
+  addReaction(userId: string, emoji: string): void;
+  removeReaction(userId: string, emoji: string): void;
 }
 
 export interface MessageModel extends Model<MessageDocument> {
@@ -731,6 +782,13 @@ export interface ISubscription {
     endDate?: Date;
     isUsed?: boolean;
   };
+  lastSuperLikeDate?: Date;
+  dailyLikesLimit?: number;
+  maxProfileBoostsPerMonth?: number;
+  showAds?: boolean;
+  lastPassportChange?: Date;
+  passportLocations?: any[];
+  boostAnalytics?: any;
 }
 
 export interface SubscriptionDocument extends ISubscription, Document {
@@ -993,6 +1051,11 @@ export interface IEvent {
   status: 'draft' | 'published' | 'cancelled' | 'completed';
   tags?: string[];
   coverImage?: string;
+  ageRestriction?: {
+    minAge?: number;
+    maxAge?: number;
+  };
+  visibility?: 'public' | 'private' | 'friends_only';
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -1150,13 +1213,6 @@ export interface PerformanceMetricModel extends Model<PerformanceMetricDocument>
     endDate: Date,
     limit?: number
   ): Promise<PerformanceMetricDocument[]>;
-  getPerformanceSummary(
-    startDate: Date,
-    endDate: Date,
-    groupBy?: string
-  ): Promise<any[]>;
-  getAverageResponseTimes(
-    startDate: Date,
-    endDate: Date
-  ): Promise<any[]>;
+  getPerformanceSummary(startDate: Date, endDate: Date, groupBy?: string): Promise<any[]>;
+  getAverageResponseTimes(startDate: Date, endDate: Date): Promise<any[]>;
 }

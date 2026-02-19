@@ -20,8 +20,10 @@ class MatchRepository {
   }
 
   async createMatch(userId1, userId2, matchType = 'regular', initiatorId) {
-    const [user1, user2] = [userId1, userId2].sort((a, b) => a.toString().localeCompare(b.toString()));
-    
+    const [user1, user2] = [userId1, userId2].sort((a, b) =>
+      a.toString().localeCompare(b.toString())
+    );
+
     const existingMatch = await Match.findOne({ user1, user2 });
     if (existingMatch) return { match: existingMatch, isNew: false };
 
@@ -40,7 +42,7 @@ class MatchRepository {
 
   async getUserMatches(userId, options = {}) {
     const { status = 'active', limit = 50, skip = 0, sortBy = 'lastActivityAt' } = options;
-    
+
     return Match.find({
       users: userId,
       status,
@@ -105,4 +107,6 @@ class MatchRepository {
   }
 }
 
-module.exports = new MatchRepository();
+/** @type {any} */
+const matchRepository = new MatchRepository();
+module.exports = matchRepository;

@@ -167,7 +167,7 @@ const initRedis = async () => {
     ]);
 
     return redisClient;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     reconnectAttempts++;
 
@@ -218,7 +218,7 @@ const cache = {
 
       const data = await client.get(key);
       return data ? JSON.parse(data) : null;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache get error:', errorMessage);
       return null;
@@ -235,7 +235,7 @@ const cache = {
 
       await client.setex(key, ttl, JSON.stringify(value));
       return true;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache set error:', errorMessage);
       return false;
@@ -252,7 +252,7 @@ const cache = {
 
       await client.del(key);
       return true;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache delete error:', errorMessage);
       return false;
@@ -272,7 +272,7 @@ const cache = {
         await client.del(...keys);
       }
       return true;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache delete pattern error:', errorMessage);
       return false;
@@ -288,7 +288,7 @@ const cache = {
       if (!client) return false;
 
       return await client.exists(key);
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache exists error:', errorMessage);
       return false;
@@ -308,7 +308,7 @@ const cache = {
         await client.expire(key, ttl);
       }
       return value;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache incr error:', errorMessage);
       return null;
@@ -325,7 +325,7 @@ const cache = {
 
       const value = await client.get(key);
       return parseInt(value) || 0;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache getCounter error:', errorMessage);
       return 0;
@@ -342,7 +342,7 @@ const cache = {
 
       await client.zadd(key, score, member);
       return true;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache zadd error:', errorMessage);
       return false;
@@ -361,7 +361,7 @@ const cache = {
         return await client.zrevrange(key, start, stop, 'WITHSCORES');
       }
       return await client.zrevrange(key, start, stop);
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache zrevrange error:', errorMessage);
       return [];
@@ -378,7 +378,7 @@ const cache = {
 
       await client.hset(key, field, JSON.stringify(value));
       return true;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache hset error:', errorMessage);
       return false;
@@ -395,7 +395,7 @@ const cache = {
 
       const data = await client.hget(key, field);
       return data ? JSON.parse(data) : null;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache hget error:', errorMessage);
       return null;
@@ -423,7 +423,7 @@ const cache = {
         }
       }
       return result;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache hgetall error:', errorMessage);
       return null;
@@ -440,7 +440,7 @@ const cache = {
 
       await client.expire(key, seconds);
       return true;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache expire error:', errorMessage);
       return false;

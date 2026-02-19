@@ -162,7 +162,7 @@ const controllerWithTimeout = (controllerFn, timeout = DEFAULT_TIMEOUT) => {
 
       const controllerPromise = controllerFn(req, res, next);
       await Promise.race([controllerPromise, timeoutPromise]);
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
 
       if (errorMessage.includes('timeout')) {

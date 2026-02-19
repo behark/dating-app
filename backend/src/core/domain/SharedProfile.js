@@ -100,8 +100,8 @@ sharedProfileSchema.pre('save', function (next) {
 sharedProfileSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 /**
- * @typedef {import('../types/index').SharedProfileDocument} SharedProfileDocument
- * @typedef {import('../types/index').SharedProfileModel} SharedProfileModel
+ * @typedef {import('../../../types/index').SharedProfileDocument} SharedProfileDocument
+ * @typedef {import('../../../types/index').SharedProfileModel} SharedProfileModel
  */
 
 /** @type {SharedProfileModel} */

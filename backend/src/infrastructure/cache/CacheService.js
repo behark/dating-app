@@ -75,7 +75,8 @@ class CacheService {
    * @returns {boolean} Success status
    */
   set(key, value, ttl = undefined) {
-    const success = this.cache.set(key, value, ttl);
+    const success =
+      ttl !== undefined ? this.cache.set(key, value, ttl) : this.cache.set(key, value);
 
     if (success) {
       this.stats.sets++;

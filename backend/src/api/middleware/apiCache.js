@@ -61,7 +61,7 @@ const apiCache = (type, ttlOverride = null) => {
               'X-Cache-Key': cacheKey,
               'Cache-Control': 'private, max-age=60',
             });
-          } catch (error) {
+          } catch (/** @type {any} */ error) {
             // Headers already sent, ignore
           }
         }
@@ -95,7 +95,7 @@ const apiCache = (type, ttlOverride = null) => {
               'X-Cache': 'MISS',
               'X-Cache-Key': cacheKey,
             });
-          } catch (error) {
+          } catch (/** @type {any} */ error) {
             // Headers already sent, ignore
           }
         }
@@ -104,7 +104,7 @@ const apiCache = (type, ttlOverride = null) => {
       };
 
       next();
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       logger.error('Cache middleware error:', { error: error.message || error });
       next(); // Continue without caching on error
     }
@@ -135,7 +135,7 @@ const invalidateCache = async (type, params = {}) => {
     const cacheKey = generateCacheKey(type, params);
     await cache.del(cacheKey);
     return true;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Cache invalidation error:', { error: error.message || error });
     return false;
   }
@@ -157,7 +157,7 @@ const invalidateUserCache = async (userId) => {
 
     await Promise.all(patterns.map((pattern) => cache.delByPattern(pattern)));
     return true;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('User cache invalidation error:', { error: error.message || error });
     return false;
   }
@@ -185,7 +185,7 @@ const warmCache = async (type, data, params = {}) => {
     const ttl = getTTLForType(type);
     await cache.set(cacheKey, data, ttl);
     return true;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Cache warm error:', { error: error.message || error });
     return false;
   }
@@ -220,7 +220,7 @@ const staleWhileRevalidate = (type, fetchFn, staleTime = 60) => {
               'X-Cache': isStale ? 'STALE' : 'HIT',
               'X-Cache-Age': meta ? Math.round((now - meta.timestamp) / 1000) : 0,
             });
-          } catch (error) {
+          } catch (/** @type {any} */ error) {
             // Headers already sent, ignore
           }
         }
@@ -235,7 +235,7 @@ const staleWhileRevalidate = (type, fetchFn, staleTime = 60) => {
                 cache.set(cacheKey, freshData, ttl),
                 cache.set(metaKey, { timestamp: Date.now() }, ttl),
               ]);
-            } catch (error) {
+            } catch (/** @type {any} */ error) {
               logger.error('Background refresh error:', { error: error.message || error });
             }
           });
@@ -259,7 +259,7 @@ const staleWhileRevalidate = (type, fetchFn, staleTime = 60) => {
         if (!res.headersSent) {
           try {
             res.set({ 'X-Cache': 'MISS' });
-          } catch (error) {
+          } catch (/** @type {any} */ error) {
             // Headers already sent, ignore
           }
         }
@@ -267,7 +267,7 @@ const staleWhileRevalidate = (type, fetchFn, staleTime = 60) => {
       };
 
       next();
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       logger.error('SWR cache error:', { error: error.message || error });
       next();
     }
@@ -309,7 +309,7 @@ const etagCache = (type) => {
             cache.set(etagKey, etag, getTTLForType(type)).catch((err) => {
               logger.error('Cache error:', { error: err.message || err });
             });
-          } catch (error) {
+          } catch (/** @type {any} */ error) {
             // Headers already sent or error, continue with response
             logger.error('ETag error:', { error: error.message || error });
           }
@@ -319,7 +319,7 @@ const etagCache = (type) => {
       };
 
       next();
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       logger.error('ETag cache error:', { error: error.message || error });
       next();
     }

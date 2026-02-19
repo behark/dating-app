@@ -157,7 +157,7 @@ paymentTransactionSchema.pre('save', function (next) {
 });
 
 // Static method: Get user transaction history
-/** @this {import('../types/index').PaymentTransactionModel} */
+/** @this {import('../../../types/index').PaymentTransactionModel} */
 // @ts-ignore
 paymentTransactionSchema.statics.getUserTransactions = async function (userId, options = {}) {
   const { limit = 50, skip = 0, type, status, startDate, endDate } = options;
@@ -176,7 +176,7 @@ paymentTransactionSchema.statics.getUserTransactions = async function (userId, o
 };
 
 // Static method: Get transaction by provider ID
-/** @this {import('../types/index').PaymentTransactionModel} */
+/** @this {import('../../../types/index').PaymentTransactionModel} */
 // @ts-ignore
 paymentTransactionSchema.statics.findByProviderId = function (provider, providerTransactionId) {
   return this.findOne({ provider, providerTransactionId });
@@ -184,7 +184,7 @@ paymentTransactionSchema.statics.findByProviderId = function (provider, provider
 
 // Static method: Calculate user total spend
 /**
- * @this {import('../types/index').PaymentTransactionModel}
+ * @this {import('../../../types/index').PaymentTransactionModel}
  * @param {string} userId
  * @returns {Promise<{totalSpend: number, totalTransactions: number}>}
  */
@@ -220,7 +220,7 @@ paymentTransactionSchema.statics.getUserTotalSpend = async function (userId) {
 // @ts-ignore - Mongoose static method context
 
 // Static method: Get revenue analytics
-/** @this {import('../types/index').PaymentTransactionModel} */
+/** @this {import('../../../types/index').PaymentTransactionModel} */
 // @ts-ignore
 paymentTransactionSchema.statics.getRevenueAnalytics = async function (startDate, endDate) {
   return this.aggregate([
@@ -250,7 +250,7 @@ paymentTransactionSchema.statics.getRevenueAnalytics = async function (startDate
 };
 
 // Static method: Get refund statistics
-/** @this {import('../types/index').PaymentTransactionModel} */
+/** @this {import('../../../types/index').PaymentTransactionModel} */
 // @ts-ignore
 paymentTransactionSchema.statics.getRefundStats = async function (startDate, endDate) {
   return this.aggregate([
@@ -271,7 +271,7 @@ paymentTransactionSchema.statics.getRefundStats = async function (startDate, end
 };
 
 // Instance method: Mark as completed
-/** @this {import('../types/index').PaymentTransactionDocument} */
+/** @this {import('../../../types/index').PaymentTransactionDocument} */
 paymentTransactionSchema.methods.markCompleted = function (additionalData = {}) {
   this.status = 'completed';
   this.completedAt = new Date();
@@ -280,7 +280,7 @@ paymentTransactionSchema.methods.markCompleted = function (additionalData = {}) 
 };
 
 // Instance method: Mark as failed
-/** @this {import('../types/index').PaymentTransactionDocument} */
+/** @this {import('../../../types/index').PaymentTransactionDocument} */
 paymentTransactionSchema.methods.markFailed = function (reason, code) {
   this.status = 'failed';
   this.failureReason = reason;
@@ -289,7 +289,7 @@ paymentTransactionSchema.methods.markFailed = function (reason, code) {
 };
 
 // Instance method: Process refund
-/** @this {import('../types/index').PaymentTransactionDocument} */
+/** @this {import('../../../types/index').PaymentTransactionDocument} */
 paymentTransactionSchema.methods.processRefund = function (refundAmount, refundId, reason) {
   this.refundStatus = refundAmount >= this.amount ? 'refunded' : 'partial_refund';
   this.refundAmount = refundAmount;
@@ -301,8 +301,8 @@ paymentTransactionSchema.methods.processRefund = function (refundAmount, refundI
 };
 
 /**
- * @typedef {import('../types/index').PaymentTransactionDocument} PaymentTransactionDocument
- * @typedef {import('../types/index').PaymentTransactionModel} PaymentTransactionModel
+ * @typedef {import('../../../types/index').PaymentTransactionDocument} PaymentTransactionDocument
+ * @typedef {import('../../../types/index').PaymentTransactionModel} PaymentTransactionModel
  */
 
 /** @type {PaymentTransactionModel} */

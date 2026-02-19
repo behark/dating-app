@@ -41,7 +41,7 @@ exports.authenticate = async (req, res, next) => {
           });
         }
       }
-    } catch (redisError) {
+    } catch (/** @type {any} */ redisError) {
       // Redis unavailable - check MongoDB fallback
       const redisLogger = require('../../infrastructure/external/LoggingService').logger;
       redisLogger.warn('Redis unavailable for blacklist check, using MongoDB fallback', {
@@ -58,7 +58,7 @@ exports.authenticate = async (req, res, next) => {
             message: 'Token has been revoked. Please login again.',
           });
         }
-      } catch (mongoError) {
+      } catch (/** @type {any} */ mongoError) {
         // If MongoDB check also fails, log error but continue
         // This prevents a single point of failure from blocking all requests
         redisLogger.error('MongoDB blacklist check failed', {
@@ -97,7 +97,7 @@ exports.authenticate = async (req, res, next) => {
 
     req.user = user;
     next();
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     if ((error instanceof Error ? error.name : 'Error') === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
@@ -143,7 +143,7 @@ exports.optionalAuth = async (req, res, next) => {
         }
       }
     }
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     // Continue even if token is invalid
   }
   next();
@@ -259,7 +259,7 @@ exports.authorizeMatchedUsers = async (req, res, next) => {
     }
 
     next();
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     // Log error without sensitive data
     const safeError = error instanceof Error ? error.message : String(error);
     const { logger } = require('../../infrastructure/external/LoggingService');

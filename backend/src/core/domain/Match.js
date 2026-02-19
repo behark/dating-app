@@ -125,7 +125,7 @@ matchSchema.pre('save', function (next) {
 });
 
 // Static method to check if a match exists between two users
-/** @this {import('../types/index').MatchModel} */
+/** @this {import('../../../types/index').MatchModel} */
 // @ts-ignore
 matchSchema.statics.matchExists = async function (userId1, userId2) {
   const sortedIds = [userId1.toString(), userId2.toString()].sort();
@@ -137,7 +137,7 @@ matchSchema.statics.matchExists = async function (userId1, userId2) {
 };
 
 // Static method to create a new match
-/** @this {import('../types/index').MatchModel} */
+/** @this {import('../../../types/index').MatchModel} */
 // @ts-ignore
 matchSchema.statics.createMatch = async function (
   userId1,
@@ -181,7 +181,7 @@ matchSchema.statics.createMatch = async function (
 };
 
 // Static method to get all matches for a user
-/** @this {import('../types/index').MatchModel} */
+/** @this {import('../../../types/index').MatchModel} */
 // @ts-ignore
 matchSchema.statics.getUserMatches = async function (userId, options = {}) {
   const { status = 'active', limit = 50, skip = 0, sortBy = 'createdAt', sortOrder = -1 } = options;
@@ -203,7 +203,7 @@ matchSchema.statics.getUserMatches = async function (userId, options = {}) {
 // @ts-ignore - Mongoose static method context
 
 // Static method to unmatch
-/** @this {import('../types/index').MatchModel} */
+/** @this {import('../../../types/index').MatchModel} */
 // @ts-ignore
 matchSchema.statics.unmatch = async function (matchId, userId) {
   const match = await this.findById(matchId);
@@ -226,7 +226,7 @@ matchSchema.statics.unmatch = async function (matchId, userId) {
 };
 
 // Static method to get match count for a user
-/** @this {import('../types/index').MatchModel} */
+/** @this {import('../../../types/index').MatchModel} */
 // @ts-ignore
 matchSchema.statics.getMatchCount = async function (userId, status = 'active') {
   return this.countDocuments({
@@ -241,7 +241,7 @@ matchSchema.methods.getOtherUser = function (userId) {
 };
 
 // Instance method to update conversation status
-/** @this {import('../types/index').MatchDocument} */
+/** @this {import('../../../types/index').MatchDocument} */
 matchSchema.methods.markConversationStarted = async function (messageBy) {
   if (!this.conversationStarted) {
     this.conversationStarted = true;
@@ -258,8 +258,8 @@ matchSchema.methods.markConversationStarted = async function (messageBy) {
 };
 
 /**
- * @typedef {import('../types/index').MatchDocument} MatchDocument
- * @typedef {import('../types/index').MatchModel} MatchModel
+ * @typedef {import('../../../types/index').MatchDocument} MatchDocument
+ * @typedef {import('../../../types/index').MatchModel} MatchModel
  */
 
 /** @type {MatchModel} */

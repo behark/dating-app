@@ -187,14 +187,14 @@ class MonitoringService {
 
 class DatadogService {
   init() {}
-  gauge() {}
-  increment() {}
-  timing() {}
-  histogram() {}
+  gauge(_metric, _value, _tags) {}
+  increment(_metric, _value, _tags) {}
+  timing(_metric, _value, _tags) {}
+  histogram(_metric, _value, _tags) {}
   trace(operationName, options, callback) {
     return callback();
   }
-  close() {}
+  close(_callback) {}
 }
 
 // =============================================
@@ -202,7 +202,7 @@ class DatadogService {
 // =============================================
 
 class MetricsCollector {
-  constructor() {}
+  constructor(_datadogService) {}
   trackRequest() {}
   trackDatabaseQuery() {}
   trackCache() {}
@@ -249,7 +249,7 @@ class HealthCheckService {
           responseTime: Date.now() - start,
           ...result,
         };
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         results.status = 'unhealthy';
         results.checks[name] = {
           status: 'unhealthy',

@@ -40,7 +40,7 @@ const encrypt = (plaintext) => {
 
     // Return format: iv:authTag:ciphertext (all base64)
     return `${iv.toString('base64')}:${authTag.toString('base64')}:${ciphertext}`;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Encryption error:', error);
     throw new Error('Failed to encrypt data');
   }
@@ -79,7 +79,7 @@ const decrypt = (encryptedData) => {
     plaintext += decipher.final('utf8');
 
     return plaintext;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Decryption error:', error);
     // Return original data if decryption fails (might not be encrypted)
     return encryptedData;
@@ -133,7 +133,7 @@ const encryptMessage = (message, userKey) => {
     const authTag = cipher.getAuthTag();
 
     return `${iv.toString('base64')}:${authTag.toString('base64')}:${ciphertext}`;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Message encryption error:', error);
     throw new Error('Failed to encrypt message');
   }
@@ -171,7 +171,7 @@ const decryptMessage = (encryptedMessage, userKey) => {
     plaintext += decipher.final('utf8');
 
     return plaintext;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Message decryption error:', error);
     return encryptedMessage;
   }

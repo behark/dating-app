@@ -98,7 +98,7 @@ const setupNotificationProcessors = () => {
       const ticket = await expo.sendPushNotificationsAsync([message]);
 
       return { success: true, ticket };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Push notification error:', error);
       throw error;
     }
@@ -219,7 +219,7 @@ const setupMatchProcessors = () => {
       );
 
       return { success: true, matchId };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Process match error:', error);
       throw error;
     }
@@ -372,7 +372,7 @@ const setupEmailProcessors = () => {
       });
 
       return { success: true, messageId: result.messageId };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Email sending failed:', error);
       throw error;
     }
@@ -432,7 +432,7 @@ const setupEmailProcessors = () => {
           <p>Keep swiping to find your perfect match!</p>
         `,
       });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Email sending failed:', error);
       throw error;
     }
@@ -482,7 +482,7 @@ const setupModerationProcessors = () => {
       }
 
       return { success: true, status, moderation: result.moderation };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Image moderation error:', error);
       throw error;
     }

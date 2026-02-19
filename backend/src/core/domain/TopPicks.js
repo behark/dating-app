@@ -109,7 +109,7 @@ topPicksSchema.statics.recalculateForUser = async function (userId) {
 };
 
 // Static method to mark as seen
-/** @this {import('../types/index').TopPicksDocument} */
+/** @this {import('../../../types/index').TopPicksDocument} */
 topPicksSchema.methods.markAsSeen = function () {
   this.isSeen = true;
   this.seenAt = new Date();
@@ -117,8 +117,8 @@ topPicksSchema.methods.markAsSeen = function () {
 };
 
 /**
- * @typedef {import('../types/index').TopPicksDocument} TopPicksDocument
- * @typedef {import('../types/index').TopPicksModel} TopPicksModel
+ * @typedef {import('../../../types/index').TopPicksDocument} TopPicksDocument
+ * @typedef {import('../../../types/index').TopPicksModel} TopPicksModel
  */
 
 /** @type {TopPicksModel} */

@@ -73,7 +73,7 @@ router.get(
  * @access  Private (requires authentication)
  */
 router.get('/:id', authenticate, async (req, res) => {
-  /** @type {import('../types').AuthenticatedRequest} */
+  /** @type {import('../../../types/index').AuthenticatedRequest} */
   const authReq = req;
   try {
     const { id } = req.params;
@@ -110,7 +110,7 @@ router.get('/:id', authenticate, async (req, res) => {
       message: 'User profile retrieved successfully',
       data: { user },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error getting user profile:', error);
     return sendError(res, 500, {
       message: 'Failed to retrieve user profile',

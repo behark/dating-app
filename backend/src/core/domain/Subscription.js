@@ -159,7 +159,7 @@ subscriptionSchema.methods.isTrialAvailable = function () {
 };
 
 // Method to check if premium features are available
-/** @this {import('../types/index').SubscriptionDocument} */
+/** @this {import('../../../types/index').SubscriptionDocument} */
 subscriptionSchema.methods.hasFeature = function (featureName) {
   if (this.status !== 'active' || (this.endDate && this.endDate <= new Date())) {
     return false;
@@ -170,9 +170,9 @@ subscriptionSchema.methods.hasFeature = function (featureName) {
 
 // Static method to get or create subscription for user
 /**
- * @this {import('../types/index').SubscriptionModel}
+ * @this {import('../../../types/index').SubscriptionModel}
  * @param {string} userId
- * @returns {Promise<import('../types/index').SubscriptionDocument>}
+ * @returns {Promise<import('../../../types/index').SubscriptionDocument>}
  */
 // @ts-ignore
 subscriptionSchema.statics.getOrCreate = async function (userId) {
@@ -186,7 +186,7 @@ subscriptionSchema.statics.getOrCreate = async function (userId) {
 
 // Static method to activate trial
 /**
- * @this {import('../types/index').SubscriptionModel}
+ * @this {import('../../../types/index').SubscriptionModel}
  * @param {string} userId
  * @returns {Promise<{success: boolean, message?: string, subscription?: any}>}
  */
@@ -228,7 +228,7 @@ subscriptionSchema.statics.activateTrial = async function (userId) {
 
 // Static method to upgrade to paid subscription
 /**
- * @this {import('../types/index').SubscriptionModel}
+ * @this {import('../../../types/index').SubscriptionModel}
  * @param {string} userId
  * @param {string} planType
  * @param {any} paymentData
@@ -274,7 +274,7 @@ subscriptionSchema.statics.upgradeToPremium = async function (userId, planType, 
 
 // Static method to cancel subscription
 /**
- * @this {import('../types/index').SubscriptionModel}
+ * @this {import('../../../types/index').SubscriptionModel}
  * @param {string} userId
  * @returns {Promise<{success: boolean, subscription?: any}>}
  */
@@ -291,8 +291,8 @@ subscriptionSchema.statics.cancelSubscription = async function (userId) {
 };
 
 /**
- * @typedef {import('../types/index').SubscriptionDocument} SubscriptionDocument
- * @typedef {import('../types/index').SubscriptionModel} SubscriptionModel
+ * @typedef {import('../../../types/index').SubscriptionDocument} SubscriptionDocument
+ * @typedef {import('../../../types/index').SubscriptionModel} SubscriptionModel
  */
 
 /** @type {SubscriptionModel} */

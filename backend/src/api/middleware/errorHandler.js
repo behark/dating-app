@@ -1,6 +1,6 @@
 /**
  * Global Error Handler Middleware
- * 
+ *
  * Centralized error handling for all routes
  * Provides consistent error responses and logging
  */
@@ -10,12 +10,12 @@ const { AppError } = require('../../shared/utils/AppError');
 
 /**
  * Global error handler middleware
- * 
+ *
  * Handles all errors thrown in the application and provides
  * consistent JSON error responses
- * 
- * @param {Error} err - The error object
- * @param {import('express').Request} req - Express request
+ *
+ * @param {any} err - The error object
+ * @param {any} req - Express request
  * @param {import('express').Response} res - Express response
  * @param {import('express').NextFunction} next - Express next function
  */
@@ -141,7 +141,7 @@ const errorHandler = (err, req, res, next) => {
 
 /**
  * 404 Not Found handler
- * 
+ *
  * Catches all requests to undefined routes
  */
 const notFoundHandler = (req, res) => {

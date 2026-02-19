@@ -144,7 +144,7 @@ const sendSuperLike = async (req, res) => {
         remaining: sender.isPremium ? -1 : remaining - 1,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error sending super like:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -191,7 +191,7 @@ const getSuperLikeQuota = async (req, res) => {
         usedToday,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting super like quota:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -280,7 +280,7 @@ const rewindLastSwipe = async (req, res) => {
         targetUser: lastSwipe.swipedId,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error rewinding swipe:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -327,7 +327,7 @@ const getRewindQuota = async (req, res) => {
         usedToday,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting rewind quota:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -418,7 +418,7 @@ const boostProfile = async (req, res) => {
         durationMinutes,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error boosting profile:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -485,7 +485,7 @@ const getBoostQuota = async (req, res) => {
         usedToday,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting boost quota:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,

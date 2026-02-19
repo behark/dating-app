@@ -281,8 +281,8 @@ subscriptionTierSchema.methods.getFeatureValue = function (featureName) {
 };
 
 /**
- * @typedef {import('../types/index').SubscriptionTierDocument} SubscriptionTierDocument
- * @typedef {import('../types/index').SubscriptionTierModel} SubscriptionTierModel
+ * @typedef {import('../../../types/index').SubscriptionTierDocument} SubscriptionTierDocument
+ * @typedef {import('../../../types/index').SubscriptionTierModel} SubscriptionTierModel
  */
 
 /** @type {SubscriptionTierModel} */

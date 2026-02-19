@@ -111,7 +111,7 @@ const initializeWebSocket = (httpServer) => {
       // @ts-ignore - Adding custom property to socket
       socket.userName = user.name;
       next();
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       next(
         new Error(
           `Authentication failed: ${error instanceof Error ? error.message : String(error)}`
@@ -258,7 +258,7 @@ const loadUserConversations = async (socket) => {
     socket.emit('conversations_loaded', {
       matchIds: matches.map((m) => m._id.toString()),
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('[WS] Error loading conversations:', error);
     socket.emit('error', { message: 'Failed to load conversations' });
   }
@@ -305,7 +305,7 @@ const handleJoinRoom = async (socket, matchId) => {
     });
 
     console.log(`[WS] User ${userId} joined room ${matchId}`);
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('[WS] Error joining room:', error);
     socket.emit('error', { message: 'Failed to join room' });
   }
@@ -410,7 +410,7 @@ const handleSendMessage = async (io, socket, data) => {
       userId: senderId,
       isTyping: false,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('[WS] Error sending message:', error);
     socket.emit('error', { message: 'Failed to send message' });
   }
@@ -444,7 +444,7 @@ const handleMessageRead = async (io, socket, data) => {
         readAt: message.readAt,
       });
     }
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('[WS] Error marking message read:', error);
   }
 };
@@ -475,7 +475,7 @@ const handleMarkAllRead = async (io, socket, matchId) => {
         count: result.modifiedCount,
       });
     }
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('[WS] Error marking all messages read:', error);
   }
 };
@@ -557,7 +557,7 @@ const broadcastPresenceUpdate = async (io, userId, isOnline) => {
         lastSeen: isOnline ? null : new Date(),
       });
     }
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('[WS] Error broadcasting presence:', error);
   }
 };
@@ -630,7 +630,7 @@ const handleJoinEventRoom = async (socket, data) => {
     });
 
     console.log(`[WS] User ${userId} joined event room ${eventId}`);
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('[WS] Error joining event room:', error);
     socket.emit('error', { message: 'Failed to join event room' });
   }
@@ -666,7 +666,7 @@ const handleLeaveEventRoom = (socket, data) => {
     });
 
     console.log(`[WS] User ${userId} left event room ${eventId}`);
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('[WS] Error leaving event room:', error);
     socket.emit('error', { message: 'Failed to leave event room' });
   }
@@ -690,7 +690,7 @@ const emitEventUpdate = (eventId, eventType, data) => {
       ...data,
       timestamp: new Date(),
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('[WS] Error emitting event update:', error);
   }
 };

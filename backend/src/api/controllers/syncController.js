@@ -24,7 +24,7 @@ const executeOfflineActions = async (req, res) => {
       success: true,
       data: { results },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     res.status(500).json({
       success: false,
       message: error instanceof Error ? error.message : 'Unknown error',

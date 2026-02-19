@@ -52,7 +52,8 @@ const sendSuccess = (res, statusCode = 200, options = {}) => {
  * @param {string} [options.message] - Error message
  * @param {string} [options.error] - Error code/type
  * @param {Array} [options.errors] - Validation errors array
- * @param {Object} [options.details] - Additional error details
+ * @param {*} [options.details] - Additional error details
+ * @param {string[]} [options.suggestions] - Suggested actions
  * @returns {Object} Express response
  */
 const sendError = (res, statusCode = 500, options = {}) => {
@@ -223,7 +224,7 @@ const createPaginatedResponse = (data, options = {}) => {
 /**
  * Handle async controller errors
  * @param {Function} fn - Async controller function
- * @returns {Function} Express middleware
+ * @returns {import('express').RequestHandler} Express middleware
  */
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch((error) => {

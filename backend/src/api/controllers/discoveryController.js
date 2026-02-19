@@ -95,7 +95,7 @@ const discoverUsers = async (req, res) => {
 
         excludedUserIds = swipes.map((s) => s.swipedId.toString());
         excludedUserIds.push(currentUserId);
-      } catch (swipeError) {
+      } catch (/** @type {any} */ swipeError) {
         // If swipe lookup times out, continue without exclusions but log
         logger.warn('[TIMEOUT] Swipe lookup timed out, continuing with partial exclusions');
         excludedUserIds = [currentUserId];
@@ -152,7 +152,10 @@ const discoverUsers = async (req, res) => {
     const hasMore = nearbyUsers.length > resultLimit;
     /** @type {any} */
     // Use allUsers (demo + regular), but limit regular users for pagination
-    const users = allUsers.slice(0, demoProfiles.length + (hasMore ? resultLimit : nearbyUsers.length));
+    const users = allUsers.slice(
+      0,
+      demoProfiles.length + (hasMore ? resultLimit : nearbyUsers.length)
+    );
 
     // Transform the response - PRIVACY: NEVER expose raw coordinates
     const usersWithDistance = users.map((user) => {
@@ -242,7 +245,7 @@ const discoverUsers = async (req, res) => {
         },
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const queryTime = Date.now() - startTime;
     logger.error('Discovery error', {
       duration: queryTime,
@@ -261,16 +264,20 @@ const discoverUsers = async (req, res) => {
         : String(error)
       ).includes('maxTimeMS')
     ) {
-      return sendError(res, 503, { message: 'Discovery query timed out. Try with a smaller search radius or more filters.', error: 'QUERY_TIMEOUT',
+      return sendError(res, 503, {
+        message: 'Discovery query timed out. Try with a smaller search radius or more filters.',
+        error: 'QUERY_TIMEOUT',
         suggestions: [
           'Reduce search radius',
           'Apply age or gender filters',
           'Try again in a few moments',
-        ], });
+        ],
+      });
     }
 
     return sendError(res, 500, {
-      message: ERROR_MESSAGES.INTERNAL_ERROR_DISCOVERY || 'Internal server error during user discovery',
+      message:
+        ERROR_MESSAGES.INTERNAL_ERROR_DISCOVERY || 'Internal server error during user discovery',
       error: 'DISCOVERY_ERROR',
     });
   }
@@ -318,7 +325,7 @@ const getDiscoverySettings = async (req, res) => {
         currentLocation: sanitizedLocation,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get discovery settings error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -358,7 +365,7 @@ const updateLocation = async (req, res) => {
       success: true,
       message: SUCCESS_MESSAGES.LOCATION_UPDATED,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Update location error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -408,7 +415,7 @@ const updateLocationPrivacy = async (req, res) => {
         locationPrivacy: user.locationPrivacy,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Update location privacy error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -429,7 +436,7 @@ const getLocationPrivacy = async (req, res) => {
       });
     }
 
-    /** @type {import('../types/index.d.ts').UserDocument | null} */
+    /** @type {import('../../../types/index').UserDocument | null} */
     const user = await User.findById(userId).select('locationPrivacy locationHistoryEnabled');
     if (!user) {
       return res.status(404).json({
@@ -447,7 +454,7 @@ const getLocationPrivacy = async (req, res) => {
           'locationHistoryEnabled' in user ? user.locationHistoryEnabled : false,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get location privacy error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -474,7 +481,9 @@ const updatePreferredDistance = async (req, res) => {
       preferredDistance < 1 ||
       preferredDistance > 50000
     ) {
-      return sendError(res, 400, { message: 'Invalid preferred distance. Must be between 1 and 50000 km' });
+      return sendError(res, 400, {
+        message: 'Invalid preferred distance. Must be between 1 and 50000 km',
+      });
     }
 
     const user = await User.findByIdAndUpdate(userId, { preferredDistance }, { new: true }).select(
@@ -494,7 +503,7 @@ const updatePreferredDistance = async (req, res) => {
         preferredDistance: user.preferredDistance,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Update preferred distance error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,

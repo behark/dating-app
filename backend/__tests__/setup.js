@@ -30,7 +30,7 @@ try {
         ...(options.instance || {}),
       },
     });
-} catch (_error) {
+} catch (/** @type {any} */ _error) {
   // Some suites do not use mongodb-memory-server.
 }
 

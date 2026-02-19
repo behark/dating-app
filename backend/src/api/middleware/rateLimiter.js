@@ -28,7 +28,7 @@ const extractUserIdFromAuthorization = (req) => {
     if (decoded && typeof decoded === 'object' && decoded.userId) {
       return decoded.userId;
     }
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     // Ignore invalid/expired tokens here; auth middleware will enforce access.
   }
 
@@ -76,7 +76,7 @@ const createRateLimiter = (options = {}) => {
       }
 
       next();
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       // Log error without sensitive data
       const safeError = error instanceof Error ? error.message : String(error);
       logger.error('Rate limiter error:', { error: safeError });
@@ -163,7 +163,7 @@ const swipeLimiter = async (req, res, next) => {
     }
 
     next();
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     // Log error without sensitive data
     const safeError = error instanceof Error ? error.message : String(error);
     logger.error('Swipe limiter error:', { error: safeError });

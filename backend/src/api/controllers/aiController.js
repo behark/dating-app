@@ -67,7 +67,7 @@ const generateIcebreakersOpenAI = async (interests, bio) => {
   let OpenAI;
   try {
     OpenAI = require('openai').OpenAI;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.warn('OpenAI package not installed, falling back to mock');
     return generateIcebreakersMock(interests, bio);
   }
@@ -135,13 +135,13 @@ Return ONLY a JSON array of exactly 3 strings, no other text. Example format:
       if (Array.isArray(parsed)) {
         return parsed.slice(0, 3);
       }
-    } catch (e) {
+    } catch (/** @type {any} */ e) {
       // If not JSON, try to extract array from text
       const arrayMatch = responseString ? responseString.match(/\[(.*?)\]/s) : null;
       if (arrayMatch) {
         try {
           return JSON.parse(arrayMatch[0]).slice(0, 3);
-        } catch (e2) {
+        } catch (/** @type {any} */ e2) {
           // Fallback to mock
         }
       }
@@ -149,7 +149,7 @@ Return ONLY a JSON array of exactly 3 strings, no other text. Example format:
 
     // Fallback to mock if parsing fails
     return generateIcebreakersMock(interests, bio);
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('OpenAI API error:', { error: error.message, stack: error.stack });
     // Fallback to mock on error
     return generateIcebreakersMock(interests, bio);
@@ -195,7 +195,7 @@ const generateIcebreakers = async (req, res) => {
     if (process.env.OPENAI_API_KEY && process.env.USE_OPENAI !== 'false') {
       try {
         icebreakers = await generateIcebreakersOpenAI(interests, bio);
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         logger.error('OpenAI generation failed, falling back to mock:', {
           error: error.message,
           stack: error.stack,
@@ -219,13 +219,17 @@ const generateIcebreakers = async (req, res) => {
       success: true,
       icebreakers: icebreakers.slice(0, 3),
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error generating icebreakers:', { error: error.message, stack: error.stack });
-    return sendError(res, 500, { message: 'Failed to generate icebreakers', error: process.env.NODE_ENV === 'development'
+    return sendError(res, 500, {
+      message: 'Failed to generate icebreakers',
+      error:
+        process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined, });
+          : undefined,
+    });
   }
 };
 
@@ -280,13 +284,17 @@ const getSmartPhotoSelection = async (req, res) => {
         },
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error analyzing photos:', { error: error.message, stack: error.stack });
-    return sendError(res, 500, { message: 'Failed to analyze photos', error: process.env.NODE_ENV === 'development'
+    return sendError(res, 500, {
+      message: 'Failed to analyze photos',
+      error:
+        process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined, });
+          : undefined,
+    });
   }
 };
 
@@ -367,13 +375,17 @@ const generateBioSuggestions = async (req, res) => {
         },
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error generating bio suggestions:', { error: error.message, stack: error.stack });
-    return sendError(res, 500, { message: 'Failed to generate bio suggestions', error: process.env.NODE_ENV === 'development'
+    return sendError(res, 500, {
+      message: 'Failed to generate bio suggestions',
+      error:
+        process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined, });
+          : undefined,
+    });
   }
 };
 
@@ -462,13 +474,17 @@ const calculateCompatibilityScore = async (req, res) => {
         explanation: getCompatibilityExplanation(score, commonInterests, commonValues),
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error calculating compatibility:', { error: error.message, stack: error.stack });
-    return sendError(res, 500, { message: 'Failed to calculate compatibility', error: process.env.NODE_ENV === 'development'
+    return sendError(res, 500, {
+      message: 'Failed to calculate compatibility',
+      error:
+        process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined, });
+          : undefined,
+    });
   }
 };
 
@@ -543,16 +559,20 @@ const getConversationStarters = async (req, res) => {
         },
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting conversation starters:', {
       error: error.message,
       stack: error.stack,
     });
-    return sendError(res, 500, { message: 'Failed to get conversation starters', error: process.env.NODE_ENV === 'development'
+    return sendError(res, 500, {
+      message: 'Failed to get conversation starters',
+      error:
+        process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined, });
+          : undefined,
+    });
   }
 };
 
@@ -609,13 +629,17 @@ const analyzePhotoQuality = async (req, res) => {
       success: true,
       data: analysis,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error analyzing photo:', { error: error.message, stack: error.stack });
-    return sendError(res, 500, { message: 'Failed to analyze photo', error: process.env.NODE_ENV === 'development'
+    return sendError(res, 500, {
+      message: 'Failed to analyze photo',
+      error:
+        process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined, });
+          : undefined,
+    });
   }
 };
 
@@ -670,16 +694,20 @@ const getPersonalizedMatches = async (req, res) => {
         },
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting personalized matches:', {
       error: error.message,
       stack: error.stack,
     });
-    return sendError(res, 500, { message: 'Failed to get personalized matches', error: process.env.NODE_ENV === 'development'
+    return sendError(res, 500, {
+      message: 'Failed to get personalized matches',
+      error:
+        process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined, });
+          : undefined,
+    });
   }
 };
 
@@ -752,13 +780,17 @@ const getProfileImprovementSuggestions = async (req, res) => {
         },
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting suggestions:', { error: error.message, stack: error.stack });
-    return sendError(res, 500, { message: 'Failed to get profile suggestions', error: process.env.NODE_ENV === 'development'
+    return sendError(res, 500, {
+      message: 'Failed to get profile suggestions',
+      error:
+        process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined, });
+          : undefined,
+    });
   }
 };
 
@@ -820,13 +852,17 @@ const getConversationInsights = async (req, res) => {
         patterns,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting insights:', { error: error.message, stack: error.stack });
-    return sendError(res, 500, { message: 'Failed to get conversation insights', error: process.env.NODE_ENV === 'development'
+    return sendError(res, 500, {
+      message: 'Failed to get conversation insights',
+      error:
+        process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined, });
+          : undefined,
+    });
   }
 };
 
@@ -929,7 +965,7 @@ const generateMatchIcebreakersOpenAI = async (currentUser, matchUser) => {
   let OpenAI;
   try {
     OpenAI = require('openai').OpenAI;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.warn('OpenAI package not installed, falling back to mock');
     return generateMatchIcebreakersMock(currentUser, matchUser);
   }
@@ -1016,20 +1052,20 @@ Example format: {"icebreakers": ["First icebreaker...", "Second icebreaker...", 
       if (Array.isArray(parsed)) {
         return parsed.slice(0, 3);
       }
-    } catch (e) {
+    } catch (/** @type {any} */ e) {
       // Try to extract array from response if JSON parsing fails
       const arrayMatch = responseString ? responseString.match(/\[([\s\S]*?)\]/) : null;
       if (arrayMatch) {
         try {
           return JSON.parse(arrayMatch[0]).slice(0, 3);
-        } catch (e2) {
+        } catch (/** @type {any} */ e2) {
           // Fall through to mock
         }
       }
     }
 
     return generateMatchIcebreakersMock(currentUser, matchUser);
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('OpenAI API error for match icebreakers:', {
       error: error.message,
       stack: error.stack,
@@ -1045,7 +1081,7 @@ Example format: {"icebreakers": ["First icebreaker...", "Second icebreaker...", 
  * This endpoint generates personalized conversation starters based on
  * both users' interests and bios for more meaningful icebreakers.
  *
- * @param {import('../types/index').AuthenticatedRequest} req - Express request object, containing matchId in the body.
+ * @param {import('../../../types/index').AuthenticatedRequest} req - Express request object, containing matchId in the body.
  * @param {import('express').Response} res - Express response object.
  * @returns {Promise<any>} - A promise that resolves to an Express response.
  */
@@ -1107,7 +1143,7 @@ const generateMatchIcebreakers = async (req, res) => {
             matchUser.bio || ''
           );
         }
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         logger.error('OpenAI generation failed, falling back to mock:', {
           error: error.message,
           stack: error.stack,
@@ -1150,16 +1186,20 @@ const generateMatchIcebreakers = async (req, res) => {
         hasCommonInterests: commonInterests.length > 0,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error generating match icebreakers:', {
       error: error.message,
       stack: error.stack,
     });
-    return sendError(res, 500, { message: 'Failed to generate icebreakers', error: process.env.NODE_ENV === 'development'
+    return sendError(res, 500, {
+      message: 'Failed to generate icebreakers',
+      error:
+        process.env.NODE_ENV === 'development'
           ? error instanceof Error
             ? error.message
             : String(error)
-          : undefined, });
+          : undefined,
+    });
   }
 };
 

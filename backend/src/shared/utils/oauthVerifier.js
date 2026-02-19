@@ -63,7 +63,7 @@ const verifyGoogleToken = async (idToken, clientId = undefined) => {
       tokenExpiry: payload.exp,
       issuedAt: payload.iat,
     };
-  } catch (err) {
+  } catch (/** @type {any} */ err) {
     // Handle specific Google OAuth errors
     const error = err instanceof Error ? err : new Error(String(err));
     const errorMessage = error.message || '';
@@ -165,7 +165,7 @@ const verifyFacebookToken = async (accessToken, facebookId) => {
       scopes: tokenData.scopes || [],
       expiresAt: tokenData.expires_at,
     };
-  } catch (err) {
+  } catch (/** @type {any} */ err) {
     // Check if it's an axios error with response data
     const isAxiosError = axios.isAxiosError
       ? axios.isAxiosError(err)
@@ -274,7 +274,7 @@ const verifyAppleToken = async (identityToken, appleId) => {
       issuedAt: payload.iat,
       expiresAt: payload.exp,
     };
-  } catch (err) {
+  } catch (/** @type {any} */ err) {
     const error = err instanceof Error ? err : new Error(String(err));
     if (error.name === 'TokenExpiredError') {
       throw new Error('Apple identity token has expired. Please sign in again.');

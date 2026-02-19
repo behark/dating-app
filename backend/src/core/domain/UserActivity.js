@@ -123,7 +123,7 @@ userActivitySchema.statics.logActivity = async function (userId, activityType, m
       metadata,
       createdAt: new Date(),
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error logging activity:', error);
   }
 };
@@ -179,8 +179,8 @@ userActivitySchema.statics.getActivitySummary = async function (userId, days = 7
 };
 
 /**
- * @typedef {import('../types/index').UserActivityDocument} UserActivityDocument
- * @typedef {import('../types/index').UserActivityModel} UserActivityModel
+ * @typedef {import('../../../types/index').UserActivityDocument} UserActivityDocument
+ * @typedef {import('../../../types/index').UserActivityModel} UserActivityModel
  */
 
 /** @type {UserActivityModel} */

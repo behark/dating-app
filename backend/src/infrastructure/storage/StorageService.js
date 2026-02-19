@@ -290,7 +290,7 @@ const StorageService = {
       try {
         const result = await this.upload(file, userId, fileType);
         results.push({ success: true, ...result });
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         results.push({
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -423,7 +423,7 @@ const StorageService = {
       const safe = moderation?.status === 'approved';
 
       return { safe, moderation };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Moderation error:', error);
       return {
         safe: true,

@@ -13,7 +13,11 @@ const {
   sendRateLimit,
   asyncHandler,
 } = require('../../shared/utils/responseHelpers');
-const { encryptMessage, decryptMessage, generateConversationKey } = require('../../shared/utils/encryption');
+const {
+  encryptMessage,
+  decryptMessage,
+  generateConversationKey,
+} = require('../../shared/utils/encryption');
 
 // Get all messages for a specific match
 const getMessages = async (req, res) => {
@@ -77,7 +81,7 @@ const getMessages = async (req, res) => {
                 content: decryptMessage(msg.content, conversationKey),
                 _decrypted: true,
               });
-            } catch (e) {
+            } catch (/** @type {any} */ e) {
               logger.error('Message decryption failed', {
                 messageId: msg._id,
                 error: e instanceof Error ? e.message : String(e),
@@ -105,7 +109,7 @@ const getMessages = async (req, res) => {
         pages: Math.ceil(totalMessages / parseInt(limit)),
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get messages error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
@@ -148,10 +152,7 @@ const getConversations = async (req, res) => {
             {
               $match: {
                 $expr: {
-                  $and: [
-                    { $in: ['$_id', '$$userIds'] },
-                    { $ne: ['$_id', '$$currentUserId'] },
-                  ],
+                  $and: [{ $in: ['$_id', '$$userIds'] }, { $ne: ['$_id', '$$currentUserId'] }],
                 },
               },
             },
@@ -236,7 +237,7 @@ const getConversations = async (req, res) => {
         count: conversations.length,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get conversations error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
@@ -283,7 +284,7 @@ const markAsRead = async (req, res) => {
         markedAsRead: result.modifiedCount || 0,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Mark as read error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
@@ -309,7 +310,7 @@ const getUnreadCount = async (req, res) => {
         unreadCount,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get unread count error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
@@ -345,7 +346,7 @@ const deleteMessage = async (req, res) => {
     return sendSuccess(res, 200, {
       message: 'Message deleted successfully',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Delete message error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
@@ -392,7 +393,7 @@ const markMessageAsRead = async (req, res) => {
         readAt: message.readAt,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Mark message as read error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
@@ -430,7 +431,7 @@ const getReadReceipts = async (req, res) => {
         messages,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get read receipts error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
@@ -504,7 +505,7 @@ const sendEncryptedMessage = async (req, res) => {
         },
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Send encrypted message error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
@@ -525,7 +526,10 @@ const addReaction = async (req, res) => {
 
     if (!messageId || !reactionId) {
       return sendValidationError(res, [
-        { field: !messageId ? 'messageId' : 'reactionId', message: 'Message ID and reaction ID are required' },
+        {
+          field: !messageId ? 'messageId' : 'reactionId',
+          message: 'Message ID and reaction ID are required',
+        },
       ]);
     }
 
@@ -557,7 +561,7 @@ const addReaction = async (req, res) => {
         userId,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Add reaction error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',
@@ -578,7 +582,10 @@ const removeReaction = async (req, res) => {
 
     if (!messageId || !reactionId) {
       return sendValidationError(res, [
-        { field: !messageId ? 'messageId' : 'reactionId', message: 'Message ID and reaction ID are required' },
+        {
+          field: !messageId ? 'messageId' : 'reactionId',
+          message: 'Message ID and reaction ID are required',
+        },
       ]);
     }
 
@@ -599,7 +606,7 @@ const removeReaction = async (req, res) => {
         userId,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Remove reaction error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Internal server error',

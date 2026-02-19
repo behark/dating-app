@@ -54,7 +54,7 @@ const getSubscriptionTiers = async (req, res) => {
         consumables: paymentConfig.consumableProducts,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting subscription tiers:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -113,7 +113,7 @@ const getPaymentStatus = async (req, res) => {
         },
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting payment status:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -165,7 +165,7 @@ const createStripeCheckout = async (req, res) => {
         url: session.url,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error creating Stripe checkout:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -203,7 +203,7 @@ const createStripePaymentIntent = async (req, res) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error creating payment intent:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -238,7 +238,7 @@ const createStripeSetupIntent = async (req, res) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error creating setup intent:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -272,7 +272,7 @@ const getStripePortal = async (req, res) => {
       success: true,
       data: { url: portalUrl },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error creating portal session:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -313,7 +313,7 @@ const getBillingHistory = async (req, res) => {
         transactions,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting billing history:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -356,7 +356,7 @@ const createPayPalSubscription = async (req, res) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error creating PayPal subscription:', {
       error: error.message,
       stack: error.stack,
@@ -381,7 +381,7 @@ const activatePayPalSubscription = async (req, res) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error activating PayPal subscription:', {
       error: error.message,
       stack: error.stack,
@@ -415,7 +415,7 @@ const createPayPalOrder = async (req, res) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error creating PayPal order:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -437,7 +437,7 @@ const capturePayPalOrder = async (req, res) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error capturing PayPal order:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -466,7 +466,7 @@ const validateAppleReceipt = async (req, res) => {
       success: result.success,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error validating Apple receipt:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -493,7 +493,7 @@ const restoreApplePurchases = async (req, res) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error restoring Apple purchases:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -531,7 +531,7 @@ const validateGooglePurchase = async (req, res) => {
       success: result.success,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error validating Google purchase:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -558,7 +558,7 @@ const restoreGooglePurchases = async (req, res) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error restoring Google purchases:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -583,7 +583,7 @@ const cancelSubscription = async (req, res) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error cancelling subscription:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -605,7 +605,7 @@ const resumeSubscription = async (req, res) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error resuming subscription:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -634,7 +634,7 @@ const requestRefund = async (req, res) => {
       success: true,
       data: result,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error requesting refund:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -656,7 +656,7 @@ const stripeWebhook = async (req, res) => {
     await StripeService.processWebhookEvent(event);
 
     res.json({ received: true });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Stripe webhook error:', { error: error.message, stack: error.stack });
     res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
   }
@@ -676,7 +676,7 @@ const paypalWebhook = async (req, res) => {
     await PayPalService.processWebhookEvent(req.body);
 
     res.json({ received: true });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('PayPal webhook error:', { error: error.message, stack: error.stack });
     res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
   }
@@ -696,7 +696,7 @@ const appleWebhook = async (req, res) => {
     await AppleIAPService.processServerNotification(signedPayload);
 
     res.json({ received: true });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Apple webhook error:', { error: error.message, stack: error.stack });
     res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
   }
@@ -717,7 +717,7 @@ const googleWebhook = async (req, res) => {
 
     // Acknowledge the message
     res.status(200).send();
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Google webhook error:', { error: error.message, stack: error.stack });
     res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
   }

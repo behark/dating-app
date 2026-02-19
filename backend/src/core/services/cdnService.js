@@ -200,7 +200,7 @@ const getSignedUrl = async (path, expiresInSeconds = 3600) => {
       keyPairId,
       privateKey,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Error generating signed URL:', error);
     return getCdnUrl(path);
   }
@@ -246,7 +246,7 @@ const invalidateCache = async (paths) => {
     const response = await client.send(command);
     console.log('CDN invalidation created:', response?.Invalidation?.Id);
     return response;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('CDN invalidation error:', error);
     throw error instanceof Error ? error : new Error(String(error));
   }

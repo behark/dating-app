@@ -17,7 +17,7 @@ const PaymentTransaction = require('../domain/PaymentTransaction');
 // Initialize Stripe with secret key (only if configured)
 let stripe = null;
 if (paymentConfig.stripe.secretKey) {
-  stripe = new /** @type {any} */(Stripe)(paymentConfig.stripe.secretKey, {
+  stripe = new /** @type {any} */ (Stripe)(paymentConfig.stripe.secretKey, {
     apiVersion: '2023-10-16',
   });
 } else {
@@ -57,7 +57,7 @@ class StripeService {
           platform: 'dating-app',
         },
       });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error creating Stripe customer:', error);
       throw error;
     }
@@ -102,7 +102,7 @@ class StripeService {
         allow_promotion_codes: true,
         billing_address_collection: 'required',
       });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error creating checkout session:', error);
       throw error;
     }
@@ -146,7 +146,7 @@ class StripeService {
         amount: product.price * quantity,
         currency: product.currency,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error creating payment intent:', error);
       throw error;
     }
@@ -171,7 +171,7 @@ class StripeService {
         clientSecret: setupIntent.client_secret,
         setupIntentId: setupIntent.id,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error creating setup intent:', error);
       throw error;
     }
@@ -199,7 +199,7 @@ class StripeService {
         expYear: pm.card.exp_year,
         isDefault: pm.id === user.defaultPaymentMethodId,
       }));
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting payment methods:', error);
       throw error;
     }
@@ -217,7 +217,7 @@ class StripeService {
       });
 
       return true;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error setting default payment method:', error);
       throw error;
     }
@@ -230,7 +230,7 @@ class StripeService {
     try {
       await stripe.paymentMethods.detach(paymentMethodId);
       return true;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error deleting payment method:', error);
       throw error;
     }
@@ -265,7 +265,7 @@ class StripeService {
         planType: sub.metadata.planType,
         priceId: sub.items.data[0]?.price.id,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting active subscription:', error);
       throw error;
     }
@@ -284,7 +284,7 @@ class StripeService {
           cancel_at_period_end: true,
         });
       }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error cancelling subscription:', error);
       throw error;
     }
@@ -298,7 +298,7 @@ class StripeService {
       return await stripe.subscriptions.update(subscriptionId, {
         cancel_at_period_end: false,
       });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error resuming subscription:', error);
       throw error;
     }
@@ -324,7 +324,7 @@ class StripeService {
         ],
         proration_behavior: prorationBehavior,
       });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error changing subscription plan:', error);
       throw error;
     }
@@ -352,7 +352,7 @@ class StripeService {
         status: refund.status,
         currency: refund.currency,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error creating refund:', error);
       throw error;
     }
@@ -379,7 +379,7 @@ class StripeService {
           ? new Date(invoice.next_payment_attempt * 1000)
           : null,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       if (
         (error instanceof Error && 'code' in error ? error.code : 'UNKNOWN_ERROR') ===
         'invoice_upcoming_none'
@@ -415,7 +415,7 @@ class StripeService {
         pdfUrl: invoice.invoice_pdf,
         hostedUrl: invoice.hosted_invoice_url,
       }));
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting billing history:', error);
       throw error;
     }
@@ -436,7 +436,7 @@ class StripeService {
       });
 
       return session.url;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error creating portal session:', error);
       throw error;
     }
@@ -448,7 +448,7 @@ class StripeService {
   static verifyWebhookSignature(payload, signature) {
     try {
       return stripe.webhooks.constructEvent(payload, signature, paymentConfig.stripe.webhookSecret);
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Webhook signature verification failed:', error);
       throw error;
     }
@@ -615,12 +615,16 @@ class StripeService {
         userId,
         type: 'trial_ending',
         title: 'Trial Ending Soon',
-        message: 'Your trial period is ending soon. Upgrade now to continue enjoying premium features.',
+        message:
+          'Your trial period is ending soon. Upgrade now to continue enjoying premium features.',
         data: { subscriptionId: subscription.id },
-        read: false
+        read: false,
       });
-    } catch (notifError) {
-      logger.error('Failed to create trial ending notification', { userId, error: notifError.message });
+    } catch (/** @type {any} */ notifError) {
+      logger.error('Failed to create trial ending notification', {
+        userId,
+        error: notifError.message,
+      });
     }
   }
 
@@ -686,7 +690,8 @@ class StripeService {
           userId: user._id,
           type: 'system',
           title: 'Payment Failed',
-          message: 'Your recent payment could not be processed. Please update your payment method to continue enjoying premium features.',
+          message:
+            'Your recent payment could not be processed. Please update your payment method to continue enjoying premium features.',
           data: {
             invoiceId: invoice.id,
             amount: invoice.amount_due / 100,
@@ -695,7 +700,7 @@ class StripeService {
           },
           priority: 'high',
         });
-      } catch (notifError) {
+      } catch (/** @type {any} */ notifError) {
         // Log but don't fail the handler
         console.error('Failed to send payment failure notification:', notifError.message);
       }
@@ -731,7 +736,7 @@ class StripeService {
           priority: 'normal',
         });
       }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Failed to send upcoming invoice notification:', error.message);
     }
   }

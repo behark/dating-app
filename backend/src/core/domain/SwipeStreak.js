@@ -87,8 +87,8 @@ swipeStreakSchema.index({ longestStreak: -1 }); // For leaderboards
 swipeStreakSchema.index({ lastSwipeDate: -1 });
 
 /**
- * @typedef {import('../types/index').SwipeStreakDocument} SwipeStreakDocument
- * @typedef {import('../types/index').SwipeStreakModel} SwipeStreakModel
+ * @typedef {import('../../../types/index').SwipeStreakDocument} SwipeStreakDocument
+ * @typedef {import('../../../types/index').SwipeStreakModel} SwipeStreakModel
  */
 
 /** @type {SwipeStreakModel} */

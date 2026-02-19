@@ -122,14 +122,14 @@ boostProfileSchema.statics.deactivateExpired = async function () {
 };
 
 // Instance method to deactivate this boost
-/** @this {import('../types/index').BoostProfileDocument} */
+/** @this {import('../../../types/index').BoostProfileDocument} */
 boostProfileSchema.methods.deactivate = function () {
   this.isActive = false;
   return this.save();
 };
 
 // Instance method to check if boost is still active
-/** @this {import('../types/index').BoostProfileDocument} */
+/** @this {import('../../../types/index').BoostProfileDocument} */
 boostProfileSchema.methods.checkActive = function () {
   if (this.endsAt <= new Date()) {
     this.isActive = false;
@@ -139,8 +139,8 @@ boostProfileSchema.methods.checkActive = function () {
 };
 
 /**
- * @typedef {import('../types/index').BoostProfileDocument} BoostProfileDocument
- * @typedef {import('../types/index').BoostProfileModel} BoostProfileModel
+ * @typedef {import('../../../types/index').BoostProfileDocument} BoostProfileDocument
+ * @typedef {import('../../../types/index').BoostProfileModel} BoostProfileModel
  */
 
 /** @type {BoostProfileModel} */

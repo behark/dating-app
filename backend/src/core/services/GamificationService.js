@@ -279,7 +279,7 @@ class GamificationService {
 
       await streak.save();
       return streak;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error updating swipe streak:', error);
       throw error;
     }
@@ -307,7 +307,7 @@ class GamificationService {
           `streak_milestone_${currentStreak}`
         );
       }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error checking streak milestones:', error);
     }
   }
@@ -319,7 +319,7 @@ class GamificationService {
     try {
       const streak = await SwipeStreak.findOne({ userId });
       return streak || null;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting swipe streak:', error);
       throw error;
     }
@@ -369,7 +369,7 @@ class GamificationService {
       }
 
       return badge;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error awarding badge:', error);
       throw error;
     }
@@ -438,7 +438,7 @@ class GamificationService {
       }
 
       return true;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error updating badges:', error);
       throw error;
     }
@@ -466,7 +466,7 @@ class GamificationService {
 
       await reward.save();
       return reward;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error creating daily reward:', error);
       throw error;
     }
@@ -483,7 +483,7 @@ class GamificationService {
         isClaimed: false,
         expiresAt: { $gt: now },
       }).sort({ createdAt: -1 });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting unclaimed rewards:', error);
       throw error;
     }
@@ -504,12 +504,12 @@ class GamificationService {
 
       // Add points to user account
       await User.findByIdAndUpdate(reward.userId, {
-        $inc: { points: reward.rewardValue }
+        $inc: { points: reward.rewardValue },
       });
 
       await reward.save();
       return reward;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error claiming reward:', error);
       throw error;
     }
@@ -521,7 +521,7 @@ class GamificationService {
   static async getUserBadges(userId) {
     try {
       return await AchievementBadge.find({ userId }).sort({ unlockedAt: -1 });
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting user badges:', error);
       throw error;
     }
@@ -538,7 +538,7 @@ class GamificationService {
         .sort({ currentStreak: -1 })
         .limit(limit)
         .populate('userId', 'name photos');
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting streak leaderboard:', error);
       throw error;
     }
@@ -555,7 +555,7 @@ class GamificationService {
         .sort({ longestStreak: -1 })
         .limit(limit)
         .populate('userId', 'name photos');
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting longest streak leaderboard:', error);
       throw error;
     }
@@ -579,7 +579,7 @@ class GamificationService {
         unclaimedRewards: rewards,
         badgeCount: badges.length,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting user gamification stats:', error);
       throw error;
     }
@@ -702,7 +702,7 @@ class GamificationService {
         levelData,
         totalXPEarned: user.gamification?.totalXPEarned || currentXP,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting user level:', error);
       return { currentXP: 0, level: 1, totalXPEarned: 0 };
     }
@@ -756,7 +756,7 @@ class GamificationService {
         currentLevel,
         newLevel: leveledUp ? LEVELS.find((l) => l.level === currentLevel) : null,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error adding XP:', error);
       throw error;
     }
@@ -819,7 +819,7 @@ class GamificationService {
       }
 
       return challenges;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting daily challenges:', error);
       return this.generateDailyChallenges(new Date().toDateString());
     }
@@ -870,7 +870,7 @@ class GamificationService {
       await user.save();
 
       return { success: true, challenge };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error updating challenge progress:', error);
       throw error;
     }
@@ -905,7 +905,7 @@ class GamificationService {
       }
 
       return { success: true, updatedChallenges };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error tracking challenge action:', error);
       throw error;
     }
@@ -937,7 +937,7 @@ class GamificationService {
       await user.save();
 
       return { success: true, xpEarned: challenge.xpReward, challenge };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error claiming challenge reward:', error);
       throw error;
     }
@@ -963,7 +963,7 @@ class GamificationService {
         allCompleted && (!bonusClaimed || new Date(lastBonusDate).toDateString() !== today);
 
       return { available, bonusXP: 50 };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting completion bonus:', error);
       return { available: false, bonusXP: 50 };
     }
@@ -989,7 +989,7 @@ class GamificationService {
       await this.addXP(userId, 50, 'daily_bonus');
 
       return { success: true, xpEarned: 50 };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error claiming completion bonus:', error);
       throw error;
     }
@@ -1023,7 +1023,7 @@ class GamificationService {
       }
 
       return { unlocked, progress, achievements: allAchievements };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting user achievements:', error);
       return { unlocked: [], progress: {} };
     }
@@ -1063,7 +1063,7 @@ class GamificationService {
       }
 
       return { checked: true, unlockedAchievements };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error checking achievements:', error);
       throw error;
     }
@@ -1113,7 +1113,7 @@ class GamificationService {
       }
 
       return { success: true, newlyUnlocked: true, achievement, badge };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error unlocking achievement:', error);
       throw error;
     }
@@ -1137,7 +1137,7 @@ class GamificationService {
       const percentage = Math.min(100, (current / target) * 100);
 
       return { current, target, percentage, unlocked: badge?.isUnlocked || false };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting achievement progress:', error);
       return { current: 0, target: 1, percentage: 0 };
     }
@@ -1160,7 +1160,7 @@ class GamificationService {
         rarity: b.rarity,
         unlockedAt: b.unlockedAt,
       }));
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error getting recent achievements:', error);
       return [];
     }

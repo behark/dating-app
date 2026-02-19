@@ -97,8 +97,8 @@ achievementBadgeSchema.pre('save', function (next) {
 });
 
 /**
- * @typedef {import('../types/index').AchievementBadgeDocument} AchievementBadgeDocument
- * @typedef {import('../types/index').AchievementBadgeModel} AchievementBadgeModel
+ * @typedef {import('../../../types/index').AchievementBadgeDocument} AchievementBadgeDocument
+ * @typedef {import('../../../types/index').AchievementBadgeModel} AchievementBadgeModel
  */
 
 /** @type {AchievementBadgeModel} */

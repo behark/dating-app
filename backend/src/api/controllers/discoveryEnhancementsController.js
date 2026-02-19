@@ -90,6 +90,7 @@ const exploreUsers = async (req, res) => {
     }
 
     // Build query
+    /** @type {any} */
     const query = {
       _id: { $nin: swipedUserIds },
       isActive: true,
@@ -147,7 +148,7 @@ const exploreUsers = async (req, res) => {
       .select(
         'name age gender bio photos interests location locationPrivacy profileCompleteness lastActivityAt isProfileVerified activityScore'
       )
-      .sort(/** @type {any} */(sortQuery))
+      .sort(/** @type {any} */ (sortQuery))
       .skip(skip)
       .limit(limit);
 
@@ -223,7 +224,7 @@ const exploreUsers = async (req, res) => {
         limit: parseInt(limit),
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error exploring users:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -280,7 +281,7 @@ const getTopPicks = async (req, res) => {
         calculationTime: topPicks[0]?.calculatedAt || null,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting top picks:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -327,7 +328,7 @@ const getRecentlyActiveUsers = async (req, res) => {
         hoursBack: parseInt(hoursBack),
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting recently active users:', {
       error: error.message,
       stack: error.stack,
@@ -431,7 +432,7 @@ const getVerifiedProfiles = async (req, res) => {
         limit: parseInt(limit),
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting verified profiles:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -474,7 +475,7 @@ const verifyProfile = async (req, res) => {
         verificationMethod,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error verifying profile:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
@@ -518,7 +519,7 @@ const approveProfileVerification = async (req, res) => {
         verificationDate: user.verificationDate,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error approving verification:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,

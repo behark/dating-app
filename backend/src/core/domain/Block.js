@@ -30,8 +30,8 @@ blockSchema.index({ blockerId: 1 });
 blockSchema.index({ blockedUserId: 1 });
 
 /**
- * @typedef {import('../types/index').BlockDocument} BlockDocument
- * @typedef {import('../types/index').BlockModel} BlockModel
+ * @typedef {import('../../../types/index').BlockDocument} BlockDocument
+ * @typedef {import('../../../types/index').BlockModel} BlockModel
  */
 
 /** @type {BlockModel} */

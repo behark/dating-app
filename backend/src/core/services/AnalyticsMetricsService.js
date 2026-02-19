@@ -60,7 +60,7 @@ class AnalyticsMetricsService {
         if (redisValue) {
           return redisValue;
         }
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         console.warn(
           'Redis cache get error, falling back to memory:',
           error instanceof Error ? error.message : String(error)
@@ -88,7 +88,7 @@ class AnalyticsMetricsService {
     if (this.useRedis) {
       try {
         await cache.set(`${METRICS_CACHE_PREFIX}${key}`, value, ttl);
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         console.warn(
           'Redis cache set error:',
           error instanceof Error ? error.message : String(error)
@@ -107,7 +107,7 @@ class AnalyticsMetricsService {
     if (this.useRedis) {
       try {
         await cache.del(`${METRICS_CACHE_PREFIX}${key}`);
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         console.warn(
           'Redis cache delete error:',
           error instanceof Error ? error.message : String(error)
@@ -131,7 +131,7 @@ class AnalyticsMetricsService {
     if (this.useRedis) {
       try {
         await cache.delByPattern(`${METRICS_CACHE_PREFIX}${pattern}`);
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         console.warn(
           'Redis cache pattern delete error:',
           error instanceof Error ? error.message : String(error)
@@ -914,7 +914,7 @@ class AnalyticsMetricsService {
     if (this.useRedis) {
       try {
         await cache.delByPattern(`${METRICS_CACHE_PREFIX}*`);
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         console.warn(
           'Redis cache clear error:',
           error instanceof Error ? error.message : String(error)

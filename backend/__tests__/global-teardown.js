@@ -8,10 +8,10 @@ let closeRedis = async () => {};
 
 try {
   ({ closeRedis } = require('../src/config/redis'));
-} catch (error) {
+} catch (/** @type {any} */ error) {
   try {
     ({ closeRedis } = require('../config/redis'));
-  } catch (_legacyPathError) {
+  } catch (/** @type {any} */ _legacyPathError) {
     // Redis config may not exist in older/newer test layouts.
   }
 }

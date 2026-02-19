@@ -364,7 +364,7 @@ const seedLocal = async () => {
 
     console.log('✅ Seeding complete!');
     process.exit(0);
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('❌ Seeding failed:', error);
     process.exit(1);
   }

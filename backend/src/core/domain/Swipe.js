@@ -68,13 +68,12 @@ swipeSchema.index({ swipedId: 1, action: 1, createdAt: -1 }, { name: 'who_liked_
  * @param {Object} swipeData - { swiperId, swipedId, action, isPriority }
  * @returns {Promise<{swipe: any, isNew: boolean, alreadyExists: boolean}>} { swipe, isNew } - The swipe document and whether it was newly created
  */
-// @ts-ignore
+/** @this {any} */
 swipeSchema.statics.createSwipeAtomic = async function (swipeData) {
   const { swiperId, swipedId, action, isPriority = false } = swipeData;
 
   // Use findOneAndUpdate with upsert to atomically create or find existing swipe
   // $setOnInsert only sets fields if this is a new document (insert)
-  // @ts-ignore - Mongoose static method context
   const beforeTime = new Date();
   const result = await this.findOneAndUpdate(
     {
@@ -229,8 +228,8 @@ swipeSchema.statics.canSwipe = async function (swiperId, isPremium = false) {
 };
 
 /**
- * @typedef {import('../types/index').SwipeDocument} SwipeDocument
- * @typedef {import('../types/index').SwipeModel} SwipeModel
+ * @typedef {import('../../../types/index').SwipeDocument} SwipeDocument
+ * @typedef {import('../../../types/index').SwipeModel} SwipeModel
  */
 
 /** @type {SwipeModel} */

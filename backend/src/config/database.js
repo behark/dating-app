@@ -102,7 +102,7 @@ const connectDB = async () => {
 
       return conn.connection;
     }, 'mongodb_connection');
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const err = /** @type {Error} */ (error);
     const errorMessage = err.message || String(err);
     console.error('MongoDB connection failed:', errorMessage);
@@ -160,7 +160,7 @@ const gracefulShutdown = async (signal) => {
   try {
     await mongoose.connection.close();
     console.log('MongoDB connection closed');
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const err = /** @type {Error} */ (error);
     const errorMessage = err.message || String(err);
     console.error('Error closing MongoDB connection:', errorMessage);
@@ -232,7 +232,7 @@ const monitorPoolHealth = () => {
         }
       }
     }
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     // Silently handle monitoring errors
   }
 };
@@ -285,12 +285,12 @@ const enableSlowQueryProfiling = async (thresholdMs = 100) => {
               );
             });
           }
-        } catch (err) {
+        } catch (/** @type {any} */ err) {
           // Silently ignore profiling read errors
         }
       }, 60000); // Check every minute
     }
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const err = /** @type {Error} */ (error);
     const errorMessage = err.message || String(err);
 
@@ -324,7 +324,7 @@ const createIndexes = async () => {
             throw new Error('Database connection not available');
           }
           await mongoose.connection.db.collection(collection).createIndexes(indexes);
-        } catch (error) {
+        } catch (/** @type {any} */ error) {
           const err = /** @type {Error} */ (error);
           if (err && err.message && err.message.includes('already exists')) {
             console.log(`⚠️ Some indexes for ${collection} already exist, skipping duplicates`);
@@ -400,7 +400,7 @@ const createIndexes = async () => {
 
     // Enable slow query profiling after indexes are created
     await enableSlowQueryProfiling(100);
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     const err = /** @type {Error} */ (error);
     const errorMessage = err.message || String(err);
     console.error('Error creating indexes:', errorMessage);

@@ -127,8 +127,8 @@ friendReviewSchema.pre('save', function (next) {
 });
 
 /**
- * @typedef {import('../types/index').FriendReviewDocument} FriendReviewDocument
- * @typedef {import('../types/index').FriendReviewModel} FriendReviewModel
+ * @typedef {import('../../../types/index').FriendReviewDocument} FriendReviewDocument
+ * @typedef {import('../../../types/index').FriendReviewModel} FriendReviewModel
  */
 
 /** @type {FriendReviewModel} */

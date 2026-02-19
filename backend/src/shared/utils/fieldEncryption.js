@@ -46,7 +46,7 @@ const fieldEncryptionPlugin = (schema, options = {}) => {
           }
         }
         next();
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         next(/** @type {import('mongoose').CallbackError} */ (error));
       }
     }
@@ -72,7 +72,7 @@ const fieldEncryptionPlugin = (schema, options = {}) => {
         }
 
         next();
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         next(/** @type {import('mongoose').CallbackError} */ (error));
       }
     }
@@ -149,7 +149,7 @@ const decryptDocument = (doc, fields) => {
     if (obj[field] && isEncrypted(obj[field])) {
       try {
         obj[field] = decrypt(obj[field]);
-      } catch (e) {
+      } catch (/** @type {any} */ e) {
         // Keep encrypted value if decryption fails
         console.error(
           `Failed to decrypt field ${field}:`,
@@ -193,7 +193,7 @@ const decryptFields = (data, fields) => {
     if (result[field] && isEncrypted(result[field])) {
       try {
         result[field] = decrypt(result[field]);
-      } catch (e) {
+      } catch (/** @type {any} */ e) {
         console.error(`Failed to decrypt field ${field}`);
       }
     }

@@ -41,7 +41,7 @@ class PayPalService {
       );
 
       return response.data.access_token;
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error getting PayPal access token:', errorMessage);
       throw error;
@@ -99,7 +99,7 @@ class PayPalService {
         approvalUrl,
         status: response.data.status,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
@@ -133,7 +133,7 @@ class PayPalService {
         nextBillingTime: response.data.billing_info?.next_billing_time,
         customId: response.data.custom_id,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
@@ -175,7 +175,7 @@ class PayPalService {
       });
 
       return { success: true, subscription };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error activating PayPal subscription:', errorMessage);
       throw error;
@@ -203,7 +203,7 @@ class PayPalService {
       );
 
       return { success: true };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
@@ -233,7 +233,7 @@ class PayPalService {
       );
 
       return { success: true };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
@@ -263,7 +263,7 @@ class PayPalService {
       );
 
       return { success: true };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
@@ -330,7 +330,7 @@ class PayPalService {
         approvalUrl,
         status: response.data.status,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
@@ -404,7 +404,7 @@ class PayPalService {
         orderId: response.data.id,
         status: response.data.status,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
@@ -451,7 +451,7 @@ class PayPalService {
         amount: response.data.amount?.value,
         currency: response.data.amount?.currency_code,
       };
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
@@ -487,7 +487,7 @@ class PayPalService {
       );
 
       return response.data.verification_status === 'SUCCESS';
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
@@ -557,7 +557,7 @@ class PayPalService {
           metadata: customData,
         });
       }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error handling subscription activated:', errorMessage);
     }
@@ -578,7 +578,7 @@ class PayPalService {
           await subscription.save();
         }
       }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error handling subscription updated:', errorMessage);
     }
@@ -595,7 +595,7 @@ class PayPalService {
       if (userId) {
         await Subscription.cancelSubscription(userId);
       }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error handling subscription cancelled:', error);
     }
   }
@@ -617,7 +617,7 @@ class PayPalService {
           await subscription.save();
         }
       }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error handling subscription suspended:', error);
     }
   }
@@ -647,7 +647,7 @@ class PayPalService {
           metadata: customData,
         });
       }
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       console.error('Error handling payment failed:', error);
     }
   }

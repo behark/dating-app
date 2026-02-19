@@ -69,8 +69,8 @@ dailyRewardSchema.pre('save', function (next) {
 });
 
 /**
- * @typedef {import('../types/index').DailyRewardDocument} DailyRewardDocument
- * @typedef {import('../types/index').DailyRewardModel} DailyRewardModel
+ * @typedef {import('../../../types/index').DailyRewardDocument} DailyRewardDocument
+ * @typedef {import('../../../types/index').DailyRewardModel} DailyRewardModel
  */
 
 /** @type {DailyRewardModel} */

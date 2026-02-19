@@ -69,8 +69,8 @@ reportSchema.index({ status: 1 });
 reportSchema.index({ createdAt: -1 });
 
 /**
- * @typedef {import('../types/index').ReportDocument} ReportDocument
- * @typedef {import('../types/index').ReportModel} ReportModel
+ * @typedef {import('../../../types/index').ReportDocument} ReportDocument
+ * @typedef {import('../../../types/index').ReportModel} ReportModel
  */
 
 /** @type {ReportModel} */

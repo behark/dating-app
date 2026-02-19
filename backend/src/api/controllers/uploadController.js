@@ -33,9 +33,9 @@ exports.uploadLocal = async (req, res) => {
       success: true,
       url: fileUrl,
       fileName: req.file.filename,
-      fileId: req.file.filename.split('.')[0]
+      fileId: req.file.filename.split('.')[0],
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     console.error('Local upload error:', error);
     sendError(res, 500, { message: 'Upload failed', error: error.message });
   }

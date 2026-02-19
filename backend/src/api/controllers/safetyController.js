@@ -23,7 +23,9 @@ exports.reportUser = async (req, res) => {
 
     // Validate input
     if (!reportedUserId || !category || !description) {
-      return sendError(res, 400, { message: 'Missing required fields: reportedUserId, category, description' });
+      return sendError(res, 400, {
+        message: 'Missing required fields: reportedUserId, category, description',
+      });
     }
 
     if (reporterId === reportedUserId) {
@@ -48,7 +50,9 @@ exports.reportUser = async (req, res) => {
     });
 
     if (existingReport) {
-      return sendError(res, 400, { message: 'You have already submitted a report for this user that is pending review' });
+      return sendError(res, 400, {
+        message: 'You have already submitted a report for this user that is pending review',
+      });
     }
 
     // Create report
@@ -107,9 +111,12 @@ exports.reportUser = async (req, res) => {
       message: 'Report submitted successfully',
       reportId: report._id,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error reporting user:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error submitting report', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error submitting report',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -133,9 +140,12 @@ exports.getReports = async (req, res) => {
       count: reports.length,
       data: reports,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting reports:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error retrieving reports', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error retrieving reports',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -146,7 +156,9 @@ exports.reviewReport = async (req, res) => {
     const { status, action, actionReason } = req.body;
 
     if (!['reviewed', 'dismissed', 'action_taken'].includes(status)) {
-      return sendError(res, 400, { message: 'Invalid status. Must be: reviewed, dismissed, or action_taken' });
+      return sendError(res, 400, {
+        message: 'Invalid status. Must be: reviewed, dismissed, or action_taken',
+      });
     }
 
     const report = await Report.findByIdAndUpdate(
@@ -183,9 +195,12 @@ exports.reviewReport = async (req, res) => {
       message: 'Report reviewed successfully',
       report,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error reviewing report:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error reviewing report', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error reviewing report',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -212,9 +227,12 @@ exports.blockUser = async (req, res) => {
       success: true,
       message: 'User blocked successfully',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error blocking user:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error blocking user', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error blocking user',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -236,9 +254,12 @@ exports.unblockUser = async (req, res) => {
       success: true,
       message: 'User unblocked successfully',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error unblocking user:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error unblocking user', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error unblocking user',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -260,9 +281,12 @@ exports.getBlockedUsers = async (req, res) => {
       blockedUsers: user.blockedUsers || [],
       count: user.blockedUsers?.length || 0,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting blocked users:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error retrieving blocked users', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error retrieving blocked users',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -290,9 +314,12 @@ exports.checkIfBlocked = async (req, res) => {
       blockedByOther: blockedByOther,
       canInteract: !isBlocked && !blockedByOther,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error checking block status:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error checking block status', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error checking block status',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -303,7 +330,9 @@ exports.flagContent = async (req, res) => {
     const userId = req.user.id;
 
     if (!contentType || !contentId || !reason) {
-      return sendError(res, 400, { message: 'Missing required fields: contentType, contentId, reason' });
+      return sendError(res, 400, {
+        message: 'Missing required fields: contentType, contentId, reason',
+      });
     }
 
     // Valid content types: 'message', 'profile_photo', 'bio', 'profile'
@@ -334,9 +363,12 @@ exports.flagContent = async (req, res) => {
       message: 'Content flagged successfully',
       flag,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error flagging content:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error flagging content', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error flagging content',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -378,9 +410,12 @@ exports.getSafetyScore = async (req, res) => {
         blockedCount: blockedCount,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error calculating safety score:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error calculating safety score', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error calculating safety score',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -464,9 +499,12 @@ exports.getSafetyTips = async (req, res) => {
       count: tips.length,
       data: tips,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting safety tips:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error retrieving safety tips', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error retrieving safety tips',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -508,9 +546,12 @@ exports.suspendUser = async (req, res) => {
       message: 'User suspended successfully',
       user,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error suspending user:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error suspending user', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error suspending user',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -547,9 +588,12 @@ exports.unsuspendUser = async (req, res) => {
       message: 'User unsuspended successfully',
       user,
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error unsuspending user:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error unsuspending user', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error unsuspending user',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -605,9 +649,12 @@ exports.getAccountStatus = async (req, res) => {
         canAppeal: user.suspended && user.suspensionType === 'auto',
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error getting account status:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error checking account status', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error checking account status',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -620,7 +667,9 @@ exports.appealSuspension = async (req, res) => {
     const { reason } = req.body;
 
     if (!reason || reason.length < 20) {
-      return sendError(res, 400, { message: 'Please provide a detailed explanation (at least 20 characters)' });
+      return sendError(res, 400, {
+        message: 'Please provide a detailed explanation (at least 20 characters)',
+      });
     }
 
     const user = await User.findById(userId);
@@ -637,7 +686,10 @@ exports.appealSuspension = async (req, res) => {
     }
 
     if (user.suspensionType !== 'auto') {
-      return sendError(res, 400, { message: 'Manual suspensions cannot be appealed through this system. Please contact support.' });
+      return sendError(res, 400, {
+        message:
+          'Manual suspensions cannot be appealed through this system. Please contact support.',
+      });
     }
 
     // Mark for priority review
@@ -650,15 +702,18 @@ exports.appealSuspension = async (req, res) => {
     // Log for admin review
     logger.info('Suspension appeal submitted', {
       userId,
-      reasonPreview: reason.substring(0, 100)
+      reasonPreview: reason.substring(0, 100),
     });
 
     res.json({
       success: true,
       message: 'Your appeal has been submitted. Our team will review it within 24-48 hours.',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Error submitting appeal:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error submitting appeal', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error submitting appeal',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };

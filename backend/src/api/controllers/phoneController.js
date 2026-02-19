@@ -21,18 +21,19 @@ const {
  * - TWILIO_PHONE_NUMBER
  */
 const smsService = {
+  /** @type {any} */
   client: null,
-  
+
   /**
    * Initialize Twilio client if credentials are available
    */
-  init: function() {
+  init: function () {
     if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
       try {
         const twilio = require('twilio');
         this.client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
         logger.info('Twilio SMS service initialized');
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         logger.warn('Twilio not available, using mock SMS service', { error: error.message });
       }
     } else {
@@ -48,7 +49,7 @@ const smsService = {
    */
   sendSMS: async function (phoneNumber, code) {
     const message = `Your dating app verification code is: ${code}. Valid for 15 minutes.`;
-    
+
     // Use Twilio if configured
     if (this.client && process.env.TWILIO_PHONE_NUMBER) {
       try {
@@ -59,21 +60,21 @@ const smsService = {
         });
         logger.info('SMS sent via Twilio', { phoneNumber: phoneNumber.slice(-4) }); // Log last 4 digits only
         return true;
-      } catch (error) {
+      } catch (/** @type {any} */ error) {
         logger.error('Twilio SMS send failed', { error: error.message, code: error.code });
         throw new Error('Failed to send SMS verification');
       }
     }
-    
+
     // Development fallback - log the code (DO NOT USE IN PRODUCTION)
     if (process.env.NODE_ENV !== 'production') {
-      logger.info('DEV MODE: SMS verification code', { 
-        phoneLastFour: phoneNumber.slice(-4), 
-        code 
+      logger.info('DEV MODE: SMS verification code', {
+        phoneLastFour: phoneNumber.slice(-4),
+        code,
       });
       return true;
     }
-    
+
     // Production without Twilio configured
     logger.error('SMS service not configured in production');
     throw new Error('SMS service not configured');
@@ -132,9 +133,12 @@ exports.sendPhoneVerification = async (req, res) => {
       success: true,
       message: 'Verification code sent to phone number',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Send phone verification error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error sending verification code', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error sending verification code',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -178,9 +182,12 @@ exports.verifyPhone = async (req, res) => {
       success: true,
       message: 'Phone number verified successfully',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Verify phone error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error verifying phone', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error verifying phone',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -227,8 +234,11 @@ exports.resendPhoneVerification = async (req, res) => {
       success: true,
       message: 'Verification code resent',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Resend phone verification error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error resending verification code', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error resending verification code',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };

@@ -84,8 +84,8 @@ rewindSchema.statics.getTotalRewindCount = async function (userId) {
 };
 
 /**
- * @typedef {import('../types/index').RewindDocument} RewindDocument
- * @typedef {import('../types/index').RewindModel} RewindModel
+ * @typedef {import('../../../types/index').RewindDocument} RewindDocument
+ * @typedef {import('../../../types/index').RewindModel} RewindModel
  */
 
 /** @type {RewindModel} */

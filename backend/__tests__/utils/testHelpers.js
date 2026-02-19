@@ -70,7 +70,7 @@ const retry = async (fn, maxAttempts = 3, delay = 100) => {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       lastError = error;
       if (attempt < maxAttempts) {
         await wait(delay);

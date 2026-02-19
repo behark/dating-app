@@ -51,9 +51,12 @@ exports.connectSpotify = async (req, res) => {
         spotify: user?.socialMedia?.spotify,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Connect Spotify error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error connecting Spotify', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error connecting Spotify',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -96,9 +99,12 @@ exports.connectInstagram = async (req, res) => {
         instagram: user?.socialMedia?.instagram,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Connect Instagram error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error connecting Instagram', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error connecting Instagram',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -133,9 +139,12 @@ exports.disconnectSpotify = async (req, res) => {
       success: true,
       message: 'Spotify disconnected successfully',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Disconnect Spotify error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error disconnecting Spotify', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error disconnecting Spotify',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -170,9 +179,12 @@ exports.disconnectInstagram = async (req, res) => {
       success: true,
       message: 'Instagram disconnected successfully',
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Disconnect Instagram error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error disconnecting Instagram', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error disconnecting Instagram',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 
@@ -214,8 +226,11 @@ exports.getSocialMedia = async (req, res) => {
         socialMedia,
       },
     });
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     logger.error('Get social media error:', { error: error.message, stack: error.stack });
-    sendError(res, 500, { message: 'Error fetching social media', error: error instanceof Error ? error.message : String(error), });
+    sendError(res, 500, {
+      message: 'Error fetching social media',
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
