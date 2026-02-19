@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../../config/api';
 import logger from '../../utils/logger';
@@ -40,6 +40,10 @@ export const SocketProvider = ({ children }) => {
    * Heartbeat mechanism to keep connection alive
    */
   const startHeartbeat = useCallback((socketInstance) => {
+    // Clear any existing heartbeat before starting a new one
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+    }
     // Send heartbeat every 20 seconds
     heartbeatIntervalRef.current = setInterval(() => {
       if (socketInstance?.connected) {
@@ -293,7 +297,7 @@ export const SocketProvider = ({ children }) => {
   }, [stopHeartbeat]);
 
   const value = {
-    socket: socketRef.current,
+    socket,
     isConnected,
     connectionState,
     error,

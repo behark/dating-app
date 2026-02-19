@@ -149,7 +149,9 @@ const api = {
       }
 
       // Validate API_URL is not localhost in production
-      if (!API_URL || API_URL.includes('localhost')) {
+      const isDev =
+        process.env.NODE_ENV === 'development' || (typeof __DEV__ !== 'undefined' && __DEV__);
+      if (!API_URL || (!isDev && API_URL.includes('localhost'))) {
         logger.error('Invalid API_URL for token refresh:', API_URL);
         throw new Error(`Invalid API_URL: ${API_URL}. Backend URL not configured correctly.`);
       }

@@ -114,10 +114,18 @@ class OfflineServiceClass {
 
     // If coming back online, sync pending actions
     if (isOnline && wasOffline) {
-      await this.syncPendingActions();
+      try {
+        await this.syncPendingActions();
+      } catch (error) {
+        logger.error('Error syncing pending actions after reconnect', error);
+      }
     }
 
-    await AsyncStorage.setItem(STORAGE_KEYS.NETWORK_STATUS, JSON.stringify({ isOnline }));
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.NETWORK_STATUS, JSON.stringify({ isOnline }));
+    } catch (error) {
+      logger.error('Error persisting network status', error);
+    }
   }
 
   /**
@@ -140,7 +148,7 @@ class OfflineServiceClass {
    */
   async queueAction(action) {
     const queuedAction = {
-      id: Date.now().toString(),
+      id: `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
       timestamp: new Date().toISOString(),
       ...action,
       retryCount: 0,

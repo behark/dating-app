@@ -135,6 +135,10 @@ export const useSocket = () => {
  */
 export const useSocketEvent = (event, handler, dependencies = EMPTY_DEPENDENCIES) => {
   const { socket, on } = useSocketContext();
+  // Serialize dependencies to a stable string so the effect only re-runs
+  // when the actual values change, not when the array reference changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const depsKey = JSON.stringify(dependencies);
 
   useEffect(() => {
     if (!socket || !event || !handler) return;
@@ -146,7 +150,8 @@ export const useSocketEvent = (event, handler, dependencies = EMPTY_DEPENDENCIES
       logger.debug('[useSocketEvent] Unsubscribing from:', event);
       unsubscribe();
     };
-  }, [socket, event, on, handler, dependencies]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, event, on, handler, depsKey]);
 };
 
 /**

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 /**
  * Custom hook for managing card decks/stacks in discovery screens
@@ -138,21 +138,18 @@ export const useCardDeck = ({
   /**
    * Remove specific card from deck
    */
-  const removeCard = useCallback(
-    (cardId) => {
-      setCards((prevCards) => {
-        const filtered = prevCards.filter((card) => (card.id || card._id) !== cardId);
+  const removeCard = useCallback((cardId) => {
+    setCards((prevCards) => {
+      return prevCards.filter((card) => (card.id || card._id) !== cardId);
+    });
+  }, []);
 
-        // Adjust current index if necessary
-        if (currentIndex >= filtered.length && filtered.length > 0) {
-          setCurrentIndex(filtered.length - 1);
-        }
-
-        return filtered;
-      });
-    },
-    [currentIndex]
-  );
+  // Keep currentIndex in bounds when cards change
+  useEffect(() => {
+    if (cards.length > 0 && currentIndex >= cards.length) {
+      setCurrentIndex(cards.length - 1);
+    }
+  }, [cards.length, currentIndex]);
 
   /**
    * Get deck statistics

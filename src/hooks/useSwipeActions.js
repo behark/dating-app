@@ -2,7 +2,6 @@ import { useCallback, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { SwipeController } from '../services/SwipeController';
 import { GamificationService } from '../services/GamificationService';
-import AdvancedInteractionsService from '../services/AdvancedInteractionsService';
 import AnalyticsService from '../services/AnalyticsService';
 import HapticFeedback from '../utils/haptics';
 import logger from '../utils/logger';
@@ -230,21 +229,25 @@ export const useSwipeActions = ({
    * Handle super like
    */
   const handleSuperLike = useCallback(
-    async (card, authToken) => {
+    async (card) => {
       if (isGuest) {
         promptLogin('superlike');
         return;
       }
 
+      const targetId = card.id || card._id;
+
+      if (!canSwipe(targetId)) return;
+      startSwipe(targetId);
+
       HapticFeedback.heavyImpact();
+      onOptimisticUpdate?.('right', card);
 
       try {
-        const interactionsService = new AdvancedInteractionsService(authToken);
-        const targetId = card.id || card._id;
-        const result = await interactionsService.sendSuperLike(targetId, null);
+        const result = await SwipeController.saveSwipe(userId, targetId, 'superlike', isPremium);
 
         if (!result.success) {
-          if (result.error === 'Daily super like limit reached') {
+          if (result.limitExceeded) {
             Alert.alert(
               'Super Like Limit',
               `You've used all ${premiumFeatures.superLikesPerDay || 1} super likes for today. Upgrade to premium for more!`,
@@ -254,30 +257,44 @@ export const useSwipeActions = ({
               ]
             );
           } else {
-            Alert.alert('Error', result.error);
+            Alert.alert('Error', result.error || 'Failed to send super like');
           }
           return;
         }
 
-        // Update counters
         setSuperLikesUsed((prev) => prev + 1);
-
-        // Analytics and feedback
         AnalyticsService.logSwipe('superlike', targetId);
 
-        Alert.alert('💎 Super Liked!', `${card.name} will definitely see your interest!`, [
-          { text: 'Awesome!', style: 'default' },
-        ]);
+        if (result.match && result.matchId) {
+          HapticFeedback.matchCelebration();
+          onMatchFound?.(card.name, result.matchId);
+        } else {
+          Alert.alert('Super Liked!', `${card.name} will definitely see your interest!`, [
+            { text: 'Awesome!', style: 'default' },
+          ]);
+        }
 
-        // Optimistic update
-        onOptimisticUpdate?.('right', card);
         setLastSwipedCard({ card, direction: 'right', swipeId: result.swipeId || null });
       } catch (error) {
         logger.error('Error using super like:', error);
         Alert.alert('Error', 'Failed to use super like');
+      } finally {
+        endSwipe();
       }
     },
-    [isGuest, promptLogin, premiumFeatures.superLikesPerDay, navigation, onOptimisticUpdate]
+    [
+      isGuest,
+      promptLogin,
+      userId,
+      isPremium,
+      canSwipe,
+      startSwipe,
+      endSwipe,
+      premiumFeatures.superLikesPerDay,
+      navigation,
+      onOptimisticUpdate,
+      onMatchFound,
+    ]
   );
 
   /**

@@ -74,8 +74,8 @@ export class Swipe {
     if (swiper === target) {
       return { isValid: false, error: 'Swiper and target cannot be the same user' };
     }
-    if (type !== 'like' && type !== 'dislike') {
-      return { isValid: false, error: 'Type must be either "like" or "dislike"' };
+    if (type !== 'like' && type !== 'dislike' && type !== 'superlike') {
+      return { isValid: false, error: 'Type must be "like", "dislike", or "superlike"' };
     }
     return { isValid: true };
   }

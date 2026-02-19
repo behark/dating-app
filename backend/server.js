@@ -390,23 +390,11 @@ const isOriginAllowed = (origin) => {
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Handle requests with no origin
+    // Allow requests with no origin header.
+    // These come from mobile apps (React Native), same-origin requests,
+    // server-to-server calls, or tools like curl/Postman.
+    // CORS is a browser-only mechanism — no Origin means CORS doesn't apply.
     if (!origin) {
-      // In production, require origin or API key for server-to-server requests
-      if (process.env.NODE_ENV === 'production') {
-        // Note: We can't access req here, so we'll check API key in a middleware
-        // For now, reject no-origin requests in production
-        logger.warn('CORS: Request with no origin rejected in production', {
-          // Note: Can't log IP here as req is not available in CORS callback
-        });
-        callback(
-          new ForbiddenError(
-            'Origin required in production for browser requests. Use API key for server-to-server requests.'
-          )
-        );
-        return;
-      }
-      // Development: allow requests with no origin (for mobile apps, curl, etc.)
       callback(null, true);
       return;
     }
@@ -1146,21 +1134,6 @@ io.on('connection', (socket) => {
       });
       socket.emit('error', { message: 'Failed to send message' });
     }
-  });
-
-  // Handle typing indicators
-  socket.on('typing_start', (typingMatchId) => {
-    socket.to(typingMatchId).emit('user_typing', {
-      userId: extSocket.userId,
-      isTyping: true,
-    });
-  });
-
-  socket.on('typing_stop', (typingMatchId) => {
-    socket.to(typingMatchId).emit('user_typing', {
-      userId: extSocket.userId,
-      isTyping: false,
-    });
   });
 
   // Handle read receipts

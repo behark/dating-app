@@ -244,13 +244,34 @@ export const AuthProvider = ({ children }) => {
         const timeUntilExpiry = expiryTime - currentTime;
         const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-        // Warn user 5 minutes before expiry
-        if (timeUntilExpiry > 0 && timeUntilExpiry <= fiveMinutes && !sessionWarningShown) {
+        // If token already expired, logout
+        if (timeUntilExpiry <= 0) {
+          logger.warn('Token expired, logging out');
+          Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
+            { text: 'OK', onPress: () => logout() },
+          ]);
+        } else if (timeUntilExpiry <= 60000) {
+          // Auto-refresh if less than 1 minute remaining (no user prompt)
+          logger.info('Auto-refreshing token - less than 1 minute remaining');
+          try {
+            const newToken = await refreshSession();
+            if (!newToken) {
+              Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
+                { text: 'OK', onPress: () => logout() },
+              ]);
+            }
+          } catch (error) {
+            logger.error('Error auto-refreshing token', error);
+            Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
+              { text: 'OK', onPress: () => logout() },
+            ]);
+          }
+        } else if (timeUntilExpiry <= fiveMinutes && !sessionWarningShown) {
+          // Warn user 5 minutes before expiry
           setSessionWarningShown(true);
 
           const minutesRemaining = Math.round(timeUntilExpiry / 60000);
 
-          // Show alert with option to refresh
           Alert.alert(
             'Session Expiring Soon',
             `Your session will expire in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}. Would you like to stay logged in?`,
@@ -277,7 +298,6 @@ export const AuthProvider = ({ children }) => {
                 text: 'Later',
                 style: 'cancel',
                 onPress: () => {
-                  // Reset warning after 1 minute to show again if still close to expiry
                   setTimeout(() => {
                     setSessionWarningShown(false);
                   }, 60000);
@@ -286,33 +306,6 @@ export const AuthProvider = ({ children }) => {
             ],
             { cancelable: false }
           );
-        }
-
-        // Auto-refresh if less than 1 minute remaining
-        if (timeUntilExpiry > 0 && timeUntilExpiry <= 60000 && !sessionWarningShown) {
-          logger.info('Auto-refreshing token - less than 1 minute remaining');
-          try {
-            const newToken = await refreshSession();
-            if (!newToken) {
-              // Auto-refresh failed, show warning
-              Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
-                { text: 'OK', onPress: () => logout() },
-              ]);
-            }
-          } catch (error) {
-            logger.error('Error auto-refreshing token', error);
-            Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
-              { text: 'OK', onPress: () => logout() },
-            ]);
-          }
-        }
-
-        // If token already expired, logout
-        if (timeUntilExpiry <= 0) {
-          logger.warn('Token expired, logging out');
-          Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
-            { text: 'OK', onPress: () => logout() },
-          ]);
         }
       } catch (error) {
         logger.error('Error checking token expiry', error);
@@ -442,12 +435,6 @@ export const AuthProvider = ({ children }) => {
         throw lastError || new Error('Network error. Please check your connection and try again.');
       }
 
-      // Handle network errors
-      if (!response) {
-        logger.error('Signup - No response received', null, { email, apiUrl: API_URL });
-        throw new Error('Network error. Please check your connection and try again.');
-      }
-
       logger.debug('Signup - Response received', {
         status: response.status,
         statusText: response.statusText,
@@ -572,12 +559,6 @@ export const AuthProvider = ({ children }) => {
 
       if (!response) {
         throw lastError || new Error('Network error. Please check your connection and try again.');
-      }
-
-      // Handle network errors
-      if (!response) {
-        logger.error('Login - No response received', null, { email, apiUrl: API_URL });
-        throw new Error('Network error. Please check your connection and try again.');
       }
 
       logger.debug('Login - Response received', {

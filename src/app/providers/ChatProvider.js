@@ -3,7 +3,6 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // io import removed - using SocketContext
-import { SOCKET_URL } from '../../config/api';
 import api from '../../services/api';
 import logger from '../../utils/logger';
 import { getUserFriendlyMessage } from '../../utils/errorMessages';
@@ -141,8 +140,12 @@ export const ChatProvider = ({ children }) => {
         });
       });
 
-      // Update total unread count
-      setUnreadCount((prev) => prev + 1);
+      // Update total unread count only for messages from other users
+      // and only when the conversation is not currently active
+      const userId = currentUser?.uid || currentUser?._id;
+      if (message.senderId !== userId && currentMatchIdRef.current !== message.matchId.toString()) {
+        setUnreadCount((prev) => prev + 1);
+      }
     };
 
     const handleReadReceipt = (data) => {
@@ -362,7 +365,7 @@ export const ChatProvider = ({ children }) => {
   // Send a message
   const sendMessage = useCallback(
     async (matchId, content, type = 'text') => {
-      if (!content.trim()) return;
+      if (!matchId || !content?.trim()) return;
 
       // Sanitize message content to prevent XSS
       const sanitizedContent = sanitizeString(content.trim(), { maxLength: 1000 });
@@ -449,6 +452,7 @@ export const ChatProvider = ({ children }) => {
   // Typing indicators
   const startTyping = useCallback(() => {
     if (socket && isConnected && currentMatchId) {
+      setIsTyping(true);
       socket.emit('typing_start', currentMatchId);
     }
   }, [socket, isConnected, currentMatchId]);
@@ -508,6 +512,7 @@ export const ChatProvider = ({ children }) => {
   );
 
   const stopTyping = useCallback(() => {
+    setIsTyping(false);
     if (socket && isConnected && currentMatchId) {
       socket.emit('typing_stop', currentMatchId);
     }

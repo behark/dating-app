@@ -33,7 +33,7 @@ const CONSUMABLE_SKUS = Platform.select({
 });
 
 export const useInAppPurchase = () => {
-  const { getAuthToken } = useAuth();
+  const { authToken } = useAuth();
   const [products, setProducts] = useState([]);
   const [subscriptions, setSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -115,7 +115,7 @@ export const useInAppPurchase = () => {
   const handlePurchaseUpdate = async (purchase) => {
     try {
       setPurchasing(true);
-      const token = await getAuthToken();
+      const token = authToken;
 
       // Get receipt data
       const receipt = purchase.transactionReceipt;
@@ -293,12 +293,10 @@ export const useInAppPurchase = () => {
     try {
       setLoading(true);
       setError(null);
-      const token = await getAuthToken();
-
       if (Platform.OS === 'ios') {
-        await restoreIosPurchases(token);
+        await restoreIosPurchases(authToken);
       } else if (Platform.OS === 'android') {
-        await restoreAndroidPurchases(token);
+        await restoreAndroidPurchases(authToken);
       }
     } catch (err) {
       logger.error('Error restoring purchases', err);
@@ -307,7 +305,7 @@ export const useInAppPurchase = () => {
     } finally {
       setLoading(false);
     }
-  }, [getAuthToken, restoreIosPurchases, restoreAndroidPurchases]);
+  }, [authToken, restoreIosPurchases, restoreAndroidPurchases]);
 
   // Get product by ID
   const getProduct = useCallback(

@@ -1,9 +1,9 @@
 /**
  * Database Indexes Creation Script
- * 
+ *
  * Creates all necessary indexes for optimal query performance
  * Run this script after setting up the database or when adding new collections
- * 
+ *
  * Usage: node scripts/createIndexes.js
  */
 
@@ -11,13 +11,13 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 // Import models to ensure schemas are registered
-const User = require('../models/User');
-const Swipe = require('../models/Swipe');
-const Match = require('../models/Match');
-const Message = require('../models/Message');
-const Subscription = require('../models/Subscription');
+const User = require('../src/core/domain/User');
+const Swipe = require('../src/core/domain/Swipe');
+const Match = require('../src/core/domain/Match');
+const Message = require('../src/core/domain/Message');
+const Subscription = require('../src/core/domain/Subscription');
 
-const { logger } = require('../services/LoggingService');
+const { logger } = require('../src/infrastructure/external/LoggingService');
 
 /**
  * Helper function to create index with error handling
@@ -54,7 +54,7 @@ async function createIndexes() {
     // USER INDEXES
     // ============================================
     console.log('👤 Creating User indexes...');
-    
+
     await createIndexSafely(
       User.collection,
       { email: 1 },
@@ -87,7 +87,7 @@ async function createIndexes() {
     // SWIPE INDEXES
     // ============================================
     console.log('\n💘 Creating Swipe indexes...');
-    
+
     await createIndexSafely(
       Swipe.collection,
       { swiperId: 1, swipedId: 1 },
@@ -127,37 +127,97 @@ async function createIndexes() {
     // MATCH INDEXES
     // ============================================
     console.log('\n🤝 Creating Match indexes...');
-    
-    await createIndexSafely(Match.collection, { user1: 1, user2: 1 }, { unique: true, background: true }, 'Unique match constraint');
-    await createIndexSafely(Match.collection, { users: 1, status: 1, lastActivityAt: -1 }, { background: true, name: 'user_matches' }, 'User matches index');
-    await createIndexSafely(Match.collection, { createdAt: -1 }, { background: true }, 'Recent matches index');
-    await createIndexSafely(Match.collection, { user1: 1, status: 1 }, { background: true }, 'User1 matches index');
-    await createIndexSafely(Match.collection, { user2: 1, status: 1 }, { background: true }, 'User2 matches index');
+
+    await createIndexSafely(
+      Match.collection,
+      { user1: 1, user2: 1 },
+      { unique: true, background: true },
+      'Unique match constraint'
+    );
+    await createIndexSafely(
+      Match.collection,
+      { users: 1, status: 1, lastActivityAt: -1 },
+      { background: true, name: 'user_matches' },
+      'User matches index'
+    );
+    await createIndexSafely(
+      Match.collection,
+      { createdAt: -1 },
+      { background: true },
+      'Recent matches index'
+    );
+    await createIndexSafely(
+      Match.collection,
+      { user1: 1, status: 1 },
+      { background: true },
+      'User1 matches index'
+    );
+    await createIndexSafely(
+      Match.collection,
+      { user2: 1, status: 1 },
+      { background: true },
+      'User2 matches index'
+    );
 
     // ============================================
     // MESSAGE INDEXES
     // ============================================
     console.log('\n💬 Creating Message indexes...');
-    
-    await createIndexSafely(Message.collection, { matchId: 1, createdAt: -1 }, { background: true }, 'Conversation index');
-    await createIndexSafely(Message.collection, { matchId: 1, senderId: 1, createdAt: -1 }, { background: true }, 'Sender messages index');
-    await createIndexSafely(Message.collection, { createdAt: 1 }, { expireAfterSeconds: 7776000, background: true, name: 'message_ttl' }, 'TTL index (90 days)');
-    await createIndexSafely(Message.collection, { receiverId: 1, read: 1, createdAt: -1 }, { background: true }, 'Unread messages index');
+
+    await createIndexSafely(
+      Message.collection,
+      { matchId: 1, createdAt: -1 },
+      { background: true },
+      'Conversation index'
+    );
+    await createIndexSafely(
+      Message.collection,
+      { matchId: 1, senderId: 1, createdAt: -1 },
+      { background: true },
+      'Sender messages index'
+    );
+    await createIndexSafely(
+      Message.collection,
+      { createdAt: 1 },
+      { expireAfterSeconds: 7776000, background: true, name: 'message_ttl' },
+      'TTL index (90 days)'
+    );
+    await createIndexSafely(
+      Message.collection,
+      { receiverId: 1, read: 1, createdAt: -1 },
+      { background: true },
+      'Unread messages index'
+    );
 
     // ============================================
     // SUBSCRIPTION INDEXES
     // ============================================
     console.log('\n💎 Creating Subscription indexes...');
-    
-    await createIndexSafely(Subscription.collection, { userId: 1 }, { unique: true, background: true }, 'User subscription index (unique)');
-    await createIndexSafely(Subscription.collection, { status: 1, endDate: -1 }, { background: true }, 'Active subscriptions index');
-    await createIndexSafely(Subscription.collection, { endDate: 1, status: 1 }, { background: true }, 'Expiring subscriptions index');
+
+    await createIndexSafely(
+      Subscription.collection,
+      { userId: 1 },
+      { unique: true, background: true },
+      'User subscription index (unique)'
+    );
+    await createIndexSafely(
+      Subscription.collection,
+      { status: 1, endDate: -1 },
+      { background: true },
+      'Active subscriptions index'
+    );
+    await createIndexSafely(
+      Subscription.collection,
+      { endDate: 1, status: 1 },
+      { background: true },
+      'Expiring subscriptions index'
+    );
 
     // ============================================
     // VERIFY INDEXES
     // ============================================
     console.log('\n🔍 Verifying indexes...\n');
-    
+
     const collections = [
       { name: 'users', model: User },
       { name: 'swipes', model: Swipe },
@@ -174,7 +234,7 @@ async function createIndexes() {
 
     console.log('\n✅ All indexes created successfully!');
     console.log('\n💡 Tip: Run this script after schema changes or database migrations.');
-    
+
     process.exit(0);
   } catch (error) {
     console.error('\n❌ Error creating indexes:', error);

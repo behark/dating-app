@@ -1,5 +1,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import { useCallback, useMemo, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import logger from '../utils/logger';
 
 /**
@@ -51,15 +52,11 @@ export const useFilters = ({
     setFilters(defaultFilters);
     onFiltersChange?.(defaultFilters);
 
-    // Save to storage if key provided
+    // Persist to storage if key provided
     if (storageKey) {
-      try {
-        // In a real implementation, this would use AsyncStorage or similar
-        // For now, just log the intent
-        logger.debug(`Saving filters to ${storageKey}:`, defaultFilters);
-      } catch (error) {
+      AsyncStorage.setItem(storageKey, JSON.stringify(defaultFilters)).catch((error) => {
         logger.warn('Failed to save filters to storage:', error);
-      }
+      });
     }
   }, [defaultFilterOptions, onFiltersChange, storageKey]);
 

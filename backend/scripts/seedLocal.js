@@ -1,9 +1,9 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const User = require('../models/User');
-const Match = require('../models/Match');
-const Swipe = require('../models/Swipe');
-const Message = require('../models/Message');
+const User = require('../src/core/domain/User');
+const Match = require('../src/core/domain/Match');
+const Swipe = require('../src/core/domain/Swipe');
+const Message = require('../src/core/domain/Message');
 
 // Helper to generate a date in the past (days ago)
 const daysAgo = (days) => {
@@ -43,11 +43,11 @@ const seedLocal = async () => {
       bio: 'I am a test user created by the seed script.',
       location: {
         type: 'Point',
-        coordinates: [-73.935242, 40.730610], // NYC
+        coordinates: [-73.935242, 40.73061], // NYC
       },
       photos: [
         { url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500', order: 0 },
-        { url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500', order: 1 }
+        { url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=500', order: 1 },
       ],
       preferences: {
         ageRange: { min: 18, max: 50 },
@@ -59,7 +59,9 @@ const seedLocal = async () => {
       createdAt: daysAgo(180), // Joined 6 months ago
       lastActive: daysAgo(0), // Active today
     });
-    console.log(`👤 Created main user: ${mainUser.email} (Password: password123, Joined: 6 months ago)`);
+    console.log(
+      `👤 Created main user: ${mainUser.email} (Password: password123, Joined: 6 months ago)`
+    );
 
     // 2. Create a Match User
     const matchEmail = 'sarah@example.com';
@@ -74,10 +76,10 @@ const seedLocal = async () => {
       bio: 'Lover of coffee and coding.',
       location: {
         type: 'Point',
-        coordinates: [-73.935242, 40.730610],
+        coordinates: [-73.935242, 40.73061],
       },
       photos: [
-        { url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500', order: 0 }
+        { url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500', order: 0 },
       ],
       isActive: true,
       createdAt: daysAgo(320), // Early adopter - joined 10+ months ago
@@ -209,7 +211,7 @@ const seedLocal = async () => {
         password: 'password123',
         location: {
           type: 'Point',
-          coordinates: [-73.935242, 40.730610],
+          coordinates: [-73.935242, 40.73061],
         },
         preferences: {
           ageRange: { min: 18, max: 50 },
@@ -262,27 +264,71 @@ const seedLocal = async () => {
     const conversationMessages = [
       { sender: mainUser._id, content: 'Hey Sarah! Love your profile 😊', daysAgo: 60 },
       { sender: matchUser._id, content: 'Thanks! I noticed you like hiking too!', daysAgo: 60 },
-      { sender: mainUser._id, content: 'Yes! Have you been to any good trails lately?', daysAgo: 59 },
-      { sender: matchUser._id, content: 'I went to Bear Mountain last weekend. The views were amazing!', daysAgo: 59 },
-      { sender: mainUser._id, content: 'That sounds awesome! Would love to check it out sometime', daysAgo: 58 },
-      { sender: matchUser._id, content: 'We should go together! I know all the best spots 🏔️', daysAgo: 57 },
-      { sender: mainUser._id, content: 'That would be great! How about next Saturday?', daysAgo: 45 },
-      { sender: matchUser._id, content: 'Perfect! Let me check my schedule and get back to you', daysAgo: 45 },
+      {
+        sender: mainUser._id,
+        content: 'Yes! Have you been to any good trails lately?',
+        daysAgo: 59,
+      },
+      {
+        sender: matchUser._id,
+        content: 'I went to Bear Mountain last weekend. The views were amazing!',
+        daysAgo: 59,
+      },
+      {
+        sender: mainUser._id,
+        content: 'That sounds awesome! Would love to check it out sometime',
+        daysAgo: 58,
+      },
+      {
+        sender: matchUser._id,
+        content: 'We should go together! I know all the best spots 🏔️',
+        daysAgo: 57,
+      },
+      {
+        sender: mainUser._id,
+        content: 'That would be great! How about next Saturday?',
+        daysAgo: 45,
+      },
+      {
+        sender: matchUser._id,
+        content: 'Perfect! Let me check my schedule and get back to you',
+        daysAgo: 45,
+      },
       { sender: matchUser._id, content: 'Saturday works for me! 🎉', daysAgo: 44 },
-      { sender: mainUser._id, content: 'Awesome! Can\'t wait!', daysAgo: 44 },
-      { sender: matchUser._id, content: 'That hike was so fun! We should do it again soon', daysAgo: 30 },
-      { sender: mainUser._id, content: 'Definitely! Maybe somewhere with a coffee shop nearby next time ☕', daysAgo: 30 },
-      { sender: matchUser._id, content: 'You read my mind! There\'s this great place in Beacon...', daysAgo: 29 },
+      { sender: mainUser._id, content: "Awesome! Can't wait!", daysAgo: 44 },
+      {
+        sender: matchUser._id,
+        content: 'That hike was so fun! We should do it again soon',
+        daysAgo: 30,
+      },
+      {
+        sender: mainUser._id,
+        content: 'Definitely! Maybe somewhere with a coffee shop nearby next time ☕',
+        daysAgo: 30,
+      },
+      {
+        sender: matchUser._id,
+        content: "You read my mind! There's this great place in Beacon...",
+        daysAgo: 29,
+      },
       { sender: mainUser._id, content: 'Tell me more!', daysAgo: 28 },
-      { sender: matchUser._id, content: 'It\'s called Bank Square Coffeehouse. Best lattes in the Hudson Valley', daysAgo: 28 },
+      {
+        sender: matchUser._id,
+        content: "It's called Bank Square Coffeehouse. Best lattes in the Hudson Valley",
+        daysAgo: 28,
+      },
       { sender: mainUser._id, content: 'Sounds perfect. This weekend?', daysAgo: 14 },
-      { sender: matchUser._id, content: 'Let\'s do it! Saturday morning?', daysAgo: 14 },
+      { sender: matchUser._id, content: "Let's do it! Saturday morning?", daysAgo: 14 },
       { sender: mainUser._id, content: 'See you then! 😊', daysAgo: 14 },
       { sender: matchUser._id, content: 'Had such a great time yesterday!', daysAgo: 7 },
       { sender: mainUser._id, content: 'Me too! That coffee was incredible', daysAgo: 7 },
       { sender: matchUser._id, content: 'Want to grab dinner sometime this week?', daysAgo: 3 },
-      { sender: mainUser._id, content: 'I\'d love that! How about Thursday?', daysAgo: 2 },
-      { sender: matchUser._id, content: 'Thursday is perfect! Any cuisine preferences?', daysAgo: 2 },
+      { sender: mainUser._id, content: "I'd love that! How about Thursday?", daysAgo: 2 },
+      {
+        sender: matchUser._id,
+        content: 'Thursday is perfect! Any cuisine preferences?',
+        daysAgo: 2,
+      },
       { sender: mainUser._id, content: 'Surprise me! You seem to have great taste 😄', daysAgo: 1 },
     ];
 
