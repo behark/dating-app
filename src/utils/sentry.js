@@ -58,6 +58,7 @@ export const initSentry = (options = {}) => {
       try {
         integrations.push(Sentry.reactNativeTracing());
       } catch (e) {
+        // eslint-disable-next-line no-console
         if (__DEV__) console.warn('Failed to add reactNativeTracing:', e);
       }
     }
@@ -67,6 +68,7 @@ export const initSentry = (options = {}) => {
       try {
         integrations.push(Sentry.browserTracingIntegration());
       } catch (e) {
+        // eslint-disable-next-line no-console
         if (__DEV__) console.warn('Failed to add browserTracingIntegration:', e);
       }
     }
@@ -87,23 +89,18 @@ export const initSentry = (options = {}) => {
       // Before send hook - filter sensitive data
       beforeSend(event, hint) {
         // Remove sensitive data from error events
-        if (event.request) {
-          // Remove passwords from request data
-          if (event.request.data) {
-            if (typeof event.request.data === 'string') {
-              try {
-                const data = JSON.parse(event.request.data);
-                if (data.password) {
-                  data.password = '[REDACTED]';
-                }
-                if (data.newPassword) {
-                  data.newPassword = '[REDACTED]';
-                }
-                event.request.data = JSON.stringify(data);
-              } catch (e) {
-                // Not JSON, skip
-              }
+        if (event.request?.data && typeof event.request.data === 'string') {
+          try {
+            const data = JSON.parse(event.request.data);
+            if (data.password) {
+              data.password = '[REDACTED]';
             }
+            if (data.newPassword) {
+              data.newPassword = '[REDACTED]';
+            }
+            event.request.data = JSON.stringify(data);
+          } catch (e) {
+            // Not JSON, skip
           }
         }
         return event;
@@ -127,9 +124,11 @@ export const initSentry = (options = {}) => {
       });
     }
 
+    // eslint-disable-next-line no-console
     if (__DEV__) console.log('✅ Sentry initialized successfully');
     return true;
   } catch (error) {
+    // eslint-disable-next-line no-console
     if (__DEV__) console.error('Failed to initialize Sentry:', error);
     return false;
   }
@@ -142,6 +141,7 @@ export const initSentry = (options = {}) => {
  */
 export const captureException = (error, context = {}) => {
   if (!Sentry) {
+    // eslint-disable-next-line no-console
     if (__DEV__) console.error('Sentry not available - error not tracked:', error, context);
     return;
   }
@@ -154,6 +154,7 @@ export const captureException = (error, context = {}) => {
       },
     });
   } catch (e) {
+    // eslint-disable-next-line no-console
     if (__DEV__) console.error('Failed to capture exception in Sentry:', e);
   }
 };
@@ -166,6 +167,7 @@ export const captureException = (error, context = {}) => {
  */
 export const captureMessage = (message, level = 'info', context = {}) => {
   if (!Sentry) {
+    // eslint-disable-next-line no-console
     if (__DEV__) console.log(`[${level.toUpperCase()}] ${message}`, context);
     return;
   }
@@ -179,6 +181,7 @@ export const captureMessage = (message, level = 'info', context = {}) => {
       },
     });
   } catch (e) {
+    // eslint-disable-next-line no-console
     if (__DEV__) console.error('Failed to capture message in Sentry:', e);
   }
 };
@@ -197,6 +200,7 @@ export const setUser = (user) => {
       username: user.name || user.username,
     });
   } catch (e) {
+    // eslint-disable-next-line no-console
     if (__DEV__) console.error('Failed to set user in Sentry:', e);
   }
 };
@@ -210,6 +214,7 @@ export const clearUser = () => {
   try {
     Sentry.setUser(null);
   } catch (e) {
+    // eslint-disable-next-line no-console
     if (__DEV__) console.error('Failed to clear user in Sentry:', e);
   }
 };
@@ -224,6 +229,7 @@ export const addBreadcrumb = (breadcrumb) => {
   try {
     Sentry.addBreadcrumb(breadcrumb);
   } catch (e) {
+    // eslint-disable-next-line no-console
     if (__DEV__) console.error('Failed to add breadcrumb in Sentry:', e);
   }
 };

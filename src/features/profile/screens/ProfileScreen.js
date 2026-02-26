@@ -104,31 +104,19 @@ const ProfileScreen = () => {
     }
   };
 
-  const compressImage = async (uri) => {
-    // Basic image compression - in production, consider using react-native-image-picker's compression
-    // or a library like react-native-image-resizer
-    return new Promise((resolve) => {
-      // For now, return the original URI - in production you'd compress here
-      resolve(uri);
-    });
-  };
-
   const uploadImage = async (uri) => {
     try {
       HapticFeedback.mediumImpact();
       setLoading(true);
 
-      const compressedUri = await compressImage(uri);
-
       const formData = new FormData();
       if (Platform.OS === 'web') {
-        // On web, fetch the blob from the data URI / object URL
-        const response = await fetch(compressedUri);
+        const response = await fetch(uri);
         const blob = await response.blob();
         formData.append('photos', blob, `photo_${Date.now()}.jpg`);
       } else {
         formData.append('photos', {
-          uri: compressedUri,
+          uri,
           name: `photo_${Date.now()}.jpg`,
           type: 'image/jpeg',
         });
@@ -151,7 +139,7 @@ const ProfileScreen = () => {
       const result = await uploadResponse.json();
       const uploadResults = result?.data?.uploadResults || result?.uploadResults || [];
       const firstSuccess = uploadResults.find((r) => r.success) || uploadResults[0] || {};
-      const downloadURL = firstSuccess.url || result?.data?.url || result?.url || compressedUri;
+      const downloadURL = firstSuccess.url || result?.data?.url || result?.url || uri;
 
       setPhotoURL(downloadURL);
       HapticFeedback.successNotification();
@@ -348,7 +336,7 @@ const ProfileScreen = () => {
           </TouchableOpacity>
 
           {/* Gamification Section - Badge Showcase */}
-          <BadgeShowcase badges={userBadges} userId={currentUser.uid} />
+          <BadgeShowcase badges={userBadges} userId={currentUser?.uid} />
 
           <View style={styles.buttonGroup}>
             <TouchableOpacity

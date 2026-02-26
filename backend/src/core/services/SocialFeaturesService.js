@@ -5,6 +5,7 @@ const FriendReview = require('../domain/FriendReview');
 const Event = require('../domain/Event');
 const SharedProfile = require('../domain/SharedProfile');
 const User = require('../domain/User');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 class SocialFeaturesService {
   /**
@@ -39,7 +40,7 @@ class SocialFeaturesService {
       await groupDate.populate('hostId', 'name photos');
       return groupDate;
     } catch (/** @type {any} */ error) {
-      console.error('Error creating group date:', error);
+      logger.error('Error creating group date:', error);
       throw error;
     }
   }
@@ -82,7 +83,7 @@ class SocialFeaturesService {
       await groupDate.populate('currentParticipants.userId', 'name photos');
       return groupDate;
     } catch (/** @type {any} */ error) {
-      console.error('Error joining group date:', error);
+      logger.error('Error joining group date:', error);
       throw error;
     }
   }
@@ -111,7 +112,7 @@ class SocialFeaturesService {
       await groupDate.save();
       return groupDate;
     } catch (/** @type {any} */ error) {
-      console.error('Error leaving group date:', error);
+      logger.error('Error leaving group date:', error);
       throw error;
     }
   }
@@ -137,7 +138,7 @@ class SocialFeaturesService {
         .populate('hostId', 'name photos')
         .sort({ startTime: 1 });
     } catch (/** @type {any} */ error) {
-      console.error('Error getting nearby group dates:', error);
+      logger.error('Error getting nearby group dates:', error);
       throw error;
     }
   }
@@ -177,7 +178,7 @@ class SocialFeaturesService {
       await review.save();
       return review;
     } catch (/** @type {any} */ error) {
-      console.error('Error creating friend review:', error);
+      logger.error('Error creating friend review:', error);
       throw error;
     }
   }
@@ -197,7 +198,7 @@ class SocialFeaturesService {
         .populate('reviewerId', 'name photos')
         .sort({ createdAt: -1 });
     } catch (/** @type {any} */ error) {
-      console.error('Error getting user reviews:', error);
+      logger.error('Error getting user reviews:', error);
       throw error;
     }
   }
@@ -259,7 +260,7 @@ class SocialFeaturesService {
         categories: categoryStats,
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error getting user review stats:', error);
+      logger.error('Error getting user review stats:', error);
       throw error;
     }
   }
@@ -299,7 +300,7 @@ class SocialFeaturesService {
       await event.populate('organizerId', 'name photos');
       return event;
     } catch (/** @type {any} */ error) {
-      console.error('Error creating event:', error);
+      logger.error('Error creating event:', error);
       throw error;
     }
   }
@@ -391,7 +392,7 @@ class SocialFeaturesService {
           }
         } catch (/** @type {any} */ socketError) {
           // Log but don't fail the registration if Socket.io fails
-          console.error('Error emitting Socket.io event:', socketError);
+          logger.error('Error emitting Socket.io event:', socketError);
         }
       }
 
@@ -401,7 +402,7 @@ class SocialFeaturesService {
         isFull,
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error registering for event:', error);
+      logger.error('Error registering for event:', error);
       throw error;
     }
   }
@@ -459,7 +460,7 @@ class SocialFeaturesService {
           }
         } catch (/** @type {any} */ socketError) {
           // Log but don't fail the leave operation if Socket.io fails
-          console.error('Error emitting Socket.io event:', socketError);
+          logger.error('Error emitting Socket.io event:', socketError);
         }
       }
 
@@ -468,7 +469,7 @@ class SocialFeaturesService {
         attendeeCount: event.currentAttendeeCount,
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error leaving event:', error);
+      logger.error('Error leaving event:', error);
       throw error;
     }
   }
@@ -555,7 +556,7 @@ class SocialFeaturesService {
             // For now, we'll keep it simple and only show public events
           }
         } catch (/** @type {any} */ userError) {
-          console.error('Error fetching user preferences:', userError);
+          logger.error('Error fetching user preferences:', userError);
           // Continue without user preferences
         }
       }
@@ -612,7 +613,7 @@ class SocialFeaturesService {
         },
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error getting nearby events:', error);
+      logger.error('Error getting nearby events:', error);
       throw error;
     }
   }
@@ -655,7 +656,7 @@ class SocialFeaturesService {
 
       return false;
     } catch (/** @type {any} */ error) {
-      console.error('Error checking event access:', error);
+      logger.error('Error checking event access:', error);
       return false;
     }
   }
@@ -688,7 +689,7 @@ class SocialFeaturesService {
         expiresAt: sharedProfile.expiresAt,
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error creating shareable profile link:', error);
+      logger.error('Error creating shareable profile link:', error);
       throw error;
     }
   }
@@ -710,7 +711,7 @@ class SocialFeaturesService {
       await sharedProfile.save();
       return sharedProfile;
     } catch (/** @type {any} */ error) {
-      console.error('Error sharing profile:', error);
+      logger.error('Error sharing profile:', error);
       throw error;
     }
   }
@@ -749,7 +750,7 @@ class SocialFeaturesService {
         sharedAt: sharedProfile.createdAt,
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error getting shared profile:', error);
+      logger.error('Error getting shared profile:', error);
       throw error;
     }
   }
@@ -764,7 +765,7 @@ class SocialFeaturesService {
         isActive: true,
       }).sort({ createdAt: -1 });
     } catch (/** @type {any} */ error) {
-      console.error('Error getting user shared profiles:', error);
+      logger.error('Error getting user shared profiles:', error);
       throw error;
     }
   }
@@ -780,7 +781,7 @@ class SocialFeaturesService {
         { new: true }
       );
     } catch (/** @type {any} */ error) {
-      console.error('Error deactivating share link:', error);
+      logger.error('Error deactivating share link:', error);
       throw error;
     }
   }
@@ -807,7 +808,7 @@ class SocialFeaturesService {
 
       return qrCodeDataURL;
     } catch (/** @type {any} */ error) {
-      console.error('Error generating QR code:', error);
+      logger.error('Error generating QR code:', error);
       return null;
     }
   }

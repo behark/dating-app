@@ -11,6 +11,7 @@ const { google } = require('googleapis');
 const paymentConfig = require('../../config/payment');
 const Subscription = require('../domain/Subscription');
 const PaymentTransaction = require('../domain/PaymentTransaction');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 class GooglePlayService {
   /** @type {import('googleapis').androidpublisher_v3.Androidpublisher | null} */
@@ -76,7 +77,7 @@ class GooglePlayService {
         isActive: parseInt(subscription.expiryTimeMillis || '0') > Date.now(),
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error validating Google subscription:', error);
+      logger.error('Error validating Google subscription:', error);
 
       if ((error instanceof Error && 'code' in error ? error.code : 'UNKNOWN_ERROR') === 410) {
         return {
@@ -117,7 +118,7 @@ class GooglePlayService {
         quantity: purchase.quantity || 1,
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error validating Google product:', error);
+      logger.error('Error validating Google product:', error);
       throw error;
     }
   }
@@ -142,7 +143,7 @@ class GooglePlayService {
 
       return { success: true };
     } catch (/** @type {any} */ error) {
-      console.error('Error acknowledging Google subscription:', error);
+      logger.error('Error acknowledging Google subscription:', error);
       throw error;
     }
   }
@@ -167,7 +168,7 @@ class GooglePlayService {
 
       return { success: true };
     } catch (/** @type {any} */ error) {
-      console.error('Error acknowledging Google product:', error);
+      logger.error('Error acknowledging Google product:', error);
       throw error;
     }
   }
@@ -189,7 +190,7 @@ class GooglePlayService {
 
       return { success: true };
     } catch (/** @type {any} */ error) {
-      console.error('Error consuming Google product:', error);
+      logger.error('Error consuming Google product:', error);
       throw error;
     }
   }
@@ -211,7 +212,7 @@ class GooglePlayService {
 
       return { success: true };
     } catch (/** @type {any} */ error) {
-      console.error('Error cancelling Google subscription:', error);
+      logger.error('Error cancelling Google subscription:', error);
       throw error;
     }
   }
@@ -233,7 +234,7 @@ class GooglePlayService {
 
       return { success: true };
     } catch (/** @type {any} */ error) {
-      console.error('Error refunding Google subscription:', error);
+      logger.error('Error refunding Google subscription:', error);
       throw error;
     }
   }
@@ -255,7 +256,7 @@ class GooglePlayService {
 
       return { success: true };
     } catch (/** @type {any} */ error) {
-      console.error('Error revoking Google subscription:', error);
+      logger.error('Error revoking Google subscription:', error);
       throw error;
     }
   }
@@ -318,7 +319,7 @@ class GooglePlayService {
         subscription: validation,
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error processing Google subscription:', error);
+      logger.error('Error processing Google subscription:', error);
       throw error;
     }
   }
@@ -376,7 +377,7 @@ class GooglePlayService {
         purchase: validation,
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error processing Google product:', error);
+      logger.error('Error processing Google product:', error);
       throw error;
     }
   }
@@ -445,7 +446,7 @@ class GooglePlayService {
           }
         }
       } catch (/** @type {any} */ error) {
-        console.error('Error restoring purchase:', error);
+        logger.error('Error restoring purchase:', error);
       }
     }
 
@@ -485,7 +486,7 @@ class GooglePlayService {
 
       return { success: true };
     } catch (/** @type {any} */ error) {
-      console.error('Error processing Google RTDN:', error);
+      logger.error('Error processing Google RTDN:', error);
       throw error;
     }
   }

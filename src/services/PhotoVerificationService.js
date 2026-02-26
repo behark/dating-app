@@ -362,3 +362,5 @@ export class PhotoVerificationService {
     return messages[status] || messages.error;
   }
 }
+
+export default PhotoVerificationService;

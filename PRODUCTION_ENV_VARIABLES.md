@@ -39,15 +39,15 @@ npm run audit:cloud-env
 
 **Keep your current architecture.** Here's why:
 
-| Aspect | Current (Render + Vercel) | All on Vercel |
-|--------|---------------------------|---------------|
-| **Backend** | Full Node.js server with WebSockets | Serverless functions (cold starts, 10s timeout) |
-| **WebSockets** | ✅ Native support | ❌ Not supported in Vercel Functions |
-| **Database** | Any MongoDB Atlas | Same |
-| **File Storage** | Cloudinary/S3 | Same |
-| **Cost** | Render free tier + Vercel free tier | Similar |
-| **Real-time Chat** | ✅ Socket.io works perfectly | ❌ Would need external service (Pusher/Ably) |
-| **Long-running tasks** | ✅ Background jobs supported | ❌ 10-60s function timeout |
+| Aspect                 | Current (Render + Vercel)           | All on Vercel                                   |
+| ---------------------- | ----------------------------------- | ----------------------------------------------- |
+| **Backend**            | Full Node.js server with WebSockets | Serverless functions (cold starts, 10s timeout) |
+| **WebSockets**         | ✅ Native support                   | ❌ Not supported in Vercel Functions            |
+| **Database**           | Any MongoDB Atlas                   | Same                                            |
+| **File Storage**       | Cloudinary/S3                       | Same                                            |
+| **Cost**               | Render free tier + Vercel free tier | Similar                                         |
+| **Real-time Chat**     | ✅ Socket.io works perfectly        | ❌ Would need external service (Pusher/Ably)    |
+| **Long-running tasks** | ✅ Background jobs supported        | ❌ 10-60s function timeout                      |
 
 **Verdict**: Your dating app needs WebSockets for real-time chat and typing indicators. **Keep Render for backend.**
 
@@ -307,6 +307,7 @@ APPLE_TEAM_ID=your-apple-team-id
 ## 📋 Quick Setup Checklist
 
 ### Vercel (Frontend)
+
 - [ ] `EXPO_PUBLIC_API_URL` - Your Render backend URL
 - [ ] `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` - From Google Cloud Console
 - [ ] `EXPO_PUBLIC_FIREBASE_*` - From Firebase Console (if using)
@@ -314,6 +315,7 @@ APPLE_TEAM_ID=your-apple-team-id
 - [ ] `EXPO_PUBLIC_SENTRY_DSN` - From Sentry
 
 ### Render (Backend)
+
 - [ ] `JWT_SECRET` - **Generate unique 64-char string**
 - [ ] `JWT_REFRESH_SECRET` - **Generate different 64-char string**
 - [ ] `MONGODB_URI` - From MongoDB Atlas
@@ -327,6 +329,7 @@ APPLE_TEAM_ID=your-apple-team-id
 - [ ] `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` - From Google Cloud Console
 
 ### Health Endpoints (Backend)
+
 - [ ] `GET /health`
 - [ ] `GET /health/detailed`
 - [ ] `GET /ready` and `GET /live`
@@ -346,13 +349,13 @@ APPLE_TEAM_ID=your-apple-team-id
 
 ## 🌐 Service URLs Quick Reference
 
-| Service | Dashboard URL |
-|---------|--------------|
-| **Render** | https://dashboard.render.com |
-| **Vercel** | https://vercel.com/dashboard |
-| **MongoDB Atlas** | https://cloud.mongodb.com |
-| **Cloudinary** | https://cloudinary.com/console |
-| **Sentry** | https://sentry.io |
-| **Firebase** | https://console.firebase.google.com |
-| **Google Cloud** | https://console.cloud.google.com |
-| **Expo** | https://expo.dev |
+| Service           | Dashboard URL                       |
+| ----------------- | ----------------------------------- |
+| **Render**        | https://dashboard.render.com        |
+| **Vercel**        | https://vercel.com/dashboard        |
+| **MongoDB Atlas** | https://cloud.mongodb.com           |
+| **Cloudinary**    | https://cloudinary.com/console      |
+| **Sentry**        | https://sentry.io                   |
+| **Firebase**      | https://console.firebase.google.com |
+| **Google Cloud**  | https://console.cloud.google.com    |
+| **Expo**          | https://expo.dev                    |

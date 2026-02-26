@@ -3,6 +3,7 @@
 ## The Problem
 
 Your frontend is connecting correctly to Render, but:
+
 1. ❌ Upload route doesn't exist on Render (we just created it locally)
 2. ❌ Demo profiles aren't on Render (only seeded locally)
 
@@ -17,6 +18,7 @@ Deploy your backend changes to Render!
 Render auto-deploys when you push to GitHub (which we already did!).
 
 **Check Render Dashboard:**
+
 1. Go to: https://dashboard.render.com
 2. Click on your backend service
 3. Check "Events" tab
@@ -72,9 +74,11 @@ This will seed 100 profiles to your production MongoDB!
   - Should say `"status": "ok"`
 
 - [ ] Check upload route exists:
+
   ```
   curl https://dating-app-backend-x4yq.onrender.com/api/upload/signature
   ```
+
   - Should NOT return 404
 
 - [ ] Check if demo profiles exist:
@@ -91,6 +95,7 @@ This will seed 100 profiles to your production MongoDB!
 **Problem:** Render isn't deploying new code
 
 **Solution:**
+
 1. Check Render dashboard for deployment errors
 2. Check build logs
 3. Manually trigger deploy
@@ -102,6 +107,7 @@ This will seed 100 profiles to your production MongoDB!
 
 **Solution:**
 Run seed script against production:
+
 ```bash
 # From your local machine
 cd backend
@@ -113,11 +119,13 @@ MONGODB_URI="your-production-mongodb-url" node scripts/seed-demo-profiles.js
 **Problem:** Route exists but fails
 
 **Check:**
+
 1. Cloudinary variables set in Render? ✅ (You said yes)
 2. Multer middleware configured? ✅ (It is)
 3. CORS allowing your domain? ✅ (It is)
 
 **Try:**
+
 - Restart Render service
 - Clear browser cache
 - Check Render logs for errors
@@ -150,18 +158,21 @@ MONGODB_URI="your-production-mongodb-url" node scripts/seed-demo-profiles.js
 ## 🚀 Quick Commands
 
 **Check if Render deployed:**
+
 ```bash
 # Should return your latest commit
 curl https://dating-app-backend-x4yq.onrender.com/health
 ```
 
 **Seed production database:**
+
 ```bash
 cd backend
 node scripts/seed-demo-profiles.js
 ```
 
 **Test upload route:**
+
 ```bash
 curl -I https://dating-app-backend-x4yq.onrender.com/api/upload/signature
 # Should NOT be 404
@@ -172,6 +183,7 @@ curl -I https://dating-app-backend-x4yq.onrender.com/api/upload/signature
 ## 💡 Pro Tip
 
 **Enable Auto-Deploy in Render:**
+
 1. Dashboard → Your Service → Settings
 2. "Build & Deploy" section
 3. Enable "Auto-Deploy: Yes"

@@ -10,7 +10,9 @@ jest.mock('../../src/api/controllers/socialFeaturesController', () => ({
   getNearbyGroupDates: jest.fn((req, res) => res.status(200).json({ success: true, data: [] })),
   createFriendReview: jest.fn((req, res) => res.status(201).json({ success: true })),
   getUserReviews: jest.fn((req, res) => res.status(200).json({ success: true, data: [] })),
-  createEvent: jest.fn((req, res) => res.status(201).json({ success: true, data: { id: 'event_1' } })),
+  createEvent: jest.fn((req, res) =>
+    res.status(201).json({ success: true, data: { id: 'event_1' } })
+  ),
   registerForEvent: jest.fn((req, res) => res.status(200).json({ success: true })),
   leaveEvent: jest.fn((req, res) => res.status(200).json({ success: true })),
   getNearbyEvents: jest.fn((req, res) => res.status(200).json({ success: true, data: [] })),
@@ -78,7 +80,10 @@ describe('socialFeatures routes', () => {
 
   it('registers for event with valid id', async () => {
     const eventId = new mongoose.Types.ObjectId().toString();
-    const res = await request(app).post(`/api/social/events/${eventId}/register`).set(auth()).send({});
+    const res = await request(app)
+      .post(`/api/social/events/${eventId}/register`)
+      .set(auth())
+      .send({});
 
     expect(res.status).toBe(200);
     expect(controller.registerForEvent).toHaveBeenCalled();
@@ -97,7 +102,9 @@ describe('socialFeatures routes', () => {
     expect(invalid.status).toBe(400);
 
     const valid = await request(app)
-      .get('/api/social/events/nearby?longitude=-73.98&latitude=40.76&maxDistance=5000&page=1&limit=10')
+      .get(
+        '/api/social/events/nearby?longitude=-73.98&latitude=40.76&maxDistance=5000&page=1&limit=10'
+      )
       .set(auth());
 
     expect(valid.status).toBe(200);
@@ -106,7 +113,9 @@ describe('socialFeatures routes', () => {
 
   it('routes group-date and review handlers', async () => {
     const gd = await request(app).post('/api/social/group-dates').set(auth()).send({});
-    const review = await request(app).get('/api/social/reviews/507f1f77bcf86cd799439011').set(auth());
+    const review = await request(app)
+      .get('/api/social/reviews/507f1f77bcf86cd799439011')
+      .set(auth());
 
     expect(gd.status).toBe(201);
     expect(review.status).toBe(200);
@@ -116,8 +125,13 @@ describe('socialFeatures routes', () => {
 
   it('routes shared-profile handlers', async () => {
     const userId = new mongoose.Types.ObjectId().toString();
-    const share = await request(app).post(`/api/social/share-profile/${userId}`).set(auth()).send({});
-    const getShared = await request(app).get('/api/social/shared-profile/share-token-1').set(auth());
+    const share = await request(app)
+      .post(`/api/social/share-profile/${userId}`)
+      .set(auth())
+      .send({});
+    const getShared = await request(app)
+      .get('/api/social/shared-profile/share-token-1')
+      .set(auth());
 
     expect(share.status).toBe(201);
     expect(getShared.status).toBe(200);

@@ -2,7 +2,9 @@ const express = require('express');
 const request = require('supertest');
 
 const notificationController = {
-  getNotificationPreferences: jest.fn((req, res) => res.status(200).json({ success: true, data: {} })),
+  getNotificationPreferences: jest.fn((req, res) =>
+    res.status(200).json({ success: true, data: {} })
+  ),
   updateNotificationPreferences: jest.fn((req, res) => res.status(200).json({ success: true })),
   sendNotification: jest.fn((req, res) => res.status(200).json({ success: true })),
   sendBulkNotification: jest.fn((req, res) => res.status(200).json({ success: true })),

@@ -8,6 +8,7 @@ const path = require('path');
 const sharp = require('sharp');
 const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 // S3 Configuration
 const s3Client = new S3Client({
@@ -183,7 +184,7 @@ const processProfileImage = async (file, userId) => {
       },
     };
   } catch (/** @type {any} */ error) {
-    console.error('Image processing error:', error);
+    logger.error('Image processing error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),
@@ -221,7 +222,7 @@ const processChatImage = async (file, senderId, receiverId) => {
       },
     };
   } catch (/** @type {any} */ error) {
-    console.error('Chat image processing error:', error);
+    logger.error('Chat image processing error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error),

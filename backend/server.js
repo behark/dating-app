@@ -1,7 +1,9 @@
 // IMPORTANT: Import Sentry instrumentation at the very top, before everything else
 const Sentry = require('./instrument.js');
 
-require('dotenv').config();
+// Load environment variables from .env file in the backend directory
+require('dotenv').config({ path: require('path').resolve(__dirname, '.env') });
+
 const { createServer } = require('http');
 const express = require('express');
 const fs = require('fs');

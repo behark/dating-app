@@ -228,16 +228,26 @@ class ErrorBoundary extends React.Component {
 
     // Log to Analytics (fire and forget - don't block error handling)
     const errorMessage = error?.message || error?.toString() || 'Unknown error';
-    AnalyticsService.logError('error_boundary', errorMessage).catch((analyticsError) => {
-      console.error('Failed to log error to Analytics:', analyticsError);
-    });
-    AnalyticsService.logEvent('error_boundary_caught', {
-      error_category: category,
-      retry_count: this.state.retryCount,
-      has_component_stack: !!errorInfo.componentStack,
-    }).catch((analyticsError) => {
-      console.error('Failed to log error event to Analytics:', analyticsError);
-    });
+    (async () => {
+      try {
+        await AnalyticsService.logError('error_boundary', errorMessage);
+      } catch (analyticsError) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to log error to Analytics:', analyticsError);
+      }
+    })();
+    (async () => {
+      try {
+        await AnalyticsService.logEvent('error_boundary_caught', {
+          error_category: category,
+          retry_count: this.state.retryCount,
+          has_component_stack: !!errorInfo.componentStack,
+        });
+      } catch (analyticsError) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to log error event to Analytics:', analyticsError);
+      }
+    })();
 
     this.setState({
       error: error,

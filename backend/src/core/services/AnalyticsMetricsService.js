@@ -23,6 +23,7 @@ const Message = require('../domain/Message');
 const UserActivity = require('../domain/UserActivity');
 const Subscription = require('../domain/Subscription');
 const { cache, CACHE_TTL } = require('../../config/redis');
+const { logger } = require('../../infrastructure/external/LoggingService');
 const { datadogService } = require('../../infrastructure/external/MonitoringService');
 
 // Cache key prefix for analytics metrics
@@ -774,7 +775,7 @@ class AnalyticsMetricsService {
     datadogService.increment('app.crashes', 1, tags);
 
     // Log detailed crash info
-    console.error('App Crash:', {
+    logger.error('App Crash:', {
       platform,
       version,
       errorMessage,

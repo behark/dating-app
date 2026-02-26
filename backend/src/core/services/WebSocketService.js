@@ -10,6 +10,7 @@ const { cache, onlineStatus, CACHE_KEYS, CACHE_TTL } = require('../../config/red
 const Message = require('../domain/Message');
 const User = require('../domain/User');
 const Swipe = require('../domain/Swipe');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 /**
  * @typedef {import('socket.io').Socket & { userId: string; userName: string }} AuthenticatedSocket
@@ -94,7 +95,7 @@ const initializeWebSocket = (httpServer) => {
       } else if (userId && process.env.NODE_ENV !== 'production') {
         // Direct userId ONLY allowed in development/testing
         // SECURITY: This path is disabled in production
-        console.warn(`[WS] Development-only auth used for userId: ${userId}`);
+        logger.warn(`[WS] Development-only auth used for userId: ${userId}`);
         // @ts-ignore - Adding custom property to socket
         socket.userId = userId;
       } else {
@@ -127,7 +128,7 @@ const initializeWebSocket = (httpServer) => {
   io.on('connection', async (socket) => {
     // @ts-ignore - userId is set in auth middleware
     const userId = socket.userId;
-    console.log(`[WS] User ${userId} connected (socket: ${socket.id})`);
+    logger.info(`[WS] User ${userId} connected (socket: ${socket.id})`);
 
     // Track connection
     trackConnection(socket);
@@ -209,7 +210,7 @@ const initializeWebSocket = (httpServer) => {
     });
 
     socket.on('error', (error) => {
-      console.error(`[WS] Socket error for user ${userId}:`, error);
+      logger.error(`[WS] Socket error for user ${userId}:`, error);
     });
   });
 
@@ -259,7 +260,7 @@ const loadUserConversations = async (socket) => {
       matchIds: matches.map((m) => m._id.toString()),
     });
   } catch (/** @type {any} */ error) {
-    console.error('[WS] Error loading conversations:', error);
+    logger.error('[WS] Error loading conversations:', error);
     socket.emit('error', { message: 'Failed to load conversations' });
   }
 };
@@ -304,9 +305,9 @@ const handleJoinRoom = async (socket, matchId) => {
       messages: messages.reverse(),
     });
 
-    console.log(`[WS] User ${userId} joined room ${matchId}`);
+    logger.info(`[WS] User ${userId} joined room ${matchId}`);
   } catch (/** @type {any} */ error) {
-    console.error('[WS] Error joining room:', error);
+    logger.error('[WS] Error joining room:', error);
     socket.emit('error', { message: 'Failed to join room' });
   }
 };
@@ -316,7 +317,7 @@ const handleJoinRoom = async (socket, matchId) => {
  */
 const handleLeaveRoom = (socket, matchId) => {
   socket.leave(matchId);
-  console.log(`[WS] User ${socket.userId} left room ${matchId}`);
+  logger.info(`[WS] User ${socket.userId} left room ${matchId}`);
 };
 
 /**
@@ -411,7 +412,7 @@ const handleSendMessage = async (io, socket, data) => {
       isTyping: false,
     });
   } catch (/** @type {any} */ error) {
-    console.error('[WS] Error sending message:', error);
+    logger.error('[WS] Error sending message:', error);
     socket.emit('error', { message: 'Failed to send message' });
   }
 };
@@ -445,7 +446,7 @@ const handleMessageRead = async (io, socket, data) => {
       });
     }
   } catch (/** @type {any} */ error) {
-    console.error('[WS] Error marking message read:', error);
+    logger.error('[WS] Error marking message read:', error);
   }
 };
 
@@ -476,7 +477,7 @@ const handleMarkAllRead = async (io, socket, matchId) => {
       });
     }
   } catch (/** @type {any} */ error) {
-    console.error('[WS] Error marking all messages read:', error);
+    logger.error('[WS] Error marking all messages read:', error);
   }
 };
 
@@ -507,7 +508,7 @@ const handleTypingIndicator = (socket, matchId, isTyping) => {
  */
 const handleDisconnect = async (io, socket, reason) => {
   const userId = socket.userId;
-  console.log(`[WS] User ${userId} disconnected (reason: ${reason})`);
+  logger.info(`[WS] User ${userId} disconnected (reason: ${reason})`);
 
   // Remove from connected users
   const userSockets = connectedUsers.get(userId);
@@ -558,7 +559,7 @@ const broadcastPresenceUpdate = async (io, userId, isOnline) => {
       });
     }
   } catch (/** @type {any} */ error) {
-    console.error('[WS] Error broadcasting presence:', error);
+    logger.error('[WS] Error broadcasting presence:', error);
   }
 };
 
@@ -629,9 +630,9 @@ const handleJoinEventRoom = async (socket, data) => {
       message: 'Successfully subscribed to event updates',
     });
 
-    console.log(`[WS] User ${userId} joined event room ${eventId}`);
+    logger.info(`[WS] User ${userId} joined event room ${eventId}`);
   } catch (/** @type {any} */ error) {
-    console.error('[WS] Error joining event room:', error);
+    logger.error('[WS] Error joining event room:', error);
     socket.emit('error', { message: 'Failed to join event room' });
   }
 };
@@ -665,9 +666,9 @@ const handleLeaveEventRoom = (socket, data) => {
       message: 'Successfully unsubscribed from event updates',
     });
 
-    console.log(`[WS] User ${userId} left event room ${eventId}`);
+    logger.info(`[WS] User ${userId} left event room ${eventId}`);
   } catch (/** @type {any} */ error) {
-    console.error('[WS] Error leaving event room:', error);
+    logger.error('[WS] Error leaving event room:', error);
     socket.emit('error', { message: 'Failed to leave event room' });
   }
 };
@@ -680,7 +681,7 @@ const handleLeaveEventRoom = (socket, data) => {
  */
 const emitEventUpdate = (eventId, eventType, data) => {
   if (!ioInstance) {
-    console.warn('[WS] Cannot emit event update: Socket.io not initialized');
+    logger.warn('[WS] Cannot emit event update: Socket.io not initialized');
     return;
   }
 
@@ -691,7 +692,7 @@ const emitEventUpdate = (eventId, eventType, data) => {
       timestamp: new Date(),
     });
   } catch (/** @type {any} */ error) {
-    console.error('[WS] Error emitting event update:', error);
+    logger.error('[WS] Error emitting event update:', error);
   }
 };
 

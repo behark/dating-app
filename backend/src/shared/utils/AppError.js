@@ -1,6 +1,6 @@
 /**
  * Custom Application Error Classes
- * 
+ *
  * Provides standardized error handling with:
  * - HTTP status codes
  * - Error codes for client identification
@@ -10,7 +10,7 @@
 
 /**
  * Base Application Error
- * 
+ *
  * All custom errors should extend this class
  */
 class AppError extends Error {

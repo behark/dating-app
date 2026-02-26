@@ -1,4 +1,3 @@
-import { API_URL } from '../config/api';
 import { ERROR_MESSAGES } from '../constants/constants';
 import { getUserFriendlyMessage } from '../utils/errorMessages';
 import logger from '../utils/logger';
@@ -297,3 +296,5 @@ export class ProfileService {
     }
   }
 }
+
+export default ProfileService;

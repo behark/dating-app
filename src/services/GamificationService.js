@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '../constants/colors';
 import logger from '../utils/logger';
-import BaseService from './BaseService';
 import api from './api';
 
 // XP amounts for different actions
@@ -262,9 +261,9 @@ export const GamificationService = {
   /**
    * Track a swipe
    */
-  trackSwipe: async (userId) => {
+  trackSwipe: async (userId, swipeType) => {
     try {
-      const response = await api.post('/gamification/streaks/track', { userId });
+      const response = await api.post('/gamification/streaks/track', { userId, swipeType });
       return response.data;
     } catch (error) {
       logger.error('Error tracking swipe', error, { userId });

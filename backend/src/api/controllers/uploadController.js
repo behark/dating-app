@@ -1,16 +1,8 @@
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
-const {
-  sendSuccess,
-  sendError,
-  sendValidationError,
-  sendNotFound,
-  sendUnauthorized,
-  sendForbidden,
-  sendRateLimit,
-  asyncHandler,
-} = require('../../shared/utils/responseHelpers');
+const { logger } = require('../../infrastructure/external/LoggingService');
+const { sendError } = require('../../shared/utils/responseHelpers');
 
 // Ensure upload directory exists
 const uploadDir = path.join(__dirname, '../public/uploads');
@@ -36,7 +28,7 @@ exports.uploadLocal = async (req, res) => {
       fileId: req.file.filename.split('.')[0],
     });
   } catch (/** @type {any} */ error) {
-    console.error('Local upload error:', error);
+    logger.error('Local upload error:', error);
     sendError(res, 500, { message: 'Upload failed', error: error.message });
   }
 };

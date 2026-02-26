@@ -3,10 +3,16 @@ const request = require('supertest');
 
 const activityController = {
   updateOnlineStatus: jest.fn((req, res) => res.status(200).json({ success: true })),
-  getOnlineStatus: jest.fn((req, res) => res.status(200).json({ success: true, data: { isOnline: true } })),
+  getOnlineStatus: jest.fn((req, res) =>
+    res.status(200).json({ success: true, data: { isOnline: true } })
+  ),
   viewProfile: jest.fn((req, res) => res.status(200).json({ success: true })),
-  getProfileViews: jest.fn((req, res) => res.status(200).json({ success: true, data: { views: [] } })),
-  getMultipleStatus: jest.fn((req, res) => res.status(200).json({ success: true, data: { statuses: [] } })),
+  getProfileViews: jest.fn((req, res) =>
+    res.status(200).json({ success: true, data: { views: [] } })
+  ),
+  getMultipleStatus: jest.fn((req, res) =>
+    res.status(200).json({ success: true, data: { statuses: [] } })
+  ),
   heartbeat: jest.fn((req, res) => res.status(200).json({ success: true })),
 };
 
@@ -43,7 +49,9 @@ describe('activity routes', () => {
   });
 
   it('requires authentication', async () => {
-    const res = await request(app).post('/api/activity/update-online-status').send({ isOnline: true });
+    const res = await request(app)
+      .post('/api/activity/update-online-status')
+      .send({ isOnline: true });
     expect(res.status).toBe(401);
   });
 
@@ -75,7 +83,10 @@ describe('activity routes', () => {
   });
 
   it('validates bulk status payload', async () => {
-    const invalid = await request(app).post('/api/activity/status').set(auth).send({ userIds: 'u2' });
+    const invalid = await request(app)
+      .post('/api/activity/status')
+      .set(auth)
+      .send({ userIds: 'u2' });
     const valid = await request(app)
       .post('/api/activity/status')
       .set(auth)

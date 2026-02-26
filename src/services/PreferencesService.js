@@ -169,3 +169,5 @@ export class PreferencesService {
     };
   }
 }
+
+export default PreferencesService;

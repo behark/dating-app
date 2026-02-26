@@ -95,7 +95,9 @@ describe('gamification routes', () => {
 
   it('serves challenge and achievement endpoints', async () => {
     const challenges = await request(app).get('/api/gamification/challenges/daily/u1').set(auth);
-    const claimBonus = await request(app).post('/api/gamification/challenges/bonus/u1/claim').set(auth);
+    const claimBonus = await request(app)
+      .post('/api/gamification/challenges/bonus/u1/claim')
+      .set(auth);
     const achievements = await request(app).get('/api/gamification/achievements/u1').set(auth);
     const progress = await request(app)
       .get('/api/gamification/achievements/u1/a1/progress')

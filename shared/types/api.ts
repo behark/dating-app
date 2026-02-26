@@ -4,11 +4,7 @@
  * Uses base types from common.ts
  */
 
-import type {
-  ApiResponse as BaseApiResponse,
-  ValidationError,
-  PaginatedResponse as BasePaginatedResponse,
-} from './common';
+import type { ApiResponse as BaseApiResponse, ValidationError } from './common';
 
 /**
  * Extended API response with additional fields

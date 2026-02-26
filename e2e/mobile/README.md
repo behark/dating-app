@@ -9,6 +9,7 @@ This directory contains mobile E2E testing setup for iOS and Android.
 Maestro is a modern mobile testing framework that works well with React Native apps.
 
 **Installation:**
+
 ```bash
 curl -Ls "https://get.maestro.mobile.dev" | bash
 ```
@@ -21,6 +22,7 @@ Create `maestro.yaml` files in this directory for iOS and Android flows.
 Detox is another popular option for React Native E2E testing.
 
 **Installation:**
+
 ```bash
 npm install --save-dev detox
 ```
@@ -31,12 +33,14 @@ See `detox.config.js` for configuration details.
 ## Running Tests
 
 ### Maestro
+
 ```bash
 maestro test e2e/mobile/ios/
 maestro test e2e/mobile/android/
 ```
 
 ### Detox
+
 ```bash
 npm run test:e2e:mobile:ios
 npm run test:e2e:mobile:android
@@ -51,6 +55,7 @@ npm run test:e2e:mobile:android
 ## Notes
 
 Mobile E2E testing requires:
+
 - iOS: Xcode and iOS Simulator
 - Android: Android Studio and Android Emulator
 - Physical devices can also be used

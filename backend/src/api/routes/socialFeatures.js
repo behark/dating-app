@@ -63,11 +63,7 @@ router.post('/events', socialLimiter, SocialFeaturesController.createEvent);
 router.post(
   '/events/:eventId/register',
   socialLimiter,
-  [
-    param('eventId')
-      .isMongoId()
-      .withMessage('Invalid event ID format'),
-  ],
+  [param('eventId').isMongoId().withMessage('Invalid event ID format')],
   handleValidationErrors,
   SocialFeaturesController.registerForEvent
 );
@@ -76,11 +72,7 @@ router.post(
 router.post(
   '/events/:eventId/leave',
   socialLimiter,
-  [
-    param('eventId')
-      .isMongoId()
-      .withMessage('Invalid event ID format'),
-  ],
+  [param('eventId').isMongoId().withMessage('Invalid event ID format')],
   handleValidationErrors,
   SocialFeaturesController.leaveEvent
 );
@@ -117,10 +109,7 @@ router.get(
         'other',
       ])
       .withMessage('Invalid event category'),
-    query('page')
-      .optional()
-      .isInt({ min: 1 })
-      .withMessage('Page must be a positive integer'),
+    query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
     query('limit')
       .optional()
       .isInt({ min: 1, max: 50 })

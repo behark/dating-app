@@ -108,6 +108,7 @@ NODE_ENV=production
    - Select `dating-app` repository
 
 3. **Configure Service**
+
    ```
    Name: dating-app-backend
    Region: Select closest to your users
@@ -132,6 +133,7 @@ NODE_ENV=production
 ### Database Setup
 
 1. **MongoDB Atlas (Recommended)**
+
    ```
    1. Create account: https://www.mongodb.com/cloud/atlas
    2. Create cluster (M0 Free tier for testing, M10+ for production)
@@ -173,6 +175,7 @@ git push origin main
    - Select root directory (not backend)
 
 3. **Configure Build Settings**
+
    ```
    Framework Preset: Expo
    Build Command: npm run build (or expo export:web)
@@ -228,6 +231,7 @@ curl https://your-backend.onrender.com/health/detailed
 ```
 
 Expected response:
+
 ```json
 {
   "status": "ok",
@@ -253,6 +257,7 @@ Expected response:
 ### 3. Monitor Errors
 
 Check Sentry dashboard:
+
 - Visit: https://sentry.io/organizations/your-org/issues/
 - Verify errors are being captured
 - Set up alerts for critical errors
@@ -260,6 +265,7 @@ Check Sentry dashboard:
 ### 4. Performance Monitoring
 
 Monitor in Render Dashboard:
+
 - CPU usage
 - Memory usage
 - Response times
@@ -274,6 +280,7 @@ Monitor in Render Dashboard:
 #### Option 1: Static Hosting (Vercel)
 
 1. **Create public directory** in your frontend project:
+
    ```bash
    mkdir -p public/legal
    cp PRIVACY_POLICY_TEMPLATE.html public/legal/privacy.html
@@ -294,12 +301,14 @@ Monitor in Render Dashboard:
 #### Option 2: Dedicated Legal Pages (Recommended)
 
 Create React Native Web pages:
+
 ```bash
 src/screens/legal/PrivacyPolicyScreen.js
 src/screens/legal/TermsOfServiceScreen.js
 ```
 
 Add routes:
+
 ```javascript
 // In navigation
 <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
@@ -309,13 +318,14 @@ Add routes:
 ### Link in App Settings
 
 Update settings screen to include:
+
 ```javascript
-<Button 
-  title="Privacy Policy" 
+<Button
+  title="Privacy Policy"
   onPress={() => navigation.navigate('PrivacyPolicy')}
 />
-<Button 
-  title="Terms of Service" 
+<Button
+  title="Terms of Service"
   onPress={() => navigation.navigate('TermsOfService')}
 />
 ```
@@ -334,6 +344,7 @@ Update settings screen to include:
 ### 2. HTTPS Enforcement
 
 Already implemented in `backend/server.js`:
+
 ```javascript
 // Automatic HTTP → HTTPS redirect in production
 if (process.env.NODE_ENV === 'production') {
@@ -349,6 +360,7 @@ if (process.env.NODE_ENV === 'production') {
 ### 3. Rate Limiting
 
 Monitor rate limit headers in responses:
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
@@ -382,6 +394,7 @@ X-RateLimit-Reset: 1704574800
 ### Uptime Monitoring
 
 Use a service like UptimeRobot (free):
+
 1. Add monitor for: `https://your-backend.onrender.com/health`
 2. Set check interval: 5 minutes
 3. Configure alerts
@@ -416,24 +429,26 @@ git push origin main
 ### View Logs
 
 **Render:**
+
 ```
 Dashboard → Service → Logs (live tail)
 ```
 
 **Vercel:**
+
 ```
 Dashboard → Deployment → Runtime Logs
 ```
 
 ### Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| 503 Service Unavailable | Check MongoDB connection string |
-| CORS errors | Verify FRONTEND_URL in backend env vars |
-| WebSocket connection fails | Ensure WS_URL uses wss:// protocol |
-| 401 Unauthorized | Check JWT_SECRET matches between backend restarts |
-| Rate limit errors | Review rate limit configuration |
+| Issue                      | Solution                                          |
+| -------------------------- | ------------------------------------------------- |
+| 503 Service Unavailable    | Check MongoDB connection string                   |
+| CORS errors                | Verify FRONTEND_URL in backend env vars           |
+| WebSocket connection fails | Ensure WS_URL uses wss:// protocol                |
+| 401 Unauthorized           | Check JWT_SECRET matches between backend restarts |
+| Rate limit errors          | Review rate limit configuration                   |
 
 ---
 
@@ -465,70 +480,70 @@ Configure these secrets in GitHub → Repository → Settings → Secrets and va
 
 ### Required Secrets
 
-| Secret Name | Description | How to Obtain |
-|-------------|-------------|---------------|
-| `SNYK_TOKEN` | Snyk security scanning API token | [Snyk Dashboard](https://app.snyk.io/account) → General Settings → API Token |
-| `CODECOV_TOKEN` | Codecov coverage upload token | [Codecov Dashboard](https://codecov.io) → Settings → Repository Upload Token |
-| `EXPO_TOKEN` | Expo access token for EAS builds | `expo account:create-token` or [Expo Dashboard](https://expo.dev/accounts/[account]/settings/access-tokens) |
-| `EAS_PROJECT_ID` | Expo Application Services project ID | Run `eas project:info` or check [Expo Dashboard](https://expo.dev) |
+| Secret Name      | Description                          | How to Obtain                                                                                               |
+| ---------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `SNYK_TOKEN`     | Snyk security scanning API token     | [Snyk Dashboard](https://app.snyk.io/account) → General Settings → API Token                                |
+| `CODECOV_TOKEN`  | Codecov coverage upload token        | [Codecov Dashboard](https://codecov.io) → Settings → Repository Upload Token                                |
+| `EXPO_TOKEN`     | Expo access token for EAS builds     | `expo account:create-token` or [Expo Dashboard](https://expo.dev/accounts/[account]/settings/access-tokens) |
+| `EAS_PROJECT_ID` | Expo Application Services project ID | Run `eas project:info` or check [Expo Dashboard](https://expo.dev)                                          |
 
 ### Deployment Secrets (Staging)
 
-| Secret Name | Description | Example |
-|-------------|-------------|---------|
-| `STAGING_HOST` | Staging server hostname/IP | `staging.yourdomain.com` or `10.0.0.1` |
-| `STAGING_USER` | SSH username for staging | `deploy` |
-| `STAGING_SSH_KEY` | Private SSH key for staging | Generate with `ssh-keygen -t ed25519` |
+| Secret Name       | Description                 | Example                                |
+| ----------------- | --------------------------- | -------------------------------------- |
+| `STAGING_HOST`    | Staging server hostname/IP  | `staging.yourdomain.com` or `10.0.0.1` |
+| `STAGING_USER`    | SSH username for staging    | `deploy`                               |
+| `STAGING_SSH_KEY` | Private SSH key for staging | Generate with `ssh-keygen -t ed25519`  |
 
 ### Deployment Secrets (Production)
 
-| Secret Name | Description | Example |
-|-------------|-------------|---------|
-| `PRODUCTION_HOST` | Production server hostname/IP | `yourdomain.com` or `10.0.0.2` |
-| `PRODUCTION_USER` | SSH username for production | `deploy` |
+| Secret Name          | Description                    | Example                               |
+| -------------------- | ------------------------------ | ------------------------------------- |
+| `PRODUCTION_HOST`    | Production server hostname/IP  | `yourdomain.com` or `10.0.0.2`        |
+| `PRODUCTION_USER`    | SSH username for production    | `deploy`                              |
 | `PRODUCTION_SSH_KEY` | Private SSH key for production | Generate with `ssh-keygen -t ed25519` |
 
 ### Sentry Integration
 
-| Secret Name | Description | How to Obtain |
-|-------------|-------------|---------------|
+| Secret Name         | Description                 | How to Obtain                                                          |
+| ------------------- | --------------------------- | ---------------------------------------------------------------------- |
 | `SENTRY_AUTH_TOKEN` | Sentry authentication token | [Sentry Settings](https://sentry.io/settings/account/api/auth-tokens/) |
-| `SENTRY_ORG` | Sentry organization slug | Found in Sentry URL: `sentry.io/organizations/[org-slug]` |
+| `SENTRY_ORG`        | Sentry organization slug    | Found in Sentry URL: `sentry.io/organizations/[org-slug]`              |
 
 ### Apple App Store (iOS Submissions)
 
-| Secret Name | Description | How to Obtain |
-|-------------|-------------|---------------|
-| `APPLE_ID` | Apple ID email for App Store Connect | Your Apple Developer email |
-| `ASC_APP_ID` | App Store Connect App ID | App Store Connect → App → App Information → Apple ID |
-| `APPLE_TEAM_ID` | Apple Developer Team ID | [Apple Developer Account](https://developer.apple.com/account) → Membership |
+| Secret Name     | Description                          | How to Obtain                                                               |
+| --------------- | ------------------------------------ | --------------------------------------------------------------------------- |
+| `APPLE_ID`      | Apple ID email for App Store Connect | Your Apple Developer email                                                  |
+| `ASC_APP_ID`    | App Store Connect App ID             | App Store Connect → App → App Information → Apple ID                        |
+| `APPLE_TEAM_ID` | Apple Developer Team ID              | [Apple Developer Account](https://developer.apple.com/account) → Membership |
 
 ### Google Play Store (Android Submissions)
 
-| Secret Name | Description | How to Obtain |
-|-------------|-------------|---------------|
+| Secret Name                  | Description                         | How to Obtain                                                                                                                                                                        |
+| ---------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `GOOGLE_SERVICE_ACCOUNT_KEY` | Base64-encoded service account JSON | [Google Cloud Console](https://console.cloud.google.com/iam-admin/serviceaccounts) → Create service account → Grant Play Console access → Create key (JSON) → `base64 -w 0 key.json` |
 
 ### Notification Secrets
 
-| Secret Name | Description | How to Obtain |
-|-------------|-------------|---------------|
+| Secret Name     | Description                | How to Obtain                                   |
+| --------------- | -------------------------- | ----------------------------------------------- |
 | `SLACK_WEBHOOK` | Slack incoming webhook URL | Slack App → Incoming Webhooks → Add New Webhook |
 
 ### Backup & Storage Secrets
 
-| Secret Name | Description | How to Obtain |
-|-------------|-------------|---------------|
-| `BACKUP_S3_BUCKET` | S3 bucket name for database backups | AWS S3 Console |
-| `AWS_ACCESS_KEY_ID` | AWS access key for backup uploads | AWS IAM Console |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret key for backup uploads | AWS IAM Console |
+| Secret Name             | Description                         | How to Obtain   |
+| ----------------------- | ----------------------------------- | --------------- |
+| `BACKUP_S3_BUCKET`      | S3 bucket name for database backups | AWS S3 Console  |
+| `AWS_ACCESS_KEY_ID`     | AWS access key for backup uploads   | AWS IAM Console |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key for backup uploads   | AWS IAM Console |
 
 ### GitHub Variables (Repository → Settings → Variables)
 
-| Variable Name | Description | Example |
-|---------------|-------------|---------|
-| `STAGING_URL` | Staging environment URL | `https://staging.yourdomain.com` |
-| `PRODUCTION_URL` | Production environment URL | `https://yourdomain.com` |
+| Variable Name    | Description                | Example                          |
+| ---------------- | -------------------------- | -------------------------------- |
+| `STAGING_URL`    | Staging environment URL    | `https://staging.yourdomain.com` |
+| `PRODUCTION_URL` | Production environment URL | `https://yourdomain.com`         |
 
 ---
 
@@ -539,12 +554,14 @@ Configure these secrets in GitHub → Repository → Settings → Secrets and va
 #### 1. Render Backend Rollback
 
 **Option A: Render Dashboard (Fastest)**
+
 1. Go to [Render Dashboard](https://dashboard.render.com)
 2. Select your service → Deploys
 3. Find the last working deployment
 4. Click "Rollback to this deploy"
 
 **Option B: Git Revert**
+
 ```bash
 # Identify the commit to revert to
 git log --oneline -10
@@ -561,12 +578,14 @@ git push origin main --force
 #### 2. Vercel Frontend Rollback
 
 **Option A: Vercel Dashboard (Instant)**
+
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Select your project → Deployments
 3. Find the last working deployment
 4. Click "⋯" → "Promote to Production"
 
 **Option B: Git Revert**
+
 ```bash
 git revert HEAD --no-edit
 git push origin main
@@ -590,6 +609,7 @@ docker compose -f docker-compose.production.yml up -d
 #### 4. Mobile App Rollback (EAS Update)
 
 **OTA Updates (JavaScript Changes Only)**
+
 ```bash
 # List recent updates
 eas update:list --branch production --limit 10
@@ -602,6 +622,7 @@ eas update --branch production --message "Rollback: reverting changes"
 ```
 
 **Native Build Rollback**
+
 - Cannot rollback native builds once published
 - Must submit a new version to App Store/Play Store
 - Use TestFlight/Internal Testing for pre-release validation
@@ -609,6 +630,7 @@ eas update --branch production --message "Rollback: reverting changes"
 #### 5. Database Rollback
 
 **Option A: Restore from Backup**
+
 ```bash
 # List available backups (MongoDB Atlas)
 # Go to Atlas → Cluster → Backup → Restores
@@ -624,6 +646,7 @@ mongorestore --uri="$MONGODB_URI" \
 ```
 
 **Option B: Point-in-Time Recovery (MongoDB Atlas)**
+
 1. Go to MongoDB Atlas → Cluster → Backup
 2. Select "Restore" → "Point in Time"
 3. Choose timestamp before the issue
@@ -631,18 +654,19 @@ mongorestore --uri="$MONGODB_URI" \
 
 ### Rollback Decision Matrix
 
-| Issue Type | Severity | Rollback Method | Time to Recovery |
-|------------|----------|-----------------|------------------|
-| API crash/500 errors | Critical | Render rollback | 1-2 minutes |
-| Frontend broken | High | Vercel instant rollback | 30 seconds |
-| Mobile JS bug | High | EAS Update rollback | 5 minutes |
-| Data corruption | Critical | Database restore | 15-30 minutes |
-| Mobile native crash | Critical | App store hotfix | 1-24 hours |
-| Security vulnerability | Critical | Full stack rollback | 5-10 minutes |
+| Issue Type             | Severity | Rollback Method         | Time to Recovery |
+| ---------------------- | -------- | ----------------------- | ---------------- |
+| API crash/500 errors   | Critical | Render rollback         | 1-2 minutes      |
+| Frontend broken        | High     | Vercel instant rollback | 30 seconds       |
+| Mobile JS bug          | High     | EAS Update rollback     | 5 minutes        |
+| Data corruption        | Critical | Database restore        | 15-30 minutes    |
+| Mobile native crash    | Critical | App store hotfix        | 1-24 hours       |
+| Security vulnerability | Critical | Full stack rollback     | 5-10 minutes     |
 
 ### Pre-Rollback Checklist
 
 Before rolling back:
+
 - [ ] Identify the exact commit/deployment causing issues
 - [ ] Check if database migrations need reverting
 - [ ] Notify team in Slack channel
@@ -652,6 +676,7 @@ Before rolling back:
 ### Post-Rollback Actions
 
 After successful rollback:
+
 1. ✅ Verify health checks pass
 2. ✅ Test critical user flows
 3. ✅ Monitor error rates in Sentry
@@ -665,6 +690,7 @@ After successful rollback:
 ## �📞 Support & Resources
 
 ### Documentation
+
 - [Render Docs](https://render.com/docs)
 - [Vercel Docs](https://vercel.com/docs)
 - [MongoDB Atlas](https://docs.atlas.mongodb.com/)

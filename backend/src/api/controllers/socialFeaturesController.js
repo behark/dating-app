@@ -6,8 +6,6 @@ const {
   sendValidationError,
   sendNotFound,
   sendUnauthorized,
-  sendForbidden,
-  sendRateLimit,
   asyncHandler,
 } = require('../../shared/utils/responseHelpers');
 

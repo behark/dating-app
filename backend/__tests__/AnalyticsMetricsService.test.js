@@ -98,9 +98,7 @@ describe('AnalyticsMetricsService', () => {
   });
 
   it('calculates swipe-to-match conversion', async () => {
-    Swipe.countDocuments
-      .mockResolvedValueOnce(2000)
-      .mockResolvedValueOnce(1000);
+    Swipe.countDocuments.mockResolvedValueOnce(2000).mockResolvedValueOnce(1000);
     Swipe.aggregate.mockResolvedValue([{ matches: 100 }]);
 
     const result = await service.getSwipeToMatchConversion(
@@ -120,7 +118,10 @@ describe('AnalyticsMetricsService', () => {
       { _id: 'm3', hasResponse: true },
     ]);
 
-    const result = await service.getMessageResponseRate(new Date('2026-01-01'), new Date('2026-01-10'));
+    const result = await service.getMessageResponseRate(
+      new Date('2026-01-01'),
+      new Date('2026-01-10')
+    );
 
     expect(result.totalConversationsStarted).toBe(3);
     expect(result.conversationsWithResponse).toBe(2);
@@ -165,7 +166,12 @@ describe('AnalyticsMetricsService', () => {
     expect(mockDatadogService.histogram).toHaveBeenCalledWith(
       'api.response_time',
       180,
-      expect.arrayContaining(['endpoint:/api/users', 'method:GET', 'status:500', 'status_class:5xx'])
+      expect.arrayContaining([
+        'endpoint:/api/users',
+        'method:GET',
+        'status:500',
+        'status_class:5xx',
+      ])
     );
     expect(mockDatadogService.increment).toHaveBeenCalledWith(
       'api.errors.5xx',
@@ -178,11 +184,9 @@ describe('AnalyticsMetricsService', () => {
     service.trackPhotoUpload(true, 2048, 150);
     service.trackPhotoUpload(false, 0, 0, 'timeout');
 
-    expect(mockDatadogService.increment).toHaveBeenCalledWith(
-      'photos.upload.attempts',
-      1,
-      ['success:true']
-    );
+    expect(mockDatadogService.increment).toHaveBeenCalledWith('photos.upload.attempts', 1, [
+      'success:true',
+    ]);
     expect(mockDatadogService.increment).toHaveBeenCalledWith(
       'photos.upload.attempts',
       1,

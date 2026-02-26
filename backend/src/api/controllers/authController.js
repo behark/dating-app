@@ -612,7 +612,7 @@ exports.refreshToken = async (req, res) => {
 
     // Ensure JWT_REFRESH_SECRET is set
     if (!process.env.JWT_REFRESH_SECRET) {
-      console.error('JWT_REFRESH_SECRET is not configured');
+      logger.error('JWT_REFRESH_SECRET is not configured');
       return res.status(500).json({
         success: false,
         message: 'Authentication system is not properly configured',
@@ -680,7 +680,7 @@ exports.googleAuth = async (req, res) => {
       verifiedUser = await verifyGoogleToken(idToken);
     } catch (/** @type {any} */ verifyError) {
       const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
-      console.error('Google token verification failed:', errorMessage);
+      logger.error('Google token verification failed:', errorMessage);
 
       if (errorMessage.includes('redirect URI')) {
         return res.status(400).json({
@@ -818,7 +818,7 @@ exports.facebookAuth = async (req, res) => {
       verificationResult = await verifyFacebookToken(accessToken, facebookId);
     } catch (/** @type {any} */ verifyError) {
       const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
-      console.error('Facebook token verification failed:', errorMessage);
+      logger.error('Facebook token verification failed:', errorMessage);
 
       if (errorMessage.includes('expired')) {
         return res.status(401).json({
@@ -957,7 +957,7 @@ exports.appleAuth = async (req, res) => {
       verifiedUser = await verifyAppleToken(identityToken, appleId);
     } catch (/** @type {any} */ verifyError) {
       const errorMessage = verifyError instanceof Error ? verifyError.message : String(verifyError);
-      console.error('Apple token verification failed:', errorMessage);
+      logger.error('Apple token verification failed:', errorMessage);
 
       if (errorMessage.includes('expired')) {
         return res.status(401).json({

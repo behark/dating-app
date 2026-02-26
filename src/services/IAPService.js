@@ -37,26 +37,20 @@ class IAPService {
       return;
     }
 
-    try {
-      if (this.isConnected) return;
+    if (this.isConnected) return;
 
-      await IAP.initConnection();
+    await IAP.initConnection();
 
-      // Set up purchase listeners
-      this.purchaseUpdateSubscription = IAP.purchaseUpdatedListener((purchase) => {
-        this.handlePurchaseUpdate(purchase);
-      });
+    // Set up purchase listeners
+    this.purchaseUpdateSubscription = IAP.purchaseUpdatedListener((purchase) => {
+      this.handlePurchaseUpdate(purchase);
+    });
 
-      this.purchaseErrorSubscription = IAP.purchaseErrorListener((error) => {
-        if (__DEV__) console.error('Purchase error:', error);
-      });
+    this.purchaseErrorSubscription = IAP.purchaseErrorListener((_error) => {
+      // Purchase error listener
+    });
 
-      this.isConnected = true;
-      if (__DEV__) console.log('IAP service initialized');
-    } catch (error) {
-      if (__DEV__) console.error('Failed to initialize IAP:', error);
-      throw error;
-    }
+    this.isConnected = true;
   }
 
   /**
@@ -89,14 +83,9 @@ class IAPService {
       return [];
     }
 
-    try {
-      await this.initialize();
+    await this.initialize();
 
-      return await IAP.getSubscriptions(subscriptionIds);
-    } catch (error) {
-      if (__DEV__) console.error('Error getting subscriptions:', error);
-      throw error;
-    }
+    return await IAP.getSubscriptions(subscriptionIds);
   }
 
   /**
@@ -188,7 +177,7 @@ class IAPService {
         // Android
         await IAP.acknowledgePurchaseAndroid(purchase.purchaseToken);
       }
-      if (__DEV__) console.log('Transaction finished:', purchase.productId);
+      // Transaction finished
     } catch (error) {
       if (__DEV__) console.error('Failed to finish transaction:', error);
       throw error;
@@ -209,7 +198,7 @@ class IAPService {
           (purchase.isAcknowledged || purchase.transactionState === 'purchased')
       );
     } catch (error) {
-      if (__DEV__) console.error('Failed to get active subscription:', error);
+      // Failed to get active subscription
       return [];
     }
   }

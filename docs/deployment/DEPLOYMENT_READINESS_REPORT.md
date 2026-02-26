@@ -12,6 +12,7 @@
 **Can we deploy now?** ❌ **Not Yet** - 2 quick fixes needed (30 minutes)
 
 **Blockers:**
+
 1. ❌ app.config.js plugin error (5 min fix)
 2. ⚠️ Environment variables not production-ready (15 min setup)
 
@@ -24,6 +25,7 @@
 ### Issue #1: Build Error - expo-in-app-purchases Plugin ❌
 
 **Error:**
+
 ```
 PluginError: Unable to resolve a valid config plugin for expo-in-app-purchases
 ```
@@ -61,6 +63,7 @@ plugins: [
 ### Issue #2: Environment Variables Not Production-Ready ⚠️
 
 **Current Issues:**
+
 ```
 🔴 CRITICAL:
    - NODE_ENV: Currently 'development' (should be 'production')
@@ -90,6 +93,7 @@ Create `.env.production` files for both backend and frontend with proper values.
 **Priority:** 🔴 CRITICAL (blocks build)
 
 **Action:**
+
 ```javascript
 // Find this section:
 plugins: [
@@ -147,6 +151,7 @@ LOG_LEVEL=info
 ```
 
 **To generate JWT secrets:**
+
 ```bash
 cd backend
 node scripts/generate-jwt-secrets.js
@@ -210,12 +215,14 @@ EXPO_PUBLIC_SENTRY_DSN=your-sentry-dsn (optional)
 ### Pre-Deployment (30 minutes)
 
 - [ ] **Fix app.config.js plugin error** (5 min)
+
   ```bash
   # Edit app.config.js
   # Remove 'expo-in-app-purchases' from plugins array
   ```
 
 - [ ] **Generate JWT secrets** (2 min)
+
   ```bash
   cd backend
   node scripts/generate-jwt-secrets.js
@@ -231,6 +238,7 @@ EXPO_PUBLIC_SENTRY_DSN=your-sentry-dsn (optional)
   - Set API URL, Firebase config, etc.
 
 - [ ] **Test build** (5 min)
+
   ```bash
   npm run build
   ```
@@ -242,6 +250,7 @@ EXPO_PUBLIC_SENTRY_DSN=your-sentry-dsn (optional)
 ### Backend Deployment to Render ✅
 
 **Prerequisites:**
+
 - ✅ Code ready
 - [ ] Environment variables set
 - [ ] Render account created
@@ -256,6 +265,7 @@ EXPO_PUBLIC_SENTRY_DSN=your-sentry-dsn (optional)
    - Select branch: `main`
 
 2. **Configure Build Settings**
+
    ```
    Root Directory: backend
    Build Command: npm install
@@ -281,6 +291,7 @@ EXPO_PUBLIC_SENTRY_DSN=your-sentry-dsn (optional)
    ```
 
 **Expected Output:**
+
 ```json
 {
   "status": "healthy",
@@ -294,6 +305,7 @@ EXPO_PUBLIC_SENTRY_DSN=your-sentry-dsn (optional)
 ### Frontend Deployment to Vercel ✅
 
 **Prerequisites:**
+
 - [ ] Plugin fix applied
 - [ ] Environment variables set
 - [ ] Vercel account created
@@ -302,23 +314,26 @@ EXPO_PUBLIC_SENTRY_DSN=your-sentry-dsn (optional)
 **Steps:**
 
 1. **Install Vercel CLI**
+
    ```bash
    npm install -g vercel
    ```
 
 2. **Login to Vercel**
+
    ```bash
    vercel login
    ```
 
 3. **Deploy**
+
    ```bash
    vercel --prod
    ```
 
 4. **Set Environment Variables in Vercel Dashboard**
    - Go to project settings
-   - Add all EXPO_PUBLIC_* variables
+   - Add all EXPO*PUBLIC*\* variables
    - Redeploy if needed
 
 5. **Verify**
@@ -332,6 +347,7 @@ EXPO_PUBLIC_SENTRY_DSN=your-sentry-dsn (optional)
 **Can be done after backend/frontend are live:**
 
 1. **Configure EAS** (30 min)
+
    ```bash
    npm install -g eas-cli
    eas login
@@ -339,6 +355,7 @@ EXPO_PUBLIC_SENTRY_DSN=your-sentry-dsn (optional)
    ```
 
 2. **Build APK** (5-10 min)
+
    ```bash
    eas build --platform android --profile production
    ```
@@ -378,6 +395,7 @@ EXPO_PUBLIC_SENTRY_DSN=your-sentry-dsn (optional)
 Once you complete the 2 fixes (30 minutes):
 
 ### ✅ Backend to Render
+
 ```bash
 # 1. Set environment variables
 # 2. Push to GitHub
@@ -387,6 +405,7 @@ Once you complete the 2 fixes (30 minutes):
 ```
 
 ### ✅ Frontend to Vercel
+
 ```bash
 # 1. Fix plugin issue in app.config.js
 # 2. Set environment variables
@@ -395,6 +414,7 @@ Once you complete the 2 fixes (30 minutes):
 ```
 
 ### ⏳ Play Store (Later)
+
 ```bash
 # 1. Configure EAS (after backend/frontend live)
 # 2. Build APK
@@ -458,6 +478,7 @@ Once you complete the 2 fixes (30 minutes):
 ## 🎯 Recommended Deployment Order
 
 ### Phase 1: Backend First (Today) ✅
+
 1. ✅ Generate JWT secrets (2 min)
 2. ✅ Set environment variables (10 min)
 3. ✅ Deploy to Render (15 min)
@@ -469,6 +490,7 @@ Once you complete the 2 fixes (30 minutes):
 ---
 
 ### Phase 2: Frontend Web (Tomorrow) ✅
+
 1. ✅ Fix plugin issue (5 min)
 2. ✅ Set environment variables (5 min)
 3. ✅ Deploy to Vercel (10 min)
@@ -480,6 +502,7 @@ Once you complete the 2 fixes (30 minutes):
 ---
 
 ### Phase 3: Mobile Apps (This Week) ⏳
+
 1. Configure EAS (30 min)
 2. Build Android APK (10 min)
 3. Test on device (30 min)
@@ -539,6 +562,7 @@ curl https://your-backend.onrender.com/health
 ### Are there blocking errors?
 
 **YES - 2 blockers:**
+
 1. ❌ Plugin error in app.config.js (5 min fix)
 2. ⚠️ Missing production env vars (15 min setup)
 
@@ -547,16 +571,19 @@ curl https://your-backend.onrender.com/health
 ### Timeline:
 
 **Today (30 min):**
+
 - Fix plugin issue
 - Set environment variables
 - Deploy backend to Render
 
 **Tomorrow (30 min):**
+
 - Test backend
 - Deploy frontend to Vercel
 - Test end-to-end
 
 **This Week:**
+
 - Configure EAS
 - Build mobile apps
 - Submit to Play Store

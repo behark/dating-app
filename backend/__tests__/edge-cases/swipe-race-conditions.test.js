@@ -52,8 +52,12 @@ describe('Swipe Race Conditions', () => {
           .post('/api/swipes')
           .set('Authorization', `Bearer ${token1}`)
           .send({
-            targetId: new User({ email: `target${i}@test.com`, password: 'pass', name: 'Target', age: 25 })
-              ._id,
+            targetId: new User({
+              email: `target${i}@test.com`,
+              password: 'pass',
+              name: 'Target',
+              age: 25,
+            })._id,
             type: 'like',
           })
       );
@@ -102,20 +106,14 @@ describe('Swipe Race Conditions', () => {
       const token4 = user4.generateAuthToken();
 
       const swipes = [
-        request(app)
-          .post('/api/swipes')
-          .set('Authorization', `Bearer ${token1}`)
-          .send({
-            targetId: user2._id.toString(),
-            type: 'like',
-          }),
-        request(app)
-          .post('/api/swipes')
-          .set('Authorization', `Bearer ${token4}`)
-          .send({
-            targetId: user2._id.toString(),
-            type: 'like',
-          }),
+        request(app).post('/api/swipes').set('Authorization', `Bearer ${token1}`).send({
+          targetId: user2._id.toString(),
+          type: 'like',
+        }),
+        request(app).post('/api/swipes').set('Authorization', `Bearer ${token4}`).send({
+          targetId: user2._id.toString(),
+          type: 'like',
+        }),
       ];
 
       const responses = await Promise.all(swipes);
@@ -130,13 +128,10 @@ describe('Swipe Race Conditions', () => {
   describe('Match Creation Race Conditions', () => {
     it('should handle mutual like race condition', async () => {
       // User1 likes User2
-      await request(app)
-        .post('/api/swipes')
-        .set('Authorization', `Bearer ${token1}`)
-        .send({
-          targetId: user2._id.toString(),
-          type: 'like',
-        });
+      await request(app).post('/api/swipes').set('Authorization', `Bearer ${token1}`).send({
+        targetId: user2._id.toString(),
+        type: 'like',
+      });
 
       // User2 likes User1 (should create match)
       const token2 = user2.generateAuthToken();
@@ -159,20 +154,14 @@ describe('Swipe Race Conditions', () => {
 
       // Both users swipe on each other simultaneously
       const swipes = [
-        request(app)
-          .post('/api/swipes')
-          .set('Authorization', `Bearer ${token1}`)
-          .send({
-            targetId: user2._id.toString(),
-            type: 'like',
-          }),
-        request(app)
-          .post('/api/swipes')
-          .set('Authorization', `Bearer ${token2}`)
-          .send({
-            targetId: user1._id.toString(),
-            type: 'like',
-          }),
+        request(app).post('/api/swipes').set('Authorization', `Bearer ${token1}`).send({
+          targetId: user2._id.toString(),
+          type: 'like',
+        }),
+        request(app).post('/api/swipes').set('Authorization', `Bearer ${token2}`).send({
+          targetId: user1._id.toString(),
+          type: 'like',
+        }),
       ];
 
       const responses = await Promise.all(swipes);
@@ -194,13 +183,10 @@ describe('Swipe Race Conditions', () => {
           name: 'Target',
           age: 25,
         });
-        return request(app)
-          .post('/api/swipes')
-          .set('Authorization', `Bearer ${token1}`)
-          .send({
-            targetId: targetUser._id.toString(),
-            type: 'like',
-          });
+        return request(app).post('/api/swipes').set('Authorization', `Bearer ${token1}`).send({
+          targetId: targetUser._id.toString(),
+          type: 'like',
+        });
       });
 
       const responses = await Promise.all(swipes);
@@ -216,9 +202,7 @@ describe('Swipe Race Conditions', () => {
   describe('Database Transaction Race Conditions', () => {
     it('should handle concurrent database operations', async () => {
       const operations = Array.from({ length: 10 }, (_, i) =>
-        request(app)
-          .get('/api/profile')
-          .set('Authorization', `Bearer ${token1}`)
+        request(app).get('/api/profile').set('Authorization', `Bearer ${token1}`)
       );
 
       const responses = await Promise.all(operations);

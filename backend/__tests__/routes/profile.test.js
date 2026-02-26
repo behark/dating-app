@@ -3,14 +3,20 @@ const request = require('supertest');
 
 const profileController = {
   updateProfile: jest.fn((req, res) => res.status(200).json({ success: true })),
-  getProfile: jest.fn((req, res) => res.status(200).json({ success: true, data: { userId: req.params.userId } })),
-  getMyProfile: jest.fn((req, res) => res.status(200).json({ success: true, data: { userId: req.user._id } })),
+  getProfile: jest.fn((req, res) =>
+    res.status(200).json({ success: true, data: { userId: req.params.userId } })
+  ),
+  getMyProfile: jest.fn((req, res) =>
+    res.status(200).json({ success: true, data: { userId: req.user._id } })
+  ),
   uploadPhotos: jest.fn((req, res) => res.status(200).json({ success: true })),
   reorderPhotos: jest.fn((req, res) => res.status(200).json({ success: true })),
   deletePhoto: jest.fn((req, res) => res.status(200).json({ success: true })),
   approvePhoto: jest.fn((req, res) => res.status(200).json({ success: true })),
   rejectPhoto: jest.fn((req, res) => res.status(200).json({ success: true })),
-  getPendingPhotos: jest.fn((req, res) => res.status(200).json({ success: true, data: { items: [] } })),
+  getPendingPhotos: jest.fn((req, res) =>
+    res.status(200).json({ success: true, data: { items: [] } })
+  ),
 };
 
 jest.mock('../../src/api/controllers/profileController', () => profileController);
@@ -73,10 +79,7 @@ describe('profile routes', () => {
   });
 
   it('validates update payload and accepts valid updates', async () => {
-    const invalid = await request(app)
-      .put('/api/profile/update')
-      .set(auth)
-      .send({ age: 15 });
+    const invalid = await request(app).put('/api/profile/update').set(auth).send({ age: 15 });
 
     const valid = await request(app)
       .put('/api/profile/update')

@@ -3,6 +3,8 @@
  * Handles CDN setup for CloudFront, Cloudflare, or custom CDN
  */
 
+const { logger } = require('../../infrastructure/external/LoggingService');
+
 // CDN Configuration
 const CDN_CONFIG = {
   // CloudFront distribution
@@ -187,7 +189,7 @@ const getSignedUrl = async (path, expiresInSeconds = 3600) => {
     const privateKey = process.env.CLOUDFRONT_PRIVATE_KEY;
 
     if (!keyPairId || !privateKey) {
-      console.warn('CloudFront credentials not configured - returning unsigned URL');
+      logger.warn('CloudFront credentials not configured - returning unsigned URL');
       return getCdnUrl(path);
     }
 
@@ -201,7 +203,7 @@ const getSignedUrl = async (path, expiresInSeconds = 3600) => {
       privateKey,
     });
   } catch (/** @type {any} */ error) {
-    console.error('Error generating signed URL:', error);
+    logger.error('Error generating signed URL:', error);
     return getCdnUrl(path);
   }
 };
@@ -211,13 +213,13 @@ const getSignedUrl = async (path, expiresInSeconds = 3600) => {
  */
 const invalidateCache = async (paths) => {
   if (!CDN_CONFIG.cloudfront.enabled) {
-    console.log('CDN invalidation skipped - CloudFront not configured');
+    logger.info('CDN invalidation skipped - CloudFront not configured');
     return;
   }
 
   const distributionId = CDN_CONFIG.cloudfront.distributionId;
   if (!distributionId) {
-    console.warn('CDN invalidation skipped - CloudFront distribution ID not configured');
+    logger.warn('CDN invalidation skipped - CloudFront distribution ID not configured');
     return;
   }
 
@@ -244,10 +246,10 @@ const invalidateCache = async (paths) => {
     });
 
     const response = await client.send(command);
-    console.log('CDN invalidation created:', response?.Invalidation?.Id);
+    logger.info('CDN invalidation created:', response?.Invalidation?.Id);
     return response;
   } catch (/** @type {any} */ error) {
-    console.error('CDN invalidation error:', error);
+    logger.error('CDN invalidation error:', error);
     throw error instanceof Error ? error : new Error(String(error));
   }
 };

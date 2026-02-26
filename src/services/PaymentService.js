@@ -14,8 +14,6 @@ import { handleApiResponse } from '../utils/apiResponseHandler';
 import logger from '../utils/logger';
 import api from './api';
 
-const AUTH_TOKEN_REQUIRED_ERROR = 'Authentication token is required';
-
 export class PaymentService {
   // ==================== SUBSCRIPTION TIERS ====================
 
@@ -36,14 +34,9 @@ export class PaymentService {
   /**
    * Get current payment status
    */
-  static async getPaymentStatus(token) {
+  static async getPaymentStatus() {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
-      const response = await api.get('/payment/status', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get('/payment/status');
       const handled = handleApiResponse(response, 'Get payment status');
       return handled.data || null;
     } catch (error) {
@@ -55,14 +48,9 @@ export class PaymentService {
   /**
    * Get billing history
    */
-  static async getBillingHistory(token) {
+  static async getBillingHistory() {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
-      const response = await api.get('/payment/history', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get('/payment/history');
       const handled = handleApiResponse(response, 'Get billing history');
       return handled.data || { invoices: [], transactions: [] };
     } catch (error) {
@@ -76,19 +64,12 @@ export class PaymentService {
   /**
    * Create Stripe checkout session for subscription
    */
-  static async createStripeCheckout(planType, token) {
+  static async createStripeCheckout(planType) {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
       if (!['monthly', 'yearly'].includes(planType)) {
         throw new Error('Plan type must be monthly or yearly');
       }
-      const response = await api.post(
-        '/payment/stripe/checkout',
-        { planType },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/stripe/checkout', { planType });
       const handled = handleApiResponse(response, 'Create Stripe checkout');
 
       if (handled.success && handled.data?.url) {
@@ -105,11 +86,8 @@ export class PaymentService {
   /**
    * Create payment intent for one-time purchase (web)
    */
-  static async createStripePaymentIntent(productType, productId, quantity, token) {
+  static async createStripePaymentIntent(productType, productId, quantity) {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
       if (!productType || !productId) {
         throw new Error('Product type and product ID are required');
       }
@@ -117,11 +95,11 @@ export class PaymentService {
       if (safeQuantity <= 0) {
         throw new Error('Quantity must be greater than 0');
       }
-      const response = await api.post(
-        '/payment/stripe/payment-intent',
-        { productType, productId, quantity: safeQuantity },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/stripe/payment-intent', {
+        productType,
+        productId,
+        quantity: safeQuantity,
+      });
       const handled = handleApiResponse(response, 'Create Stripe payment intent');
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
@@ -133,11 +111,9 @@ export class PaymentService {
   /**
    * Get Stripe customer portal URL
    */
-  static async getStripePortal(token) {
+  static async getStripePortal() {
     try {
-      const response = await api.get('/payment/stripe/portal', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get('/payment/stripe/portal');
       const handled = handleApiResponse(response, 'Get Stripe portal');
 
       if (handled.success && handled.data?.url) {
@@ -156,19 +132,12 @@ export class PaymentService {
   /**
    * Create PayPal subscription
    */
-  static async createPayPalSubscription(planType, token) {
+  static async createPayPalSubscription(planType) {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
       if (!['monthly', 'yearly'].includes(planType)) {
         throw new Error('Plan type must be monthly or yearly');
       }
-      const response = await api.post(
-        '/payment/paypal/subscription',
-        { planType },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/paypal/subscription', { planType });
       const handled = handleApiResponse(response, 'Create PayPal subscription');
 
       if (handled.success && handled.data?.approvalUrl) {
@@ -185,19 +154,12 @@ export class PaymentService {
   /**
    * Activate PayPal subscription after approval
    */
-  static async activatePayPalSubscription(subscriptionId, token) {
+  static async activatePayPalSubscription(subscriptionId) {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
       if (!subscriptionId) {
         throw new Error('Subscription ID is required');
       }
-      const response = await api.post(
-        '/payment/paypal/subscription/activate',
-        { subscriptionId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/paypal/subscription/activate', { subscriptionId });
       const handled = handleApiResponse(response, 'Activate PayPal subscription');
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
@@ -209,11 +171,8 @@ export class PaymentService {
   /**
    * Create PayPal order for one-time purchase
    */
-  static async createPayPalOrder(productType, productId, quantity, token) {
+  static async createPayPalOrder(productType, productId, quantity) {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
       if (!productType || !productId) {
         throw new Error('Product type and product ID are required');
       }
@@ -221,11 +180,11 @@ export class PaymentService {
       if (safeQuantity <= 0) {
         throw new Error('Quantity must be greater than 0');
       }
-      const response = await api.post(
-        '/payment/paypal/order',
-        { productType, productId, quantity: safeQuantity },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/paypal/order', {
+        productType,
+        productId,
+        quantity: safeQuantity,
+      });
       const handled = handleApiResponse(response, 'Create PayPal order');
 
       if (handled.success && handled.data?.approvalUrl) {
@@ -242,19 +201,12 @@ export class PaymentService {
   /**
    * Capture PayPal order after approval
    */
-  static async capturePayPalOrder(orderId, token) {
+  static async capturePayPalOrder(orderId) {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
       if (!orderId) {
         throw new Error('Order ID is required');
       }
-      const response = await api.post(
-        '/payment/paypal/order/capture',
-        { orderId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/paypal/order/capture', { orderId });
       const handled = handleApiResponse(response, 'Capture PayPal order');
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
@@ -268,19 +220,12 @@ export class PaymentService {
   /**
    * Validate Apple receipt
    */
-  static async validateAppleReceipt(receiptData, productId, token) {
+  static async validateAppleReceipt(receiptData, productId) {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
       if (!receiptData || !productId) {
         throw new Error('Receipt data and product ID are required');
       }
-      const response = await api.post(
-        '/payment/apple/validate',
-        { receiptData, productId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/apple/validate', { receiptData, productId });
       const handled = handleApiResponse(response, 'Validate Apple receipt');
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
@@ -292,19 +237,12 @@ export class PaymentService {
   /**
    * Restore Apple purchases
    */
-  static async restoreApplePurchases(receiptData, token) {
+  static async restoreApplePurchases(receiptData) {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
       if (!receiptData) {
         throw new Error('Receipt data is required');
       }
-      const response = await api.post(
-        '/payment/apple/restore',
-        { receiptData },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/apple/restore', { receiptData });
       const handled = handleApiResponse(response, 'Restore Apple purchases');
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
@@ -318,19 +256,16 @@ export class PaymentService {
   /**
    * Validate Google Play purchase
    */
-  static async validateGooglePurchase(purchaseToken, productId, isSubscription, token) {
+  static async validateGooglePurchase(purchaseToken, productId, isSubscription) {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
       if (!purchaseToken || !productId) {
         throw new Error('Purchase token and product ID are required');
       }
-      const response = await api.post(
-        '/payment/google/validate',
-        { purchaseToken, productId, isSubscription },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/google/validate', {
+        purchaseToken,
+        productId,
+        isSubscription,
+      });
       const handled = handleApiResponse(response, 'Validate Google purchase');
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
@@ -342,19 +277,12 @@ export class PaymentService {
   /**
    * Restore Google Play purchases
    */
-  static async restoreGooglePurchases(purchases, token) {
+  static async restoreGooglePurchases(purchases) {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
       if (!Array.isArray(purchases)) {
         throw new Error('Purchases must be an array');
       }
-      const response = await api.post(
-        '/payment/google/restore',
-        { purchases },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/google/restore', { purchases });
       const handled = handleApiResponse(response, 'Restore Google purchases');
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
@@ -368,16 +296,9 @@ export class PaymentService {
   /**
    * Cancel subscription
    */
-  static async cancelSubscription(immediately, token) {
+  static async cancelSubscription(immediately) {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
-      const response = await api.post(
-        '/payment/subscription/cancel',
-        { immediately },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/subscription/cancel', { immediately });
       const handled = handleApiResponse(response, 'Cancel subscription');
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
@@ -389,16 +310,9 @@ export class PaymentService {
   /**
    * Resume cancelled subscription
    */
-  static async resumeSubscription(token) {
+  static async resumeSubscription() {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
-      const response = await api.post(
-        '/payment/subscription/resume',
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/subscription/resume', {});
       const handled = handleApiResponse(response, 'Resume subscription');
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {
@@ -412,22 +326,15 @@ export class PaymentService {
   /**
    * Request a refund
    */
-  static async requestRefund(transactionId, reason, amount, token) {
+  static async requestRefund(transactionId, reason, amount) {
     try {
-      if (!token || typeof token !== 'string') {
-        throw new Error(AUTH_TOKEN_REQUIRED_ERROR);
-      }
       if (!transactionId || !reason) {
         throw new Error('Transaction ID and reason are required');
       }
       if (amount !== undefined && !Number.isFinite(amount)) {
         throw new Error('Amount must be a number');
       }
-      const response = await api.post(
-        '/payment/refund/request',
-        { transactionId, reason, amount },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/payment/refund/request', { transactionId, reason, amount });
       const handled = handleApiResponse(response, 'Request refund');
       return handled || { success: false, error: ERROR_MESSAGES.NO_RESPONSE_FROM_SERVER };
     } catch (error) {

@@ -101,7 +101,7 @@ exports.reportUser = async (req, res) => {
       });
 
       // Log for admin review - these auto-suspensions should be reviewed quickly
-      console.warn(
+      logger.warn(
         `[SAFETY] Auto-suspended user ${reportedUserId} - ${uniqueReporterCount} unique reporters. Needs manual review.`
       );
     }

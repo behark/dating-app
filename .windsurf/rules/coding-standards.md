@@ -1,6 +1,7 @@
 ---
 trigger: always_on
 ---
+
 # Coding Standards
 
 ## Formatting

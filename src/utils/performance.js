@@ -45,14 +45,17 @@ export class RenderTimer {
 
   end() {
     if (!this.startTime) {
+      // eslint-disable-next-line no-console
       if (__DEV__) console.warn(`${this.name}: Timer not started`);
       return;
     }
 
     const duration = performance.now() - this.startTime;
     if (duration > PERFORMANCE_THRESHERS.RENDER_TIME_WARNING) {
+      // eslint-disable-next-line no-console
       if (__DEV__) console.warn(`${this.name} render took ${duration.toFixed(2)}ms (slow)`);
     } else {
+      // eslint-disable-next-line no-console
       if (__DEV__) console.log(`${this.name} render: ${duration.toFixed(2)}ms`);
     }
 
@@ -232,6 +235,7 @@ export const memoryWarnings = {
     const threshold = 50 * 1024 * 1024; // 50MB threshold
 
     if (estimatedMemory > threshold) {
+      // eslint-disable-next-line no-console
       console.warn(
         `High memory usage detected: ${estimateMemoryUsage.formatBytes(estimatedMemory)} for ${itemCount} ${itemType}`
       );

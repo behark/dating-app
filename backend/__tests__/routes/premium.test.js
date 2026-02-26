@@ -56,7 +56,10 @@ describe('premium routes', () => {
   it('routes subscription endpoints', async () => {
     const auth = { Authorization: 'Bearer token' };
     const status = await request(app).get('/api/premium/subscription/status').set(auth);
-    const trial = await request(app).post('/api/premium/subscription/trial/start').set(auth).send({});
+    const trial = await request(app)
+      .post('/api/premium/subscription/trial/start')
+      .set(auth)
+      .send({});
     const upgrade = await request(app).post('/api/premium/subscription/upgrade').set(auth).send({});
     const cancel = await request(app).post('/api/premium/subscription/cancel').set(auth).send({});
 
@@ -69,8 +72,14 @@ describe('premium routes', () => {
   it('routes passport and filters endpoints', async () => {
     const auth = { Authorization: 'Bearer token' };
     const passportStatus = await request(app).get('/api/premium/passport/status').set(auth);
-    const passportSet = await request(app).post('/api/premium/passport/location').set(auth).send({});
-    const passportDisable = await request(app).post('/api/premium/passport/disable').set(auth).send({});
+    const passportSet = await request(app)
+      .post('/api/premium/passport/location')
+      .set(auth)
+      .send({});
+    const passportDisable = await request(app)
+      .post('/api/premium/passport/disable')
+      .set(auth)
+      .send({});
     const filterOptions = await request(app).get('/api/premium/filters/options').set(auth);
     const filterUpdate = await request(app).post('/api/premium/filters/update').set(auth).send({});
 

@@ -150,6 +150,7 @@ export const useDeepLinking = (navigationRef) => {
           logger.debug('Initial URL:', url);
           handleDeepLink({ url });
         }
+        return null;
       })
       .catch((error) => {
         logger.error('Error getting initial URL:', error);

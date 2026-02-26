@@ -1,5 +1,4 @@
 /* eslint-disable sonarjs/cognitive-complexity */
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_URL } from '../config/api';
 import { getTokenSecurely, storeTokenSecurely, removeTokenSecurely } from '../utils/secureStorage';
 import { getUserFriendlyMessage, STANDARD_ERROR_MESSAGES } from '../utils/errorMessages';
@@ -21,15 +20,6 @@ let sessionExpiredCallback = null;
  */
 export const setSessionExpiredCallback = (callback) => {
   sessionExpiredCallback = callback;
-};
-
-/**
- * Trigger the session expired callback if set
- */
-const triggerSessionExpired = () => {
-  if (sessionExpiredCallback && typeof sessionExpiredCallback === 'function') {
-    sessionExpiredCallback();
-  }
 };
 
 const api = {

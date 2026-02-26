@@ -30,7 +30,7 @@
         "allow": ["warn", "error"]
       }
     ],
-    "no-unused-vars": ["off"],
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
     "prefer-const": "error",
     "no-var": "error",
     "prefer-arrow-callback": "warn",
@@ -69,6 +69,7 @@
       "warn",
       { "groups": ["builtin", "external", "internal", "parent", "sibling", "index"] }
     ],
+    "import/no-duplicates": "warn",
     "import/no-named-as-default": "off",
     "import/no-named-as-default-member": "off",
     "import/no-unresolved": "off",

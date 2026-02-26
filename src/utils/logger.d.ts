@@ -3,10 +3,10 @@
  */
 
 export interface Logger {
-  debug(message: string, ...args: any[]): void;
-  info(message: string, ...args: any[]): void;
-  warn(message: string, ...args: any[]): void;
-  error(message: string, error?: Error | null, ...args: any[]): void;
+  debug(message: string, ...args: unknown[]): void;
+  info(message: string, ...args: unknown[]): void;
+  warn(message: string, ...args: unknown[]): void;
+  error(message: string, error?: Error | null, ...args: unknown[]): void;
   apiError(endpoint: string, method: string, status: number, error?: Error | null): void;
   apiRequest(endpoint: string, method: string): void;
 }

@@ -63,3 +63,5 @@ export class SocialMediaService {
     }
   }
 }
+
+export default SocialMediaService;

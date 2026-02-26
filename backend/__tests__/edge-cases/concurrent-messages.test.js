@@ -93,22 +93,16 @@ describe('Concurrent Message Operations', () => {
     it('should handle concurrent messages from both users', async () => {
       const messages = [
         ...Array.from({ length: 5 }, () =>
-          request(app)
-            .post('/api/chat/send')
-            .set('Authorization', `Bearer ${token1}`)
-            .send({
-              matchId: match._id.toString(),
-              content: 'Message from user1',
-            })
+          request(app).post('/api/chat/send').set('Authorization', `Bearer ${token1}`).send({
+            matchId: match._id.toString(),
+            content: 'Message from user1',
+          })
         ),
         ...Array.from({ length: 5 }, () =>
-          request(app)
-            .post('/api/chat/send')
-            .set('Authorization', `Bearer ${token2}`)
-            .send({
-              matchId: match._id.toString(),
-              content: 'Message from user2',
-            })
+          request(app).post('/api/chat/send').set('Authorization', `Bearer ${token2}`).send({
+            matchId: match._id.toString(),
+            content: 'Message from user2',
+          })
         ),
       ];
 
@@ -124,13 +118,10 @@ describe('Concurrent Message Operations', () => {
   describe('Message Read Status Race Conditions', () => {
     it('should handle concurrent read status updates', async () => {
       // Send a message first
-      await request(app)
-        .post('/api/chat/send')
-        .set('Authorization', `Bearer ${token1}`)
-        .send({
-          matchId: match._id.toString(),
-          content: 'Test message',
-        });
+      await request(app).post('/api/chat/send').set('Authorization', `Bearer ${token1}`).send({
+        matchId: match._id.toString(),
+        content: 'Test message',
+      });
 
       // Get messages
       const getResponse = await request(app)

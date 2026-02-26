@@ -29,7 +29,7 @@ class DiscoveryService {
    * @returns {Promise<Object>} Users matching criteria
    * @throws {Error} If request fails
    */
-  async exploreUsers(lat, lng, options = {}) {
+  static async exploreUsers(lat, lng, options = {}) {
     try {
       // Validate inputs
       if (!validateCoordinates(lat, lng)) {
@@ -93,7 +93,7 @@ class DiscoveryService {
    * @returns {Promise<Object>} Top pick users
    * @throws {Error} If request fails
    */
-  async getTopPicks(limit = 10) {
+  static async getTopPicks(limit = 10) {
     try {
       // Validate input
       if (!validateNumberRange(limit, 1, 50)) {
@@ -116,7 +116,7 @@ class DiscoveryService {
    * @returns {Promise<Object>} Recently active users
    * @throws {Error} If request fails
    */
-  async getRecentlyActiveUsers(hoursBack = 24, limit = 20) {
+  static async getRecentlyActiveUsers(hoursBack = 24, limit = 20) {
     try {
       // Validate inputs
       if (!validateNumberRange(hoursBack, 1, 168)) {
@@ -143,7 +143,7 @@ class DiscoveryService {
   /**
    * Get verified profiles
    */
-  async getVerifiedProfiles(lat, lng, options = {}) {
+  static async getVerifiedProfiles(lat, lng, options = {}) {
     try {
       // Validate coordinates
       if (!validateCoordinates(lat, lng)) {
@@ -193,7 +193,7 @@ class DiscoveryService {
   /**
    * Initiate profile verification
    */
-  async verifyProfile(verificationMethod = 'photo') {
+  static async verifyProfile(verificationMethod = 'photo') {
     try {
       if (!['photo', 'document', 'video'].includes(verificationMethod)) {
         throw new Error('Invalid verification method. Must be photo, document, or video');
@@ -211,7 +211,7 @@ class DiscoveryService {
   /**
    * Admin: Approve profile verification
    */
-  async approveProfileVerification(userId) {
+  static async approveProfileVerification(userId) {
     try {
       if (!validateUserId(userId)) {
         throw new Error(ERROR_MESSAGES.INVALID_USER_ID);

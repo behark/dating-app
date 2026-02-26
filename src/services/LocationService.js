@@ -1,5 +1,4 @@
 import * as Location from 'expo-location';
-import { Platform } from 'react-native';
 import { calculateDistance as calcDist } from '../utils/distanceCalculator';
 import logger from '../utils/logger';
 import api from './api';
@@ -177,11 +176,7 @@ export class LocationService {
   static async getNearbyUsers(currentUserId, maxDistanceKm = 50) {
     try {
       // Use backend discovery API which handles geospatial queries
-      const response = await api.get('/discover/explore', {
-        params: {
-          maxDistance: maxDistanceKm,
-        },
-      });
+      const response = await api.get(`/discover/explore?maxDistance=${maxDistanceKm}`);
 
       if (!response.success) {
         logger.warn('Failed to get nearby users from API', {
@@ -228,3 +223,5 @@ export class LocationService {
     }
   }
 }
+
+export default LocationService;

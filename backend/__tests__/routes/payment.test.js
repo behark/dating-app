@@ -118,8 +118,14 @@ describe('payment routes', () => {
       .post('/api/payment/paypal/subscription')
       .set(authHeader)
       .send({});
-    const paypalOrder = await request(app).post('/api/payment/paypal/order').set(authHeader).send({});
-    const appleValidate = await request(app).post('/api/payment/apple/validate').set(authHeader).send({});
+    const paypalOrder = await request(app)
+      .post('/api/payment/paypal/order')
+      .set(authHeader)
+      .send({});
+    const appleValidate = await request(app)
+      .post('/api/payment/apple/validate')
+      .set(authHeader)
+      .send({});
     const googleValidate = await request(app)
       .post('/api/payment/google/validate')
       .set(authHeader)

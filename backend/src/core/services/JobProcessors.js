@@ -4,6 +4,7 @@
  */
 
 const { cache, CACHE_KEYS, CACHE_TTL } = require('../../config/redis');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 // Models
 const User = require('../domain/User');
@@ -99,7 +100,7 @@ const setupNotificationProcessors = () => {
 
       return { success: true, ticket };
     } catch (/** @type {any} */ error) {
-      console.error('Push notification error:', error);
+      logger.error('Push notification error:', error);
       throw error;
     }
   });
@@ -220,7 +221,7 @@ const setupMatchProcessors = () => {
 
       return { success: true, matchId };
     } catch (/** @type {any} */ error) {
-      console.error('Process match error:', error);
+      logger.error('Process match error:', error);
       throw error;
     }
   });
@@ -323,13 +324,13 @@ const setupEmailProcessors = () => {
       })
     );
   } else {
-    console.warn('⚠️  SMTP credentials not configured - email job processing disabled');
+    logger.warn('⚠️  SMTP credentials not configured - email job processing disabled');
   }
 
   // Generic email sender
   emailQueue.process(JOB_TYPES.SEND_EMAIL, async (job) => {
     if (!transporter) {
-      console.warn('Email service not configured - skipping email job');
+      logger.warn('Email service not configured - skipping email job');
       return { success: false, reason: 'Email service not configured' };
     }
 
@@ -373,7 +374,7 @@ const setupEmailProcessors = () => {
 
       return { success: true, messageId: result.messageId };
     } catch (/** @type {any} */ error) {
-      console.error('Email sending failed:', error);
+      logger.error('Email sending failed:', error);
       throw error;
     }
   });
@@ -381,7 +382,7 @@ const setupEmailProcessors = () => {
   // Weekly digest
   emailQueue.process(JOB_TYPES.SEND_WEEKLY_DIGEST, async (job) => {
     if (!transporter) {
-      console.warn('Email service not configured - skipping weekly digest job');
+      logger.warn('Email service not configured - skipping weekly digest job');
       return { success: false, reason: 'Email service not configured' };
     }
 
@@ -433,7 +434,7 @@ const setupEmailProcessors = () => {
         `,
       });
     } catch (/** @type {any} */ error) {
-      console.error('Email sending failed:', error);
+      logger.error('Email sending failed:', error);
       throw error;
     }
 
@@ -483,7 +484,7 @@ const setupModerationProcessors = () => {
 
       return { success: true, status, moderation: result.moderation };
     } catch (/** @type {any} */ error) {
-      console.error('Image moderation error:', error);
+      logger.error('Image moderation error:', error);
       throw error;
     }
   });

@@ -28,7 +28,7 @@ class UserRepository {
 
   async findPotentialMatches(userId, filters = {}) {
     const { gender, minAge, maxAge, maxDistance, location, excludeIds = [] } = filters;
-    
+
     const query = {
       _id: { $ne: userId, $nin: excludeIds },
       isActive: true,

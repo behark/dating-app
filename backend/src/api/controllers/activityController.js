@@ -6,8 +6,6 @@ const {
   sendValidationError,
   sendNotFound,
   sendUnauthorized,
-  sendForbidden,
-  sendRateLimit,
   asyncHandler,
 } = require('../../shared/utils/responseHelpers');
 
@@ -56,7 +54,7 @@ exports.updateOnlineStatus = async (req, res) => {
     });
   } catch (/** @type {any} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Update online status error:', errorMessage);
+    logger.error('Update online status error:', errorMessage);
     return sendError(res, 500, {
       message: 'Error updating online status',
       error: 'INTERNAL_ERROR',
@@ -108,7 +106,7 @@ exports.getOnlineStatus = async (req, res) => {
     });
   } catch (/** @type {any} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Get online status error:', errorMessage);
+    logger.error('Get online status error:', errorMessage);
     return sendError(res, 500, {
       message: 'Error fetching online status',
       error: 'INTERNAL_ERROR',
@@ -172,7 +170,7 @@ exports.viewProfile = async (req, res) => {
     });
   } catch (/** @type {any} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('View profile error:', errorMessage);
+    logger.error('View profile error:', errorMessage);
     return sendError(res, 500, {
       message: 'Error recording profile view',
       error: 'INTERNAL_ERROR',
@@ -259,16 +257,6 @@ exports.getMultipleStatus = async (req, res) => {
     // SECURITY: Only return status for users who are matched with the requesting user
     const Match = require('../../core/domain/Match');
 
-    const {
-      sendSuccess,
-      sendError,
-      sendValidationError,
-      sendNotFound,
-      sendUnauthorized,
-      sendForbidden,
-      sendRateLimit,
-      asyncHandler,
-    } = require('../../shared/utils/responseHelpers');
     const matches = await Match.find({
       users: requestingUserId,
       status: 'active',
@@ -323,7 +311,7 @@ exports.getMultipleStatus = async (req, res) => {
     });
   } catch (/** @type {any} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Get multiple status error:', errorMessage);
+    logger.error('Get multiple status error:', errorMessage);
     sendError(res, 500, { message: 'Error fetching status', error: errorMessage });
   }
 };
@@ -343,7 +331,7 @@ exports.heartbeat = async (req, res) => {
     });
   } catch (/** @type {any} */ error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Heartbeat error:', errorMessage);
+    logger.error('Heartbeat error:', errorMessage);
     sendError(res, 500, { message: 'Error recording heartbeat', error: errorMessage });
   }
 };

@@ -208,9 +208,29 @@ export const useAuthState = () => {
         const expiryTime = decoded.exp * 1000;
         const currentTime = Date.now();
         const timeUntilExpiry = expiryTime - currentTime;
+        const oneMinute = 60 * 1000;
         const fiveMinutes = 5 * 60 * 1000;
 
-        if (timeUntilExpiry > 0 && timeUntilExpiry <= fiveMinutes && !sessionWarningShown) {
+        if (timeUntilExpiry <= 0) {
+          logger.warn('Token expired, logging out');
+          Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
+            { text: 'OK', onPress: clearSession },
+          ]);
+          return;
+        }
+
+        if (timeUntilExpiry <= oneMinute) {
+          logger.info('Auto-refreshing token - less than 1 minute remaining');
+          const newToken = await refreshSession();
+          if (!newToken) {
+            Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
+              { text: 'OK', onPress: clearSession },
+            ]);
+          }
+          return;
+        }
+
+        if (timeUntilExpiry <= fiveMinutes && !sessionWarningShown) {
           setSessionWarningShown(true);
           const minutesRemaining = Math.round(timeUntilExpiry / 60000);
 
@@ -238,23 +258,6 @@ export const useAuthState = () => {
             ],
             { cancelable: false }
           );
-        }
-
-        if (timeUntilExpiry > 0 && timeUntilExpiry <= 60000 && !sessionWarningShown) {
-          logger.info('Auto-refreshing token - less than 1 minute remaining');
-          const newToken = await refreshSession();
-          if (!newToken) {
-            Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
-              { text: 'OK', onPress: clearSession },
-            ]);
-          }
-        }
-
-        if (timeUntilExpiry <= 0) {
-          logger.warn('Token expired, logging out');
-          Alert.alert('Session Expired', 'Your session has expired. Please login again.', [
-            { text: 'OK', onPress: clearSession },
-          ]);
         }
       } catch (error) {
         logger.error('Error checking token expiry', error);

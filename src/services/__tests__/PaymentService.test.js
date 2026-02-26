@@ -19,8 +19,6 @@ jest.mock('../api', () => ({
 }));
 
 describe('PaymentService', () => {
-  const mockToken = 'mock-auth-token';
-
   beforeEach(() => {
     jest.clearAllMocks();
     Platform.OS = 'web';
@@ -66,18 +64,11 @@ describe('PaymentService', () => {
         },
       });
 
-      const result = await PaymentService.getPaymentStatus(mockToken);
+      const result = await PaymentService.getPaymentStatus();
 
-      expect(api.get).toHaveBeenCalledWith('/payment/status', {
-        headers: { Authorization: `Bearer ${mockToken}` },
-      });
+      expect(api.get).toHaveBeenCalledWith('/payment/status');
       expect(result.status).toBe('active');
       expect(result.plan).toBe('premium');
-    });
-
-    it('returns null when token is missing', async () => {
-      const result = await PaymentService.getPaymentStatus('');
-      expect(result).toBeNull();
     });
   });
 
@@ -88,14 +79,14 @@ describe('PaymentService', () => {
         data: { url: 'https://checkout.stripe.com/session' },
       });
 
-      const result = await PaymentService.createStripeCheckout('monthly', mockToken);
+      const result = await PaymentService.createStripeCheckout('monthly');
 
       expect(result.success).toBe(true);
       expect(Linking.openURL).toHaveBeenCalledWith('https://checkout.stripe.com/session');
     });
 
     it('returns error for invalid plan type', async () => {
-      const result = await PaymentService.createStripeCheckout('invalid', mockToken);
+      const result = await PaymentService.createStripeCheckout('invalid');
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('Plan type must be monthly or yearly');
@@ -106,20 +97,16 @@ describe('PaymentService', () => {
     it('cancels subscription successfully', async () => {
       api.post.mockResolvedValue({ success: true, data: { message: 'Subscription cancelled' } });
 
-      const result = await PaymentService.cancelSubscription(false, mockToken);
+      const result = await PaymentService.cancelSubscription(false);
 
-      expect(api.post).toHaveBeenCalledWith(
-        '/payment/subscription/cancel',
-        { immediately: false },
-        { headers: { Authorization: `Bearer ${mockToken}` } }
-      );
+      expect(api.post).toHaveBeenCalledWith('/payment/subscription/cancel', { immediately: false });
       expect(result.success).toBe(true);
     });
 
     it('handles cancellation errors', async () => {
       api.post.mockRejectedValue(new Error('Cannot cancel subscription'));
 
-      const result = await PaymentService.cancelSubscription(false, mockToken);
+      const result = await PaymentService.cancelSubscription(false);
 
       expect(result.success).toBe(false);
     });
@@ -132,11 +119,7 @@ describe('PaymentService', () => {
         data: { valid: true, productId: 'premium_monthly' },
       });
 
-      const result = await PaymentService.validateAppleReceipt(
-        'receipt_data',
-        'product_id',
-        mockToken
-      );
+      const result = await PaymentService.validateAppleReceipt('receipt_data', 'product_id');
 
       expect(result.success).toBe(true);
       expect(result.data.valid).toBe(true);
@@ -153,8 +136,7 @@ describe('PaymentService', () => {
       const result = await PaymentService.validateGooglePurchase(
         'purchase_token',
         'product_id',
-        true,
-        mockToken
+        true
       );
 
       expect(result.success).toBe(true);

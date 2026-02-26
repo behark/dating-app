@@ -31,6 +31,7 @@ See [Environment Variables Reference](../ENVIRONMENT_VARIABLES.md) for complete 
 ### Critical Variables
 
 **Backend (Render)**:
+
 - `NODE_ENV=production`
 - `JWT_SECRET` (64+ chars)
 - `JWT_REFRESH_SECRET` (64+ chars, different from JWT_SECRET)
@@ -38,6 +39,7 @@ See [Environment Variables Reference](../ENVIRONMENT_VARIABLES.md) for complete 
 - `FRONTEND_URL` (Vercel deployment URL)
 
 **Frontend (Vercel)**:
+
 - `EXPO_PUBLIC_API_URL` (Render backend URL)
 - `EXPO_PUBLIC_WS_URL` (WebSocket URL, wss://)
 
@@ -46,11 +48,13 @@ See [Environment Variables Reference](../ENVIRONMENT_VARIABLES.md) for complete 
 ### Backend Deployment
 
 1. **Generate Secrets**:
+
    ```bash
    node scripts/generate-jwt-secrets.js
    ```
 
 2. **Validate Environment**:
+
    ```bash
    node scripts/validate-production-env.js
    ```
@@ -62,6 +66,7 @@ See [Environment Variables Reference](../ENVIRONMENT_VARIABLES.md) for complete 
 ### Frontend Deployment
 
 1. **Build**:
+
    ```bash
    npm run web:build
    ```
@@ -84,5 +89,6 @@ See [RENDER_VERCEL_SETUP.md](./RENDER_VERCEL_SETUP.md) for platform-specific iss
 ---
 
 **Related Docs**:
+
 - [Environment Variables](../ENVIRONMENT_VARIABLES.md)
 - [Production Checklist](../production/checklist.md)

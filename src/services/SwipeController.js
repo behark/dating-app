@@ -219,16 +219,6 @@ export class SwipeController {
   }
 
   /**
-   * Increments swipe counter for the day
-   * @deprecated Backend now handles this automatically
-   * @private
-   */
-  static async incrementSwipeCounter(userId) {
-    // This method is deprecated - backend handles swipe counting
-    logger.warn('incrementSwipeCounter is deprecated - backend handles this automatically');
-  }
-
-  /**
    * Undoes the last swipe for a user
    * @param {string} userId - User ID
    * @param {string} swipeId - ID of the swipe document to undo (optional, backend can find last swipe)
@@ -260,17 +250,6 @@ export class SwipeController {
     }
   }
 
-  /**
-   * Gets the most recent swipe by a user (for undo functionality)
-   * @param {string} userId - User ID
-   * @returns {Promise<Object|null>} Most recent swipe or null
-   * @deprecated Backend handles undo functionality automatically
-   */
-  static async getLastSwipe(userId) {
-    // This method is deprecated - backend handles undo without needing to fetch last swipe
-    logger.warn('getLastSwipe is deprecated - backend handles undo automatically');
-    return null;
-  }
   /**
    * Unmatch with another user
    * @param {string} userId1 - First user ID
@@ -412,3 +391,5 @@ export class SwipeController {
     }
   }
 }
+
+export default SwipeController;

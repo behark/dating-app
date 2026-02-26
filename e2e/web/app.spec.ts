@@ -399,8 +399,6 @@ test.describe('Chat', () => {
     await page.click(sendButton);
 
     // Check for read receipt (if implemented)
-    const readReceipt = page.locator('[data-testid="read-receipt"]');
-    const hasReceipt = await readReceipt.isVisible().catch(() => false);
     // Read receipt may appear after recipient reads
   });
 });

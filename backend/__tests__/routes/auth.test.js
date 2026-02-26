@@ -95,14 +95,18 @@ describe('auth routes', () => {
     expect(refreshBad.status).toBe(400);
 
     const verifyOk = await request(app).post('/api/auth/verify-email').send({ token: 't' });
-    const refreshOk = await request(app).post('/api/auth/refresh-token').send({ refreshToken: 'r' });
+    const refreshOk = await request(app)
+      .post('/api/auth/refresh-token')
+      .send({ refreshToken: 'r' });
     expect(verifyOk.status).toBe(200);
     expect(refreshOk.status).toBe(200);
   });
 
   it('validates OAuth payloads', async () => {
     const googleBad = await request(app).post('/api/auth/google').send({ email: 'x@example.com' });
-    const facebookBad = await request(app).post('/api/auth/facebook').send({ email: 'x@example.com' });
+    const facebookBad = await request(app)
+      .post('/api/auth/facebook')
+      .send({ email: 'x@example.com' });
     const appleBad = await request(app).post('/api/auth/apple').send({});
     expect(googleBad.status).toBe(400);
     expect(facebookBad.status).toBe(400);

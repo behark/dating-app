@@ -29,8 +29,7 @@ describe('API Services Integration Tests', () => {
       json: jest.fn().mockResolvedValue({ success: true, data: { users: [], total: 0 } }),
     });
 
-    const service = new DiscoveryService();
-    const result = await service.exploreUsers(37.7749, -122.4194, {
+    const result = await DiscoveryService.exploreUsers(37.7749, -122.4194, {
       radius: 50000,
       minAge: 18,
       maxAge: 100,
@@ -42,8 +41,7 @@ describe('API Services Integration Tests', () => {
   });
 
   it('rejects invalid coordinates in DiscoveryService', async () => {
-    const service = new DiscoveryService();
-    await expect(service.exploreUsers(91, 0)).rejects.toThrow('Invalid coordinates');
+    await expect(DiscoveryService.exploreUsers(91, 0)).rejects.toThrow('Invalid coordinates');
   });
 
   it('returns AI smart photo selection for valid user IDs', async () => {

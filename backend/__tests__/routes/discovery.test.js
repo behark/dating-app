@@ -2,8 +2,12 @@ const express = require('express');
 const request = require('supertest');
 
 const discoveryController = {
-  discoverUsers: jest.fn((req, res) => res.status(200).json({ success: true, data: { users: [] } })),
-  getDiscoverySettings: jest.fn((req, res) => res.status(200).json({ success: true, data: { radius: 5000 } })),
+  discoverUsers: jest.fn((req, res) =>
+    res.status(200).json({ success: true, data: { users: [] } })
+  ),
+  getDiscoverySettings: jest.fn((req, res) =>
+    res.status(200).json({ success: true, data: { radius: 5000 } })
+  ),
   updateLocation: jest.fn((req, res) => res.status(200).json({ success: true })),
 };
 

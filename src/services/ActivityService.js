@@ -137,3 +137,5 @@ export class ActivityService {
     }
   }
 }
+
+export default ActivityService;

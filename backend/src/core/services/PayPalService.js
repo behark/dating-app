@@ -13,6 +13,7 @@ const axios = require('axios');
 const paymentConfig = require('../../config/payment');
 const Subscription = require('../domain/Subscription');
 const PaymentTransaction = require('../domain/PaymentTransaction');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 class PayPalService {
   static baseUrl =
@@ -43,7 +44,7 @@ class PayPalService {
       return response.data.access_token;
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Error getting PayPal access token:', errorMessage);
+      logger.error('Error getting PayPal access token:', errorMessage);
       throw error;
     }
   }
@@ -103,7 +104,7 @@ class PayPalService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
-      console.error('Error creating PayPal subscription:', errorData || errorMessage);
+      logger.error('Error creating PayPal subscription:', errorData || errorMessage);
       throw error;
     }
   }
@@ -137,7 +138,7 @@ class PayPalService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
-      console.error('Error getting PayPal subscription:', errorData || errorMessage);
+      logger.error('Error getting PayPal subscription:', errorData || errorMessage);
       throw error;
     }
   }
@@ -177,7 +178,7 @@ class PayPalService {
       return { success: true, subscription };
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Error activating PayPal subscription:', errorMessage);
+      logger.error('Error activating PayPal subscription:', errorMessage);
       throw error;
     }
   }
@@ -207,7 +208,7 @@ class PayPalService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
-      console.error('Error cancelling PayPal subscription:', errorData || errorMessage);
+      logger.error('Error cancelling PayPal subscription:', errorData || errorMessage);
       throw error;
     }
   }
@@ -237,7 +238,7 @@ class PayPalService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
-      console.error('Error suspending PayPal subscription:', errorData || errorMessage);
+      logger.error('Error suspending PayPal subscription:', errorData || errorMessage);
       throw error;
     }
   }
@@ -267,7 +268,7 @@ class PayPalService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
-      console.error('Error reactivating PayPal subscription:', errorData || errorMessage);
+      logger.error('Error reactivating PayPal subscription:', errorData || errorMessage);
       throw error;
     }
   }
@@ -334,7 +335,7 @@ class PayPalService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
-      console.error('Error creating PayPal order:', errorData || errorMessage);
+      logger.error('Error creating PayPal order:', errorData || errorMessage);
       throw error;
     }
   }
@@ -408,7 +409,7 @@ class PayPalService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
-      console.error('Error capturing PayPal order:', errorData || errorMessage);
+      logger.error('Error capturing PayPal order:', errorData || errorMessage);
       throw error;
     }
   }
@@ -455,7 +456,7 @@ class PayPalService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
-      console.error('Error creating PayPal refund:', errorData || errorMessage);
+      logger.error('Error creating PayPal refund:', errorData || errorMessage);
       throw error;
     }
   }
@@ -491,7 +492,7 @@ class PayPalService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
-      console.error('Error verifying PayPal webhook:', errorData || errorMessage);
+      logger.error('Error verifying PayPal webhook:', errorData || errorMessage);
       return false;
     }
   }
@@ -559,7 +560,7 @@ class PayPalService {
       }
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Error handling subscription activated:', errorMessage);
+      logger.error('Error handling subscription activated:', errorMessage);
     }
   }
 
@@ -580,7 +581,7 @@ class PayPalService {
       }
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Error handling subscription updated:', errorMessage);
+      logger.error('Error handling subscription updated:', errorMessage);
     }
   }
 
@@ -596,7 +597,7 @@ class PayPalService {
         await Subscription.cancelSubscription(userId);
       }
     } catch (/** @type {any} */ error) {
-      console.error('Error handling subscription cancelled:', error);
+      logger.error('Error handling subscription cancelled:', error);
     }
   }
 
@@ -618,7 +619,7 @@ class PayPalService {
         }
       }
     } catch (/** @type {any} */ error) {
-      console.error('Error handling subscription suspended:', error);
+      logger.error('Error handling subscription suspended:', error);
     }
   }
 
@@ -648,7 +649,7 @@ class PayPalService {
         });
       }
     } catch (/** @type {any} */ error) {
-      console.error('Error handling payment failed:', error);
+      logger.error('Error handling payment failed:', error);
     }
   }
 
@@ -656,7 +657,7 @@ class PayPalService {
    * Handle payment completed
    */
   static async handlePaymentCompleted(resource, event) {
-    console.log('PayPal payment completed:', resource.id);
+    logger.info('PayPal payment completed:', resource.id);
   }
 
   /**

@@ -933,3 +933,5 @@ export class SafetyService {
     };
   }
 }
+
+export default SafetyService;

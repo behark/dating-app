@@ -2,13 +2,17 @@ const express = require('express');
 const request = require('supertest');
 
 const aiController = {
-  generateIcebreakers: jest.fn((req, res) => res.status(200).json({ success: true, data: { type: 'legacy' } })),
+  generateIcebreakers: jest.fn((req, res) =>
+    res.status(200).json({ success: true, data: { type: 'legacy' } })
+  ),
   generateMatchIcebreakers: jest.fn((req, res) =>
     res.status(200).json({ success: true, data: { type: 'match' } })
   ),
   getSmartPhotoSelection: jest.fn((req, res) => res.status(200).json({ success: true, data: {} })),
   generateBioSuggestions: jest.fn((req, res) => res.status(200).json({ success: true, data: {} })),
-  calculateCompatibilityScore: jest.fn((req, res) => res.status(200).json({ success: true, data: {} })),
+  calculateCompatibilityScore: jest.fn((req, res) =>
+    res.status(200).json({ success: true, data: {} })
+  ),
   getConversationStarters: jest.fn((req, res) => res.status(200).json({ success: true, data: {} })),
   analyzePhotoQuality: jest.fn((req, res) => res.status(200).json({ success: true, data: {} })),
   getPersonalizedMatches: jest.fn((req, res) => res.status(200).json({ success: true, data: {} })),
@@ -75,12 +79,18 @@ describe('ai routes', () => {
   });
 
   it('serves post-based AI endpoints', async () => {
-    const bio = await request(app).post('/api/ai/bio-suggestions').set(auth).send({ style: 'witty' });
+    const bio = await request(app)
+      .post('/api/ai/bio-suggestions')
+      .set(auth)
+      .send({ style: 'witty' });
     const starters = await request(app)
       .post('/api/ai/conversation-starters')
       .set(auth)
       .send({ targetUserId: 'u2' });
-    const analyze = await request(app).post('/api/ai/analyze-photo').set(auth).send({ photoUrl: 'x' });
+    const analyze = await request(app)
+      .post('/api/ai/analyze-photo')
+      .set(auth)
+      .send({ photoUrl: 'x' });
 
     expect(bio.status).toBe(200);
     expect(starters.status).toBe(200);

@@ -13,6 +13,7 @@ const axios = axiosModule.default || axiosModule;
 const jwt = require('jsonwebtoken');
 const paymentConfig = require('../../config/payment');
 const Subscription = require('../domain/Subscription');
+const { logger } = require('../../infrastructure/external/LoggingService');
 const PaymentTransaction = require('../domain/PaymentTransaction');
 
 class AppleIAPService {
@@ -37,7 +38,7 @@ class AppleIAPService {
 
       return this.parseReceiptResponse(response.data);
     } catch (/** @type {any} */ error) {
-      console.error('Error validating Apple receipt:', error);
+      logger.error('Error validating Apple receipt:', error);
       throw error;
     }
   }
@@ -219,7 +220,7 @@ class AppleIAPService {
         error: 'Product not found in receipt',
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error processing Apple purchase:', error);
+      logger.error('Error processing Apple purchase:', error);
       throw error;
     }
   }
@@ -324,7 +325,7 @@ class AppleIAPService {
         latestReceipt: validation.latestReceipt,
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error restoring Apple purchases:', error);
+      logger.error('Error restoring Apple purchases:', error);
       throw error;
     }
   }
@@ -385,7 +386,7 @@ class AppleIAPService {
     } catch (/** @type {any} */ error) {
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
-      console.error('Error getting subscription status:', errorData || error);
+      logger.error('Error getting subscription status:', errorData || error);
       throw error;
     }
   }
@@ -412,7 +413,7 @@ class AppleIAPService {
     } catch (/** @type {any} */ error) {
       const axiosError = /** @type {any} */ (error);
       const errorData = axiosError?.response?.data;
-      console.error('Error looking up order:', errorData || error);
+      logger.error('Error looking up order:', errorData || error);
       throw error;
     }
   }
@@ -463,7 +464,7 @@ class AppleIAPService {
 
       return { success: true, notificationType };
     } catch (/** @type {any} */ error) {
-      console.error('Error processing Apple notification:', error);
+      logger.error('Error processing Apple notification:', error);
       throw error;
     }
   }

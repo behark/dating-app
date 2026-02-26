@@ -162,8 +162,6 @@ test.describe('Screen Size Testing', () => {
       await page.goto('/');
 
       // Mobile layout should be active
-      const navigation = page.locator('[data-testid="mobile-navigation"]');
-      const hasMobileNav = await navigation.isVisible().catch(() => false);
       // Mobile nav may or may not be present, but layout should work
     });
 

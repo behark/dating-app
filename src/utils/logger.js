@@ -42,18 +42,21 @@ class Logger {
 
   debug(message, ...args) {
     if (this.shouldLog(LOG_LEVELS.DEBUG)) {
+      // eslint-disable-next-line no-console
       console.log(`[DEBUG] ${message}`, ...args);
     }
   }
 
   info(message, ...args) {
     if (this.shouldLog(LOG_LEVELS.INFO)) {
+      // eslint-disable-next-line no-console
       console.log(`[INFO] ${message}`, ...args);
     }
   }
 
   warn(message, ...args) {
     if (this.shouldLog(LOG_LEVELS.WARN)) {
+      // eslint-disable-next-line no-console
       console.warn(`[WARN] ${message}`, ...args);
       // Send warnings to Sentry in production for monitoring
       if (process.env.NODE_ENV === 'production') {
@@ -71,6 +74,7 @@ class Logger {
   error(message, error = null, ...args) {
     if (this.shouldLog(LOG_LEVELS.ERROR)) {
       if (error) {
+        // eslint-disable-next-line no-console
         console.error(`[ERROR] ${message}`, error, ...args);
         // CRITICAL FIX: Send errors to Sentry for monitoring
         try {
@@ -81,9 +85,11 @@ class Logger {
           });
         } catch (sentryError) {
           // Don't let Sentry errors break logging
+          // eslint-disable-next-line no-console
           console.warn('Failed to send error to Sentry:', sentryError);
         }
       } else {
+        // eslint-disable-next-line no-console
         console.error(`[ERROR] ${message}`, ...args);
         // Send error message to Sentry
         try {
@@ -91,6 +97,7 @@ class Logger {
             context: args.length > 0 ? args : undefined,
           });
         } catch (sentryError) {
+          // eslint-disable-next-line no-console
           console.warn('Failed to send error message to Sentry:', sentryError);
         }
       }

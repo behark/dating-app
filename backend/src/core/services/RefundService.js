@@ -63,7 +63,7 @@ class RefundService {
         };
       }
     } catch (/** @type {any} */ error) {
-      console.error('Error requesting refund:', error);
+      logger.error('Error requesting refund:', error);
       throw error;
     }
   }
@@ -178,7 +178,7 @@ class RefundService {
 
       return refundResult;
     } catch (/** @type {any} */ error) {
-      console.error('Error processing refund:', error);
+      logger.error('Error processing refund:', error);
       throw error;
     }
   }
@@ -201,7 +201,7 @@ class RefundService {
         status: refund.status,
       };
     } catch (/** @type {any} */ error) {
-      console.error('Stripe refund error:', error);
+      logger.error('Stripe refund error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
@@ -240,7 +240,7 @@ class RefundService {
         status: refund.status,
       };
     } catch (/** @type {any} */ error) {
-      console.error('PayPal refund error:', error);
+      logger.error('PayPal refund error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
@@ -277,7 +277,7 @@ class RefundService {
         status: 'refunded',
       };
     } catch (/** @type {any} */ error) {
-      console.error('Google refund error:', error);
+      logger.error('Google refund error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
@@ -552,7 +552,7 @@ class RefundService {
         endDate: subscription.endDate,
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error cancelling subscription:', error);
+      logger.error('Error cancelling subscription:', error);
       throw error;
     }
   }
@@ -607,7 +607,7 @@ class RefundService {
         message: 'Subscription resumed successfully',
       };
     } catch (/** @type {any} */ error) {
-      console.error('Error resuming subscription:', error);
+      logger.error('Error resuming subscription:', error);
       throw error;
     }
   }

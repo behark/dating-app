@@ -111,12 +111,17 @@ describe('safety routes', () => {
   });
 
   it('enforces admin-only endpoints', async () => {
-    const userRes = await request(app).get('/api/safety/reports').set('Authorization', 'Bearer token');
+    const userRes = await request(app)
+      .get('/api/safety/reports')
+      .set('Authorization', 'Bearer token');
     expect(userRes.status).toBe(403);
 
     const adminHeaders = { Authorization: 'Bearer token', 'x-role': 'admin' };
     const reports = await request(app).get('/api/safety/reports').set(adminHeaders);
-    const review = await request(app).put('/api/safety/reports/r1/review').set(adminHeaders).send({});
+    const review = await request(app)
+      .put('/api/safety/reports/r1/review')
+      .set(adminHeaders)
+      .send({});
     const score = await request(app).get('/api/safety/safety-score/u1').set(adminHeaders);
     const suspend = await request(app).put('/api/safety/suspend/u1').set(adminHeaders).send({});
     const unsuspend = await request(app).put('/api/safety/unsuspend/u1').set(adminHeaders).send({});

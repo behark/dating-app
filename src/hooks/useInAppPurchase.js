@@ -279,7 +279,7 @@ export const useInAppPurchase = () => {
       productId: p.productId,
     }));
 
-    const result = await PaymentService.restoreGooglePurchases(purchaseData, token);
+    const result = await PaymentService.restoreGooglePurchases(purchaseData);
 
     if (result.success) {
       Alert.alert('Success', 'Purchases restored successfully!');

@@ -569,3 +569,5 @@ export class ImageService {
     }
   }
 }
+
+export default ImageService;

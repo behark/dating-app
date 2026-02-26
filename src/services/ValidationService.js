@@ -127,3 +127,5 @@ export class ValidationService {
     return typeof distanceKm === 'number' && distanceKm >= 1 && distanceKm <= 500;
   }
 }
+
+export default ValidationService;

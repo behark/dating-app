@@ -61,6 +61,4 @@ export { default as PWAService } from './PWAService';
 
 // Utilities
 export { default as ValidationService } from './ValidationService';
-export { default as BaseService } from './BaseService';
 export { default as ActivityService } from './ActivityService';
-export { default as EnhancedProfileService } from './EnhancedProfileService';

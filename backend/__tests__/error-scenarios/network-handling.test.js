@@ -90,7 +90,9 @@ describe('Backend Network Handling', () => {
       // Some requests should be rate limited
       const rateLimited = responses.some((res) => res.status === 429);
       if (rateLimited) {
-        expect(responses.find((res) => res.status === 429).body.message).toMatch(/rate limit|too many/i);
+        expect(responses.find((res) => res.status === 429).body.message).toMatch(
+          /rate limit|too many/i
+        );
       }
     });
   });
@@ -194,13 +196,10 @@ describe('Backend Network Handling', () => {
       const token = user1.generateAuthToken();
 
       const swipeRequests = Array.from({ length: 5 }, () =>
-        request(app)
-          .post('/api/swipes')
-          .set('Authorization', `Bearer ${token}`)
-          .send({
-            targetId: user2._id.toString(),
-            type: 'like',
-          })
+        request(app).post('/api/swipes').set('Authorization', `Bearer ${token}`).send({
+          targetId: user2._id.toString(),
+          type: 'like',
+        })
       );
 
       const responses = await Promise.all(swipeRequests);

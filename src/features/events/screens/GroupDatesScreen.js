@@ -96,14 +96,18 @@ const GroupDatesScreen = ({ navigation }) => {
   }, [userLocation, currentUser?.location?.coordinates, initializeLocation]);
 
   useEffect(() => {
-    initializeLocation().then((hasLocation) => {
-      if (hasLocation) {
-        fetchGroupDates();
-      } else {
+    initializeLocation()
+      .then((hasLocation) => {
+        if (hasLocation) {
+          fetchGroupDates();
+        } else {
+          setLoading(false);
+        }
+        return null;
+      })
+      .catch(() => {
         setLoading(false);
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      }); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount - initializeLocation and fetchGroupDates are stable
 
   // Re-fetch when userLocation changes
@@ -220,13 +224,18 @@ const GroupDatesScreen = ({ navigation }) => {
             onPress={() => {
               setError(null);
               setLoading(true);
-              initializeLocation().then((hasLocation) => {
-                if (hasLocation) {
-                  fetchGroupDates();
-                } else {
+              initializeLocation()
+                .then((hasLocation) => {
+                  if (hasLocation) {
+                    fetchGroupDates();
+                  } else {
+                    setLoading(false);
+                  }
+                  return null;
+                })
+                .catch(() => {
                   setLoading(false);
-                }
-              });
+                });
             }}
           >
             <Text style={styles.retryButtonText}>Try Again</Text>

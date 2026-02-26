@@ -372,8 +372,7 @@ const HomeScreen = ({ navigation }) => {
       if (isGuestMode) {
         // For guest users, use DiscoveryService to get demo profiles
         const DiscoveryService = (await import('../../../services/DiscoveryService')).default;
-        const discoveryService = new DiscoveryService();
-        const result = await discoveryService.exploreUsers(
+        const result = await DiscoveryService.exploreUsers(
           loc?.latitude ?? userLocation?.latitude ?? 40.7128,
           loc?.longitude ?? userLocation?.longitude ?? -74.006,
           {
