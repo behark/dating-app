@@ -117,6 +117,29 @@ export default function App() {
     // Setup console warning suppression
     AppInitializationService.setupConsoleWarnings();
 
+    // Fix collapsing empty div (caused by Sentry or other libraries on web)
+    if (Platform.OS === 'web') {
+      try {
+        // Find and remove empty divs directly under body that have height: 0
+        const emptyDivs = Array.from(document.querySelectorAll('body > div')).filter((el) => {
+          const rect = el.getBoundingClientRect();
+          // If div has no content and height is 0, hide it
+          return rect.height === 0 && el.textContent.trim() === '';
+        });
+
+        emptyDivs.forEach((el) => {
+          el.style.display = 'none';
+        });
+
+        if (emptyDivs.length > 0) {
+          // eslint-disable-next-line no-console
+          console.info(`🧹 Fixed ${emptyDivs.length} collapsing empty div(s) on body`);
+        }
+      } catch (e) {
+        // Silently ignore if we can't access DOM
+      }
+    }
+
     // Cleanup on unmount
     return () => {
       UpdateService.cleanup();
