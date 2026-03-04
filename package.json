@@ -13,7 +13,7 @@
     "start:backend": "node backend/server.js",
     "seed": "node backend/scripts/seedLocal.js",
     "test": "jest",
-    "test:backend": "jest -c backend/jest.config.js",
+    "test:backend": "jest -c backend/jest.config.js --runInBand",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:property": "jest --testPathPattern=property",

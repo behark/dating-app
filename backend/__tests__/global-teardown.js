@@ -5,6 +5,7 @@
  */
 
 let closeRedis = async () => {};
+let mongoose;
 
 try {
   ({ closeRedis } = require('../src/config/redis'));
@@ -16,7 +17,22 @@ try {
   }
 }
 
+try {
+  mongoose = require('mongoose');
+} catch (/** @type {any} */ _error) {
+  mongoose = null;
+}
+
 module.exports = async () => {
   // Close any remaining Redis connections
   await closeRedis();
+
+  // Close any lingering mongoose connections
+  if (mongoose && mongoose.connection && mongoose.connection.readyState !== 0) {
+    try {
+      await mongoose.disconnect();
+    } catch (/** @type {any} */ _e) {
+      // ignore
+    }
+  }
 };

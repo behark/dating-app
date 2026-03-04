@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Dating App Redesign</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .icon-btn.notification::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: #ec4899;
+            border-radius: 50%;
+            border: 2px solid #667eea;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .welcome-banner h2 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .welcome-banner p {
+            font-size: 13px;
+            opacity: 0.95;
+            margin-bottom: 12px;
+        }
+
+        .upgrade-btn {
+            background: white;
+            color: #f97316;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            padding: 0 5px;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .action-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .action-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .activity-item {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .activity-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 2px;
+        }
+
+        .activity-action {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: 0 auto;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            color: #9ca3af;
+            transition: all 0.3s ease;
+            border-top: 2px solid transparent;
+        }
+
+        .nav-item:hover {
+            color: #667eea;
+        }
+
+        .nav-item.active {
+            color: #667eea;
+            border-top-color: #667eea;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Home</h1>
+        <div class="header-icons">
+            <button class="icon-btn notification">🔔</button>
+            <button class="icon-btn">⚙️</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="welcome-banner">
+            <h2>Become Premium ✨</h2>
+            <p>Get unlimited likes, see who liked you, and much more</p>
+            <button class="upgrade-btn">Upgrade Now</button>
+        </div>
+
+        <div class="stats-card">
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="stat-number">28</div>
+                    <div class="stat-label">Likes</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">New Matches</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Quick Actions</div>
+            <div class="action-grid">
+                <div class="action-card">
+                    <div class="action-icon">❤️</div>
+                    <div class="action-title">Discover</div>
+                </div>
+                <div class="action-card">
+                    <div class="action-icon">💬</div>
+                    <div class="action-title">Messages</div>
+                </div>
+                <div class="action-card">
+                    <div class="action-icon">⭐</div>
+                    <div class="action-title">See Who Likes</div>
+                </div>
+                <div class="action-card">
+                    <div class="action-icon">👤</div>
+                    <div class="action-title">Profile</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Recent Activity</div>
+            
+            <div class="activity-item">
+                <div class="activity-avatar">👩</div>
+                <div class="activity-content">
+                    <div class="activity-name">Sarah Johnson</div>
+                    <div class="activity-action">Liked your profile</div>
+                </div>
+                <div class="activity-time">2h ago</div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-avatar">👩</div>
+                <div class="activity-content">
+                    <div class="activity-name">Jessica Chen</div>
+                    <div class="activity-action">Sent you a message</div>
+                </div>
+                <div class="activity-time">1h ago</div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-avatar">👩</div>
+                <div class="activity-content">
+                    <div class="activity-name">Emma Wilson</div>
+                    <div class="activity-action">Super liked your profile</div>
+                </div>
+                <div class="activity-time">30m ago</div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-avatar">👩</div>
+                <div class="activity-content">
+                    <div class="activity-name">Rachel Davis</div>
+                    <div class="activity-action">You matched!</div>
+                </div>
+                <div class="activity-time">10m ago</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">Home</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">❤️</div>
+            <div class="nav-label">Discover</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">💬</div>
+            <div class="nav-label">Messages</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">👤</div>
+            <div class="nav-label">Profile</div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.action-card').forEach(card => {
+            card.addEventListener('click', function() {
+                alert('Opening: ' + this.querySelector('.action-title').textContent);
+            });
+        });
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

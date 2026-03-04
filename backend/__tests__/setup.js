@@ -20,6 +20,7 @@ jest.mock('ioredis', () => {
 });
 
 // Ensure MongoMemoryServer binds to localhost in restricted environments.
+const mongoServers = [];
 try {
   const { MongoMemoryServer } = require('mongodb-memory-server');
   const originalCreate = MongoMemoryServer.create.bind(MongoMemoryServer);
@@ -30,6 +31,9 @@ try {
         ip: '127.0.0.1',
         ...(options.instance || {}),
       },
+    }).then((server) => {
+      mongoServers.push(server);
+      return server;
     });
 } catch (/** @type {any} */ _error) {
   // Some suites do not use mongodb-memory-server.
@@ -63,9 +67,24 @@ beforeAll(() => {
   infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
 });
 
-afterAll(() => {
+afterAll(async () => {
   logSpy?.mockRestore();
   warnSpy?.mockRestore();
   errorSpy?.mockRestore();
   infoSpy?.mockRestore();
+
+  // Ensure no stray timers keep the Jest workers alive
+  jest.useRealTimers();
+  jest.clearAllTimers();
+
+  // Stop any MongoMemoryServer instances that may still be running
+  for (const server of mongoServers) {
+    try {
+      if (server.stop) {
+        await server.stop();
+      }
+    } catch (/** @type {any} */ _e) {
+      // ignore
+    }
+  }
 });

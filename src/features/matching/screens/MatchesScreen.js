@@ -21,6 +21,7 @@ import { PremiumService } from '../../../services/PremiumService';
 import { SwipeController } from '../../../services/SwipeController';
 import { getUserFriendlyMessage } from '../../../utils/errorMessages';
 import logger from '../../../utils/logger';
+import { DEMO_MATCHES, DEMO_LIKES_RECEIVED } from '../data/demoMatches';
 
 const MatchesScreen = () => {
   const navigation = useNavigation();
@@ -327,16 +328,59 @@ const MatchesScreen = () => {
       </View>
       {showLikes ? (
         receivedLikes.length === 0 ? (
-          <EmptyState
-            icon="heart-outline"
-            title="No Likes Yet"
-            description="Start swiping to like people! When you like someone, they'll appear here."
-            buttonText="Start Swiping 🔥"
-            onButtonPress={() => navigation.navigate('Discover')}
-            secondaryButtonText="Back to Matches"
-            onSecondaryButtonPress={() => setShowLikes(false)}
-            variant="gradient"
-            iconSize={80}
+          <FlatList
+            data={DEMO_LIKES_RECEIVED}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.matchCard}
+                onPress={() => navigation.navigate('ViewProfile', { userId: item.user.id })}
+                activeOpacity={0.8}
+              >
+                <TouchableOpacity
+                  style={styles.profileButton}
+                  onPress={() => navigation.navigate('ViewProfile', { userId: item.user.id })}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.imageContainer}>
+                    <Image
+                      source={{
+                        uri:
+                          item.user.photoURL ||
+                          process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
+                          'https://via.placeholder.com/100',
+                      }}
+                      style={styles.matchImage}
+                    />
+                    <View
+                      style={[styles.onlineIndicator, { backgroundColor: Colors.accent.gold }]}
+                    />
+                  </View>
+                </TouchableOpacity>
+                <View style={styles.matchInfo}>
+                  <View style={styles.nameRow}>
+                    <Text style={styles.matchName}>{item.user?.name || 'Unknown'}</Text>
+                    {item.user?.age && <Text style={styles.matchAge}>, {item.user.age}</Text>}
+                    <View style={[styles.superLikeBadge]}>
+                      <Ionicons name="star" size={12} color={Colors.accent.gold} />
+                    </View>
+                  </View>
+                  <View style={styles.matchDetails}>
+                    <Text style={styles.likeTime}>
+                      {item.type === 'superlike' ? 'Super liked' : 'Liked'} on{' '}
+                      {new Date(item.timestamp).toLocaleDateString()}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            )}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={
+              <Text style={[styles.demoLabel, { marginBottom: 10 }]}>
+                📌 Demo Likes - Premium users can see who liked them
+              </Text>
+            }
           />
         ) : (
           <FlatList
@@ -414,18 +458,22 @@ const MatchesScreen = () => {
           />
         )
       ) : conversations.length === 0 ? (
-        <EmptyState
-          icon="heart-dislike-outline"
-          title="No Matches Yet"
-          description="Don't worry, your perfect match is out there! Start swiping to find them and make meaningful connections."
-          buttonText="Start Swiping 🔥"
-          onButtonPress={() => navigation.navigate('Discover')}
-          secondaryButtonText={isPremium ? 'View Likes' : 'Get Premium'}
-          onSecondaryButtonPress={() =>
-            isPremium ? setShowLikes(true) : navigation.navigate('Premium')
+        <FlatList
+          data={DEMO_MATCHES}
+          renderItem={renderConversation}
+          keyExtractor={(item) => item.matchId}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          initialNumToRender={10}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <Text style={[styles.demoLabel, { marginBottom: 15 }]}>
+              📌 Demo Matches - Start swiping to see your real matches here!
+            </Text>
           }
-          variant="gradient"
-          iconSize={80}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         />
       ) : (
         <FlatList
@@ -587,6 +635,16 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accent.teal,
     borderWidth: 2,
     borderColor: Colors.background.white,
+  },
+  demoLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.accent.gold,
+    backgroundColor: Colors.background.lightest,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 10,
   },
   matchInfo: {
     flex: 1,

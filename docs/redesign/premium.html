@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium - Dating App Redesign</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+            padding: 40px 20px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .features {
+            padding: 30px 20px;
+        }
+
+        .feature {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            animation: slideIn 0.5s ease forwards;
+            opacity: 0;
+        }
+
+        .feature:nth-child(1) { animation-delay: 0.1s; }
+        .feature:nth-child(2) { animation-delay: 0.2s; }
+        .feature:nth-child(3) { animation-delay: 0.3s; }
+        .feature:nth-child(4) { animation-delay: 0.4s; }
+        .feature:nth-child(5) { animation-delay: 0.5s; }
+        .feature:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .feature-content {
+            flex: 1;
+        }
+
+        .feature-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .feature-description {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+
+        .pricing-section {
+            background: #f9fafb;
+            padding: 30px 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .pricing-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .price-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .price-card {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .price-card:hover {
+            border-color: #fbbf24;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.2);
+        }
+
+        .price-card.highlighted {
+            border-color: #fbbf24;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.05), rgba(249, 115, 22, 0.05));
+        }
+
+        .price-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .price-duration {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+
+        .price-amount {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 4px;
+        }
+
+        .price-total {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .billing-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .toggle-option {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #9ca3af;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-option.active {
+            color: #fbbf24;
+            border-bottom-color: #fbbf24;
+        }
+
+        .action-buttons {
+            padding: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #f97316;
+            border: 2px solid #fbbf24;
+        }
+
+        .btn-secondary:hover {
+            background: #fffbeb;
+        }
+
+        .footer-text {
+            text-align: center;
+            font-size: 12px;
+            color: #9ca3af;
+            padding: 0 20px 15px;
+        }
+
+        .footer-text a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .footer-text a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-icon">👑</div>
+            <h1>Premium Features</h1>
+            <div class="header-subtitle">Unlock unlimited possibilities</div>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">❤️</div>
+                <div class="feature-content">
+                    <div class="feature-title">Unlimited Likes</div>
+                    <div class="feature-description">Like as many profiles as you want, anytime</div>
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">🔄</div>
+                <div class="feature-content">
+                    <div class="feature-title">Rewind</div>
+                    <div class="feature-description">Undo your last action and give someone a second look</div>
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">🔎</div>
+                <div class="feature-content">
+                    <div class="feature-title">Advanced Filters</div>
+                    <div class="feature-description">Filter by education, income, and lifestyle choices</div>
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">💬</div>
+                <div class="feature-content">
+                    <div class="feature-title">Message First</div>
+                    <div class="feature-description">Start conversations before matching with anyone</div>
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">⭐</div>
+                <div class="feature-content">
+                    <div class="feature-title">See Who Likes You</div>
+                    <div class="feature-description">Know exactly who's interested in you before matching</div>
+                </div>
+            </div>
+
+            <div class="feature">
+                <div class="feature-icon">🌍</div>
+                <div class="feature-content">
+                    <div class="feature-title">Passport</div>
+                    <div class="feature-description">Connect with people anywhere in the world</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pricing-section">
+            <div class="pricing-title">Choose Your Plan</div>
+
+            <div class="billing-toggle">
+                <button class="toggle-option active">Monthly</button>
+                <button class="toggle-option">Yearly</button>
+                <span style="color: #10b981; font-weight: 600; font-size: 12px; margin-left: auto;">Save 50%</span>
+            </div>
+
+            <div class="price-cards">
+                <div class="price-card">
+                    <div class="price-duration">One Month</div>
+                    <div class="price-amount">$9.99</div>
+                    <div class="price-total">per month</div>
+                </div>
+
+                <div class="price-card highlighted">
+                    <div class="price-badge">Popular</div>
+                    <div class="price-duration">Three Months</div>
+                    <div class="price-amount">$19.99</div>
+                    <div class="price-total">$6.67/month</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-secondary">Continue as Free</button>
+            <button class="btn btn-primary">Upgrade to Premium</button>
+        </div>
+
+        <div class="footer-text">
+            By upgrading, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.price-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.price-card').forEach(c => c.classList.remove('highlighted'));
+                this.classList.add('highlighted');
+            });
+        });
+
+        document.querySelectorAll('.toggle-option').forEach(opt => {
+            opt.addEventListener('click', function() {
+                document.querySelectorAll('.toggle-option').forEach(o => o.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        document.querySelector('.btn-primary').addEventListener('click', function() {
+            alert('Proceeding to payment...');
+        });
+    </script>
+</body>
+</html>

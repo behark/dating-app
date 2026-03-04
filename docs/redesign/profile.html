@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Dating App Redesign</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 0 0 24px 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 16px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .profile-header {
+            position: relative;
+            height: 300px;
+            background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 20px;
+        }
+
+        .profile-image {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            border: 4px solid white;
+            position: relative;
+        }
+
+        .profile-badge {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #4ade80;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+
+        .profile-info {
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .profile-name {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .profile-location {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 20px;
+        }
+
+        .profile-bio {
+            font-size: 14px;
+            color: #4b5563;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+
+        .profile-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .tag {
+            background: #f3f4f6;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #4b5563;
+            font-weight: 500;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 20px 0;
+        }
+
+        .section {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+        }
+
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .photo {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .photo:hover {
+            transform: scale(1.05);
+        }
+
+        .photo.add {
+            background: #f3f4f6;
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .info-icon {
+            font-size: 18px;
+            opacity: 0.6;
+        }
+
+        .action-buttons {
+            padding: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #1f2937;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .premium-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Profile</h1>
+            <div class="header-actions">
+                <button class="icon-btn" title="Edit">✏️</button>
+                <button class="icon-btn" title="Settings">⚙️</button>
+            </div>
+        </div>
+
+        <div class="profile-header">
+            <div class="profile-image">
+                👩
+                <div class="profile-badge"></div>
+            </div>
+        </div>
+
+        <div class="profile-info">
+            <div class="profile-name">
+                Sarah Johnson
+                <span class="premium-badge">PREMIUM</span>
+            </div>
+            <div class="profile-location">📍 San Francisco, CA • 26 years old</div>
+            <div class="profile-bio">
+                Adventure seeker, coffee lover, and bookworm. Looking for genuine connections and meaningful conversations. 🌟
+            </div>
+            <div class="profile-tags">
+                <span class="tag">Travel</span>
+                <span class="tag">Photography</span>
+                <span class="tag">Hiking</span>
+                <span class="tag">Art</span>
+                <span class="tag">Coffee</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Photos</div>
+            <div class="photos-grid">
+                <div class="photo">📸</div>
+                <div class="photo">🏞️</div>
+                <div class="photo">🎨</div>
+                <div class="photo">📷</div>
+                <div class="photo">🌅</div>
+                <div class="photo add">+</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">About</div>
+            <div class="info-item">
+                <span class="info-icon">💼</span>
+                <span>Product Designer</span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon">🎓</span>
+                <span>UC Berkeley</span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon">🏋️</span>
+                <span>Fitness Enthusiast</span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon">🍷</span>
+                <span>Wine Tasting</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Looking For</div>
+            <div class="info-item">
+                <span class="info-icon">📅</span>
+                <span>Serious Relationship</span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon">👥</span>
+                <span>Men, 25-32</span>
+            </div>
+            <div class="info-item">
+                <span class="info-icon">📍</span>
+                <span>Within 5 miles</span>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-secondary">View As Others</button>
+            <button class="btn btn-primary">Edit Profile</button>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.icon-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.title;
+                alert(`Opening ${action}`);
+            });
+        });
+
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                alert('Action: ' + this.textContent.trim());
+            });
+        });
+
+        document.querySelector('.photo.add').addEventListener('click', function() {
+            alert('Add photo - would open file picker');
+        });
+    </script>
+</body>
+</html>
