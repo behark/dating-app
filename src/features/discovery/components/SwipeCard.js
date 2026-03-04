@@ -36,14 +36,14 @@ const {
   Platform.OS !== 'web'
     ? require('react-native-reanimated')
     : {
-        useAnimatedGestureHandler: () => ({}),
-        useAnimatedStyle: () => ({}),
-        useSharedValue: (val) => ({ value: val }),
-        withSpring: (val) => val,
-        withTiming: (val) => val,
-        runOnJS: (fn) => fn,
-        Easing: { inOut: () => ({}) },
-      };
+      useAnimatedGestureHandler: () => ({}),
+      useAnimatedStyle: () => ({}),
+      useSharedValue: (val) => ({ value: val }),
+      withSpring: (val) => val,
+      withTiming: (val) => val,
+      runOnJS: (fn) => fn,
+      Easing: { inOut: () => ({}) },
+    };
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
@@ -189,7 +189,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
             uri:
               card.photoURL ||
               process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
-              'https://via.placeholder.com/400',
+              'https://placehold.co/400x600/E5E7EB/9CA3AF?text=No+Photo',
           }}
           style={styles.image}
           enableLazy={false} // Disable lazy loading for swipe cards

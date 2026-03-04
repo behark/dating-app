@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import ConsentBanner from '../../components/ConsentBanner';
 import { useAuth } from '../providers/AuthProvider';
 import PrivacyService from '../../services/PrivacyService';
@@ -135,14 +135,7 @@ const AppNavigator = () => {
 
   if (loading) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: '#1a1a2e',
-        }}
-      >
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#e94057" />
       </View>
     );
@@ -164,5 +157,14 @@ const AppNavigator = () => {
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1a1a2e',
+  },
+});
 
 export default AppNavigator;

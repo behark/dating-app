@@ -170,7 +170,7 @@ const MatchesScreen = () => {
                 item.otherUser.photos?.[0]?.url ||
                 item.otherUser.photos?.[0] ||
                 process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
-                'https://via.placeholder.com/100',
+                'https://placehold.co/100x100/E5E7EB/9CA3AF?text=No+Photo',
             }}
             style={styles.matchImage}
           />
@@ -347,7 +347,7 @@ const MatchesScreen = () => {
                         uri:
                           item.user.photoURL ||
                           process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
-                          'https://via.placeholder.com/100',
+                          'https://placehold.co/100x100/E5E7EB/9CA3AF?text=No+Photo',
                       }}
                       style={styles.matchImage}
                     />
@@ -402,7 +402,7 @@ const MatchesScreen = () => {
                         uri:
                           item.user.photoURL ||
                           process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
-                          'https://via.placeholder.com/100',
+                          'https://placehold.co/100x100/E5E7EB/9CA3AF?text=No+Photo',
                       }}
                       style={styles.matchImage}
                     />

@@ -32,7 +32,6 @@ export const ChatProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
-  const [isReconnecting, setIsReconnecting] = useState(false); // UI state, logic handled by SocketContext
 
   // Refs to store latest values for use in event handlers
   const conversationsRef = useRef(conversations);
@@ -537,7 +536,6 @@ export const ChatProvider = ({ children }) => {
   const value = {
     // State
     isConnected,
-    isReconnecting,
     connectionError,
     conversations,
     currentMatchId,

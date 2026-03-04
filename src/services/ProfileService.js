@@ -79,6 +79,11 @@ export class ProfileService {
       const data = await api.get('/profile/me');
 
       if (!data.success) {
+        // Handle 401 Unauthorized gracefully for guest users
+        if (data.statusCode === 401) {
+          logger.info('User not authenticated (guest mode) - returning null profile');
+          return null;
+        }
         throw new Error(getUserFriendlyMessage(data.message || 'Failed to fetch profile'));
       }
 
@@ -91,6 +96,11 @@ export class ProfileService {
 
       return profile;
     } catch (error) {
+      // Handle 401 Unauthorized gracefully for guest users
+      if (error.response?.status === 401 || error.status === 401) {
+        logger.info('User not authenticated (guest mode) - continuing without profile');
+        return null;
+      }
       logger.error('Error fetching my profile:', error);
 
       // Try cache on error

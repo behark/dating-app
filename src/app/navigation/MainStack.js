@@ -13,7 +13,6 @@ import {
   // ChatScreen, // Replaced by EnhancedChatScreen (superset of ChatScreen functionality)
   EnhancedChatScreen,
   EventsScreen,
-  GroupDatesScreen,
   NotificationPreferencesScreen,
   PhotoGalleryScreen,
   PreferencesScreen,

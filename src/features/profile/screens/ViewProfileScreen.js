@@ -127,7 +127,7 @@ const ViewProfileScreen = ({ route, navigation }) => {
                 profile.photos?.[0]?.url ||
                 profile.photos?.[0] ||
                 process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
-                'https://via.placeholder.com/400',
+                'https://placehold.co/400x600/E5E7EB/9CA3AF?text=No+Photo',
             }}
             style={styles.profileImage}
           />

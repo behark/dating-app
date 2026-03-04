@@ -54,7 +54,6 @@ export { default as SocialMediaConnectionScreen } from '../../features/settings/
 export { default as EventsScreen } from '../../features/events/screens/EventsScreen';
 export { default as CreateEventScreen } from '../../features/events/screens/CreateEventScreen';
 export { default as EventDetailScreen } from '../../features/events/screens/EventDetailScreen';
-export { default as GroupDatesScreen } from '../../features/events/screens/GroupDatesScreen';
 export { default as CreateGroupDateScreen } from '../../features/events/screens/CreateGroupDateScreen';
 export { default as GroupDateDetailScreen } from '../../features/events/screens/GroupDateDetailScreen';
 

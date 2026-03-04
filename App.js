@@ -86,7 +86,7 @@ function AppWithErrorHandling() {
     }
   }, []);
 
-  const handleNavigate = useCallback((screen) => {
+  const handleNavigate = useCallback(() => {
     // Navigation will be handled by retry resetting state
   }, []);
 
