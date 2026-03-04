@@ -271,7 +271,7 @@ const ChatScreen = ({ route, navigation }) => {
         },
         {
           text: 'Cancel',
-          onPress: () => { },
+          onPress: () => {},
           style: 'cancel',
         },
       ],

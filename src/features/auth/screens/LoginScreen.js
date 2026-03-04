@@ -390,21 +390,25 @@ const LoginScreen = ({ navigation, onAuthSuccess, isModal }) => {
             </TouchableOpacity>
 
             <View style={styles.legalLinks}>
-              <TouchableOpacity onPress={() => {
-                if (isModal && onAuthSuccess) {
-                  onAuthSuccess(); // close modal first
-                }
-                navigation.navigate('TermsOfService');
-              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (isModal && onAuthSuccess) {
+                    onAuthSuccess(); // close modal first
+                  }
+                  navigation.navigate('TermsOfService');
+                }}
+              >
                 <Text style={styles.legalLinkText}>Terms of Service</Text>
               </TouchableOpacity>
               <Text style={styles.legalLinkSeparator}> • </Text>
-              <TouchableOpacity onPress={() => {
-                if (isModal && onAuthSuccess) {
-                  onAuthSuccess(); // close modal first
-                }
-                navigation.navigate('PrivacyPolicy');
-              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (isModal && onAuthSuccess) {
+                    onAuthSuccess(); // close modal first
+                  }
+                  navigation.navigate('PrivacyPolicy');
+                }}
+              >
                 <Text style={styles.legalLinkText}>Privacy Policy</Text>
               </TouchableOpacity>
             </View>

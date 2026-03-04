@@ -1032,7 +1032,11 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.loginModalSubtitle}>{loginPrompt.subtitle}</Text>
           </View>
           <View style={styles.loginModalContent}>
-            <LoginScreen navigation={navigation} onAuthSuccess={() => setShowLoginModal(false)} isModal={true} />
+            <LoginScreen
+              navigation={navigation}
+              onAuthSuccess={() => setShowLoginModal(false)}
+              isModal={true}
+            />
           </View>
         </View>
       </Modal>
