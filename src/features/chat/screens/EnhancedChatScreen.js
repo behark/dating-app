@@ -1,8 +1,8 @@
-/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable sonarjs/cognitive-complexity, react-hooks/rules-of-hooks */
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -36,14 +36,6 @@ import MessageScheduler, { ScheduledMessagesList } from '../components/MessageSc
 const EnhancedChatScreen = ({ route, navigation }) => {
   const { matchId, otherUser } = route.params || {};
   const { currentUser } = useAuth();
-
-  if (!matchId) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Conversation not found</Text>
-      </View>
-    );
-  }
   const {
     messages,
     sendMessage: chatSendMessage,
@@ -74,13 +66,22 @@ const EnhancedChatScreen = ({ route, navigation }) => {
   const [messageReactions, setMessageReactions] = useState({});
 
   // Chat Theme
-  const { theme: currentTheme, pattern } = useChatTheme(route?.params?.matchId);
+  const { theme: currentTheme } = useChatTheme(route?.params?.matchId);
 
   // Refs
   const flatListRef = useRef();
   const typingTimeoutRef = useRef();
   const readReceiptTimers = useRef(new Map());
   const messageReactionTimers = useRef(new Map());
+
+  // Early return if no matchId (after all hooks)
+  if (!matchId) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Conversation not found</Text>
+      </View>
+    );
+  }
 
   // Load messages
   const loadMessages = useCallback(

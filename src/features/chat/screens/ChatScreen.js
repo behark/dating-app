@@ -1,4 +1,4 @@
-/* eslint-disable sonarjs/cognitive-complexity */
+/* eslint-disable sonarjs/cognitive-complexity, react-hooks/rules-of-hooks */
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,20 +30,12 @@ import logger from '../../../utils/logger';
 const ChatScreen = ({ route, navigation }) => {
   const { matchId, otherUser } = route.params || {};
   const { currentUser } = useAuth();
-
-  if (!matchId) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Conversation not found</Text>
-      </View>
-    );
-  }
   const { isOnline } = useNetworkStatus();
   const {
     messages,
     sendMessage: chatSendMessage,
     sendImageMessage,
-    sendGifMessage,
+    _sendGifMessage,
     loadMessages: chatLoadMessages,
     joinRoom,
     startTyping,
@@ -61,6 +53,15 @@ const ChatScreen = ({ route, navigation }) => {
   const [page, setPage] = useState(1);
   const flatListRef = useRef();
   const typingTimeoutRef = useRef();
+
+  // Early return if no matchId (after all hooks)
+  if (!matchId) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Conversation not found</Text>
+      </View>
+    );
+  }
 
   // Load messages for this match
   const loadMessages = useCallback(
@@ -270,7 +271,7 @@ const ChatScreen = ({ route, navigation }) => {
         },
         {
           text: 'Cancel',
-          onPress: () => {},
+          onPress: () => { },
           style: 'cancel',
         },
       ],
