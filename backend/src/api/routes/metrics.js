@@ -339,19 +339,29 @@ router.get('/export', isAdmin, async (req, res) => {
       end
     );
 
+    // Guard against missing/partial data to avoid 500s
+    const safeDashboard = dashboard || {};
+    const engagement = safeDashboard.engagement || {};
+    const matching = safeDashboard.matching || {};
+    const messaging = safeDashboard.messaging || {};
+    const monetization = safeDashboard.monetization || {};
+    const retention = safeDashboard.retention || {};
+    const generatedAt =
+      safeDashboard.generatedAt || new Date().toISOString();
+
     // Convert to CSV format
     const csvRows = [
       'Metric,Value,Date',
-      `DAU,${dashboard.engagement.dau},${dashboard.generatedAt}`,
-      `WAU,${dashboard.engagement.wau},${dashboard.generatedAt}`,
-      `MAU,${dashboard.engagement.mau},${dashboard.generatedAt}`,
-      `Match Rate,${dashboard.matching.matchRate}%,${dashboard.generatedAt}`,
-      `Swipe-to-Match,${dashboard.matching.swipeToMatchConversion}%,${dashboard.generatedAt}`,
-      `Message Response Rate,${dashboard.messaging.responseRate}%,${dashboard.generatedAt}`,
-      `Premium Conversion,${dashboard.monetization.premiumConversionRate}%,${dashboard.generatedAt}`,
-      `D1 Retention,${dashboard.retention.D1}%,${dashboard.generatedAt}`,
-      `D7 Retention,${dashboard.retention.D7}%,${dashboard.generatedAt}`,
-      `D30 Retention,${dashboard.retention.D30}%,${dashboard.generatedAt}`,
+      `DAU,${engagement.dau ?? 0},${generatedAt}`,
+      `WAU,${engagement.wau ?? 0},${generatedAt}`,
+      `MAU,${engagement.mau ?? 0},${generatedAt}`,
+      `Match Rate,${matching.matchRate ?? 0}%,${generatedAt}`,
+      `Swipe-to-Match,${matching.swipeToMatchConversion ?? 0}%,${generatedAt}`,
+      `Message Response Rate,${messaging.responseRate ?? 0}%,${generatedAt}`,
+      `Premium Conversion,${monetization.premiumConversionRate ?? 0}%,${generatedAt}`,
+      `D1 Retention,${retention.D1 ?? 0}%,${generatedAt}`,
+      `D7 Retention,${retention.D7 ?? 0}%,${generatedAt}`,
+      `D30 Retention,${retention.D30 ?? 0}%,${generatedAt}`,
     ];
 
     res.setHeader('Content-Type', 'text/csv');

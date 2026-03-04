@@ -140,11 +140,11 @@ describe('safety routes', () => {
 
     const datePlan = await agent.post('/api/safety/date-plan').set(auth).send({});
     const datePlanActive = await agent.get('/api/safety/date-plans/active').set(auth);
-    const checkin = await request(app).post('/api/safety/checkin/start').set(auth).send({});
-    const sos = await request(app).post('/api/safety/sos').set(auth).send({});
-    const bg = await request(app).post('/api/safety/background-check').set(auth).send({});
-    const contact = await request(app).post('/api/safety/emergency-contact').set(auth).send({});
-    const verification = await request(app)
+    const checkin = await agent.post('/api/safety/checkin/start').set(auth).send({});
+    const sos = await agent.post('/api/safety/sos').set(auth).send({});
+    const bg = await agent.post('/api/safety/background-check').set(auth).send({});
+    const contact = await agent.post('/api/safety/emergency-contact').set(auth).send({});
+    const verification = await agent
       .post('/api/safety/photo-verification/advanced')
       .set(auth)
       .send({});

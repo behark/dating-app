@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import Constants from 'expo-constants';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect } from 'react';
@@ -12,6 +13,7 @@ import { SocketProvider } from './src/context/SocketContext';
 import AppNavigator from './src/app/navigation/AppNavigator';
 import AppInitializationService from './src/services/AppInitializationService';
 import { UpdateService } from './src/services/UpdateService';
+/* eslint-enable no-unused-vars */
 
 // Vercel Analytics and Speed Insights (web only)
 // Using dynamic imports for web platform to avoid breaking native builds

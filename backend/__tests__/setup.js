@@ -8,6 +8,7 @@ process.env.JWT_SECRET ||= 'test-jwt-secret-that-is-long-enough-for-validation';
 process.env.JWT_REFRESH_SECRET ||= 'test-refresh-secret-that-is-long-enough-for-validation';
 process.env.HASH_SALT ||= 'test-hash-salt';
 process.env.PORT ||= '0';
+process.env.LOG_LEVEL = 'error'; // reduce noise in tests
 
 // Mock ioredis to use ioredis-mock instead of trying to connect to a real Redis server
 // This prevents ECONNREFUSED errors and hanging connections during tests
@@ -34,17 +35,39 @@ try {
   // Some suites do not use mongodb-memory-server.
 }
 
-// Suppress console logs during tests to reduce noise
-// Uncomment if you want to silence Redis connection logs during tests
-// const originalConsoleLog = console.log;
-// const originalConsoleError = console.error;
-//
-// beforeAll(() => {
-//   console.log = jest.fn();
-//   console.error = jest.fn();
-// });
-//
-// afterAll(() => {
-//   console.log = originalConsoleLog;
-//   console.error = originalConsoleError;
-// });
+// Suppress noisy logging during tests (winston + console)
+const originalConsole = {
+  log: console.log,
+  warn: console.warn,
+  error: console.error,
+  info: console.info,
+};
+
+beforeAll(() => {
+  try {
+    const { logger, requestLogger } = require('../src/infrastructure/external/LoggingService');
+    if (logger?.logger?.transports) {
+      logger.logger.transports.forEach((t) => (t.silent = true));
+    }
+    if (logger?.requestLogger?.transports) {
+      logger.requestLogger.transports.forEach((t) => (t.silent = true));
+    }
+    if (requestLogger?.transports) {
+      requestLogger.transports.forEach((t) => (t.silent = true));
+    }
+  } catch (/** @type {any} */ _e) {
+    // best-effort
+  }
+
+  console.log = jest.fn();
+  console.warn = jest.fn();
+  console.error = jest.fn();
+  console.info = jest.fn();
+});
+
+afterAll(() => {
+  console.log = originalConsole.log;
+  console.warn = originalConsole.warn;
+  console.error = originalConsole.error;
+  console.info = originalConsole.info;
+});
