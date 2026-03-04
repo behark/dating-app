@@ -181,6 +181,15 @@ Update if frontend URL changes.
 
 ---
 
+## 🛡️ Operational Safeguards & Scheduled Jobs
+
+- **Rate limiting:** API/message/upload remain fail-closed. **Search limiter is fail-open** to preserve discovery UX; when Redis is down it allows traffic but sets `X-RateLimit-Bypass: true` for monitoring. Auth limiter is also fail-open with the same header.
+- **Daily cleanup:** Bull job `CLEANUP_PHONE_VERIFICATION_CODES` runs at **02:00** server time to purge expired phone verification codes. Ensure the Bull worker process starts in production (see `JobProcessors.scheduleRecurringJobs`).
+- **Other scheduled cleanup:** expired password reset tokens (03:00), old messages weekly (04:00 Sunday), inactive user flagging monthly (05:00 on the 1st). These run via the same Bull worker.
+- **Logs:** Set `LOG_LEVEL=error` in CI/test to reduce noise; production can use `info` or stricter.
+
+---
+
 ## 🚨 Deployment Checklist
 
 Before deploying to production:

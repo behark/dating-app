@@ -6,7 +6,7 @@
  * Records user consent preferences for data collection, analytics, and marketing.
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,

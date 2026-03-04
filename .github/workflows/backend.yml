@@ -71,12 +71,13 @@ jobs:
         run: cd backend && npm ci --legacy-peer-deps
 
       - name: Run backend tests
-        run: cd backend && npm test -- --coverage --detectOpenHandles
+        run: cd backend && npm test -- --coverage
         env:
           NODE_ENV: test
           MONGODB_URI: mongodb://localhost:27017/dating-app-test
           JWT_SECRET: test-secret-key
           JWT_REFRESH_SECRET: test-refresh-secret
+          LOG_LEVEL: error
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
@@ -119,6 +120,7 @@ jobs:
           MONGODB_URI: mongodb://localhost:27017/dating-app-test
           JWT_SECRET: test-secret
           JWT_REFRESH_SECRET: test-refresh-secret
+          LOG_LEVEL: error
 
       - name: Wait for server
         run: sleep 5

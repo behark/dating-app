@@ -36,12 +36,10 @@ try {
 }
 
 // Suppress noisy logging during tests (winston + console)
-const originalConsole = {
-  log: console.log,
-  warn: console.warn,
-  error: console.error,
-  info: console.info,
-};
+let logSpy;
+let warnSpy;
+let errorSpy;
+let infoSpy;
 
 beforeAll(() => {
   try {
@@ -59,15 +57,15 @@ beforeAll(() => {
     // best-effort
   }
 
-  console.log = jest.fn();
-  console.warn = jest.fn();
-  console.error = jest.fn();
-  console.info = jest.fn();
+  logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
 });
 
 afterAll(() => {
-  console.log = originalConsole.log;
-  console.warn = originalConsole.warn;
-  console.error = originalConsole.error;
-  console.info = originalConsole.info;
+  logSpy?.mockRestore();
+  warnSpy?.mockRestore();
+  errorSpy?.mockRestore();
+  infoSpy?.mockRestore();
 });
