@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import Constants from 'expo-constants';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect } from 'react';
@@ -13,7 +12,6 @@ import { SocketProvider } from './src/context/SocketContext';
 import AppNavigator from './src/app/navigation/AppNavigator';
 import AppInitializationService from './src/services/AppInitializationService';
 import { UpdateService } from './src/services/UpdateService';
-/* eslint-enable no-unused-vars */
 
 // Vercel Analytics and Speed Insights (web only)
 // Using dynamic imports for web platform to avoid breaking native builds
@@ -119,25 +117,38 @@ export default function App() {
 
     // Fix collapsing empty div (caused by Sentry or other libraries on web)
     if (Platform.OS === 'web') {
-      try {
-        // Find and remove empty divs directly under body that have height: 0
-        const emptyDivs = Array.from(document.querySelectorAll('body > div')).filter((el) => {
-          const rect = el.getBoundingClientRect();
-          // If div has no content and height is 0, hide it
-          return rect.height === 0 && el.textContent.trim() === '';
-        });
+      const cleanupCollapsingDivs = () => {
+        try {
+          // Find and hide empty divs directly under body that have height: 0
+          const emptyDivs = Array.from(document.querySelectorAll('body > div')).filter((el) => {
+            const rect = el.getBoundingClientRect();
+            // If div has height 0 or is very small, hide it (catches empty & collapsed elements)
+            return rect.height <= 1 && el.children.length === 0;
+          });
 
-        emptyDivs.forEach((el) => {
-          el.style.display = 'none';
-        });
+          emptyDivs.forEach((el) => {
+            el.style.display = 'none';
+            el.style.visibility = 'hidden';
+            el.style.height = '0';
+            el.style.width = '0';
+            el.style.margin = '0';
+            el.style.padding = '0';
+            el.style.border = 'none';
+          });
 
-        if (emptyDivs.length > 0) {
-          // eslint-disable-next-line no-console
-          console.info(`🧹 Fixed ${emptyDivs.length} collapsing empty div(s) on body`);
+          if (emptyDivs.length > 0) {
+            // eslint-disable-next-line no-console
+            console.info(`🧹 Fixed ${emptyDivs.length} collapsing empty div(s) on body`);
+          }
+        } catch (e) {
+          // Silently ignore if we can't access DOM
         }
-      } catch (e) {
-        // Silently ignore if we can't access DOM
-      }
+      };
+
+      // Run cleanup immediately and after a short delay to catch divs added by async libraries
+      cleanupCollapsingDivs();
+      setTimeout(cleanupCollapsingDivs, 100);
+      setTimeout(cleanupCollapsingDivs, 500);
     }
 
     // Cleanup on unmount

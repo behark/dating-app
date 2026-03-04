@@ -36,18 +36,20 @@ const {
   Platform.OS !== 'web'
     ? require('react-native-reanimated')
     : {
-      useAnimatedGestureHandler: () => ({}),
-      useAnimatedStyle: () => ({}),
-      useSharedValue: (val) => ({ value: val }),
-      withSpring: (val) => val,
-      withTiming: (val) => val,
-      runOnJS: (fn) => fn,
-      Easing: { inOut: () => ({}) },
-    };
+         useAnimatedGestureHandler: () => ({}),
+         useAnimatedStyle: () => ({}),
+         useSharedValue: (val) => ({ value: val }),
+         withSpring: (val) => val,
+         withTiming: (val) => val,
+         runOnJS: (fn) => fn,
+         Easing: { inOut: () => ({}) },
+       };
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
 // CARD_SPACING removed - unused
+const PLACEHOLDER_CARD =
+  'https://placehold.co/400x600/E5E7EB/9CA3AF?text=No+Photo'; // eslint-disable-line no-secrets/no-secrets
 
 const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
   // Use dynamic dimensions for better web support
@@ -186,10 +188,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
       >
         <UniversalImage
           source={{
-            uri:
-              card.photoURL ||
-              process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
-              'https://placehold.co/400x600/E5E7EB/9CA3AF?text=No+Photo',
+            uri: card.photoURL || process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL || PLACEHOLDER_CARD,
           }}
           style={styles.image}
           enableLazy={false} // Disable lazy loading for swipe cards

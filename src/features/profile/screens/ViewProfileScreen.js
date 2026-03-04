@@ -16,6 +16,8 @@ import api from '../../../services/api';
 import logger from '../../../utils/logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const PLACEHOLDER_PROFILE =
+  'https://placehold.co/400x600/E5E7EB/9CA3AF?text=No+Photo'; // eslint-disable-line no-secrets/no-secrets
 
 const ViewProfileScreen = ({ route, navigation }) => {
   const { userId, showCompatibility } = route.params || {};
@@ -127,7 +129,7 @@ const ViewProfileScreen = ({ route, navigation }) => {
                 profile.photos?.[0]?.url ||
                 profile.photos?.[0] ||
                 process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
-                'https://placehold.co/400x600/E5E7EB/9CA3AF?text=No+Photo',
+                PLACEHOLDER_PROFILE,
             }}
             style={styles.profileImage}
           />

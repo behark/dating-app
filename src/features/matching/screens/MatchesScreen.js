@@ -23,6 +23,9 @@ import { getUserFriendlyMessage } from '../../../utils/errorMessages';
 import logger from '../../../utils/logger';
 import { DEMO_MATCHES, DEMO_LIKES_RECEIVED } from '../data/demoMatches';
 
+const PLACEHOLDER_THUMB =
+  'https://placehold.co/100x100/E5E7EB/9CA3AF?text=No+Photo'; // eslint-disable-line no-secrets/no-secrets
+
 const MatchesScreen = () => {
   const navigation = useNavigation();
   const { currentUser, authToken } = useAuth();
@@ -170,7 +173,7 @@ const MatchesScreen = () => {
                 item.otherUser.photos?.[0]?.url ||
                 item.otherUser.photos?.[0] ||
                 process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
-                'https://placehold.co/100x100/E5E7EB/9CA3AF?text=No+Photo',
+                PLACEHOLDER_THUMB,
             }}
             style={styles.matchImage}
           />
@@ -347,7 +350,7 @@ const MatchesScreen = () => {
                         uri:
                           item.user.photoURL ||
                           process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
-                          'https://placehold.co/100x100/E5E7EB/9CA3AF?text=No+Photo',
+                          PLACEHOLDER_THUMB,
                       }}
                       style={styles.matchImage}
                     />
@@ -402,7 +405,7 @@ const MatchesScreen = () => {
                         uri:
                           item.user.photoURL ||
                           process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
-                          'https://placehold.co/100x100/E5E7EB/9CA3AF?text=No+Photo',
+                          PLACEHOLDER_THUMB,
                       }}
                       style={styles.matchImage}
                     />
