@@ -265,7 +265,8 @@ exports.login = async (req, res) => {
     logger.error('Login error:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Error during login',
-      error: error instanceof Error ? error.message : String(error),
+      error: 'LOGIN_ERROR',
+      details: process.env.NODE_ENV === 'production' ? null : (error instanceof Error ? error.message : String(error)),
     });
   }
 };
@@ -306,7 +307,8 @@ exports.verifyEmail = async (req, res) => {
     logger.error('Email verification error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error verifying email',
-      error: error instanceof Error ? error.message : String(error),
+      error: 'VERIFY_EMAIL_ERROR',
+      details: process.env.NODE_ENV === 'production' ? null : (error instanceof Error ? error.message : String(error)),
     });
   }
 };
@@ -353,7 +355,8 @@ exports.forgotPassword = async (req, res) => {
     logger.error('Forgot password error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error processing password reset',
-      error: error instanceof Error ? error.message : String(error),
+      error: 'FORGOT_PASSWORD_ERROR',
+      details: process.env.NODE_ENV === 'production' ? null : (error instanceof Error ? error.message : String(error)),
     });
   }
 };
@@ -400,7 +403,8 @@ exports.resetPassword = async (req, res) => {
     logger.error('Reset password error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error resetting password',
-      error: error instanceof Error ? error.message : String(error),
+      error: 'RESET_PASSWORD_ERROR',
+      details: process.env.NODE_ENV === 'production' ? null : (error instanceof Error ? error.message : String(error)),
     });
   }
 };
@@ -420,14 +424,39 @@ exports.logout = async (req, res) => {
     const { getRedis } = require('../../config/redis');
     const logger = require('../../infrastructure/external/LoggingService').logger;
 
+    // Require signing secret before proceeding
+    if (!process.env.JWT_SECRET) {
+      logger.error('JWT_SECRET is not configured for logout verification');
+      return res.status(500).json({
+        success: false,
+        message: 'Authentication system is not properly configured',
+      });
+    }
+
+    // Verify token signature before trusting any claims
+    let decoded;
     try {
-      // Decode token to get expiry and userId
-      const decoded = jwt.decode(token);
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (/** @type {any} */ verifyError) {
+      logger.warn('Logout denied: invalid or expired token', {
+        error: verifyError instanceof Error ? verifyError.message : String(verifyError),
+        reason: verifyError?.name,
+      });
+      return sendUnauthorized(res, 'Invalid or expired token');
+    }
+
+    try {
+      // Use verified payload to get expiry and userId
       // Type guard: ensure decoded is an object (JwtPayload) not a string
       if (decoded && typeof decoded === 'object' && 'exp' in decoded && decoded.exp) {
-        // Calculate TTL (time until token expires)
-        const exp = decoded.exp; // TypeScript now knows exp is defined
-        const ttl = exp - Math.floor(Date.now() / 1000);
+        // Calculate TTL (time until token expires), clamp to sane upper bound
+        const exp = decoded.exp; // verified exp
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        let ttl = exp - nowSeconds;
+
+        const MAX_BLACKLIST_TTL_SECONDS =
+          parseInt(process.env.JWT_BLACKLIST_MAX_TTL_SECONDS || '604800', 10) || 604800; // 7 days
+        ttl = Math.max(0, Math.min(ttl, MAX_BLACKLIST_TTL_SECONDS));
 
         if (ttl > 0) {
           // Try Redis first (faster)
@@ -486,7 +515,8 @@ exports.logout = async (req, res) => {
     logger.error('Logout error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error during logout',
-      error: error instanceof Error ? error.message : String(error),
+      error: 'LOGOUT_ERROR',
+      details: process.env.NODE_ENV === 'production' ? null : (error instanceof Error ? error.message : String(error)),
     });
   }
 };
@@ -594,7 +624,8 @@ exports.deleteAccount = async (req, res) => {
     logger.error('Delete account error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error deleting account',
-      error: error instanceof Error ? error.message : String(error),
+      error: 'DELETE_ACCOUNT_ERROR',
+      details: process.env.NODE_ENV === 'production' ? null : (error instanceof Error ? error.message : String(error)),
     });
   }
 };
@@ -649,7 +680,8 @@ exports.refreshToken = async (req, res) => {
     logger.error('Refresh token error:', { error: error.message, stack: error.stack });
     sendError(res, 401, {
       message: 'Invalid refresh token',
-      error: error instanceof Error ? error.message : String(error),
+      error: 'REFRESH_TOKEN_ERROR',
+      details: process.env.NODE_ENV === 'production' ? null : (error instanceof Error ? error.message : String(error)),
     });
   }
 };
@@ -788,7 +820,8 @@ exports.googleAuth = async (req, res) => {
     logger.error('Google auth error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error with Google authentication',
-      error: error instanceof Error ? error.message : String(error),
+      error: 'GOOGLE_AUTH_ERROR',
+      details: process.env.NODE_ENV === 'production' ? null : (error instanceof Error ? error.message : String(error)),
     });
   }
 };
@@ -924,7 +957,8 @@ exports.facebookAuth = async (req, res) => {
     logger.error('Facebook auth error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error with Facebook authentication',
-      error: error instanceof Error ? error.message : String(error),
+      error: 'FACEBOOK_AUTH_ERROR',
+      details: process.env.NODE_ENV === 'production' ? null : (error instanceof Error ? error.message : String(error)),
     });
   }
 };
@@ -1043,7 +1077,8 @@ exports.appleAuth = async (req, res) => {
     logger.error('Apple auth error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error with Apple authentication',
-      error: error instanceof Error ? error.message : String(error),
+      error: 'APPLE_AUTH_ERROR',
+      details: process.env.NODE_ENV === 'production' ? null : (error instanceof Error ? error.message : String(error)),
     });
   }
 };

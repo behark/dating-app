@@ -22,7 +22,7 @@ import { useThrottle } from '../../../hooks/useDebounce';
 import { sanitizeEmail, sanitizeString } from '../../../utils/sanitize';
 import logger from '../../../utils/logger';
 
-const LoginScreen = ({ navigation, onAuthSuccess }) => {
+const LoginScreen = ({ navigation, onAuthSuccess, isModal }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -370,7 +370,12 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
 
             {isLogin && (
               <TouchableOpacity
-                onPress={() => navigation.navigate('ForgotPassword')}
+                onPress={() => {
+                  if (isModal && onAuthSuccess) {
+                    onAuthSuccess(); // close modal first
+                  }
+                  navigation.navigate('ForgotPassword');
+                }}
                 style={styles.forgotPasswordButton}
               >
                 <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
@@ -385,11 +390,21 @@ const LoginScreen = ({ navigation, onAuthSuccess }) => {
             </TouchableOpacity>
 
             <View style={styles.legalLinks}>
-              <TouchableOpacity onPress={() => navigation.navigate('TermsOfService')}>
+              <TouchableOpacity onPress={() => {
+                if (isModal && onAuthSuccess) {
+                  onAuthSuccess(); // close modal first
+                }
+                navigation.navigate('TermsOfService');
+              }}>
                 <Text style={styles.legalLinkText}>Terms of Service</Text>
               </TouchableOpacity>
               <Text style={styles.legalLinkSeparator}> • </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
+              <TouchableOpacity onPress={() => {
+                if (isModal && onAuthSuccess) {
+                  onAuthSuccess(); // close modal first
+                }
+                navigation.navigate('PrivacyPolicy');
+              }}>
                 <Text style={styles.legalLinkText}>Privacy Policy</Text>
               </TouchableOpacity>
             </View>

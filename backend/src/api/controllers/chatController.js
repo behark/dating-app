@@ -1,6 +1,5 @@
 const Message = require('../../core/domain/Message');
 const { logger } = require('../../infrastructure/external/LoggingService');
-const Swipe = require('../../core/domain/Swipe');
 const Match = require('../../core/domain/Match');
 const { ERROR_MESSAGES } = require('../../shared/constants/messages');
 const {
@@ -36,10 +35,9 @@ const getMessages = async (req, res) => {
 
     // Verify user has access to this match (TD-004: added .lean() for read-only query)
     if (userId) {
-      const match = await Swipe.findOne({
+      const match = await Match.findOne({
         _id: matchId,
-        $or: [{ swiperId: userId }, { swipedId: userId }],
-        action: 'like',
+        users: userId,
       }).lean();
 
       if (!match) {
@@ -63,12 +61,9 @@ const getMessages = async (req, res) => {
 
     // Decrypt messages if requested and if they are encrypted
     if (shouldDecrypt === 'true' && userId) {
-      const match = await Swipe.findById(matchId);
+      const match = await Match.findById(matchId);
       if (match) {
-        const otherUserId =
-          match.swiperId.toString() === userId
-            ? match.swipedId.toString()
-            : match.swiperId.toString();
+        const otherUserId = match.users.find(u => u.toString() !== userId)?.toString();
         const conversationKey = generateConversationKey(userId, otherUserId);
 
         // CRITICAL FIX: Skip corrupted messages and log failures instead of returning unusable payloads
@@ -123,11 +118,12 @@ const getMessages = async (req, res) => {
 const getConversations = async (req, res) => {
   try {
     const userId = req.user?.id;
-    const userObjectId = require('mongoose').Types.ObjectId.createFromHexString(userId);
 
     if (!userId) {
       return sendUnauthorized(res, 'Authentication required');
     }
+
+    const userObjectId = require('mongoose').Types.ObjectId.createFromHexString(userId);
 
     // Query Match documents to get actual matches (mutual likes only)
     const conversations = await Match.aggregate([
@@ -265,10 +261,9 @@ const markAsRead = async (req, res) => {
     }
 
     // Verify user has access to this match (use .lean() for read-only query)
-    const match = await Swipe.findOne({
+    const match = await Match.findOne({
       _id: matchId,
-      $or: [{ swiperId: userId }, { swipedId: userId }],
-      action: 'like',
+      users: userId,
     }).lean();
 
     if (!match) {
@@ -419,6 +414,12 @@ const getReadReceipts = async (req, res) => {
       });
     }
 
+    // Verify user is participant in this match
+    const match = await Match.findById(matchId);
+    if (!match || !match.users.some(u => u.toString() === userId)) {
+      return sendError(res, 403, { message: 'Not authorized to view this conversation' });
+    }
+
     // Get all messages in the conversation with read status
     const messages = await Message.find({ matchId })
       .select('_id senderId receiverId isRead readAt createdAt')
@@ -457,10 +458,9 @@ const sendEncryptedMessage = async (req, res) => {
     }
 
     // Verify user has access to this match
-    const match = await Swipe.findOne({
+    const match = await Match.findOne({
       _id: matchId,
-      $or: [{ swiperId: userId }, { swipedId: userId }],
-      action: 'like',
+      users: userId,
     });
 
     if (!match) {
@@ -468,7 +468,7 @@ const sendEncryptedMessage = async (req, res) => {
     }
 
     // Determine recipient
-    const receiverId = match.swiperId.toString() === userId ? match.swipedId : match.swiperId;
+    const receiverId = match.users.find(u => u.toString() !== userId);
 
     // Generate conversation key and encrypt message
     const conversationKey = generateConversationKey(userId, receiverId.toString());
@@ -540,10 +540,9 @@ const addReaction = async (req, res) => {
     }
 
     // Verify user has access to this conversation
-    const match = await Swipe.findOne({
+    const match = await Match.findOne({
       _id: message.matchId,
-      $or: [{ swiperId: userId }, { swipedId: userId }],
-      action: 'like',
+      users: userId,
     });
 
     if (!match) {

@@ -55,7 +55,7 @@ const csrfProtection = (options = {}) => {
     const headerToken = req.headers[headerName.toLowerCase()];
     let expectedToken = cookieToken;
 
-    // If no cookie token exists, generate a new one and require client retry.
+    // If no cookie token exists, mint one and let this request pass with the new token
     if (!expectedToken) {
       const newToken = generateToken();
       res.cookie(cookieName, newToken, {
@@ -65,19 +65,24 @@ const csrfProtection = (options = {}) => {
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         ...cookieOptions,
       });
-      expectedToken = newToken;
+      // Allow first request through and surface token so clients can store it
+      res.setHeader(headerName, newToken);
+      req.csrfToken = () => newToken;
+      return next();
     }
 
     if (!headerToken) {
       return res.status(403).json({
         success: false,
-        message: 'CSRF token required. Call /api/csrf-token first, then retry with x-csrf-token.',
+        message: 'CSRF token required. Call /api/csrf-token or retry with the provided token.',
         code: 'CSRF_TOKEN_MISSING',
       });
     }
 
-    // Validate tokens match
-    if (expectedToken !== headerToken) {
+    // Validate tokens match using timing-safe comparison
+    const expected = Buffer.from(String(expectedToken));
+    const received = Buffer.from(String(headerToken));
+    if (expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) {
       return res.status(403).json({
         success: false,
         message: 'Invalid CSRF token',

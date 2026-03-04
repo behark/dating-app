@@ -642,6 +642,16 @@ const setupCleanupProcessors = () => {
 
     return { success: true, flagged: result.modifiedCount };
   });
+
+  // Cleanup expired phone verification codes (safety + noise reduction)
+  cleanupQueue.process(JOB_TYPES.CLEANUP_PHONE_VERIFICATION_CODES, async () => {
+    const now = new Date();
+    const result = await User.updateMany(
+      { phoneVerificationCodeExpiry: { $lt: now } },
+      { $unset: { phoneVerificationCode: 1, phoneVerificationCodeExpiry: 1 } }
+    );
+    return { success: true, cleared: result.modifiedCount };
+  });
 };
 
 /**
@@ -670,6 +680,14 @@ const scheduleRecurringJobs = async () => {
     JOB_TYPES.CLEANUP_INACTIVE_USERS,
     {},
     { cron: '0 5 1 * *' }
+  );
+
+  // Daily cleanup of expired phone verification codes at 2 AM
+  await QueueService.addRepeatableJob(
+    QUEUES.CLEANUP,
+    JOB_TYPES.CLEANUP_PHONE_VERIFICATION_CODES,
+    {},
+    { cron: '0 2 * * *' }
   );
 
   console.log('Recurring jobs scheduled');

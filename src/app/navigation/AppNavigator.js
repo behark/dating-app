@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import ConsentBanner from '../../components/ConsentBanner';
 import { useAuth } from '../providers/AuthProvider';
 import PrivacyService from '../../services/PrivacyService';
@@ -12,7 +13,7 @@ import MainStack from './MainStack';
 // Main navigator component
 
 const AppNavigator = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, loading } = useAuth();
   const navigationRef = React.useRef(null);
   const routeNameRef = React.useRef(null);
   const [showConsentBanner, setShowConsentBanner] = useState(false);
@@ -131,6 +132,14 @@ const AppNavigator = () => {
 
     wasAuthenticatedRef.current = isAuthenticated;
   }, [currentUser, navigationReady]);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1a1a2e' }}>
+        <ActivityIndicator size="large" color="#e94057" />
+      </View>
+    );
+  }
 
   return (
     <>

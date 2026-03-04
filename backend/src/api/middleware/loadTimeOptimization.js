@@ -110,8 +110,8 @@ const responseTimeMiddleware = (req, res, next) => {
   const startTime = Date.now();
 
   res.on('finish', () => {
-    // Only log if headers haven't been sent (safety check)
-    if (res.headersSent) {
+    // Skip if response didn't complete normally
+    if (!res.headersSent) {
       return;
     }
 

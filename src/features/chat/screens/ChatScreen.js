@@ -28,8 +28,16 @@ import HapticFeedback from '../../../utils/haptics';
 import logger from '../../../utils/logger';
 
 const ChatScreen = ({ route, navigation }) => {
-  const { matchId, otherUser } = route.params;
+  const { matchId, otherUser } = route.params || {};
   const { currentUser } = useAuth();
+
+  if (!matchId) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Conversation not found</Text>
+      </View>
+    );
+  }
   const { isOnline } = useNetworkStatus();
   const {
     messages,

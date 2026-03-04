@@ -72,6 +72,7 @@ const JOB_TYPES = {
   CLEANUP_EXPIRED_TOKENS: 'cleanup-expired-tokens',
   CLEANUP_OLD_MESSAGES: 'cleanup-old-messages',
   CLEANUP_INACTIVE_USERS: 'cleanup-inactive-users',
+  CLEANUP_PHONE_VERIFICATION_CODES: 'cleanup-phone-verification-codes',
   ARCHIVE_DATA: 'archive-data',
 };
 

@@ -1,0 +1,8 @@
+src/utils/logger.d.ts:15:  DEBUG: number;
+src/utils/logger.js:12:  DEBUG: 0,
+src/utils/logger.js:33:      return LOG_LEVELS.DEBUG;
+src/utils/logger.js:44:    if (this.shouldLog(LOG_LEVELS.DEBUG)) {
+src/utils/logger.js:46:      console.log(`[DEBUG] ${message}`, ...args);
+src/constants/Theme.js:88:  XXXL: 48,
+src/constants/Theme.js:119:  XXXL: 32,
+src/constants/Theme.js:163:  XXXL: 64,

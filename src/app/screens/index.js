@@ -8,9 +8,7 @@
 
 // Discovery screens
 export { default as HomeScreen } from '../../features/discovery/screens/HomeScreen';
-export { default as DiscoveryScreen } from '../../features/discovery/screens/DiscoveryScreen';
 export { default as ExploreScreen } from '../../features/discovery/screens/ExploreScreen';
-export { default as PreviewHomeScreen } from '../../features/discovery/screens/PreviewHomeScreen';
 
 // Matching screens
 export { default as MatchesScreen } from '../../features/matching/screens/MatchesScreen';

@@ -309,11 +309,11 @@ app.use(
     },
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin' },
-    hsts: {
+    hsts: process.env.NODE_ENV === 'production' ? {
       maxAge: 31536000, // 1 year
       includeSubDomains: true,
       preload: true,
-    },
+    } : false,
     frameguard: {
       action: 'deny',
     },
@@ -512,8 +512,8 @@ app.use('/api', dynamicRateLimiter());
 // Note: Multer handles multipart/form-data (file uploads) with its own limits
 // These limits apply to JSON and URL-encoded bodies only
 // For large file uploads, Multer bypasses these limits
-app.use(express.json({ limit: '50mb' })); // Support large base64-encoded images
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // Cookie parser for CSRF tokens
 app.use(cookieParser());
@@ -612,13 +612,13 @@ app.use('/api/chat/media', mediaMessagesRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/swipes', swipeRoutes);
 // Disabled: nice-to-have features (files kept in codebase)
-// app.use('/api/interactions', advancedInteractionsRoutes);
+app.use('/api/interactions', advancedInteractionsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/safety', safetyRoutes);
-// app.use('/api/premium', premiumRoutes);
+app.use('/api/premium', premiumRoutes);
 // app.use('/api/payment', paymentRoutes);
-// app.use('/api/gamification', gamificationRoutes);
-// app.use('/api/social', socialFeaturesRoutes);
+app.use('/api/gamification', gamificationRoutes);
+app.use('/api/social', socialFeaturesRoutes);
 app.use('/api/privacy', privacyRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/users', usersRoutes);
@@ -938,7 +938,7 @@ io.on('connection', (socket) => {
   });
 
   // Join room based on matchId
-  socket.on('join_room', (matchId) => {
+  socket.on('join_room', async (matchId) => {
     try {
       // Validate matchId format
       if (!mongoose.Types.ObjectId.isValid(matchId)) {
@@ -949,6 +949,19 @@ io.on('connection', (socket) => {
       // Verify user is part of this match
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         socket.emit('error', { message: 'Invalid user ID' });
+        return;
+      }
+
+      // Verify the authenticated user is a participant in the match
+      const Match = require('./src/core/domain/Match');
+      const match = await Match.findById(matchId);
+      if (!match) {
+        socket.emit('error', { message: 'Match not found' });
+        return;
+      }
+      const isParticipant = match.users.some(u => u.toString() === userId);
+      if (!isParticipant) {
+        socket.emit('error', { message: 'Unauthorized' });
         return;
       }
 

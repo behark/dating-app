@@ -65,6 +65,11 @@ client_secret_*.json
 *.backup.*
 *.tmp
 *.log
+logs/
+backend/logs/
+
+# Build cache files
+*.tsbuildinfo
 
 # Test connection scripts (temporary)
 test-*-connection.js

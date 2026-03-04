@@ -95,8 +95,11 @@ export class UserBehaviorAnalytics {
    * Track a swipe action with detailed metrics
    */
   static trackSwipe(direction, profileData = {}) {
-    const session = swipePatterns.currentSession;
-    if (!session) this.startNewSwipeSession();
+    let session = swipePatterns.currentSession;
+    if (!session) {
+      this.startNewSwipeSession();
+      session = swipePatterns.currentSession;
+    }
 
     const now = Date.now();
     const lastSwipe = session.swipes[session.swipes.length - 1];

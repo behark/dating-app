@@ -14,7 +14,7 @@ const Stack = createNativeStackNavigator();
 
 const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    {/* Guest mode: Show HomeScreen with limited access instead of PreviewHomeScreen */}
+    {/* Guest mode: Show HomeScreen with limited access */}
     <Stack.Screen
       name="Home"
       component={HomeScreen}

@@ -684,7 +684,7 @@ class SocialFeaturesService {
       return {
         shareToken,
         shareUrl,
-        qrCode: this.generateQRCode(shareUrl),
+        qrCode: await this.generateQRCode(shareUrl),
         // @ts-ignore - expiresAt exists on the model but not in the type definition
         expiresAt: sharedProfile.expiresAt,
       };

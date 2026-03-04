@@ -128,8 +128,7 @@ const photoUploadMetricsMiddleware = (req, res, next) => {
       else errorType = 'unknown';
     }
 
-    // Convert errorType: null (no error) -> undefined, string (error) -> null
-    const errorTypeParam = errorType === null ? undefined : null;
+    const errorTypeParam = errorType === null ? undefined : errorType;
     analyticsMetricsService.trackPhotoUpload(success, totalSize, durationMs, errorTypeParam);
   });
 

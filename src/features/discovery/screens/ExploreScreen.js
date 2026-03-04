@@ -27,7 +27,7 @@ const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 24) / 2;
 
 const ExploreScreen = ({ navigation }) => {
-  const { user, authToken, loading: authLoading } = useAuth();
+  const { currentUser: user, authToken, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);

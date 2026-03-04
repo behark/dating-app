@@ -4,6 +4,10 @@
  */
 
 const Redis = require('ioredis');
+const NodeCache = require('node-cache');
+
+// In-memory fallback cache for when Redis is unavailable
+const localCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 
 let redisClient = null;
 let isConnected = false;
@@ -297,11 +301,18 @@ const cache = {
 
   /**
    * Increment a counter
+   * Falls back to in-memory NodeCache when Redis is unavailable
    */
   async incr(key, ttl = 3600) {
     try {
       const client = await getRedis();
-      if (!client) return null;
+      if (!client) {
+        // Fallback to in-memory counter using NodeCache
+        const current = localCache.get(key) || 0;
+        const newValue = current + 1;
+        localCache.set(key, newValue, ttl);
+        return newValue;
+      }
 
       const value = await client.incr(key);
       if (value === 1) {
@@ -311,7 +322,11 @@ const cache = {
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Cache incr error:', errorMessage);
-      return null;
+      // Fallback to in-memory counter on error
+      const current = localCache.get(key) || 0;
+      const newValue = current + 1;
+      localCache.set(key, newValue, ttl);
+      return newValue;
     }
   },
 
@@ -493,7 +508,8 @@ const onlineStatus = {
 const rateLimiter = {
   async checkLimit(key, maxRequests, windowSeconds) {
     const fullKey = `${CACHE_KEYS.RATE_LIMIT}${key}`;
-    const count = await cache.incr(fullKey, windowSeconds);
+    let count = await cache.incr(fullKey, windowSeconds);
+    if (count === null) count = maxRequests + 1; // Fail closed: deny request on error
 
     return {
       allowed: count <= maxRequests,

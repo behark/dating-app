@@ -20,7 +20,7 @@ const TRANSLUCENT_WHITE_10 = 'rgba(255, 255, 255, 0.1)';
 
 const SuperLikeScreen = ({ route, navigation }) => {
   const { userId } = route.params || {};
-  const { user } = useAuth();
+  const { currentUser: user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [quota, setQuota] = useState(null);
   const [message, setMessage] = useState('');

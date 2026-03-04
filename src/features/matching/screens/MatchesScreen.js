@@ -107,18 +107,8 @@ const MatchesScreen = () => {
         // Don't fail the whole load, just log the error
       }
 
-      // Load received likes for premium users (See Who Liked You feature) - optional
-      if (userIsPremium) {
-        try {
-          const receivedLikes = await SwipeController.getReceivedSwipes(currentUser.uid);
-          if (requestId !== requestIdRef.current) return;
-          // Store received likes separately if needed in the future
-          // For now, we're showing sent likes in the "Likes" tab
-        } catch (error) {
-          logger.error('Error loading received likes:', error);
-          // Don't fail the whole load, just log the error
-        }
-      }
+      // Note: Redundant premium getReceivedSwipes call removed.
+      // Received likes are already loaded above for all users and stored in receivedLikes state.
 
       // Final check before updating state
       if (requestId !== requestIdRef.current) return;

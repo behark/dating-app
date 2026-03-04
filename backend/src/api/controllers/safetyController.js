@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const {
   sendSuccess,
   sendError,
@@ -14,6 +15,7 @@ const { logger } = require('../../infrastructure/external/LoggingService');
 const Report = require('../../core/domain/Report');
 
 const Block = require('../../core/domain/Block');
+const Flag = require('../../core/domain/Flag');
 
 // Report a user for abuse
 exports.reportUser = async (req, res) => {
@@ -26,6 +28,10 @@ exports.reportUser = async (req, res) => {
       return sendError(res, 400, {
         message: 'Missing required fields: reportedUserId, category, description',
       });
+    }
+
+    if (!reportedUserId || !mongoose.Types.ObjectId.isValid(reportedUserId)) {
+      return res.status(400).json({ success: false, message: 'Invalid reported user ID' });
     }
 
     if (reporterId === reportedUserId) {
@@ -74,23 +80,15 @@ exports.reportUser = async (req, res) => {
       status: { $in: ['pending', 'reviewing'] }, // Only count unresolved reports
     }).then((reporters) => reporters.length);
 
-    // Update report count with unique reporter count
-    await User.findByIdAndUpdate(reportedUserId, {
-      reportCount: uniqueReporterCount,
-    });
-
-    // Auto-suspend threshold: 5+ unique reporters with pending reports
-    // This is more conservative to prevent false positives
+    // Atomically update report count and check suspension status
     const AUTO_SUSPEND_THRESHOLD = 5;
-    const updatedUser = await User.findById(reportedUserId);
-    if (!updatedUser) {
-      return res.status(404).json({
-        success: false,
-        message: 'UpdatedUser not found',
-      });
-    }
+    const result = await User.findOneAndUpdate(
+      { _id: reportedUserId },
+      { $set: { reportCount: uniqueReporterCount } },
+      { new: true }
+    );
 
-    if (uniqueReporterCount >= AUTO_SUSPEND_THRESHOLD && !updatedUser.suspended) {
+    if (uniqueReporterCount >= AUTO_SUSPEND_THRESHOLD && !result.suspended) {
       await User.findByIdAndUpdate(reportedUserId, {
         suspended: true,
         suspendedAt: new Date(),
@@ -124,6 +122,15 @@ exports.reportUser = async (req, res) => {
 exports.getReports = async (req, res) => {
   try {
     const { status, userId } = req.query;
+
+    const validStatuses = ['pending', 'reviewed', 'resolved', 'dismissed'];
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status filter' });
+    }
+    if (userId && !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ success: false, message: 'Invalid user ID filter' });
+    }
+
     const filter = {};
 
     if (status) filter.status = status;
@@ -210,8 +217,8 @@ exports.blockUser = async (req, res) => {
     const { blockedUserId } = req.body;
     const userId = req.user.id;
 
-    if (!blockedUserId) {
-      return sendError(res, 400, { message: 'blockedUserId is required' });
+    if (!blockedUserId || !mongoose.Types.ObjectId.isValid(blockedUserId)) {
+      return res.status(400).json({ success: false, message: 'Invalid user ID' });
     }
 
     if (userId === blockedUserId) {
@@ -344,7 +351,7 @@ exports.flagContent = async (req, res) => {
       });
     }
 
-    // Create flag record (would use a Flag model in production)
+    // Create flag record
     const flag = {
       userId,
       contentType,
@@ -352,16 +359,15 @@ exports.flagContent = async (req, res) => {
       reason,
       description,
       status: 'pending',
-      createdAt: new Date(),
     };
 
     // Save flag to database
-    // const flagRecord = await Flag.create(flag);
+    const flagRecord = await Flag.create(flag);
 
     res.status(201).json({
       success: true,
       message: 'Content flagged successfully',
-      flag,
+      flag: flagRecord,
     });
   } catch (/** @type {any} */ error) {
     logger.error('Error flagging content:', { error: error.message, stack: error.stack });
@@ -534,13 +540,6 @@ exports.suspendUser = async (req, res) => {
       });
     }
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
-    }
-
     res.json({
       success: true,
       message: 'User suspended successfully',
@@ -569,13 +568,6 @@ exports.unsuspendUser = async (req, res) => {
       },
       { new: true }
     );
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
-    }
-
     if (!user) {
       return res.status(404).json({
         success: false,

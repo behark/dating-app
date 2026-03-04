@@ -118,11 +118,14 @@ exports.sendPhoneVerification = async (req, res) => {
     }
 
     // Generate 6-digit verification code
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationCode = crypto.randomInt(100000, 999999).toString();
+
+    // Hash the OTP before storing
+    const hashedCode = crypto.createHash('sha256').update(verificationCode).digest('hex');
 
     // Update user with verification code
     user.phoneNumber = phoneNumber;
-    user.phoneVerificationCode = verificationCode;
+    user.phoneVerificationCode = hashedCode;
     user.phoneVerificationCodeExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
     await user.save();
 
@@ -162,14 +165,32 @@ exports.verifyPhone = async (req, res) => {
       });
     }
 
-    // Check verification code
-    if (user.phoneVerificationCode !== code) {
+    // Ensure a code exists before comparing
+    if (!user.phoneVerificationCode || !user.phoneVerificationCodeExpiry) {
+      return sendError(res, 400, {
+        message: 'No active verification code. Please request a new code.',
+      });
+    }
+
+    // Check code expiry before doing timing-safe comparison
+    if (new Date() > user.phoneVerificationCodeExpiry) {
+      user.phoneVerificationCode = undefined;
+      user.phoneVerificationCodeExpiry = undefined;
+      await user.save();
+      return sendError(res, 400, { message: 'Verification code has expired. Please request a new code.' });
+    }
+
+    // Hash the incoming code and use timing-safe comparison
+    const hashedInput = crypto.createHash('sha256').update(code).digest('hex');
+    const storedCodeBuffer = Buffer.from(user.phoneVerificationCode);
+    const inputCodeBuffer = Buffer.from(hashedInput);
+    if (storedCodeBuffer.length !== inputCodeBuffer.length) {
       return sendError(res, 400, { message: 'Invalid verification code' });
     }
 
-    // Check code expiry
-    if (user.phoneVerificationCodeExpiry && new Date() > user.phoneVerificationCodeExpiry) {
-      return sendError(res, 400, { message: 'Verification code has expired' });
+    const isValid = crypto.timingSafeEqual(inputCodeBuffer, storedCodeBuffer);
+    if (!isValid) {
+      return sendError(res, 400, { message: 'Invalid verification code' });
     }
 
     // Mark phone as verified
@@ -210,10 +231,10 @@ exports.resendPhoneVerification = async (req, res) => {
       return sendError(res, 400, { message: 'Phone number not set' });
     }
 
-    // Check if user requested code too recently (cooldown)
+    // Check if user requested code too recently (1 minute cooldown)
     if (
       user.phoneVerificationCodeExpiry &&
-      new Date(user.phoneVerificationCodeExpiry.getTime() - 15 * 60 * 1000).getTime() > Date.now()
+      (user.phoneVerificationCodeExpiry.getTime() - 14 * 60 * 1000) > Date.now()
     ) {
       return res.status(429).json({
         success: false,
@@ -221,9 +242,10 @@ exports.resendPhoneVerification = async (req, res) => {
       });
     }
 
-    // Generate new code
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    user.phoneVerificationCode = verificationCode;
+    // Generate new code and hash before storing
+    const verificationCode = crypto.randomInt(100000, 999999).toString();
+    const hashedCode = crypto.createHash('sha256').update(verificationCode).digest('hex');
+    user.phoneVerificationCode = hashedCode;
     user.phoneVerificationCodeExpiry = new Date(Date.now() + 15 * 60 * 1000);
     await user.save();
 

@@ -34,8 +34,16 @@ import MessageReactions, { QuickReactionButton, REACTIONS } from '../components/
 import MessageScheduler, { ScheduledMessagesList } from '../components/MessageScheduler';
 
 const EnhancedChatScreen = ({ route, navigation }) => {
-  const { matchId, otherUser } = route.params;
+  const { matchId, otherUser } = route.params || {};
   const { currentUser } = useAuth();
+
+  if (!matchId) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Conversation not found</Text>
+      </View>
+    );
+  }
   const {
     messages,
     sendMessage: chatSendMessage,
@@ -593,7 +601,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
               <Ionicons name="close" size={24} color={Colors.text.dark} />
             </TouchableOpacity>
           </View>
-          <ChatThemes onClose={() => setShowThemePicker(false)} />
+          <ChatThemes visible={showThemePicker} onClose={() => setShowThemePicker(false)} />
         </View>
       </Modal>
 
@@ -613,7 +621,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
           </View>
           <ScheduledMessagesList
             messages={scheduledMessages}
-            onCancel={(id) => {
+            onDelete={(id) => {
               setScheduledMessages((prev) => prev.filter((m) => m.id !== id));
               Alert.alert('Cancelled', 'Scheduled message has been cancelled');
             }}

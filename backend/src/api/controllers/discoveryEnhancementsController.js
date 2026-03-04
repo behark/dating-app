@@ -35,16 +35,11 @@ const exploreUsers = async (req, res) => {
     const isGuest = !req.user;
     const { guest = false, demoOnly = false } = req.query;
 
-    // For authenticated users, require user ID
-    // For guest users, only allow access to demo profiles
+    // For authenticated users, use their ID
+    // For guest users, allow browsing demo profiles
     let userId = null;
     if (!isGuest) {
       userId = req.user.id;
-    } else if (!guest && !demoOnly) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required for non-demo exploration',
-      });
     }
     const {
       lat,
@@ -98,15 +93,17 @@ const exploreUsers = async (req, res) => {
       suspended: { $ne: true },
       age: { $gte: minAge, $lte: maxAge },
       // For guest users, only show demo profiles
-      ...(isGuest || demoOnly ? { isDemo: true } : {}),
+      // For authenticated users with location, exclude demo profiles (queried separately)
+      ...(isGuest || demoOnly ? { isDemo: true } : lat && lng ? { isDemo: { $ne: true } } : {}),
     };
 
     if (gender !== 'any') {
       query.gender = gender;
     }
 
-    // Location filter
-    if (lat && lng) {
+    // Location filter - only apply to non-demo queries
+    // Demo profiles should be shown regardless of distance
+    if (lat && lng && !isGuest && !demoOnly) {
       const latitude = parseFloat(lat);
       const longitude = parseFloat(lng);
 
@@ -143,14 +140,46 @@ const exploreUsers = async (req, res) => {
         sortQuery = { lastActivityAt: -1 };
     }
 
-    // Execute query
-    const results = await User.find(query)
-      .select(
-        'name age gender bio photos interests location locationPrivacy profileCompleteness lastActivityAt isProfileVerified activityScore'
-      )
-      .sort(/** @type {any} */ (sortQuery))
-      .skip(skip)
-      .limit(limit);
+    // For authenticated users, query regular profiles (with location) + demo profiles (without location filter) separately
+    let results;
+    if (!isGuest && !demoOnly && lat && lng) {
+      // Query regular nearby profiles
+      const regularResults = await User.find(query)
+        .select(
+          'name age gender bio photos interests location locationPrivacy profileCompleteness lastActivityAt isProfileVerified activityScore'
+        )
+        .sort(/** @type {any} */ (sortQuery))
+        .skip(skip)
+        .limit(limit);
+
+      // Query demo profiles separately (no location filter)
+      const demoQuery = {
+        _id: { $nin: swipedUserIds },
+        isActive: true,
+        suspended: { $ne: true },
+        isDemo: true,
+        age: { $gte: minAge, $lte: maxAge },
+      };
+      if (gender !== 'any') demoQuery.gender = gender;
+
+      const demoResults = await User.find(demoQuery)
+        .select(
+          'name age gender bio photos interests location locationPrivacy profileCompleteness lastActivityAt isProfileVerified activityScore'
+        )
+        .sort(/** @type {any} */ (sortQuery))
+        .limit(50);
+
+      results = [...demoResults, ...regularResults];
+    } else {
+      // Guest/demo-only query or no location provided
+      results = await User.find(query)
+        .select(
+          'name age gender bio photos interests location locationPrivacy profileCompleteness lastActivityAt isProfileVerified activityScore'
+        )
+        .sort(/** @type {any} */ (sortQuery))
+        .skip(skip)
+        .limit(limit);
+    }
 
     // Enhance results with additional data and SANITIZE LOCATION
     const enhancedResults = await Promise.all(

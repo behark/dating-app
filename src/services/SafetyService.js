@@ -1,4 +1,3 @@
-import { Colors } from '../constants/colors';
 import logger from '../utils/logger';
 import api from './api';
 
@@ -98,7 +97,7 @@ export class SafetyService {
         category,
       });
 
-      return response.data || { success: true, reportId: response.data?.reportId };
+      return { success: true, reportId: response.data?.reportId, ...response.data };
     } catch (error) {
       logger.error('Error creating report', error, { reportedUserId, category });
       return { success: false, error: error.message };
@@ -107,11 +106,11 @@ export class SafetyService {
 
   static async getReportCategories() {
     return [
-      { id: 'inappropriate_photos', label: '📸 Inappropriate Photos', color: Colors.accent.red },
+      { id: 'inappropriate_photos', label: '📸 Inappropriate Photos', color: '#FF6B6B' },
       { id: 'fake_profile', label: '👤 Fake Profile', color: '#FFD93D' },
       { id: 'harassment', label: '💬 Harassment/Abuse', color: '#6BCB77' },
       { id: 'scam', label: '⚠️ Scam', color: '#4D96FF' },
-      { id: 'offensive_behavior', label: '😠 Offensive Behavior', color: Colors.accent.pink },
+      { id: 'offensive_behavior', label: '😠 Offensive Behavior', color: '#FF6B9D' },
       { id: 'other', label: '📋 Other', color: '#9D84B7' },
     ];
   }
@@ -807,7 +806,7 @@ export class SafetyService {
         return { success: false, error: response.message || 'Failed to add emergency contact' };
       }
 
-      const contact = response.data || response.data?.contact;
+      const contact = response.data?.contact || response.data;
       logger.info('Emergency contact added', { contactId: contact?.id });
 
       return { success: true, contact };

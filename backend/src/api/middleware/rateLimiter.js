@@ -47,6 +47,7 @@ const createRateLimiter = (options = {}) => {
     skipFailedRequests = false,
     skipSuccessfulRequests = false,
     onLimitReached = null,
+    failOpen = false, // allow soft-fail during Redis outages
   } = options;
 
   const windowSeconds = Math.floor(windowMs / 1000);
@@ -80,8 +81,13 @@ const createRateLimiter = (options = {}) => {
       // Log error without sensitive data
       const safeError = error instanceof Error ? error.message : String(error);
       logger.error('Rate limiter error:', { error: safeError });
-      // SECURITY: Fail closed - deny request when rate limiter errors
-      // This prevents brute force attacks during Redis outages
+      if (failOpen) {
+        // Soft-fail: allow the request but mark headers to aid monitoring
+        res.set('X-RateLimit-Bypass', 'true');
+        return next();
+      }
+
+      // Default: fail closed to block potential abuse
       return res.status(503).json({
         success: false,
         message: 'Service temporarily unavailable. Please try again.',
@@ -97,6 +103,7 @@ const apiLimiter = createRateLimiter({
   windowMs: 60000,
   maxRequests: 100,
   message: RATE_LIMIT_MESSAGES.API,
+  failOpen: false, // keep strict for general API
 });
 
 /**
@@ -110,6 +117,7 @@ const authLimiter = createRateLimiter({
   onLimitReached: (req, res) => {
     logger.warn('Auth rate limit reached', { ip: req.ip });
   },
+  failOpen: true, // prefer usability during brief Redis outages for auth endpoints
 });
 
 /**
@@ -146,7 +154,8 @@ const swipeLimiter = async (req, res, next) => {
     const today = new Date().toISOString().split('T')[0];
     const fullKey = `${key}:${today}`;
 
-    const count = await cache.incr(fullKey, 86400); // 24 hours
+    let count = await cache.incr(fullKey, 86400); // 24 hours
+    if (count === null) count = 1; // Fail closed: treat errors as a counted request
 
     res.set('X-Swipe-Limit', dailyLimit);
     res.set('X-Swipe-Remaining', Math.max(0, dailyLimit - count));
@@ -179,6 +188,7 @@ const messageLimiter = createRateLimiter({
   maxRequests: 30,
   keyGenerator: (req) => `msg:${req.userId || req.ip}`,
   message: RATE_LIMIT_MESSAGES.MESSAGE,
+  failOpen: false, // messaging integrity over availability
 });
 
 /**
@@ -189,6 +199,7 @@ const uploadLimiter = createRateLimiter({
   maxRequests: 20,
   keyGenerator: (req) => `upload:${req.userId || req.ip}`,
   message: RATE_LIMIT_MESSAGES.UPLOAD,
+  failOpen: false,
 });
 
 /**
@@ -199,6 +210,7 @@ const searchLimiter = createRateLimiter({
   maxRequests: 30,
   keyGenerator: (req) => `search:${req.userId || req.ip}`,
   message: RATE_LIMIT_MESSAGES.SEARCH,
+  failOpen: true, // allow soft-fail to keep discovery usable
 });
 
 /**

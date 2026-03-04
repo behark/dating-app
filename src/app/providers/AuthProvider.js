@@ -657,6 +657,8 @@ export const AuthProvider = ({ children }) => {
         setRefreshToken(null);
         api.clearAuthToken();
         await AsyncStorage.multiRemove(['currentUser', 'authToken', 'refreshToken']);
+        await clearAllTokens();
+        clearSentryUser();
       } catch (clearError) {
         logger.error('Error clearing local state during logout:', clearError);
       }

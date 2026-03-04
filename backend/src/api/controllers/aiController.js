@@ -404,9 +404,9 @@ const calculateCompatibilityScore = async (req, res) => {
       return sendError(res, 400, { message: 'Invalid userId format' });
     }
 
-    const user = await User.findById(userId).select('interests ageRange values gender location');
+    const user = await User.findById(userId).select('interests age values gender location');
     const targetUser = await User.findById(targetUserId).select(
-      'interests ageRange values gender location'
+      'interests age values gender location'
     );
 
     if (!user || !targetUser) {
@@ -723,7 +723,7 @@ const getProfileImprovementSuggestions = async (req, res) => {
       return sendError(res, 400, { message: 'Invalid userId format' });
     }
 
-    const user = await User.findById(userId).select('photos bio interests');
+    const user = await User.findById(userId).select('photos bio interests age gender location');
     if (!user) {
       return res.status(404).json({
         success: false,

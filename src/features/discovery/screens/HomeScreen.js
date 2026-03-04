@@ -34,7 +34,6 @@ import { PremiumService } from '../../../services/PremiumService';
 import { SwipeController } from '../../../services/SwipeController';
 import { useNetworkStatus } from '../../../hooks/useNetworkStatus';
 import { useSwipeActions } from '../../../hooks/useSwipeActions';
-import { GuestModeBanner, PremiumHeader, ActionButtons } from '../components';
 import HapticFeedback from '../../../utils/haptics';
 import logger from '../../../utils/logger';
 import LoginScreen from '../../auth/screens/LoginScreen';
@@ -590,19 +589,6 @@ const HomeScreen = ({ navigation }) => {
     ]
   );
 
-  // Guest mode: Handle view profile
-  const handleViewProfile = useCallback(
-    (card) => {
-      if (isGuest) {
-        promptLogin('view');
-        return;
-      }
-      // Navigate to profile view for authenticated users
-      navigation.navigate('ViewProfile', { profile: card });
-    },
-    [isGuest, promptLogin, navigation]
-  );
-
   const handleButtonSwipe = useCallback(
     (direction) => {
       if (cards.length > 0 && currentIndex < cards.length) {
@@ -663,7 +649,8 @@ const HomeScreen = ({ navigation }) => {
         // Use repository to get current user profile
         const userData = await userRepository.getCurrentUser(userId);
         // Require both name and photo for production
-        setNeedsProfile(!userData?.name || !userData?.photoURL);
+        const hasPhoto = userData?.photoURL || (userData?.photos && userData.photos.length > 0);
+        setNeedsProfile(!userData?.name || !hasPhoto);
       } catch (error) {
         logger.error('Error checking profile:', error);
         setNeedsProfile(false); // Don't block on error
@@ -1045,7 +1032,7 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.loginModalSubtitle}>{loginPrompt.subtitle}</Text>
           </View>
           <View style={styles.loginModalContent}>
-            <LoginScreen navigation={navigation} onAuthSuccess={() => setShowLoginModal(false)} />
+            <LoginScreen navigation={navigation} onAuthSuccess={() => setShowLoginModal(false)} isModal={true} />
           </View>
         </View>
       </Modal>

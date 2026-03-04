@@ -11,7 +11,8 @@ import {
   HomeScreen,
   MatchesScreen,
   ProfileScreen,
-  ChatScreen,
+  // ChatScreen, // Replaced by EnhancedChatScreen (superset of ChatScreen functionality)
+  EnhancedChatScreen,
   EventsScreen,
   GroupDatesScreen,
   NotificationPreferencesScreen,
@@ -118,7 +119,7 @@ const MainStack = () => (
     <Stack.Screen name="Main" component={MainTabs} />
     <Stack.Screen
       name="Chat"
-      component={ChatScreen}
+      component={EnhancedChatScreen}
       options={{
         headerShown: false,
         presentation: 'card',
