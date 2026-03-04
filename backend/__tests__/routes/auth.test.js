@@ -1,6 +1,5 @@
 const express = require('express');
 const request = require('supertest');
-const net = require('net');
 
 jest.mock('../../src/api/controllers/authController', () => ({
   register: jest.fn((req, res) => res.status(201).json({ success: true })),
@@ -35,40 +34,19 @@ jest.mock('../../src/api/middleware/auth', () => ({
 const authController = require('../../src/api/controllers/authController');
 const phoneController = require('../../src/api/controllers/phoneController');
 
-// Detect whether this environment allows binding sockets (sandbox-safe skip)
-let canListen = true;
-const skipIfNoListen = () => {
-  if (!canListen) {
-    pending('Port binding not permitted in this environment; skipping route tests.');
-    return true;
-  }
-  return false;
-};
-
-beforeAll(async () => {
-  canListen = await new Promise((resolve) => {
-    const srv = net.createServer();
-    srv.once('error', () => resolve(false));
-    srv.listen(0, '127.0.0.1', () => srv.close(() => resolve(true)));
-  });
-});
-
-const createServerAndAgent = () => {
+const createAppAndAgent = () => {
   const app = express();
   app.use(express.json());
   app.use('/api/auth', require('../../routes/auth'));
-  const server = app.listen(0, '127.0.0.1');
-  const agent = request.agent(server);
-  return { server, agent };
+  const agent = request.agent(app); // supertest can drive the app directly without listen()
+  return { app, agent };
 };
 
 describe('auth routes', () => {
-  let server;
   let agent;
 
   beforeAll(() => {
-    const setup = createServerAndAgent();
-    server = setup.server;
+    const setup = createAppAndAgent();
     agent = setup.agent;
   });
 
@@ -76,16 +54,7 @@ describe('auth routes', () => {
     jest.clearAllMocks();
   });
 
-  afterAll((done) => {
-    if (server) {
-      server.close(done);
-    } else {
-      done();
-    }
-  });
-
   it('validates register payload and forwards valid request', async () => {
-    if (skipIfNoListen()) return;
     const bad = await agent.post('/api/auth/register').send({
       email: 'bad-email',
       password: '123',
@@ -106,7 +75,6 @@ describe('auth routes', () => {
   });
 
   it('validates login payload', async () => {
-    if (skipIfNoListen()) return;
     const bad = await agent.post('/api/auth/login').send({
       email: 'user@example.com',
       password: '',
@@ -122,7 +90,6 @@ describe('auth routes', () => {
   });
 
   it('validates verify-email and refresh-token payloads', async () => {
-    if (skipIfNoListen()) return;
     const verifyBad = await agent.post('/api/auth/verify-email').send({});
     expect(verifyBad.status).toBe(400);
 
@@ -138,7 +105,6 @@ describe('auth routes', () => {
   });
 
   it('validates OAuth payloads', async () => {
-    if (skipIfNoListen()) return;
     const googleBad = await agent.post('/api/auth/google').send({ email: 'x@example.com' });
     const facebookBad = await agent
       .post('/api/auth/facebook')
@@ -150,18 +116,19 @@ describe('auth routes', () => {
 
     const googleOk = await agent
       .post('/api/auth/google')
-      .send({ googleId: 'g1', email: 'x@example.com' });
+      .send({ googleId: 'g1', email: 'x@example.com', idToken: 'token-google' });
     const facebookOk = await agent
       .post('/api/auth/facebook')
-      .send({ facebookId: 'f1', email: 'x@example.com' });
-    const appleOk = await agent.post('/api/auth/apple').send({ appleId: 'a1' });
+      .send({ facebookId: 'f1', email: 'x@example.com', accessToken: 'token-facebook' });
+    const appleOk = await agent
+      .post('/api/auth/apple')
+      .send({ appleId: 'a1', identityToken: 'token-apple' });
     expect(googleOk.status).toBe(200);
     expect(facebookOk.status).toBe(200);
     expect(appleOk.status).toBe(200);
   });
 
   it('protects authenticated endpoints', async () => {
-    if (skipIfNoListen()) return;
     const noAuth = await agent.post('/api/auth/logout');
     expect(noAuth.status).toBe(401);
 
@@ -176,7 +143,6 @@ describe('auth routes', () => {
   });
 
   it('routes phone verification endpoints through auth', async () => {
-    if (skipIfNoListen()) return;
     const noAuth = await agent.post('/api/auth/send-phone-verification').send({
       phoneNumber: '+15555550123',
     });

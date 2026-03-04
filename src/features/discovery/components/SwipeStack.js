@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import SwipeCard from '../../../components/Card/SwipeCard';
 import SkeletonCard from '../../../components/Card/SkeletonCard';

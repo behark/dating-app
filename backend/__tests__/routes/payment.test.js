@@ -1,6 +1,5 @@
 const express = require('express');
 const request = require('supertest');
-const net = require('net');
 
 jest.mock('../../src/api/controllers/paymentController', () => ({
   getSubscriptionTiers: jest.fn((req, res) => res.status(200).json({ success: true })),
@@ -39,40 +38,19 @@ jest.mock('../../src/api/middleware/auth', () => ({
 
 const paymentController = require('../../src/api/controllers/paymentController');
 
-// Detect whether this environment allows binding sockets (sandbox-safe skip)
-let canListen = true;
-const skipIfNoListen = () => {
-  if (!canListen) {
-    pending('Port binding not permitted in this environment; skipping route tests.');
-    return true;
-  }
-  return false;
-};
-
-beforeAll(async () => {
-  canListen = await new Promise((resolve) => {
-    const srv = net.createServer();
-    srv.once('error', () => resolve(false));
-    srv.listen(0, '127.0.0.1', () => srv.close(() => resolve(true)));
-  });
-});
-
-const createServerAndAgent = () => {
+const createAppAndAgent = () => {
   const app = express();
   app.use(express.json());
   app.use('/api/payment', require('../../routes/payment'));
-  const server = app.listen(0, '127.0.0.1');
-  const agent = request.agent(server);
-  return { server, agent };
+  const agent = request.agent(app);
+  return { app, agent };
 };
 
 describe('payment routes', () => {
-  let server;
   let agent;
 
   beforeAll(() => {
-    const setup = createServerAndAgent();
-    server = setup.server;
+    const setup = createAppAndAgent();
     agent = setup.agent;
   });
 
@@ -80,23 +58,13 @@ describe('payment routes', () => {
     jest.clearAllMocks();
   });
 
-  afterAll((done) => {
-    if (server) {
-      server.close(done);
-    } else {
-      done();
-    }
-  });
-
   it('serves public tiers endpoint', async () => {
-    if (skipIfNoListen()) return;
     const res = await agent.get('/api/payment/tiers');
     expect(res.status).toBe(200);
     expect(paymentController.getSubscriptionTiers).toHaveBeenCalled();
   });
 
   it('routes webhook endpoints without auth', async () => {
-    if (skipIfNoListen()) return;
     const stripe = await agent
       .post('/api/payment/webhooks/stripe')
       .set('Content-Type', 'application/json')
@@ -112,7 +80,6 @@ describe('payment routes', () => {
   });
 
   it('protects authenticated endpoints', async () => {
-    if (skipIfNoListen()) return;
     const noAuth = await agent.get('/api/payment/status');
     expect(noAuth.status).toBe(401);
 
@@ -124,7 +91,6 @@ describe('payment routes', () => {
   });
 
   it('routes stripe endpoints', async () => {
-    if (skipIfNoListen()) return;
     const checkout = await agent
       .post('/api/payment/stripe/checkout')
       .set('Authorization', 'Bearer token')
@@ -148,7 +114,6 @@ describe('payment routes', () => {
   });
 
   it('routes paypal/apple/google endpoints', async () => {
-    if (skipIfNoListen()) return;
     const authHeader = { Authorization: 'Bearer token' };
 
     const paypalSub = await agent
@@ -175,7 +140,6 @@ describe('payment routes', () => {
   });
 
   it('routes subscription management and refunds', async () => {
-    if (skipIfNoListen()) return;
     const authHeader = { Authorization: 'Bearer token' };
 
     const cancel = await agent

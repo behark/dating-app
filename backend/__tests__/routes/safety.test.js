@@ -1,6 +1,5 @@
 const express = require('express');
 const request = require('supertest');
-const net = require('net');
 
 jest.mock('../../src/api/controllers/safetyController', () => ({
   reportUser: jest.fn((req, res) => res.status(201).json({ success: true })),
@@ -60,40 +59,19 @@ jest.mock('../../src/api/middleware/auth', () => ({
 const safetyController = require('../../src/api/controllers/safetyController');
 const safetyAdvancedController = require('../../src/api/controllers/safetyAdvancedController');
 
-// Detect whether this environment allows binding sockets (sandbox-safe skip)
-let canListen = true;
-const skipIfNoListen = () => {
-  if (!canListen) {
-    pending('Port binding not permitted in this environment; skipping route tests.');
-    return true;
-  }
-  return false;
-};
-
-beforeAll(async () => {
-  canListen = await new Promise((resolve) => {
-    const srv = net.createServer();
-    srv.once('error', () => resolve(false));
-    srv.listen(0, '127.0.0.1', () => srv.close(() => resolve(true)));
-  });
-});
-
-const createServerAndAgent = () => {
+const createAppAndAgent = () => {
   const app = express();
   app.use(express.json());
   app.use('/api/safety', require('../../routes/safety'));
-  const server = app.listen(0, '127.0.0.1');
-  const agent = request.agent(server);
-  return { server, agent };
+  const agent = request.agent(app);
+  return { app, agent };
 };
 
 describe('safety routes', () => {
-  let server;
   let agent;
 
   beforeAll(() => {
-    const setup = createServerAndAgent();
-    server = setup.server;
+    const setup = createAppAndAgent();
     agent = setup.agent;
   });
 
@@ -101,29 +79,18 @@ describe('safety routes', () => {
     jest.clearAllMocks();
   });
 
-  afterAll((done) => {
-    if (server) {
-      server.close(done);
-    } else {
-      done();
-    }
-  });
-
   it('serves public safety tips', async () => {
-    if (skipIfNoListen()) return;
     const res = await agent.get('/api/safety/tips');
     expect(res.status).toBe(200);
     expect(safetyController.getSafetyTips).toHaveBeenCalled();
   });
 
   it('requires auth for protected endpoints', async () => {
-    if (skipIfNoListen()) return;
     const res = await agent.post('/api/safety/report').send({});
     expect(res.status).toBe(401);
   });
 
   it('routes core safety endpoints', async () => {
-    if (skipIfNoListen()) return;
     const auth = { Authorization: 'Bearer token' };
 
     const report = await agent.post('/api/safety/report').set(auth).send({});
@@ -146,7 +113,6 @@ describe('safety routes', () => {
   });
 
   it('enforces admin-only endpoints', async () => {
-    if (skipIfNoListen()) return;
     const userRes = await agent
       .get('/api/safety/reports')
       .set('Authorization', 'Bearer token');
@@ -170,7 +136,6 @@ describe('safety routes', () => {
   });
 
   it('routes advanced safety endpoints', async () => {
-    if (skipIfNoListen()) return;
     const auth = { Authorization: 'Bearer token' };
 
     const datePlan = await agent.post('/api/safety/date-plan').set(auth).send({});

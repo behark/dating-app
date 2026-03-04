@@ -1,4 +1,3 @@
-import React from 'react';
 import { Image, Platform } from 'react-native';
 
 export const UniversalImage = ({ source, style, resizeMode = 'cover', ...props }) => {
