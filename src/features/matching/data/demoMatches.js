@@ -1,4 +1,5 @@
 /* eslint-disable no-secrets/no-secrets */
+/* eslint-disable sonarjs/no-duplicate-string */
 // Demo matches for showing populated conversations list
 // These are sample matched users with conversation history
 

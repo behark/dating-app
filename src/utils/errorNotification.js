@@ -3,7 +3,7 @@
  * Provides consistent error handling and user feedback across the app
  */
 
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 import { getUserFriendlyMessage } from './errorMessages';
 import logger from './logger';
 

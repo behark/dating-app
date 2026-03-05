@@ -110,7 +110,9 @@ const NetworkStatusBanner = ({ style, showWhenOnline = true, autoHideDelay = 300
         },
         style,
       ]}
-      pointerEvents={isOnline && !wasOfflineRef.current ? 'none' : 'auto'}
+      {...(Platform.OS === 'web'
+        ? { style: { pointerEvents: isOnline && !wasOfflineRef.current ? 'none' : 'auto' } }
+        : { pointerEvents: isOnline && !wasOfflineRef.current ? 'none' : 'auto' })}
     >
       <View style={styles.content}>
         <Ionicons name={iconName} size={20} color={Colors.background.white} />

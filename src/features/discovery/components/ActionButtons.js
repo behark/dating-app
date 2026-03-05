@@ -1,7 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Alert, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, TouchableOpacity, View } from 'react-native';
 import { Colors } from '../../../constants/colors';
+import DESIGN_TOKENS from '../../../constants/designTokens';
 
 const ActionButtons = ({
   cards,
@@ -49,7 +50,10 @@ const ActionButtons = ({
         onPress={() => onSwipeLeft(cards[currentIndex])}
         activeOpacity={0.8}
       >
-        <LinearGradient colors={Colors.gradient.red} style={styles.actionButtonCircle}>
+        <LinearGradient
+          colors={DESIGN_TOKENS.colors.gradients.discovery}
+          style={styles.actionButtonCircle}
+        >
           <Ionicons name="close" size={32} color={Colors.background.white} />
         </LinearGradient>
       </TouchableOpacity>
@@ -61,7 +65,7 @@ const ActionButtons = ({
         disabled={!canSuperLike}
       >
         <LinearGradient
-          colors={canSuperLike ? Colors.gradient.teal : Colors.gradient.disabled}
+          colors={canSuperLike ? DESIGN_TOKENS.colors.gradients.matches : Colors.gradient.disabled}
           style={styles.actionButtonCircle}
         >
           <Ionicons name="star" size={28} color={Colors.background.white} />
@@ -78,7 +82,10 @@ const ActionButtons = ({
         onPress={() => onSwipeRight(cards[currentIndex])}
         activeOpacity={0.8}
       >
-        <LinearGradient colors={Colors.gradient.primary} style={styles.actionButtonCircle}>
+        <LinearGradient
+          colors={DESIGN_TOKENS.colors.gradients.profile}
+          style={styles.actionButtonCircle}
+        >
           <Ionicons name="heart" size={32} color={Colors.background.white} />
         </LinearGradient>
       </TouchableOpacity>
@@ -117,33 +124,48 @@ const styles = {
     height: 60,
     borderRadius: 30,
     overflow: 'hidden',
-    shadowColor: Colors.accent.red,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    ...Platform.select({
+      web: { boxShadow: '0px 6px 12px rgba(239,68,68,0.35)' },
+      default: {
+        shadowColor: Colors.accent.red,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+      },
+    }),
   },
   superLikeButton: {
     width: 55,
     height: 55,
     borderRadius: 27.5,
     overflow: 'hidden',
-    shadowColor: Colors.accent.teal,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    ...Platform.select({
+      web: { boxShadow: '0px 6px 12px rgba(45,212,191,0.35)' },
+      default: {
+        shadowColor: Colors.accent.teal,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+      },
+    }),
   },
   likeButton: {
     width: 70,
     height: 70,
     borderRadius: 35,
     overflow: 'hidden',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    ...Platform.select({
+      web: { boxShadow: '0px 6px 12px rgba(99,102,241,0.35)' },
+      default: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+      },
+    }),
   },
   actionButtonCircle: {
     width: '100%',

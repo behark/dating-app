@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -17,6 +17,7 @@ import { Colors } from '../../../constants/colors';
 import { useAuth } from '../../../context/AuthContext';
 import { calculateDistance } from '../../../utils/distanceCalculator';
 import logger from '../../../utils/logger';
+import Toast from '../../../utils/toast';
 
 const { width } = Dimensions.get('window');
 const TRANSLUCENT_WHITE_20 = 'rgba(255, 255, 255, 0.2)';
@@ -27,11 +28,12 @@ const TopPicksScreen = ({ navigation }) => {
   const [topPicks, setTopPicks] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [location, setLocation] = useState(null);
+  const [backendError, setBackendError] = useState(false);
 
   useEffect(() => {
     getLocation();
     fetchTopPicks();
-  }, []);
+  }, [fetchTopPicks]);
 
   const getLocation = async () => {
     try {
@@ -54,23 +56,31 @@ const TopPicksScreen = ({ navigation }) => {
     }
   };
 
-  const fetchTopPicks = async () => {
+  const fetchTopPicks = useCallback(async () => {
     setLoading(true);
     try {
       const response = await api.get('/discovery/top-picks?limit=10');
 
       if (response.success) {
         setTopPicks(response.data?.topPicks || []);
+        setBackendError(false);
       } else {
         throw new Error(response.message || 'Failed to load top picks');
       }
     } catch (error) {
       logger.error('Error fetching top picks:', error);
-      Alert.alert('Error', error.message || 'Failed to load top picks');
+      Toast.show({
+        type: 'info',
+        text1: 'Network issue',
+        text2: 'Cannot reach server. Tap retry.',
+        actionLabel: 'Retry',
+        onPress: fetchTopPicks,
+      });
+      setBackendError(true);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const currentPick = topPicks[selectedIndex];
 
@@ -141,6 +151,16 @@ const TopPicksScreen = ({ navigation }) => {
           {selectedIndex + 1}/{topPicks.length}
         </Text>
       </View>
+
+      {backendError && (
+        <View style={styles.backendWarning}>
+          <Ionicons name="cloud-offline" size={16} color={Colors.background.white} />
+          <Text style={styles.backendWarningText}>Backend unreachable — Top Picks offline</Text>
+          <TouchableOpacity onPress={fetchTopPicks} style={styles.backendRetry}>
+            <Text style={styles.backendRetryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Main Card */}
       <View style={styles.cardContainer}>
@@ -319,6 +339,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.background.white,
     fontWeight: '600',
+  },
+  backendWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.accent.red,
+    gap: 8,
+  },
+  backendWarningText: {
+    flex: 1,
+    color: Colors.background.white,
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
+  backendRetry: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: Colors.background.white,
+  },
+  backendRetryText: {
+    color: Colors.accent.red,
+    fontWeight: '700',
+    fontSize: 12,
   },
   cardContainer: {
     marginHorizontal: 16,

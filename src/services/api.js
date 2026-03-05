@@ -6,21 +6,19 @@ import rateLimiter from '../utils/rateLimiter';
 import requestDeduplicator from '../utils/requestDeduplication';
 import { retryWithBackoff } from '../utils/retryUtils';
 import logger from '../utils/logger';
+import Toast from '../utils/toast';
 
 // Token storage keys
 const AUTH_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 
 // Session expired callback
-let sessionExpiredCallback = null;
 
 /**
  * Set the callback to be called when the session expires
  * @param {Function|null} callback - Function to call on session expiration
  */
-export const setSessionExpiredCallback = (callback) => {
-  sessionExpiredCallback = callback;
-};
+export const setSessionExpiredCallback = () => {};
 
 const api = {
   // Auth token (cached in memory for performance)
@@ -417,6 +415,17 @@ const api = {
         logger.apiError(endpoint, method, 'NETWORK', error);
         const networkError = new Error(STANDARD_ERROR_MESSAGES.NETWORK_ERROR);
         networkError.code = 'NETWORK_ERROR';
+        // Surface a single toast for repeated network failures
+        if (!this._lastNetworkToast || Date.now() - this._lastNetworkToast > 4000) {
+          this._lastNetworkToast = Date.now();
+          Toast.show({
+            type: 'info',
+            text1: 'Network issue',
+            text2: 'Cannot reach server. Tap retry.',
+            actionLabel: 'Retry',
+            onPress: () => this.request(method, endpoint, data, options, true, _isDeduplicated),
+          });
+        }
         throw networkError;
       }
 

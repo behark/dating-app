@@ -1,4 +1,3 @@
-import { ERROR_MESSAGES } from '../constants/constants';
 import { handleApiResponse } from '../utils/apiResponseHandler';
 import logger from '../utils/logger';
 import { validateUserId } from '../utils/validators';

@@ -91,7 +91,7 @@ class IAPService {
   /**
    * Purchase a product
    */
-  async purchaseProduct(productId, options = {}) {
+  async purchaseProduct(productId, _options = {}) {
     if (!this.isAvailable) {
       throw new Error('IAP not available on web platform');
     }
@@ -109,7 +109,7 @@ class IAPService {
   /**
    * Purchase a subscription
    */
-  async purchaseSubscription(subscriptionId, options = {}) {
+  async purchaseSubscription(subscriptionId, _options = {}) {
     if (!this.isAvailable) {
       throw new Error('IAP not available on web platform');
     }
@@ -226,7 +226,7 @@ class IAPService {
 
         await IAP.endConnection();
         this.isConnected = false;
-        if (__DEV__) console.log('IAP service disconnected');
+        // Intentionally left without console log to avoid lint noise
       }
     } catch (error) {
       if (__DEV__) console.error('Failed to disconnect IAP:', error);

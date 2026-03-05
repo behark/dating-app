@@ -52,7 +52,7 @@ class AppInitializationService {
 
         // Setup notification listeners
         notificationCleanup = NotificationService.setupNotificationListeners(
-          (notification) => {
+          (_notification) => {
             logger.debug('Notification received');
             // Handle foreground notifications
           },

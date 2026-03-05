@@ -7,6 +7,7 @@ import { PremiumService } from '../../../services/PremiumService';
 import { GamificationService } from '../../../services/GamificationService';
 import AnalyticsService from '../../../services/AnalyticsService';
 import logger from '../../../utils/logger';
+import Toast from '../../../utils/toast';
 import { GUEST_DEMO_PROFILES, GUEST_FREE_VIEWS } from '../data/demoProfiles';
 
 export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
@@ -65,7 +66,18 @@ export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
         AnalyticsService.logEvent('profiles_loaded', { count: profiles?.length || 0 });
       } catch (error) {
         logger.error('Error loading cards:', error);
-        setCards([]);
+        // Fallback to demo data when backend is unreachable
+        Toast.show({
+          type: 'info',
+          text1: 'Network issue',
+          text2: 'Cannot reach server. Tap retry.',
+          actionLabel: 'Retry',
+          onPress: () => {
+            loadCards(location || userLocation, guestMode);
+          },
+        });
+        setCards(GUEST_DEMO_PROFILES);
+        setCurrentIndex(0);
       } finally {
         setLoading(false);
       }

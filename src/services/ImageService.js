@@ -171,7 +171,7 @@ export class ImageService {
     }
   }
 
-  static async deleteProfileImage(userId, imageId, imageData) {
+  static async deleteProfileImage(userId, imageId, _imageData) {
     try {
       // Delete from storage if URL is from Firebase Storage
       // Firebase storage deletion commented out since Firebase imports are removed
@@ -412,7 +412,7 @@ export class ImageService {
    * Moderate with AWS Rekognition
    * Requires: AWS credentials configured
    */
-  static async moderateWithAWSRekognition(base64Image) {
+  static async moderateWithAWSRekognition(_base64Image) {
     // Note: AWS Rekognition requires AWS SDK and proper credentials
     // This is a placeholder - implement with AWS SDK in production
     logger.warn('AWS Rekognition moderation not yet implemented');
@@ -526,7 +526,7 @@ export class ImageService {
     }
   }
 
-  static getImageQualityScore(uri) {
+  static getImageQualityScore(_uri) {
     // Basic quality scoring based on file size and dimensions
     // In production, use more sophisticated algorithms
 

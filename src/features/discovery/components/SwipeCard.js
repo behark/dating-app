@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRef } from 'react';
 import {
   Dimensions,
+  Image,
   Platform,
   StyleSheet,
   Text,
@@ -11,6 +12,8 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Colors } from '../../../constants/colors';
+import DESIGN_TOKENS from '../../../constants/designTokens';
+import { shadowToWebBoxShadow } from '../../../utils/stylePlatform';
 import { UniversalImage } from '../../../components/Image';
 import { LocationService } from '../../../services/LocationService';
 import { VerificationService } from '../../../services/VerificationService';
@@ -36,20 +39,19 @@ const {
   Platform.OS !== 'web'
     ? require('react-native-reanimated')
     : {
-         useAnimatedGestureHandler: () => ({}),
-         useAnimatedStyle: () => ({}),
-         useSharedValue: (val) => ({ value: val }),
-         withSpring: (val) => val,
-         withTiming: (val) => val,
-         runOnJS: (fn) => fn,
-         Easing: { inOut: () => ({}) },
-       };
+        useAnimatedGestureHandler: () => ({}),
+        useAnimatedStyle: () => ({}),
+        useSharedValue: (val) => ({ value: val }),
+        withSpring: (val) => val,
+        withTiming: (val) => val,
+        runOnJS: (fn) => fn,
+        Easing: { inOut: () => ({}) },
+      };
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 120;
 // CARD_SPACING removed - unused
-const PLACEHOLDER_CARD =
-  'https://placehold.co/400x600/E5E7EB/9CA3AF?text=No+Photo'; // eslint-disable-line no-secrets/no-secrets
+const PLACEHOLDER_CARD = require('../../../../assets/feature-graphic.png');
 
 const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
   // Use dynamic dimensions for better web support
@@ -59,7 +61,7 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
   const cardHeight = (Platform.OS === 'web' ? windowHeight || SCREEN_HEIGHT : SCREEN_HEIGHT) * 0.75;
 
   // Calculate card dimensions - use actual window width
-  const cardWidth = Math.max(300, screenWidth - 40); // Ensure minimum width
+  const cardWidth = Math.max(320, screenWidth - 48); // Ensure minimum width and padding
   // Calculate center position: parent is 100% width, so center is (100% - cardWidth) / 2
   // Since parent uses 100% width, we calculate based on screenWidth but account for any padding
   // The parent has no horizontal padding, so we can use screenWidth directly
@@ -187,9 +189,13 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
         testID="swipe-card"
       >
         <UniversalImage
-          source={{
-            uri: card.photoURL || process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL || PLACEHOLDER_CARD,
-          }}
+          source={
+            card.photoURL
+              ? { uri: card.photoURL }
+              : process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL
+                ? { uri: process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL }
+                : PLACEHOLDER_CARD
+          }
           style={styles.image}
           enableLazy={false} // Disable lazy loading for swipe cards
           progressive={true} // Enable progressive loading
@@ -206,7 +212,9 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
           testID="info-button"
         >
           <LinearGradient
-            colors={['rgba(102, 126, 234, 0.9)', 'rgba(118, 75, 162, 0.9)']}
+            colors={DESIGN_TOKENS.colors.gradients.discovery}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
             style={styles.infoButtonGradient}
           >
             <Ionicons name="information-circle" size={24} color={Colors.background.white} />
@@ -214,8 +222,8 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
         </TouchableOpacity>
 
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.95)']}
-          locations={[0.4, 0.7, 1]}
+          colors={['transparent', 'rgba(0,0,0,0.55)', 'rgba(0,0,0,0.9)']}
+          locations={[0.35, 0.65, 1]}
           style={styles.gradientOverlay}
         >
           <View style={styles.infoContainer}>
@@ -276,24 +284,24 @@ const styles = StyleSheet.create({
   card: {
     // Use absolute positioning for stacking cards
     position: 'absolute',
-    borderRadius: 30,
+    borderRadius: 28,
     backgroundColor: Colors.background.white,
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 15,
     overflow: 'hidden',
     ...Platform.select({
       web: {
-        // Optimize for animations
+        ...shadowToWebBoxShadow(DESIGN_TOKENS.shadows.lg),
         willChange: 'transform',
+      },
+      default: {
+        ...DESIGN_TOKENS.shadows.lg,
       },
     }),
   },
   image: {
     width: '100%',
     height: '100%',
+    aspectRatio: 2 / 3,
+    objectFit: 'cover',
   },
   infoButton: {
     position: 'absolute',

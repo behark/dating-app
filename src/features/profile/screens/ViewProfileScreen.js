@@ -14,10 +14,10 @@ import {
 import { Colors } from '../../../constants/colors';
 import api from '../../../services/api';
 import logger from '../../../utils/logger';
+import Toast from '../../../utils/toast';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const PLACEHOLDER_PROFILE =
-  'https://placehold.co/400x600/E5E7EB/9CA3AF?text=No+Photo'; // eslint-disable-line no-secrets/no-secrets
+const PLACEHOLDER_PROFILE = require('../../../../assets/feature-graphic.png');
 
 const ViewProfileScreen = ({ route, navigation }) => {
   const { userId, showCompatibility } = route.params || {};
@@ -59,6 +59,13 @@ const ViewProfileScreen = ({ route, navigation }) => {
       }
     } catch (error) {
       logger.error('Error loading profile:', error);
+      Toast.show({
+        type: 'info',
+        text1: 'Network issue',
+        text2: 'Cannot reach server. Tap retry.',
+        actionLabel: 'Retry',
+        onPress: loadProfile,
+      });
       Alert.alert(
         'Error Loading Profile',
         error.message || 'Failed to load profile. Please check your connection and try again.',
@@ -123,14 +130,17 @@ const ViewProfileScreen = ({ route, navigation }) => {
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{
-              uri:
-                profile.photoURL ||
-                profile.photos?.[0]?.url ||
-                profile.photos?.[0] ||
-                process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
-                PLACEHOLDER_PROFILE,
-            }}
+            source={
+              profile.photoURL
+                ? { uri: profile.photoURL }
+                : profile.photos?.[0]?.url
+                  ? { uri: profile.photos[0].url }
+                  : profile.photos?.[0]
+                    ? { uri: profile.photos[0] }
+                    : process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL
+                      ? { uri: process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL }
+                      : PLACEHOLDER_PROFILE
+            }
             style={styles.profileImage}
           />
         </View>

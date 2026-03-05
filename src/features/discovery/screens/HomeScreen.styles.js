@@ -1,6 +1,7 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 import { Dimensions, Platform, StyleSheet } from 'react-native';
 import { Colors } from '../../../constants/colors';
+import DESIGN_TOKENS from '../../../constants/designTokens';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -8,7 +9,7 @@ export const getStyles = (theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.background.primary,
+      backgroundColor: theme.background.primary || DESIGN_TOKENS.colors.surface,
       ...Platform.select({
         web: {
           paddingHorizontal: 0,
@@ -101,6 +102,34 @@ export const getStyles = (theme) =>
       paddingHorizontal: 20,
       paddingTop: 50,
       paddingBottom: 10,
+    },
+    backendWarning: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginHorizontal: 16,
+      marginBottom: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderRadius: 12,
+      backgroundColor: Colors.accent.red,
+      gap: 8,
+    },
+    backendWarningText: {
+      flex: 1,
+      color: Colors.background.white,
+      fontSize: 13,
+      fontWeight: '600',
+    },
+    backendRetry: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 8,
+      backgroundColor: Colors.background.white,
+    },
+    backendRetryText: {
+      color: Colors.accent.red,
+      fontWeight: '700',
+      fontSize: 12,
     },
     premiumBadge: {
       flexDirection: 'row',
@@ -220,6 +249,7 @@ export const getStyles = (theme) =>
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: SCREEN_HEIGHT * 0.75,
+      backgroundColor: DESIGN_TOKENS.colors.surface,
       ...Platform.select({
         web: {
           maxWidth: '100%',
@@ -227,6 +257,7 @@ export const getStyles = (theme) =>
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
+          padding: DESIGN_TOKENS.spacing.lg,
         },
       }),
     },
@@ -236,12 +267,14 @@ export const getStyles = (theme) =>
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: SCREEN_HEIGHT * 0.75,
+      paddingHorizontal: DESIGN_TOKENS.spacing.lg,
       ...Platform.select({
         web: {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
+          paddingHorizontal: DESIGN_TOKENS.spacing.xl,
         },
       }),
     },
@@ -268,11 +301,8 @@ export const getStyles = (theme) =>
       borderRadius: 30,
       padding: 40,
       alignItems: 'center',
-      shadowColor: Colors.text.primary,
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.3,
-      shadowRadius: 20,
-      elevation: 15,
+      backgroundColor: DESIGN_TOKENS.colors.background,
+      ...DESIGN_TOKENS.shadows.lg,
     },
     emptyTitle: {
       fontSize: 28,
@@ -316,6 +346,7 @@ export const getStyles = (theme) =>
       alignItems: 'center',
       paddingHorizontal: 20,
       gap: 15,
+      paddingBottom: Platform.OS === 'ios' ? 40 : 30,
       ...Platform.select({
         web: {
           display: 'flex',

@@ -18,6 +18,7 @@ import * as Sentry from '@sentry/react-native';
 import { Colors } from '../../constants/colors';
 import { AnalyticsService } from '../../services/AnalyticsService';
 import logger from '../../utils/logger';
+import { shadowToWebBoxShadow } from '../../utils/stylePlatform';
 
 // Constants for repeated color values
 const SEMI_TRANSPARENT_WHITE_02 = 'rgba(255,255,255,0.2)';
@@ -810,11 +811,21 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   primaryButton: {
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    ...Platform.select({
+      web: shadowToWebBoxShadow({
+        shadowColor: Colors.text.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      }),
+      default: {
+        shadowColor: Colors.text.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+      },
+    }),
   },
   primaryButtonGradient: {
     flexDirection: 'row',

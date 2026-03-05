@@ -37,7 +37,7 @@ import { useSwipeActions } from '../../../hooks/useSwipeActions';
 import HapticFeedback from '../../../utils/haptics';
 import logger from '../../../utils/logger';
 import LoginScreen from '../../auth/screens/LoginScreen';
-import { GUEST_FREE_VIEWS } from '../data/demoProfiles';
+import { GUEST_DEMO_PROFILES, GUEST_FREE_VIEWS } from '../data/demoProfiles';
 import { getStyles } from './HomeScreen.styles';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -347,8 +347,16 @@ const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
-  const loadCards = async (loc, isGuestMode = false) => {
+  const loadCards = async (loc, isGuestMode = false, options = {}) => {
     if (!isGuestMode && !userId) {
+      setLoading(false);
+      return;
+    }
+
+    // In guest mode, avoid backend calls; always use demo data unless forceRetry is explicitly passed
+    if (isGuestMode && !options.forceRetry) {
+      setCards(GUEST_DEMO_PROFILES);
+      setCurrentIndex(0);
       setLoading(false);
       return;
     }
@@ -369,18 +377,7 @@ const HomeScreen = ({ navigation }) => {
 
       let availableUsers = [];
       if (isGuestMode) {
-        // For guest users, use DiscoveryService to get demo profiles
-        const DiscoveryService = (await import('../../../services/DiscoveryService')).default;
-        const result = await DiscoveryService.exploreUsers(
-          loc?.latitude ?? userLocation?.latitude ?? 40.7128,
-          loc?.longitude ?? userLocation?.longitude ?? -74.006,
-          {
-            radius: discoveryRadius * 1000,
-            limit: 50,
-            guest: true,
-          }
-        );
-        availableUsers = result || [];
+        availableUsers = GUEST_DEMO_PROFILES;
       } else {
         // For authenticated users, use repository to get discoverable users
         availableUsers = await userRepository.getDiscoverableUsers(userId, {

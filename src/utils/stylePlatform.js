@@ -8,7 +8,7 @@ export function shadowToWebBoxShadow(style = {}) {
   const {
     shadowColor = DEFAULT_SHADOW_RGBA,
     shadowOffset = { width: 0, height: 0 },
-    shadowOpacity = 0.2,
+    shadowOpacity: _shadowOpacity = 0.2,
     shadowRadius = 0,
   } = style;
   // Normalize color with opacity if shadowColor is rgba already we trust it; otherwise apply opacity

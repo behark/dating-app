@@ -210,7 +210,17 @@ const ProfileScreen = () => {
           <Text
             style={[
               styles.headerTitle,
-              Platform.OS === 'web' ? textShadowToWeb(styles.headerTitle) : null,
+              Platform.OS === 'web'
+                ? textShadowToWeb({
+                    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                    textShadowOffset: { width: 0, height: 2 },
+                    textShadowRadius: 4,
+                  })
+                : {
+                    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+                    textShadowOffset: { width: 0, height: 2 },
+                    textShadowRadius: 4,
+                  },
             ]}
           >
             Edit Profile
@@ -218,9 +228,7 @@ const ProfileScreen = () => {
           <Text style={styles.headerSubtitle}>Make your profile stand out</Text>
         </View>
 
-        <View
-          style={[styles.card, Platform.OS === 'web' ? shadowToWebBoxShadow(styles.card) : null]}
-        >
+        <View style={[styles.card, styles.cardShadow]}>
           <TouchableOpacity
             onPress={() => {
               HapticFeedback.lightImpact();
@@ -236,12 +244,7 @@ const ProfileScreen = () => {
                 <Text style={styles.placeholderText}>Tap to add photo</Text>
               </LinearGradient>
             )}
-            <View
-              style={[
-                styles.editBadge,
-                Platform.OS === 'web' ? shadowToWebBoxShadow(styles.editBadge) : null,
-              ]}
-            >
+            <View style={[styles.editBadge, styles.editBadgeShadow]}>
               <Ionicons name="images" size={16} color={Colors.background.white} />
             </View>
           </TouchableOpacity>
@@ -316,10 +319,7 @@ const ProfileScreen = () => {
           <Text style={styles.helpText}>💡 Tip: Upload to Imgur or ImgBB and paste the URL</Text>
 
           <TouchableOpacity
-            style={[
-              styles.saveButton,
-              Platform.OS === 'web' ? shadowToWebBoxShadow(styles.saveButton) : null,
-            ]}
+            style={[styles.saveButton, styles.saveButtonShadow]}
             onPress={saveProfile}
             disabled={loading}
             activeOpacity={0.8}
@@ -466,10 +466,7 @@ const ProfileScreen = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.premiumButton,
-                Platform.OS === 'web' ? shadowToWebBoxShadow(styles.premiumButton) : null,
-              ]}
+              style={[styles.premiumButton, styles.premiumButtonShadow]}
               onPress={() => {
                 HapticFeedback.mediumImpact();
                 navigation.navigate('Premium');
@@ -530,9 +527,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.background.white,
     marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
   },
   headerSubtitle: {
     fontSize: 16,
@@ -544,12 +538,22 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     padding: 25,
     marginTop: 20,
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 10,
   },
+  cardShadow: Platform.select({
+    web: shadowToWebBoxShadow({
+      shadowColor: Colors.text.primary,
+      shadowOffset: { width: 0, height: -4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 10,
+    }),
+    default: {
+      shadowColor: Colors.text.primary,
+      shadowOffset: { width: 0, height: -4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 10,
+      elevation: 10,
+    },
+  }),
   imageContainer: {
     alignItems: 'center',
     marginBottom: 30,
@@ -589,12 +593,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 3,
     borderColor: Colors.background.white,
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
   },
+  editBadgeShadow: Platform.select({
+    web: shadowToWebBoxShadow({
+      shadowColor: Colors.text.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+    }),
+    default: {
+      shadowColor: Colors.text.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+  }),
   inputGroup: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -635,12 +649,22 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 15,
     overflow: 'hidden',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
+  saveButtonShadow: Platform.select({
+    web: shadowToWebBoxShadow({
+      shadowColor: Colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+    }),
+    default: {
+      shadowColor: Colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+  }),
   saveButtonGradient: {
     flexDirection: 'row',
     paddingVertical: 16,
@@ -676,12 +700,22 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     overflow: 'hidden',
     marginTop: 10,
-    shadowColor: Colors.accent.gold,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
+  premiumButtonShadow: Platform.select({
+    web: shadowToWebBoxShadow({
+      shadowColor: Colors.accent.gold,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+    }),
+    default: {
+      shadowColor: Colors.accent.gold,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+  }),
   premiumButtonGradient: {
     flexDirection: 'row',
     paddingVertical: 15,

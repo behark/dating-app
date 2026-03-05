@@ -14,7 +14,10 @@ import {
   View,
 } from 'react-native';
 import EmptyState from '../../../components/common/EmptyState';
+import ModernCard from '../../../components/ModernCard';
 import { Colors } from '../../../constants/colors';
+import DESIGN_TOKENS from '../../../constants/designTokens';
+import Toast from '../../../utils/toast';
 import { useAuth } from '../../../context/AuthContext';
 import { useChat } from '../../../context/ChatContext';
 import { PremiumService } from '../../../services/PremiumService';
@@ -23,8 +26,7 @@ import { getUserFriendlyMessage } from '../../../utils/errorMessages';
 import logger from '../../../utils/logger';
 import { DEMO_MATCHES, DEMO_LIKES_RECEIVED } from '../data/demoMatches';
 
-const PLACEHOLDER_THUMB =
-  'https://placehold.co/100x100/E5E7EB/9CA3AF?text=No+Photo'; // eslint-disable-line no-secrets/no-secrets
+const PLACEHOLDER_THUMB = require('../../../../assets/icon.png');
 
 const MatchesScreen = () => {
   const navigation = useNavigation();
@@ -35,6 +37,7 @@ const MatchesScreen = () => {
   const [isPremium, setIsPremium] = useState(false);
   const [receivedLikes, setReceivedLikes] = useState([]);
   const [showLikes, setShowLikes] = useState(false);
+  const [backendError, setBackendError] = useState(false);
 
   // Track current request to prevent race conditions
   const requestIdRef = useRef(0);
@@ -118,29 +121,25 @@ const MatchesScreen = () => {
       if (requestId !== requestIdRef.current) return;
       setLoading(false);
       setRefreshing(false);
+      setBackendError(false);
     } catch (error) {
       // Check if request is still valid before showing error
       if (requestId !== requestIdRef.current) return;
 
       logger.error('Error loading conversations:', error);
+      Toast.show({
+        type: 'info',
+        text1: 'Network issue',
+        text2: 'Cannot reach server. Tap retry.',
+        actionLabel: 'Retry',
+        onPress: () => {
+          const newRequestId = ++requestIdRef.current;
+          loadConversationsList(newRequestId);
+        },
+      });
       setLoading(false);
       setRefreshing(false);
-
-      // Show user-friendly error message
-      const errorMessage = getUserFriendlyMessage(error, 'load');
-      Alert.alert('Unable to Load Matches', errorMessage, [
-        {
-          text: 'Retry',
-          onPress: () => {
-            const newRequestId = ++requestIdRef.current;
-            loadConversationsList(newRequestId);
-          },
-        },
-        {
-          text: 'OK',
-          style: 'cancel',
-        },
-      ]);
+      setBackendError(true);
     }
   };
 
@@ -151,102 +150,97 @@ const MatchesScreen = () => {
   };
 
   const renderConversation = ({ item }) => (
-    <TouchableOpacity
-      style={styles.matchCard}
-      onPress={() =>
-        navigation.navigate('Chat', {
-          matchId: item.matchId,
-          otherUser: item.otherUser,
-        })
-      }
-      activeOpacity={0.8}
-    >
-      <TouchableOpacity
-        style={styles.profileButton}
-        onPress={() => navigation.navigate('ViewProfile', { userId: item.otherUser._id })}
-        activeOpacity={0.8}
-      >
-        <View style={styles.imageContainer}>
-          <Image
-            source={{
-              uri:
-                item.otherUser.photos?.[0]?.url ||
-                item.otherUser.photos?.[0] ||
-                process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL ||
-                PLACEHOLDER_THUMB,
-            }}
-            style={styles.matchImage}
-          />
-          <View style={styles.onlineIndicator} />
-        </View>
-      </TouchableOpacity>
-      <View style={styles.matchInfo}>
-        <View style={styles.nameRow}>
-          <Text style={styles.matchName}>{item.otherUser?.name || 'Unknown'}</Text>
-          {item.unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>{item.unreadCount}</Text>
-            </View>
-          )}
-        </View>
-        <View style={styles.matchDetails}>
-          {item.latestMessage ? (
-            <Text style={styles.lastMessage} numberOfLines={1}>
-              {item.latestMessage.content}
+    <View style={styles.cardWrapper}>
+      <ModernCard style={styles.matchCard}>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => navigation.navigate('ViewProfile', { userId: item.otherUser._id })}
+          activeOpacity={0.8}
+        >
+          <View style={styles.imageContainer}>
+            <Image
+              source={
+                item.otherUser.photos?.[0]?.url
+                  ? { uri: item.otherUser.photos[0].url }
+                  : item.otherUser.photos?.[0]
+                    ? { uri: item.otherUser.photos[0] }
+                    : process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL
+                      ? { uri: process.env.EXPO_PUBLIC_PLACEHOLDER_IMAGE_URL }
+                      : PLACEHOLDER_THUMB
+              }
+              style={styles.matchImage}
+            />
+            <View style={styles.onlineIndicator} />
+          </View>
+        </TouchableOpacity>
+
+        <View style={styles.matchInfo}>
+          <View style={styles.nameRow}>
+            <Text style={styles.matchName} numberOfLines={1}>
+              {item.otherUser?.name || 'Unknown'}
             </Text>
-          ) : (
-            <Text style={styles.noMessages}>No messages yet</Text>
-          )}
+            {item.unreadCount > 0 && (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadText}>{item.unreadCount}</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.matchAgeText}>
+            {item.otherUser?.age ? `${item.otherUser.age}` : ''}
+          </Text>
+          <View style={styles.matchDetails}>
+            {item.latestMessage ? (
+              <Text style={styles.lastMessage} numberOfLines={2}>
+                {item.latestMessage.content}
+              </Text>
+            ) : (
+              <Text style={styles.noMessages}>No messages yet</Text>
+            )}
+          </View>
         </View>
-      </View>
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          onPress={() => handleUnmatch(item.otherUser?._id, item.otherUser?.name)}
-          activeOpacity={0.8}
-          style={styles.unmatchButton}
-        >
-          <Ionicons name="close-circle" size={24} color={Colors.accent.red} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('ViewProfile', {
-              userId: item.otherUser._id,
-              showCompatibility: true,
-            })
-          }
-          activeOpacity={0.8}
-          style={styles.compatibilityButton}
-        >
-          <Ionicons name="heart" size={20} color={Colors.accent.pink} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('SafetyAdvanced', {
-              userId: currentUser.uid,
-              isPremium: true,
-              preSelectTab: 'date-plans',
-            })
-          }
-          activeOpacity={0.8}
-          style={styles.datePlanButton}
-        >
-          <Ionicons name="calendar" size={20} color={Colors.status.warning} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('Chat', {
-              matchId: item.matchId,
-              otherUser: item.otherUser,
-            })
-          }
-          activeOpacity={0.8}
-        >
-          <LinearGradient colors={Colors.gradient.primary} style={styles.chatButton}>
-            <Ionicons name="chatbubble" size={20} color={Colors.text.white} />
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
+
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            onPress={() => handleUnmatch(item.otherUser?._id, item.otherUser?.name)}
+            activeOpacity={0.8}
+            style={styles.iconPill}
+          >
+            <Ionicons name="close-circle" size={20} color={Colors.accent.red} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('ViewProfile', {
+                userId: item.otherUser._id,
+                showCompatibility: true,
+              })
+            }
+            activeOpacity={0.8}
+            style={styles.iconPill}
+          >
+            <Ionicons name="heart" size={18} color={Colors.accent.pink} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('Chat', {
+                matchId: item.matchId,
+                otherUser: item.otherUser,
+              })
+            }
+            activeOpacity={0.8}
+            style={styles.chatPill}
+          >
+            <LinearGradient
+              colors={DESIGN_TOKENS.colors.gradients.matches}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.chatPillGradient}
+            >
+              <Ionicons name="chatbubble" size={18} color={Colors.text.white} />
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </ModernCard>
+    </View>
   );
 
   const handleUnmatch = (userId, userName) => {
@@ -288,7 +282,7 @@ const MatchesScreen = () => {
   }
 
   return (
-    <LinearGradient colors={Colors.gradient.light} style={styles.container}>
+    <LinearGradient colors={DESIGN_TOKENS.colors.gradients.matches} style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>
           {showLikes ? 'People Who Liked You' : 'Your Conversations'}
@@ -329,6 +323,15 @@ const MatchesScreen = () => {
           </View>
         )}
       </View>
+      {backendError && (
+        <View style={styles.backendWarning}>
+          <Ionicons name="cloud-offline" size={16} color={Colors.background.white} />
+          <Text style={styles.backendWarningText}>Network issue — using demo data</Text>
+          <TouchableOpacity onPress={() => onRefresh()} style={styles.backendRetry}>
+            <Text style={styles.backendRetryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       {showLikes ? (
         receivedLikes.length === 0 ? (
           <FlatList
@@ -465,6 +468,8 @@ const MatchesScreen = () => {
           data={DEMO_MATCHES}
           renderItem={renderConversation}
           keyExtractor={(item) => item.matchId}
+          numColumns={2}
+          columnWrapperStyle={styles.column}
           removeClippedSubviews={true}
           maxToRenderPerBatch={10}
           windowSize={10}
@@ -483,6 +488,8 @@ const MatchesScreen = () => {
           data={conversations}
           renderItem={renderConversation}
           keyExtractor={(item) => item.matchId}
+          numColumns={2}
+          columnWrapperStyle={styles.column}
           removeClippedSubviews={true}
           maxToRenderPerBatch={10}
           windowSize={10}
@@ -506,19 +513,48 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
   },
   title: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: '800',
-    color: Colors.text.dark,
+    color: Colors.background.white,
     marginBottom: 5,
   },
   subtitle: {
-    fontSize: 16,
-    color: Colors.text.secondary,
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.85)',
     fontWeight: '600',
+  },
+  backendWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginTop: 6,
+    marginBottom: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.accent.red,
+    gap: 8,
+  },
+  backendWarningText: {
+    flex: 1,
+    color: Colors.background.white,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  backendRetry: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: Colors.background.white,
+  },
+  backendRetryText: {
+    color: Colors.accent.red,
+    fontWeight: '700',
+    fontSize: 12,
   },
   toggleContainer: {
     flexDirection: 'row',
-    backgroundColor: Colors.background.lightest,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 20,
     padding: 4,
     marginTop: 15,
@@ -533,8 +569,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   toggleButtonActive: {
-    backgroundColor: Colors.primary,
-    shadowColor: Colors.primary,
+    backgroundColor: Colors.background.white,
+    shadowColor: Colors.background.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -543,11 +579,11 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.primary,
+    color: Colors.background.white,
     marginLeft: 4,
   },
   toggleTextActive: {
-    color: Colors.text.white,
+    color: Colors.text.dark,
   },
   loadingContainer: {
     flex: 1,
@@ -561,72 +597,62 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   list: {
-    padding: 20,
+    paddingHorizontal: 16,
     paddingTop: 10,
     flexGrow: 1,
   },
+  column: {
+    gap: 12,
+  },
+  cardWrapper: {
+    flex: 1,
+    padding: 6,
+  },
   matchCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.background.white,
-    borderRadius: 20,
-    padding: 15,
-    marginBottom: 15,
-    width: '100%',
-    shadowColor: Colors.background.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
+    padding: 12,
+    borderRadius: DESIGN_TOKENS.borderRadius.lg,
+    gap: 10,
   },
   imageContainer: {
     position: 'relative',
-    marginRight: 15,
   },
   profileButton: {
-    marginRight: 15,
+    marginBottom: 6,
   },
   matchImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    borderWidth: 3,
+    width: '100%',
+    height: 160,
+    borderRadius: DESIGN_TOKENS.borderRadius.md,
+    borderWidth: 2,
     borderColor: Colors.primary,
   },
   actionButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'space-between',
+    gap: 8,
   },
-  unmatchButton: {
+  iconPill: {
     padding: 8,
+    borderRadius: 12,
+    backgroundColor: Colors.background.white,
+    shadowColor: Colors.text.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  compatibilityButton: {
-    padding: 8,
+  chatPill: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  datePlanButton: {
-    padding: 8,
-  },
-  chatButton: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
-    justifyContent: 'center',
+  chatPillGradient: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     alignItems: 'center',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  chatButtonDisabled: {
-    width: 45,
-    height: 45,
-    borderRadius: 22.5,
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.background.lightest,
-    opacity: 0.5,
+    borderRadius: 12,
   },
   onlineIndicator: {
     position: 'absolute',
@@ -643,7 +669,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.accent.gold,
-    backgroundColor: Colors.background.lightest,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
@@ -651,16 +677,23 @@ const styles = StyleSheet.create({
   },
   matchInfo: {
     flex: 1,
+    gap: 4,
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: 4,
   },
   matchName: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     color: Colors.text.dark,
+    flex: 1,
+  },
+  matchAgeText: {
+    fontSize: 14,
+    color: Colors.text.secondary,
+    fontWeight: '600',
   },
   matchDetails: {
     flexDirection: 'row',
@@ -691,6 +724,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.text.secondary,
     flex: 1,
+    lineHeight: 18,
   },
   noMessages: {
     fontSize: 14,

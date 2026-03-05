@@ -56,7 +56,7 @@ export class NotificationService {
    * Register for push notifications
    * @returns {Promise<string|null>} Expo push token or null if failed
    */
-  static async registerForPushNotifications(userId) {
+  static async registerForPushNotifications(_userId) {
     // Push notifications don't work on web
     if (Platform.OS === 'web') {
       logger.debug('Push notifications not supported on web platform');

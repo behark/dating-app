@@ -264,6 +264,8 @@ const LoginScreen = ({ navigation, onAuthSuccess, isModal }) => {
                 accessibilityLabel="Email address input"
                 accessibilityHint="Enter your email address to sign in"
                 accessibilityRole="textbox"
+                // Web: form input association
+                nativeID="auth-email-input"
               />
             </View>
 
@@ -285,6 +287,8 @@ const LoginScreen = ({ navigation, onAuthSuccess, isModal }) => {
                 accessibilityLabel="Password input"
                 accessibilityHint="Enter your password"
                 accessibilityRole="textbox"
+                // Web: associate with form for accessibility
+                nativeID="auth-password-input"
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}

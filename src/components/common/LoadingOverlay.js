@@ -124,7 +124,15 @@ const LoadingOverlay = memo(
           { opacity: fadeAnim, backgroundColor },
           type === 'transparent' && styles.transparentContainer,
         ]}
-        pointerEvents={transparent ? 'none' : 'auto'}
+        {...(Platform.OS === 'web'
+          ? {
+              style: [
+                { ...styles.container, opacity: fadeAnim, backgroundColor },
+                type === 'transparent' && styles.transparentContainer,
+                { pointerEvents: transparent ? 'none' : 'auto' },
+              ],
+            }
+          : { pointerEvents: transparent ? 'none' : 'auto' })}
       >
         <Animated.View style={[styles.content, { transform: [{ scale: pulseAnim }] }]}>
           <View style={styles.spinnerContainer}>

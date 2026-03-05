@@ -7,6 +7,7 @@ import { Colors } from '../../../constants/colors';
 import { PremiumService } from '../../../services/PremiumService';
 import { useAuth } from '../../../context/AuthContext';
 import { showStandardError } from '../../../utils/errorHandler';
+import Toast from '../../../utils/toast';
 import logger from '../../../utils/logger';
 
 const PremiumScreen = ({ navigation }) => {
@@ -14,6 +15,7 @@ const PremiumScreen = ({ navigation }) => {
   const [premiumStatus, setPremiumStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const [backendError, setBackendError] = useState(false);
 
   useEffect(() => {
     loadPremiumStatus();
@@ -24,8 +26,17 @@ const PremiumScreen = ({ navigation }) => {
     try {
       const status = await PremiumService.checkPremiumStatus(currentUser.uid);
       setPremiumStatus(status);
+      setBackendError(false);
     } catch (error) {
       logger.error('Error loading premium status:', error);
+      setBackendError(true);
+      Toast.show({
+        type: 'info',
+        text1: 'Network issue',
+        text2: 'Cannot reach server. Tap retry.',
+        actionLabel: 'Retry',
+        onPress: loadPremiumStatus,
+      });
       showStandardError(error, 'load', 'Unable to Load');
     } finally {
       setLoading(false);
@@ -177,6 +188,15 @@ const PremiumScreen = ({ navigation }) => {
       </LinearGradient>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {backendError && (
+          <View style={styles.backendWarning}>
+            <Ionicons name="cloud-offline" size={16} color={Colors.background.white} />
+            <Text style={styles.backendWarningText}>Network issue — data may be cached</Text>
+            <TouchableOpacity onPress={loadPremiumStatus} style={styles.backendRetry}>
+              <Text style={styles.backendRetryText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         <View style={styles.content}>
           {/* Current Status */}
           {premiumStatus?.isPremium ? (
@@ -369,6 +389,35 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.background.white,
     fontWeight: '600',
+  },
+  backendWarning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.accent.red,
+    gap: 8,
+  },
+  backendWarningText: {
+    flex: 1,
+    color: Colors.background.white,
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
+  backendRetry: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: Colors.background.white,
+  },
+  backendRetryText: {
+    color: Colors.accent.red,
+    fontWeight: '700',
+    fontSize: 12,
   },
   scrollView: {
     flex: 1,

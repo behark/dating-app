@@ -87,7 +87,7 @@ export const initSentry = (options = {}) => {
       // Send default PII (personally identifiable information) - adjust based on privacy requirements
       sendDefaultPii: false,
       // Before send hook - filter sensitive data
-      beforeSend(event, hint) {
+      beforeSend(event, _hint) {
         // Remove sensitive data from error events
         if (event.request?.data && typeof event.request.data === 'string') {
           try {

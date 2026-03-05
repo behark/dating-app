@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import EmptyState from '../../../components/common/EmptyState';
 import { Colors } from '../../../constants/colors';
+import DESIGN_TOKENS from '../../../constants/designTokens';
 import { useAuth } from '../../../context/AuthContext';
 import { useChat } from '../../../context/ChatContext';
 import AnalyticsService from '../../../services/AnalyticsService';
@@ -378,7 +379,12 @@ const ChatScreen = ({ route, navigation }) => {
               )}
             </View>
           ) : isMe ? (
-            <LinearGradient colors={Colors.gradient.primary} style={styles.myMessage}>
+            <LinearGradient
+              colors={DESIGN_TOKENS.colors.gradients.chat}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.myMessage}
+            >
               <Text style={[styles.myMessageText, textStyle]}>{displayContent}</Text>
               <View style={styles.messageFooter}>
                 <Text style={styles.myTimestamp}>{time}</Text>
@@ -412,13 +418,18 @@ const ChatScreen = ({ route, navigation }) => {
   );
 
   return (
-    <LinearGradient colors={Colors.gradient.light} style={styles.container}>
+    <LinearGradient colors={DESIGN_TOKENS.colors.gradients.chat} style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
         keyboardVerticalOffset={90}
       >
-        <LinearGradient colors={Colors.gradient.primary} style={styles.header}>
+        <LinearGradient
+          colors={DESIGN_TOKENS.colors.gradients.chat}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.header}
+        >
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={Colors.background.white} />
           </TouchableOpacity>
@@ -519,7 +530,7 @@ const ChatScreen = ({ route, navigation }) => {
             <LinearGradient
               colors={
                 messageText.trim() && isConnected
-                  ? Colors.gradient.primary
+                  ? DESIGN_TOKENS.colors.gradients.chat
                   : Colors.gradient.disabled
               }
               style={styles.sendButtonGradient}
@@ -612,7 +623,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   theirMessage: {
-    backgroundColor: Colors.background.white,
+    backgroundColor: DESIGN_TOKENS.colors.surface,
     padding: 12,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -627,13 +638,13 @@ const styles = StyleSheet.create({
   myMessageText: {
     color: Colors.background.white,
     fontSize: 16,
-    lineHeight: 20,
+    lineHeight: 22,
     marginBottom: 4,
   },
   theirMessageText: {
-    color: Colors.text.dark,
+    color: DESIGN_TOKENS.colors.text.primary,
     fontSize: 16,
-    lineHeight: 20,
+    lineHeight: 22,
     marginBottom: 4,
   },
   messageFooter: {
@@ -668,7 +679,7 @@ const styles = StyleSheet.create({
   },
   theirTimestamp: {
     fontSize: 11,
-    color: Colors.text.tertiary,
+    color: DESIGN_TOKENS.colors.text.tertiary,
     alignSelf: 'flex-end',
   },
   loadingContainer: {
@@ -708,17 +719,17 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     flex: 1,
-    backgroundColor: Colors.background.lightest,
+    backgroundColor: DESIGN_TOKENS.colors.surface,
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: Colors.border.gray,
+    borderColor: 'rgba(0,0,0,0.05)',
     marginRight: 10,
   },
   input: {
     paddingHorizontal: 20,
     paddingVertical: 12,
     fontSize: 16,
-    color: Colors.text.dark,
+    color: DESIGN_TOKENS.colors.text.primary,
     maxHeight: 100,
   },
   sendButton: {

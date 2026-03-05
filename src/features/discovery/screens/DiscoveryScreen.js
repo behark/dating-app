@@ -20,8 +20,11 @@ import {
 import SkeletonCard from '../components/SkeletonCard';
 import SwipeCard from '../components/SwipeCard';
 import EmptyState from '../../../components/common/EmptyState';
+import GradientButton from '../../../components/GradientButton';
+import ModernCard from '../../../components/ModernCard';
 import MicroAnimations from '../../../components/common/MicroAnimations';
 import { Colors } from '../../../constants/colors';
+import DESIGN_TOKENS from '../../../constants/designTokens';
 import { UI_MESSAGES } from '../../../constants/constants';
 import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
@@ -39,7 +42,8 @@ import { GuestModeBanner, PremiumHeader, ActionButtons } from '../components';
 import HapticFeedback from '../../../utils/haptics';
 import logger from '../../../utils/logger';
 import LoginScreen from '../../auth/screens/LoginScreen';
-import { GUEST_FREE_VIEWS } from '../data/demoProfiles';
+import { GUEST_DEMO_PROFILES, GUEST_FREE_VIEWS } from '../data/demoProfiles';
+import Toast from '../../../utils/toast';
 import { getStyles } from './HomeScreen.styles';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -79,6 +83,7 @@ const HomeScreen = ({ navigation }) => {
   const [locationUpdating, setLocationUpdating] = useState(false);
   const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [backendError, setBackendError] = useState(false);
 
   // Success animation state
   const [successMessage, setSuccessMessage] = useState('');
@@ -344,9 +349,18 @@ const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
-  const loadCards = async (loc, isGuestMode = false) => {
+  const loadCards = async (loc, isGuestMode = false, options = {}) => {
     if (!isGuestMode && !userId) {
       setLoading(false);
+      return;
+    }
+
+    // In guest mode, skip backend entirely and use demo profiles
+    if (isGuestMode) {
+      setCards(GUEST_DEMO_PROFILES);
+      setCurrentIndex(0);
+      setLoading(false);
+      setBackendError(false);
       return;
     }
 
@@ -358,6 +372,14 @@ const HomeScreen = ({ navigation }) => {
         'Please check your internet connection and try again.',
         [{ text: 'OK' }]
       );
+      return;
+    }
+
+    // If we already know backend is down and this isn't an explicit retry, stay on demo data
+    if (backendError && !options.forceRetry) {
+      setCards(GUEST_DEMO_PROFILES);
+      setCurrentIndex(0);
+      setLoading(false);
       return;
     }
 
@@ -430,12 +452,21 @@ const HomeScreen = ({ navigation }) => {
       setCards(shuffled);
       setCurrentIndex(0);
       setLoading(false);
+      setBackendError(false);
     } catch (error) {
       logger.error('Error loading cards:', error);
       // Show empty state when backend is not available
-      setCards([]);
+      Toast.show({
+        type: 'info',
+        text1: 'Network issue',
+        text2: 'Cannot reach server. Tap retry.',
+        actionLabel: 'Retry',
+        onPress: () => loadCards(loc, isGuestMode, { forceRetry: true }),
+      });
+      setCards(GUEST_DEMO_PROFILES);
       setCurrentIndex(0);
       setLoading(false);
+      setBackendError(true);
     }
   };
 
@@ -656,23 +687,25 @@ const HomeScreen = ({ navigation }) => {
 
   if (needsProfile) {
     return (
-      <LinearGradient colors={Colors.gradient.primary} style={styles.container}>
+      <LinearGradient colors={DESIGN_TOKENS.colors.gradients.discovery} style={styles.container}>
         <ScrollView
           contentContainerStyle={styles.emptyContainer}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-          <EmptyState
-            icon="person-add-outline"
-            title="Complete Your Profile ✨"
-            description="Add your name, photo, and bio to start matching with amazing people!"
-            buttonText="Complete Profile"
-            onButtonPress={() => {
-              HapticFeedback.lightImpact();
-              navigation.navigate('Profile');
-            }}
-            variant="gradient"
-            iconSize={80}
-          />
+          <ModernCard style={{ width: '90%' }}>
+            <EmptyState
+              icon="person-add-outline"
+              title="Complete Your Profile ✨"
+              description="Add your name, photo, and bio to start matching with amazing people!"
+              buttonText="Complete Profile"
+              onButtonPress={() => {
+                HapticFeedback.lightImpact();
+                navigation.navigate('Profile');
+              }}
+              variant="simple"
+              iconSize={80}
+            />
+          </ModernCard>
         </ScrollView>
       </LinearGradient>
     );
@@ -682,7 +715,7 @@ const HomeScreen = ({ navigation }) => {
   const loginPrompt = getLoginPromptMessage();
 
   return (
-    <LinearGradient colors={theme.gradient.primary} style={styles.container}>
+    <LinearGradient colors={DESIGN_TOKENS.colors.gradients.discovery} style={styles.container}>
       {/* Animations */}
       <MicroAnimations.HeartAnimation
         visible={showHeartAnimation}
@@ -708,17 +741,12 @@ const HomeScreen = ({ navigation }) => {
               </Text>
             )}
           </View>
-          <TouchableOpacity
-            style={[
-              styles.guestSignUpButton,
-              guestViewCount >= GUEST_FREE_VIEWS && styles.guestSignUpButtonUrgent,
-            ]}
+          <GradientButton
             onPress={() => promptLogin('banner')}
-          >
-            <Text style={styles.guestSignUpButtonText}>
-              {guestViewCount >= GUEST_FREE_VIEWS ? '🚀 Sign Up Now' : 'Join Free'}
-            </Text>
-          </TouchableOpacity>
+            title={guestViewCount >= GUEST_FREE_VIEWS ? '🚀 Sign Up Now' : 'Join Free'}
+            gradient="discovery"
+            size="sm"
+          />
         </View>
       )}
 
@@ -727,7 +755,10 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.premiumHeader}>
           <View style={styles.headerLeftSection}>
             {isPremium ? (
-              <LinearGradient colors={Colors.gradient.gold} style={styles.premiumBadge}>
+              <LinearGradient
+                colors={DESIGN_TOKENS.colors.gradients.premium}
+                style={styles.premiumBadge}
+              >
                 <Ionicons name="diamond" size={16} color={Colors.background.white} />
                 <Text style={styles.premiumText}>PREMIUM</Text>
               </LinearGradient>
@@ -775,6 +806,16 @@ const HomeScreen = ({ navigation }) => {
               </Text>
             </View>
           </View>
+        </View>
+      )}
+
+      {backendError && (
+        <View style={styles.backendWarning}>
+          <Ionicons name="cloud-offline" size={16} color={Colors.background.white} />
+          <Text style={styles.backendWarningText}>Network issue — using demo data</Text>
+          <TouchableOpacity onPress={() => loadCards(null, isGuest)} style={styles.backendRetry}>
+            <Text style={styles.backendRetryText}>Retry</Text>
+          </TouchableOpacity>
         </View>
       )}
 

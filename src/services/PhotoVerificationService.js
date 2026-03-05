@@ -217,7 +217,7 @@ export class PhotoVerificationService {
   }
 
   // Reject verification (admin) - would need admin API endpoint
-  static async rejectVerification(userId, reason = 'Photo does not meet requirements') {
+  static async rejectVerification(userId, _reason = 'Photo does not meet requirements') {
     try {
       // This would need an admin endpoint like PUT /admin/verifications/:userId/reject
       logger.warn('rejectVerification: Admin endpoint not available');

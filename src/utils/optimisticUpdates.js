@@ -72,7 +72,7 @@ export const optimisticAdd = (list, setList, newItem) => {
  */
 export const optimisticUpdate = (list, setList, itemId, updates) => {
   const itemIndex = list.findIndex((item) => item.id === itemId || item._id === itemId);
-  const previousItem = itemIndex >= 0 ? list[itemIndex] : null;
+  const _previousItem = itemIndex >= 0 ? list[itemIndex] : null;
   const previousList = [...list];
 
   return createOptimisticUpdate(
@@ -98,7 +98,7 @@ export const optimisticUpdate = (list, setList, itemId, updates) => {
  */
 export const optimisticRemove = (list, setList, itemId) => {
   const itemIndex = list.findIndex((item) => item.id === itemId || item._id === itemId);
-  const removedItem = itemIndex >= 0 ? list[itemIndex] : null;
+  const _removedItem = itemIndex >= 0 ? list[itemIndex] : null;
   const previousList = [...list];
 
   return createOptimisticUpdate(

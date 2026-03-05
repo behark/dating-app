@@ -159,7 +159,7 @@ export class VerificationService {
     }
   }
 
-  static async reviewVerification(requestId, reviewerId, approved, reviewNotes = '') {
+  static async reviewVerification(requestId, reviewerId, approved, _reviewNotes = '') {
     try {
       // This would need an admin endpoint like PUT /admin/verifications/:requestId/review
       logger.warn('reviewVerification: Admin endpoint not available', {
