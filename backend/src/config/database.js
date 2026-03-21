@@ -52,7 +52,7 @@ const mongoOptions = {
   retryWrites: true, // Retry failed writes
   retryReads: true, // Retry failed reads
   w: 'majority', // Write concern - majority ensures data durability
-  bufferCommands: false, // Fail fast if not connected (serverless)
+  bufferCommands: isServerless ? true : false, // Buffer in serverless (connection may be pending), fail fast otherwise
 
   // Heartbeat and monitoring
   heartbeatFrequencyMS: isServerless ? 30000 : 10000,
