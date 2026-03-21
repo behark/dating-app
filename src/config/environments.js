@@ -1,3 +1,5 @@
+import logger from '../utils/logger';
+
 // Environment configuration management
 export const ENVIRONMENTS = {
   DEVELOPMENT: 'development',
@@ -121,7 +123,7 @@ export class EnvironmentConfig {
     const missing = requiredVars.filter((varName) => !process.env[varName]);
 
     if (missing.length > 0) {
-      console.error('Missing required environment variables:', missing);
+      logger.error('Missing required environment variables:', missing);
       return false;
     }
 

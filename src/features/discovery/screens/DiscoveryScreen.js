@@ -5,15 +5,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
-  Dimensions,
   InteractionManager,
   Modal,
-  Platform,
   RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from 'react-native';
 // Component imports - using relative paths within feature
@@ -25,7 +22,6 @@ import ModernCard from '../../../components/ModernCard';
 import MicroAnimations from '../../../components/common/MicroAnimations';
 import { Colors } from '../../../constants/colors';
 import DESIGN_TOKENS from '../../../constants/designTokens';
-import { UI_MESSAGES } from '../../../constants/constants';
 import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
 import { getUserRepository } from '../../../services/repositories';
@@ -38,7 +34,6 @@ import { PremiumService } from '../../../services/PremiumService';
 import { SwipeController } from '../../../services/SwipeController';
 import { useNetworkStatus } from '../../../hooks/useNetworkStatus';
 import { useSwipeActions } from '../../../hooks/useSwipeActions';
-import { GuestModeBanner, PremiumHeader, ActionButtons } from '../components';
 import HapticFeedback from '../../../utils/haptics';
 import logger from '../../../utils/logger';
 import LoginScreen from '../../auth/screens/LoginScreen';
@@ -46,13 +41,10 @@ import { GUEST_DEMO_PROFILES, GUEST_FREE_VIEWS } from '../data/demoProfiles';
 import Toast from '../../../utils/toast';
 import { getStyles } from './HomeScreen.styles';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
 const HomeScreen = ({ navigation }) => {
   const { currentUser, authToken, loading: authLoading } = useAuth();
   const { theme } = useTheme();
   const { isOnline } = useNetworkStatus();
-  const { width: windowWidth } = useWindowDimensions();
   const styles = getStyles(theme);
 
   // Get the user ID (supports both uid and _id) - moved before useSwipeActions

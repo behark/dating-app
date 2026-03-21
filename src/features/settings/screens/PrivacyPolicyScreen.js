@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Linking } from 'react-native';
 import { Colors } from '../../../constants/colors';
+import logger from '../../../utils/logger';
 
 const PrivacyPolicyScreen = ({ navigation }) => {
   const handleOpenWebVersion = () => {
@@ -9,7 +10,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
     const privacyPolicyUrl =
       process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL || 'https://your-domain.com/privacy-policy';
     Linking.openURL(privacyPolicyUrl).catch((err) =>
-      console.error('Failed to open privacy policy URL:', err)
+      logger.error('Failed to open privacy policy URL:', err)
     );
   };
 

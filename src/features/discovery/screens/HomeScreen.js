@@ -5,15 +5,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
-  Dimensions,
   InteractionManager,
   Modal,
-  Platform,
   RefreshControl,
   ScrollView,
   Text,
   TouchableOpacity,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import SkeletonCard from '../components/SkeletonCard';
@@ -21,7 +18,6 @@ import SwipeCard from '../components/SwipeCard';
 import EmptyState from '../../../components/common/EmptyState';
 import MicroAnimations from '../../../components/common/MicroAnimations';
 import { Colors } from '../../../constants/colors';
-import { UI_MESSAGES } from '../../../constants/constants';
 import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
 import { getUserRepository } from '../../../services/repositories';
@@ -40,16 +36,10 @@ import LoginScreen from '../../auth/screens/LoginScreen';
 import { GUEST_DEMO_PROFILES, GUEST_FREE_VIEWS } from '../data/demoProfiles';
 import { getStyles } from './HomeScreen.styles';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-// Minimum time between swipes on the same card (ms) - prevents race conditions
-const SWIPE_DEBOUNCE_MS = 500;
-
 const HomeScreen = ({ navigation }) => {
   const { currentUser, authToken, loading: authLoading } = useAuth();
   const { theme } = useTheme();
   const { isOnline } = useNetworkStatus();
-  const { width: windowWidth } = useWindowDimensions();
   const styles = getStyles(theme);
 
   // Get the user ID (supports both uid and _id) - moved before useSwipeActions

@@ -1,5 +1,6 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 import { Platform } from 'react-native';
+import logger from '../utils/logger';
 
 // Conditionally import IAP - not available on web
 let IAP = null;
@@ -7,7 +8,7 @@ if (Platform.OS !== 'web') {
   try {
     IAP = require('react-native-iap');
   } catch (error) {
-    if (__DEV__) console.warn('react-native-iap not available:', error);
+    if (__DEV__) logger.warn('react-native-iap not available:', error);
   }
 }
 
@@ -33,7 +34,7 @@ class IAPService {
    */
   async initialize() {
     if (!this.isAvailable) {
-      if (__DEV__) console.warn('IAP not available on web platform');
+      if (__DEV__) logger.warn('IAP not available on web platform');
       return;
     }
 
@@ -46,8 +47,8 @@ class IAPService {
       this.handlePurchaseUpdate(purchase);
     });
 
-    this.purchaseErrorSubscription = IAP.purchaseErrorListener((_error) => {
-      // Purchase error listener
+    this.purchaseErrorSubscription = IAP.purchaseErrorListener((error) => {
+      logger.error('IAP purchase error:', error);
     });
 
     this.isConnected = true;
@@ -58,7 +59,7 @@ class IAPService {
    */
   async getProducts(productIds) {
     if (!this.isAvailable) {
-      if (__DEV__) console.warn('IAP not available on web platform');
+      if (__DEV__) logger.warn('IAP not available on web platform');
       return [];
     }
 
@@ -69,7 +70,7 @@ class IAPService {
       this.products = products;
       return products;
     } catch (error) {
-      if (__DEV__) console.error('Error getting products:', error);
+      if (__DEV__) logger.error('Error getting products:', error);
       throw error;
     }
   }
@@ -79,7 +80,7 @@ class IAPService {
    */
   async getSubscriptions(subscriptionIds) {
     if (!this.isAvailable) {
-      if (__DEV__) console.warn('IAP not available on web platform');
+      if (__DEV__) logger.warn('IAP not available on web platform');
       return [];
     }
 
@@ -101,7 +102,7 @@ class IAPService {
 
       return await IAP.requestPurchase(productId, false);
     } catch (error) {
-      if (__DEV__) console.error('Purchase failed:', error);
+      if (__DEV__) logger.error('Purchase failed:', error);
       throw error;
     }
   }
@@ -119,7 +120,7 @@ class IAPService {
 
       return await IAP.requestSubscription(subscriptionId, false);
     } catch (error) {
-      if (__DEV__) console.error('Subscription purchase failed:', error);
+      if (__DEV__) logger.error('Subscription purchase failed:', error);
       throw error;
     }
   }
@@ -129,7 +130,7 @@ class IAPService {
    */
   async restorePurchases() {
     if (!this.isAvailable) {
-      if (__DEV__) console.warn('IAP not available on web platform');
+      if (__DEV__) logger.warn('IAP not available on web platform');
       return [];
     }
 
@@ -140,7 +141,7 @@ class IAPService {
       this.purchaseHistory = purchases;
       return purchases;
     } catch (error) {
-      if (__DEV__) console.error('Failed to restore purchases:', error);
+      if (__DEV__) logger.error('Failed to restore purchases:', error);
       throw error;
     }
   }
@@ -158,7 +159,7 @@ class IAPService {
       // Acknowledge the purchase
       await this.finishTransaction(purchase);
     } catch (error) {
-      if (__DEV__) console.error('Error handling purchase update:', error);
+      if (__DEV__) logger.error('Error handling purchase update:', error);
     }
   }
 
@@ -179,7 +180,7 @@ class IAPService {
       }
       // Transaction finished
     } catch (error) {
-      if (__DEV__) console.error('Failed to finish transaction:', error);
+      if (__DEV__) logger.error('Failed to finish transaction:', error);
       throw error;
     }
   }
@@ -229,7 +230,7 @@ class IAPService {
         // Intentionally left without console log to avoid lint noise
       }
     } catch (error) {
-      if (__DEV__) console.error('Failed to disconnect IAP:', error);
+      if (__DEV__) logger.error('Failed to disconnect IAP:', error);
     }
   }
 

@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Linking } from 'react-native';
 import { Colors } from '../../../constants/colors';
+import logger from '../../../utils/logger';
 
 const TermsOfServiceScreen = ({ navigation }) => {
   const handleOpenWebVersion = () => {
@@ -9,7 +10,7 @@ const TermsOfServiceScreen = ({ navigation }) => {
     const termsUrl =
       process.env.EXPO_PUBLIC_TERMS_OF_SERVICE_URL || 'https://your-domain.com/terms-of-service';
     Linking.openURL(termsUrl).catch((err) =>
-      console.error('Failed to open terms of service URL:', err)
+      logger.error('Failed to open terms of service URL:', err)
     );
   };
 

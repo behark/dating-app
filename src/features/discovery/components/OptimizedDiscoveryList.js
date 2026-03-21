@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Colors } from '../../../constants/colors';
 import ErrorBoundary from '../Common/ErrorBoundary';
+import logger from '../../../utils/logger';
 
 /**
  * Performance-optimized list component for discovery screens
@@ -94,7 +95,7 @@ const OptimizedDiscoveryList = ({
 
         return renderedItem;
       } catch (error) {
-        console.error('Error rendering item:', error);
+        logger.error('Error rendering item:', error);
         return (
           <View
             style={styles.errorItem}

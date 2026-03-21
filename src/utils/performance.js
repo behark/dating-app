@@ -1,4 +1,5 @@
 import { Dimensions, Platform } from 'react-native';
+import logger from './logger';
 
 // Performance API polyfill for React Native
 const performance = global.performance || {
@@ -235,8 +236,7 @@ export const memoryWarnings = {
     const threshold = 50 * 1024 * 1024; // 50MB threshold
 
     if (estimatedMemory > threshold) {
-      // eslint-disable-next-line no-console
-      console.warn(
+      logger.warn(
         `High memory usage detected: ${estimateMemoryUsage.formatBytes(estimatedMemory)} for ${itemCount} ${itemType}`
       );
       return true;

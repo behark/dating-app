@@ -1,4 +1,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
+import logger from './logger';
+
 /**
  * Standardized Error Message Utility
  * Provides consistent, user-friendly error messages across the app
@@ -258,7 +260,7 @@ export const extractErrorMessage = (error) => {
  */
 export const showErrorAlert = (title, error, context = '', Alert) => {
   if (!Alert) {
-    console.error('Alert function not provided to showErrorAlert');
+    logger.error('Alert function not provided to showErrorAlert');
     return;
   }
 

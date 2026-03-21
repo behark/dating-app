@@ -36,7 +36,6 @@ const ChatScreen = ({ route, navigation }) => {
     messages,
     sendMessage: chatSendMessage,
     sendImageMessage,
-    _sendGifMessage,
     loadMessages: chatLoadMessages,
     joinRoom,
     startTyping,
@@ -58,7 +57,7 @@ const ChatScreen = ({ route, navigation }) => {
   // Early return if no matchId (after all hooks)
   if (!matchId) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.loadingContainer}>
         <Text>Conversation not found</Text>
       </View>
     );

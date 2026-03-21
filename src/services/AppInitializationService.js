@@ -29,7 +29,7 @@ class AppInitializationService {
       });
       if (__DEV__) logger.debug('Sentry error tracking initialized');
     } else {
-      if (__DEV__) console.warn('⚠️  Sentry DSN not configured - error tracking disabled');
+      if (__DEV__) logger.warn('Sentry DSN not configured - error tracking disabled');
     }
 
     // Register for push notifications (native only)

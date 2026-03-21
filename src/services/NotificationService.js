@@ -45,7 +45,7 @@ function initializeNotifications() {
     }
   } catch (error) {
     if (__DEV__)
-      console.warn('expo-notifications not installed. Push notifications will not work.');
+      logger.warn('expo-notifications not installed. Push notifications will not work.');
   }
 
   notificationsInitialized = true;
@@ -98,7 +98,7 @@ export class NotificationService {
 
       if (!projectId || projectId === 'your-project-id') {
         if (__DEV__)
-          console.warn('EAS project ID not configured. Set EAS_PROJECT_ID in your environment.');
+          logger.warn('EAS project ID not configured. Set EAS_PROJECT_ID in your environment.');
         return null;
       }
 
