@@ -33,15 +33,9 @@ jobs:
 
       - name: Run linting
         run: npm run lint
-        continue-on-error: true
-
-      - name: Fix linting issues
-        run: npm run lint:fix
-        continue-on-error: true
 
       - name: Check formatting
         run: npm run format:check
-        continue-on-error: true
 
       - name: TypeScript type check
         run: npm run type-check
@@ -93,11 +87,6 @@ jobs:
 
       - name: Run linting
         run: npm run lint
-        continue-on-error: true
-
-      - name: Fix linting issues
-        run: npm run lint:fix
-        continue-on-error: true
 
       - name: TypeScript type check
         run: npm run type-check
@@ -108,7 +97,10 @@ jobs:
         env:
           MONGODB_URI: mongodb://localhost:27017/dating-app-test
           REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test-secret-key
+          JWT_SECRET: test-secret-key-that-is-long-enough-for-validation
+          JWT_REFRESH_SECRET: test-refresh-secret-long-enough-for-validation
+          HASH_SALT: test-hash-salt-long-enough
+          ENCRYPTION_KEY: test-encryption-key-long-enough
           NODE_ENV: test
 
       - name: Upload coverage
@@ -213,8 +205,10 @@ jobs:
         env:
           MONGODB_URI: mongodb://localhost:27017/dating-app-test
           REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test-secret-key-for-e2e-testing
-          JWT_REFRESH_SECRET: test-refresh-secret-key-for-e2e
+          JWT_SECRET: test-secret-key-for-e2e-testing-long-enough
+          JWT_REFRESH_SECRET: test-refresh-secret-key-for-e2e-long
+          HASH_SALT: test-hash-salt-long-enough
+          ENCRYPTION_KEY: test-encryption-key-long-enough
           NODE_ENV: test
           PORT: 3000
 

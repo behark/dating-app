@@ -346,6 +346,9 @@ const createIndexes = async () => {
         { key: { isActive: 1, isVerified: 1 } },
         // TD-004: Compound index for discovery queries
         { key: { isActive: 1, gender: 1, age: 1, location: '2dsphere' } },
+        // Token lookup indexes for auth flows
+        { key: { emailVerificationToken: 1 }, sparse: true, name: 'emailVerificationToken_lookup' },
+        { key: { passwordResetToken: 1 }, sparse: true, name: 'passwordResetToken_lookup' },
       ]);
 
       // Swipes indexes for match queries

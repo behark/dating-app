@@ -327,8 +327,7 @@ exports.forgotPassword = async (req, res) => {
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       // Don't reveal if email exists for security
-      return res.json({
-        success: true,
+      return sendSuccess(res, 200, {
         message: 'If email exists, a password reset link has been sent',
       });
     }
@@ -347,8 +346,7 @@ exports.forgotPassword = async (req, res) => {
       `<p>Click <a href="${resetUrl}">here</a> to reset your password. This link expires in 1 hour.</p>`
     );
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'If email exists, a password reset link has been sent',
     });
   } catch (/** @type {any} */ error) {
@@ -395,8 +393,7 @@ exports.resetPassword = async (req, res) => {
     user.passwordResetTokenExpiry = undefined;
     await user.save();
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Password reset successfully',
     });
   } catch (/** @type {any} */ error) {
@@ -507,8 +504,7 @@ exports.logout = async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Logged out successfully',
     });
   } catch (/** @type {any} */ error) {
@@ -669,8 +665,8 @@ exports.refreshToken = async (req, res) => {
     const newAuthToken = user.generateAuthToken();
     const newRefreshToken = user.generateRefreshToken();
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
+      message: 'Token refreshed successfully',
       data: {
         authToken: newAuthToken,
         refreshToken: newRefreshToken,
@@ -799,8 +795,7 @@ exports.googleAuth = async (req, res) => {
     user.lastActive = new Date();
     await user.save();
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Google authentication successful',
       data: {
         user: {
@@ -937,8 +932,7 @@ exports.facebookAuth = async (req, res) => {
     user.lastActive = new Date();
     await user.save();
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Facebook authentication successful',
       data: {
         user: {
@@ -1056,8 +1050,7 @@ exports.appleAuth = async (req, res) => {
     user.lastActive = new Date();
     await user.save();
 
-    res.json({
-      success: true,
+    return sendSuccess(res, 200, {
       message: 'Apple authentication successful',
       data: {
         user: {

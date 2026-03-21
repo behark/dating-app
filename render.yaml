@@ -21,6 +21,10 @@ services:
         sync: false  # Set manually in dashboard for security
       - key: JWT_SECRET
         generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: HASH_SALT
+        generateValue: true
       - key: ENCRYPTION_KEY
         generateValue: true
       # Firebase Configuration
@@ -40,8 +44,6 @@ services:
         value: 489822402223-ijgd0vvfbma9s22944go4e2gnqk92ipd.apps.googleusercontent.com
       - key: GOOGLE_CLIENT_SECRET
         sync: false  # Set manually in dashboard for security
-      - key: JWT_REFRESH_SECRET
-        generateValue: true
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: JWT_REFRESH_EXPIRES_IN

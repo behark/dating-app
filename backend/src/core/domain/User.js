@@ -618,6 +618,15 @@ const userSchema = new mongoose.Schema(
       },
     },
 
+    // Profile completeness score (stored for efficient sorting in discovery queries)
+    profileCompleteness: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+      index: true,
+    },
+
     // Timestamps
   },
   {
@@ -684,6 +693,21 @@ userSchema.methods.generateRefreshToken = function () {
 // Create 2dsphere index on location for geospatial queries
 userSchema.index({ location: '2dsphere' });
 
+// Index for looking up users by email verification token (used in verify-email flow)
+userSchema.index(
+  { emailVerificationToken: 1 },
+  { sparse: true, name: 'emailVerificationToken_lookup' }
+);
+
+// Index for looking up users by password reset token (used in reset-password flow)
+userSchema.index(
+  { passwordResetToken: 1 },
+  { sparse: true, name: 'passwordResetToken_lookup' }
+);
+
+// Index for efficient lastActive queries (online status, sorting)
+userSchema.index({ lastActive: -1 }, { name: 'lastActive_desc' });
+
 // Compound index for efficient discovery queries
 userSchema.index({
   location: '2dsphere',
@@ -693,6 +717,12 @@ userSchema.index({
   isVerified: 1,
 });
 
+// Index for discovery sort: profileCompleteness descending, lastActive descending
+userSchema.index(
+  { profileCompleteness: -1, lastActive: -1 },
+  { name: 'discovery_sort_completeness_activity' }
+);
+
 // TD-003: Indexes for retention queries
 // FIX: Removed { name: 'createdAt_desc' } to avoid conflict with existing DB index
 userSchema.index({ createdAt: -1 });
@@ -700,20 +730,33 @@ userSchema.index({ createdAt: -1 });
 // Compound index for retention eligible users query
 userSchema.index({ createdAt: 1, _id: 1 }, { name: 'createdAt_id_retention' });
 
-// Virtual for profile completeness score
-userSchema.virtual('profileCompleteness').get(function () {
+/**
+ * Compute profile completeness percentage from user fields.
+ * Used both in pre-save hook and as a static helper for migrations.
+ * @param {Object} doc - User document (or plain object)
+ * @returns {number} Score 0-100
+ */
+function computeProfileCompleteness(doc) {
   let score = 0;
-  // Check each field explicitly to avoid object injection warnings
-  // Safe: All field names are hardcoded, not user input
-  if (this.name) score += 1;
-  if (this.age) score += 1;
-  if (this.gender) score += 1;
-  if (this.bio) score += 1;
-  if (this.photos && Array.isArray(this.photos) && this.photos.length > 0) score += 1;
-  if (this.interests && Array.isArray(this.interests) && this.interests.length > 0) score += 1;
-  if (this.location) score += 1;
+  const totalFields = 10;
+  if (doc.name) score += 1;
+  if (doc.age) score += 1;
+  if (doc.gender) score += 1;
+  if (doc.bio) score += 1;
+  if (doc.photos && Array.isArray(doc.photos) && doc.photos.length > 0) score += 1;
+  if (doc.photos && Array.isArray(doc.photos) && doc.photos.length >= 3) score += 1; // Bonus for 3+ photos
+  if (doc.interests && Array.isArray(doc.interests) && doc.interests.length > 0) score += 1;
+  if (doc.location && doc.location.coordinates) score += 1;
+  if (doc.occupation && (doc.occupation.jobTitle || doc.occupation.company)) score += 1;
+  if (doc.education && (doc.education.school || doc.education.degree)) score += 1;
+  return Math.round((score / totalFields) * 100);
+}
 
-  return Math.round((score / 7) * 100);
+// Pre-save hook: recompute and store profileCompleteness
+userSchema.pre('save', function (next) {
+  // Recompute completeness on every save so it stays in sync
+  this.profileCompleteness = computeProfileCompleteness(this);
+  next();
 });
 
 // Method to update location
@@ -739,9 +782,16 @@ userSchema.statics.findNearby = function (longitude, latitude, maxDistance, opti
     suspended: { $ne: true },
   };
 
-  // Exclude already swiped users
+  // Exclude already swiped users AND blocked users in a single $nin
+  const excludeIds = [];
   if (options.excludeIds && options.excludeIds.length > 0) {
-    baseQuery._id = { $nin: options.excludeIds };
+    excludeIds.push(...options.excludeIds);
+  }
+  if (options.blockedUserIds && options.blockedUserIds.length > 0) {
+    excludeIds.push(...options.blockedUserIds);
+  }
+  if (excludeIds.length > 0) {
+    baseQuery._id = { $nin: excludeIds };
   }
 
   // CRITICAL FIX: MongoDB $near cannot be inside $or
@@ -785,5 +835,8 @@ userSchema.statics.findNearby = function (longitude, latitude, maxDistance, opti
 /** @type {UserModel} */
 // @ts-ignore
 const UserModel = mongoose.model('User', userSchema);
+
+// Expose completeness helper for external use (e.g. migration scripts)
+UserModel.computeProfileCompleteness = computeProfileCompleteness;
 
 module.exports = UserModel;

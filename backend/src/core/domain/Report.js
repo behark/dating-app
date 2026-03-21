@@ -68,6 +68,12 @@ reportSchema.index({ reportedUserId: 1 });
 reportSchema.index({ status: 1 });
 reportSchema.index({ createdAt: -1 });
 
+// Compound index for admin moderation queue (pending reports, newest first)
+reportSchema.index({ status: 1, createdAt: -1 }, { name: 'moderation_queue' });
+
+// Compound index for checking if user was already reported by another user
+reportSchema.index({ reporterId: 1, reportedUserId: 1 }, { name: 'reporter_reported_pair' });
+
 /**
  * @typedef {import('../../../types/index').ReportDocument} ReportDocument
  * @typedef {import('../../../types/index').ReportModel} ReportModel

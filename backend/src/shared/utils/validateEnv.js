@@ -31,6 +31,12 @@ const CRITICAL_ENV_VARS = [
     minLength: 16,
     secure: true,
   },
+  {
+    name: 'ENCRYPTION_KEY',
+    description: 'Key for message encryption',
+    minLength: 16,
+    secure: true,
+  },
 ];
 
 /**

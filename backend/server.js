@@ -504,7 +504,7 @@ app.use((req, res, next) => {
 });
 
 // Global rate limiting - Apply to all API routes
-const { dynamicRateLimiter } = require('./src/api/middleware/rateLimiter');
+const { dynamicRateLimiter, wsRateLimiter } = require('./src/api/middleware/rateLimiter');
 // @ts-ignore - dynamicRateLimiter returns Express middleware
 app.use('/api', dynamicRateLimiter());
 
@@ -950,6 +950,17 @@ io.on('connection', (socket) => {
   // Join room based on matchId
   socket.on('join_room', async (matchId) => {
     try {
+      // Rate limit join_room events
+      const joinLimit = await wsRateLimiter.checkLimit(
+        userId,
+        'join_room',
+        wsRateLimiter.limits.join_room
+      );
+      if (!joinLimit.allowed) {
+        socket.emit('error', { message: 'Too many room join requests. Please slow down.' });
+        return;
+      }
+
       // Validate matchId format
       if (!mongoose.Types.ObjectId.isValid(matchId)) {
         socket.emit('error', { message: 'Invalid match ID' });
@@ -1007,6 +1018,17 @@ io.on('connection', (socket) => {
     try {
       const { matchId, content, type = 'text' } = data;
       const senderId = extSocket.userId;
+
+      // Rate limit WebSocket send_message events
+      const wsLimit = await wsRateLimiter.checkLimit(
+        senderId,
+        'send_message',
+        wsRateLimiter.limits.send_message
+      );
+      if (!wsLimit.allowed) {
+        socket.emit('error', { message: 'Too many messages. Please slow down.' });
+        return;
+      }
 
       // Validate input - comprehensive validation
       if (!matchId || !content || !senderId) {
@@ -1319,6 +1341,19 @@ const startServer = async () => {
 
     // Setup graceful shutdown
     gracefulShutdown(server, async () => {
+      // Close Redis connections
+      try {
+        const { closeRedis } = require('./src/config/redis');
+        logger.info('Closing Redis connection...');
+        await closeRedis();
+        logger.info('Redis connection closed');
+      } catch (/** @type {any} */ redisErr) {
+        logger.error('Error closing Redis connection', {
+          error: redisErr instanceof Error ? redisErr.message : String(redisErr),
+        });
+      }
+
+      // Close MongoDB connections
       logger.info('Closing database connections...');
       await dbGracefulShutdown('SIGTERM');
       logger.info('Database connections closed');
@@ -1363,6 +1398,10 @@ process.on('unhandledRejection', (err, promise) => {
   if (process.env.NODE_ENV === 'production') {
     logger.error('Shutting down server due to unhandled rejection');
     gracefulShutdown(server, async () => {
+      try {
+        const { closeRedis } = require('./src/config/redis');
+        await closeRedis();
+      } catch (/** @type {any} */ e) { /* ignore */ }
       await dbGracefulShutdown('UNHANDLED_REJECTION');
       process.exit(1);
     });
@@ -1399,6 +1438,10 @@ process.on('uncaughtException', (err) => {
   logger.error('Shutting down server due to uncaught exception');
   if (process.env.NODE_ENV === 'production') {
     gracefulShutdown(server, async () => {
+      try {
+        const { closeRedis } = require('./src/config/redis');
+        await closeRedis();
+      } catch (/** @type {any} */ e) { /* ignore */ }
       await dbGracefulShutdown('UNCAUGHT_EXCEPTION');
       process.exit(1);
     });

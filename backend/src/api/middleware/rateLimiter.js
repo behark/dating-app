@@ -117,7 +117,7 @@ const authLimiter = createRateLimiter({
   onLimitReached: (req, res) => {
     logger.warn('Auth rate limit reached', { ip: req.ip });
   },
-  failOpen: true, // prefer usability during brief Redis outages for auth endpoints
+  failOpen: false, // fail closed for auth endpoints to prevent brute-force during Redis outages
 });
 
 /**
@@ -284,6 +284,34 @@ const passwordResetLimiter = createRateLimiter({
 });
 
 /**
+ * Signup rate limiter - stricter than general auth to prevent mass account creation
+ */
+const signupLimiter = createRateLimiter({
+  windowMs: 3600000, // 1 hour
+  maxRequests: 5,
+  keyGenerator: (req) => `signup:${req.ip}`,
+  message: RATE_LIMIT_MESSAGES.AUTH,
+  onLimitReached: (req, res) => {
+    logger.warn('Signup rate limit reached', { ip: req.ip });
+  },
+  failOpen: false, // fail closed to prevent mass account creation
+});
+
+/**
+ * Login rate limiter - stricter per-account to prevent credential stuffing
+ */
+const loginLimiter = createRateLimiter({
+  windowMs: 900000, // 15 minutes
+  maxRequests: 5,
+  keyGenerator: (req) => `login:${req.body?.email || req.ip}`,
+  message: RATE_LIMIT_MESSAGES.AUTH,
+  onLimitReached: (req, res) => {
+    logger.warn('Login rate limit reached', { ip: req.ip, email: req.body?.email ? '[redacted]' : 'none' });
+  },
+  failOpen: false, // fail closed to prevent brute-force attacks
+});
+
+/**
  * Verification code rate limiter
  */
 const verificationLimiter = createRateLimiter({
@@ -292,6 +320,44 @@ const verificationLimiter = createRateLimiter({
   keyGenerator: (req) => `verify:${req.body?.email || req.body?.phone || req.ip}`,
   message: RATE_LIMIT_MESSAGES.VERIFICATION,
 });
+
+/**
+ * WebSocket event rate limiter
+ * Used for rate-limiting socket events like send_message, typing, etc.
+ * Returns { allowed, remaining } instead of sending HTTP responses.
+ */
+const wsRateLimiter = {
+  /**
+   * Check if a WebSocket event is allowed
+   * @param {string} userId - User ID
+   * @param {string} event - Event name (e.g., 'send_message', 'typing')
+   * @param {Object} [options] - Rate limit options
+   * @param {number} [options.maxRequests=30] - Max events per window
+   * @param {number} [options.windowSeconds=60] - Window in seconds
+   * @returns {Promise<{allowed: boolean, remaining: number}>}
+   */
+  async checkLimit(userId, event, options = {}) {
+    const { maxRequests = 30, windowSeconds = 60 } = options;
+    const key = `ws:${event}:${userId}`;
+    try {
+      const result = await rateLimiter.checkLimit(key, maxRequests, windowSeconds);
+      return result;
+    } catch (/** @type {any} */ error) {
+      logger.error('WebSocket rate limiter error:', { error: error instanceof Error ? error.message : String(error) });
+      // Fail closed for WebSocket events
+      return { allowed: false, remaining: 0 };
+    }
+  },
+
+  /** Rate limits for specific WebSocket events */
+  limits: {
+    send_message: { maxRequests: 30, windowSeconds: 60 },
+    typing_start: { maxRequests: 10, windowSeconds: 10 },
+    typing_stop: { maxRequests: 10, windowSeconds: 10 },
+    join_room: { maxRequests: 10, windowSeconds: 60 },
+    message_read: { maxRequests: 60, windowSeconds: 60 },
+  },
+};
 
 /**
  * Social/connection rate limiter
@@ -308,14 +374,18 @@ const socialLimiter = createRateLimiter({
  * Maps route patterns to specific rate limiters
  */
 const endpointRateLimits = {
-  // Auth endpoints
-  'POST /api/auth/register': authLimiter,
-  'POST /api/auth/login': authLimiter,
+  // Auth endpoints - stricter per-endpoint limits
+  'POST /api/auth/register': signupLimiter,
+  'POST /api/auth/login': loginLimiter,
   'POST /api/auth/forgot-password': passwordResetLimiter,
   'POST /api/auth/reset-password': passwordResetLimiter,
   'POST /api/auth/verify-email': verificationLimiter,
   'POST /api/auth/verify-phone': verificationLimiter,
   'POST /api/auth/resend-phone-verification': verificationLimiter,
+  'POST /api/auth/refresh-token': authLimiter,
+  'POST /api/auth/google': authLimiter,
+  'POST /api/auth/facebook': authLimiter,
+  'POST /api/auth/apple': authLimiter,
 
   // Profile endpoints
   'GET /api/profile/me': profileViewLimiter,
@@ -422,6 +492,8 @@ module.exports = {
   createRateLimiter,
   apiLimiter,
   authLimiter,
+  signupLimiter,
+  loginLimiter,
   swipeLimiter,
   messageLimiter,
   uploadLimiter,
@@ -435,6 +507,7 @@ module.exports = {
   passwordResetLimiter,
   verificationLimiter,
   socialLimiter,
+  wsRateLimiter,
   endpointRateLimits,
   dynamicRateLimiter,
   applyRouteLimits,

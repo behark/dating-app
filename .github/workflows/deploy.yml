@@ -7,29 +7,33 @@ on:
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  NODE_VERSION: '20'
 
 jobs:
   test:
     runs-on: ubuntu-latest
     name: Pre-deployment Tests
-    
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci --legacy-peer-deps && cd backend && npm ci --legacy-peer-deps && cd ..
 
+      - name: Run linting
+        run: npm run lint
+
       - name: Run tests
         run: npm test -- --watchAll=false --passWithNoTests
 
-      - name: Run linting
-        run: npm run lint
+      - name: Build check
+        run: npm run vercel-build
 
   deploy-frontend:
     runs-on: ubuntu-latest
@@ -37,7 +41,7 @@ jobs:
     needs: test
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Deploy to Vercel
         uses: vercel/actions/cli@master
@@ -52,14 +56,18 @@ jobs:
     needs: test
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Trigger Render deployment
         run: |
-          curl -X POST \
+          response=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
             "https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_DEPLOY_KEY }}" \
-            -H "Content-Type: application/json"
-        continue-on-error: true
+            -H "Content-Type: application/json")
+          if [ "$response" -ge 400 ]; then
+            echo "Render deploy trigger failed with HTTP $response"
+            exit 1
+          fi
+          echo "Render deploy triggered successfully (HTTP $response)"
 
   notify:
     runs-on: ubuntu-latest

@@ -211,8 +211,8 @@ const createSwipe = async (req, res) => {
       );
     }
 
-    return res.json({
-      success: true,
+    return sendSuccess(res, 201, {
+      message: result.isMatch ? 'It\'s a match!' : 'Swipe recorded',
       data: {
         swipeId: result.swipe.id,
         action: action,

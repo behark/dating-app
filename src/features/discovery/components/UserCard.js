@@ -1,10 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { memo } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Colors } from '../../../constants/colors';
 import { UniversalImage } from '../../../components/Image';
 
-const UserCard = ({ user, cardWidth, onPress, showBadges = true, distance, style }) => {
+const UserCard = memo(({ user, cardWidth, onPress, showBadges = true, distance, style }) => {
   const { name, age, photos, isBoosted, isProfileVerified, _id } = user;
 
   return (
@@ -63,7 +64,9 @@ const UserCard = ({ user, cardWidth, onPress, showBadges = true, distance, style
       </View>
     </TouchableOpacity>
   );
-};
+});
+
+UserCard.displayName = 'UserCard';
 
 const styles = StyleSheet.create({
   userCard: {

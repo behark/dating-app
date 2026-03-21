@@ -454,7 +454,20 @@ const ChatScreen = ({ route, navigation }) => {
 
         {loading && messages.length === 0 ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.primary} />
+            {/* Chat skeleton loader */}
+            <View style={styles.skeletonMessages}>
+              {[0.6, 0.4, 0.7, 0.5, 0.3].map((widthFraction, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.skeletonBubble,
+                    i % 2 === 0 ? styles.skeletonLeft : styles.skeletonRight,
+                    { width: `${widthFraction * 80}%` },
+                  ]}
+                />
+              ))}
+            </View>
+            <ActivityIndicator size="small" color={Colors.primary} style={{ marginTop: 8 }} />
             <Text style={styles.loadingText}>Loading messages...</Text>
           </View>
         ) : messages.length === 0 ? (
@@ -686,6 +699,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+  },
+  skeletonMessages: {
+    width: '100%',
+    paddingHorizontal: 15,
+    gap: 12,
+    marginBottom: 16,
+  },
+  skeletonBubble: {
+    height: 40,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0, 0, 0, 0.06)',
+  },
+  skeletonLeft: {
+    alignSelf: 'flex-start',
+    borderBottomLeftRadius: 4,
+  },
+  skeletonRight: {
+    alignSelf: 'flex-end',
+    borderBottomRightRadius: 4,
   },
   loadingText: {
     marginTop: 10,

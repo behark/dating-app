@@ -1,9 +1,18 @@
+import { memo } from 'react';
 import { Image, Platform } from 'react-native';
 
-export const UniversalImage = ({ source, style, resizeMode = 'cover', ...props }) => {
+export const UniversalImage = memo(({ source, style, resizeMode = 'cover', ...props }) => {
   const imageSource = typeof source === 'string' ? { uri: source } : source;
 
-  return <Image source={imageSource} style={style} resizeMode={resizeMode} {...props} />;
-};
+  // Use cache policy for remote images on native
+  const enhancedSource =
+    imageSource?.uri && Platform.OS !== 'web'
+      ? { ...imageSource, cache: 'force-cache' }
+      : imageSource;
+
+  return <Image source={enhancedSource} style={style} resizeMode={resizeMode} {...props} />;
+});
+
+UniversalImage.displayName = 'UniversalImage';
 
 export default UniversalImage;

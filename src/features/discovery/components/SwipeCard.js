@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRef } from 'react';
+import { memo, useRef, useMemo } from 'react';
 import {
   Dimensions,
   Image,
@@ -49,11 +49,11 @@ const {
       };
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SWIPE_THRESHOLD = 120;
+const SWIPE_THRESHOLD = 100; // Lowered from 120 for more responsive swipe feel
 // CARD_SPACING removed - unused
 const PLACEHOLDER_CARD = require('../../../../assets/feature-graphic.png');
 
-const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
+const SwipeCard = memo(({ card, index = 0, onSwipeLeft, onSwipeRight, onViewProfile }) => {
   // Use dynamic dimensions for better web support
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   // On web, use window dimensions; on native use static dimensions
@@ -159,6 +159,12 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
   // Card dimensions for styling
   const cardRef = useRef(null);
 
+  // Memoize verification badge info to avoid recalculating 3 times per render
+  const verificationBadge = useMemo(
+    () => VerificationService.getVerificationBadgeInfo(card),
+    [card]
+  );
+
   return (
     <PanGestureHandler onGestureEvent={gestureHandler}>
       <Animated.View
@@ -169,6 +175,8 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
             // Apply dimensions
             width: cardWidth,
             height: cardHeight,
+            // Ensure proper stacking order (lower index = on top)
+            zIndex: 1000 - index,
             // Use auto-centering approach
             ...Platform.select({
               web: {
@@ -230,18 +238,17 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
             <View style={styles.nameRow}>
               <Text style={styles.name}>{card.name || 'Unknown'}</Text>
               {card.age && <Text style={styles.age}>, {card.age}</Text>}
-              {VerificationService.getVerificationBadgeInfo(card).showBadge && (
+              {verificationBadge.showBadge && (
                 <View
                   style={[
                     styles.verificationBadge,
                     {
-                      backgroundColor:
-                        VerificationService.getVerificationBadgeInfo(card).badgeColor,
+                      backgroundColor: verificationBadge.badgeColor,
                     },
                   ]}
                 >
                   <Ionicons
-                    name={VerificationService.getVerificationBadgeInfo(card).iconName}
+                    name={verificationBadge.iconName}
                     size={12}
                     color={Colors.background.white}
                   />
@@ -278,7 +285,17 @@ const SwipeCard = ({ card, onSwipeLeft, onSwipeRight, onViewProfile }) => {
       </Animated.View>
     </PanGestureHandler>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison: only re-render if card data or callbacks change
+  return (
+    prevProps.card === nextProps.card &&
+    prevProps.onSwipeLeft === nextProps.onSwipeLeft &&
+    prevProps.onSwipeRight === nextProps.onSwipeRight &&
+    prevProps.onViewProfile === nextProps.onViewProfile
+  );
+});
+
+SwipeCard.displayName = 'SwipeCard';
 
 const styles = StyleSheet.create({
   card: {

@@ -5,8 +5,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
+  Image,
   InteractionManager,
   Modal,
+  Platform,
   RefreshControl,
   ScrollView,
   Text,
@@ -40,6 +42,9 @@ import LoginScreen from '../../auth/screens/LoginScreen';
 import { GUEST_DEMO_PROFILES, GUEST_FREE_VIEWS } from '../data/demoProfiles';
 import Toast from '../../../utils/toast';
 import { getStyles } from './HomeScreen.styles';
+
+// Stable no-op callback for preloaded background cards (avoids re-renders)
+const noopCallback = () => {};
 
 const HomeScreen = ({ navigation }) => {
   const { currentUser, authToken, loading: authLoading } = useAuth();
@@ -333,6 +338,25 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
+  // Preload images for the next few cards to ensure smooth swiping
+  useEffect(() => {
+    if (!cards.length || currentIndex >= cards.length) return;
+
+    // Prefetch the next 3 card images (skip current which is already loaded)
+    const prefetchCount = 3;
+    const startIdx = currentIndex + 1;
+    const endIdx = Math.min(startIdx + prefetchCount, cards.length);
+
+    for (let i = startIdx; i < endIdx; i++) {
+      const photoURL = cards[i]?.photoURL;
+      if (photoURL && Platform.OS !== 'web') {
+        Image.prefetch(photoURL).catch(() => {
+          // Silently ignore prefetch failures
+        });
+      }
+    }
+  }, [cards, currentIndex]);
+
   // Cleanup repository cache on unmount
   useEffect(() => {
     return () => {
@@ -461,6 +485,39 @@ const HomeScreen = ({ navigation }) => {
       setBackendError(true);
     }
   };
+
+  // Auto-load more cards when running low (5 cards remaining)
+  const isLoadingMoreRef = useRef(false);
+  useEffect(() => {
+    const remaining = cards.length - currentIndex;
+    if (remaining <= 5 && remaining > 0 && !isGuest && !isLoadingMoreRef.current && !loading) {
+      isLoadingMoreRef.current = true;
+      (async () => {
+        try {
+          const moreUsers = await userRepository.getDiscoverableUsers(userId, {
+            limit: 25,
+            lat: userLocation?.latitude,
+            lng: userLocation?.longitude,
+            radius: discoveryRadius * 1000,
+            page: Math.ceil(cards.length / 25) + 1,
+          });
+          const normalized = Array.isArray(moreUsers) ? moreUsers : moreUsers?.users || [];
+          if (normalized.length > 0) {
+            const existingIds = new Set(cards.map((c) => c.id || c._id));
+            const newCards = normalized.filter((u) => !existingIds.has(u.id || u._id));
+            if (newCards.length > 0) {
+              setCards((prev) => [...prev, ...newCards]);
+            }
+          }
+        } catch (err) {
+          logger.error('Error preloading more cards:', err);
+        } finally {
+          isLoadingMoreRef.current = false;
+        }
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentIndex, cards.length]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -895,6 +952,18 @@ const HomeScreen = ({ navigation }) => {
             currentIndex < cards.length && (
               <View style={styles.cardsContainer}>
                 <View style={styles.cardsWrapper}>
+                  {/* Preload next 2 cards behind the current one for smooth transitions */}
+                  {cards.slice(currentIndex + 1, currentIndex + 3).map((nextCard, i) => (
+                    <SwipeCard
+                      key={nextCard.id || nextCard._id}
+                      card={nextCard}
+                      index={currentIndex + i + 1}
+                      onSwipeLeft={noopCallback}
+                      onSwipeRight={noopCallback}
+                      onViewProfile={noopCallback}
+                    />
+                  )).reverse()}
+                  {/* Active card on top */}
                   <SwipeCard
                     key={cards[currentIndex].id || cards[currentIndex]._id}
                     card={cards[currentIndex]}

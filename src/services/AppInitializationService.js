@@ -87,59 +87,64 @@ class AppInitializationService {
       }
     }
 
-    // Initialize analytics on app start
+    // Initialize analytics on app start (critical for tracking)
     AnalyticsService.initialize();
     AnalyticsService.logAppOpened(true);
 
     // Initialize user behavior analytics
     UserBehaviorAnalytics.initialize();
 
-    // Initialize IAP service (only on native platforms)
-    if (Platform.OS !== 'web') {
-      IAPService.initialize().catch((error) => {
-        logger.error('Failed to initialize IAP:', error);
-      });
-    }
-
     // Track registration funnel start
     UserBehaviorAnalytics.trackFunnelStep('registration', 'app_opened');
 
-    // Initialize PWA features for web
+    // Initialize PWA features for web (critical path for web)
     if (Platform.OS === 'web') {
       PWAService.initialize();
     }
 
-    // Initialize OTA update service for native platforms
-    if (Platform.OS !== 'web') {
-      UpdateService.initialize()
-        .then(async () => {
-          // Check for updates and show dialog if available
-          const updateResult = await UpdateService.checkForUpdates();
-          if (updateResult.status === 'update_available') {
-            UpdateService.showUpdateDialog(false);
-          } else if (updateResult.status === 'update_critical') {
-            UpdateService.showUpdateDialog(true);
-          }
-
-          // Log version info
-          if (__DEV__) {
-            logger.debug('App Version:', UpdateService.getDisplayVersion());
-          }
-          return null;
-        })
-        .catch((error) => {
-          logger.error('Failed to initialize update service:', error);
+    // Defer non-critical initialization to reduce time-to-interactive
+    setTimeout(() => {
+      // Initialize IAP service (only on native platforms)
+      if (Platform.OS !== 'web') {
+        IAPService.initialize().catch((error) => {
+          logger.error('Failed to initialize IAP:', error);
         });
-    }
+      }
 
-    // Register A/B tests
-    UserBehaviorAnalytics.registerABTest('onboarding_flow', ['control', 'simplified', 'gamified'], {
-      distribution: [0.34, 0.33, 0.33],
-    });
+      // Initialize OTA update service for native platforms
+      if (Platform.OS !== 'web') {
+        UpdateService.initialize()
+          .then(async () => {
+            const updateResult = await UpdateService.checkForUpdates();
+            if (updateResult.status === 'update_available') {
+              UpdateService.showUpdateDialog(false);
+            } else if (updateResult.status === 'update_critical') {
+              UpdateService.showUpdateDialog(true);
+            }
 
-    UserBehaviorAnalytics.registerABTest('premium_cta', ['control', 'urgency', 'social_proof'], {
-      distribution: [0.34, 0.33, 0.33],
-    });
+            if (__DEV__) {
+              logger.debug('App Version:', UpdateService.getDisplayVersion());
+            }
+            return null;
+          })
+          .catch((error) => {
+            logger.error('Failed to initialize update service:', error);
+          });
+      }
+
+      // Register A/B tests
+      UserBehaviorAnalytics.registerABTest(
+        'onboarding_flow',
+        ['control', 'simplified', 'gamified'],
+        { distribution: [0.34, 0.33, 0.33] }
+      );
+
+      UserBehaviorAnalytics.registerABTest(
+        'premium_cta',
+        ['control', 'urgency', 'social_proof'],
+        { distribution: [0.34, 0.33, 0.33] }
+      );
+    }, 2000); // Defer by 2s to let UI become interactive first
 
     return notificationCleanup;
   }

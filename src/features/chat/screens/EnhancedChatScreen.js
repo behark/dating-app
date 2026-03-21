@@ -304,8 +304,19 @@ const EnhancedChatScreen = ({ route, navigation }) => {
 
   const themeStyles = getThemeStyles();
 
+  // Estimated message height for getItemLayout optimization
+  const MESSAGE_HEIGHT = 80;
+  const getItemLayout = useCallback(
+    (data, index) => ({
+      length: MESSAGE_HEIGHT,
+      offset: MESSAGE_HEIGHT * index,
+      index,
+    }),
+    []
+  );
+
   // Render message item
-  const renderMessage = ({ item }) => {
+  const renderMessage = useCallback(({ item }) => {
     const isMe = item.senderId === currentUser.uid;
     const time = new Date(item.createdAt).toLocaleTimeString([], {
       hour: '2-digit',
@@ -412,7 +423,7 @@ const EnhancedChatScreen = ({ route, navigation }) => {
         />
       </Pressable>
     );
-  };
+  }, [currentUser.uid, matchId, sendReadReceipt, messageReactions, themeStyles, handleMessageLongPress]);
 
   // Render header options menu
   const renderHeaderMenu = () => (
@@ -473,7 +484,20 @@ const EnhancedChatScreen = ({ route, navigation }) => {
         {/* Messages List */}
         {loading && messages.length === 0 ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={Colors.primary} />
+            {/* Chat skeleton loader */}
+            <View style={styles.skeletonMessages}>
+              {[0.6, 0.4, 0.7, 0.5, 0.3].map((widthFraction, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.skeletonBubble,
+                    i % 2 === 0 ? styles.skeletonLeft : styles.skeletonRight,
+                    { width: `${widthFraction * 80}%` },
+                  ]}
+                />
+              ))}
+            </View>
+            <ActivityIndicator size="small" color={Colors.primary} style={{ marginTop: 8 }} />
             <Text style={styles.loadingText}>Loading messages...</Text>
           </View>
         ) : (
@@ -482,6 +506,11 @@ const EnhancedChatScreen = ({ route, navigation }) => {
             data={messages}
             renderItem={renderMessage}
             keyExtractor={(item) => item._id}
+            getItemLayout={getItemLayout}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={15}
+            windowSize={10}
+            initialNumToRender={20}
             contentContainerStyle={styles.messagesList}
             showsVerticalScrollIndicator={false}
             onEndReached={loadMoreMessages}
@@ -711,6 +740,26 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+  },
+  skeletonMessages: {
+    width: '100%',
+    paddingHorizontal: 15,
+    gap: 12,
+    marginBottom: 16,
+  },
+  skeletonBubble: {
+    height: 40,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0, 0, 0, 0.06)',
+  },
+  skeletonLeft: {
+    alignSelf: 'flex-start',
+    borderBottomLeftRadius: 4,
+  },
+  skeletonRight: {
+    alignSelf: 'flex-end',
+    borderBottomRightRadius: 4,
   },
   loadingText: {
     marginTop: 10,

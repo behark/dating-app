@@ -6,7 +6,8 @@
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET ||= 'test-jwt-secret-that-is-long-enough-for-validation';
 process.env.JWT_REFRESH_SECRET ||= 'test-refresh-secret-that-is-long-enough-for-validation';
-process.env.HASH_SALT ||= 'test-hash-salt';
+process.env.HASH_SALT ||= 'test-hash-salt-long-enough';
+process.env.ENCRYPTION_KEY ||= 'test-encryption-key-long-enough';
 process.env.PORT ||= '0';
 process.env.LOG_LEVEL = 'error'; // reduce noise in tests
 

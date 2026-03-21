@@ -84,17 +84,28 @@ const discoverUsers = async (req, res) => {
     }
 
     // Get IDs of users the current user has already swiped on (with timeout)
+    // Use distinct() instead of find() to avoid loading full swipe documents into memory
     let excludedUserIds = [];
+    let blockedUserIds = [];
     if (currentUserId) {
       try {
-        // Use lean() and maxTimeMS for faster query
-        const swipes = await Swipe.find({ swiperId: currentUserId })
-          .select('swipedId')
-          .maxTimeMS(SWIPE_LOOKUP_TIMEOUT_MS)
-          .lean();
+        // Use distinct() for efficient ID-only retrieval (returns just an array of IDs)
+        const [swipedIds, currentUserDoc] = await Promise.all([
+          Swipe.distinct('swipedId', { swiperId: currentUserId })
+            .maxTimeMS(SWIPE_LOOKUP_TIMEOUT_MS),
+          User.findById(currentUserId)
+            .select('blockedUsers')
+            .maxTimeMS(SWIPE_LOOKUP_TIMEOUT_MS)
+            .lean(),
+        ]);
 
-        excludedUserIds = swipes.map((s) => s.swipedId.toString());
+        excludedUserIds = swipedIds.map((id) => id.toString());
         excludedUserIds.push(currentUserId);
+
+        // Also exclude users that blocked us or we blocked
+        if (currentUserDoc?.blockedUsers && currentUserDoc.blockedUsers.length > 0) {
+          blockedUserIds = currentUserDoc.blockedUsers.map((id) => id.toString());
+        }
       } catch (/** @type {any} */ swipeError) {
         // If swipe lookup times out, continue without exclusions but log
         logger.warn('[TIMEOUT] Swipe lookup timed out, continuing with partial exclusions');
@@ -106,6 +117,7 @@ const discoverUsers = async (req, res) => {
     // Use defaults if currentUser is null (anonymous discovery)
     const discoveryOptions = {
       excludeIds: excludedUserIds,
+      blockedUserIds: blockedUserIds,
       minAge: currentUser?.preferredAgeRange?.min || 18,
       maxAge: currentUser?.preferredAgeRange?.max || 100,
       preferredGender: currentUser?.preferredGender || 'any',

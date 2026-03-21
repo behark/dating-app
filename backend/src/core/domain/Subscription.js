@@ -132,6 +132,12 @@ const subscriptionSchema = new mongoose.Schema({
 subscriptionSchema.index({ status: 1 });
 subscriptionSchema.index({ endDate: 1 });
 
+// Compound index for finding active subscriptions that need renewal
+subscriptionSchema.index({ status: 1, endDate: 1, autoRenew: 1 }, { name: 'renewal_check' });
+
+// Compound index for userId + status lookups (e.g., checking if user has active sub)
+subscriptionSchema.index({ userId: 1, status: 1 }, { name: 'userId_status' });
+
 // TD-003: Indexes for premium metrics queries
 // Index for premium conversion rate queries
 subscriptionSchema.index({ createdAt: -1, status: 1 }, { name: 'createdAt_status_premium' });
