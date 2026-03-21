@@ -8,7 +8,7 @@ import logger from '../utils/logger';
 const PRODUCTION_API_URL =
   process.env.EXPO_PUBLIC_API_URL_PRODUCTION ||
   process.env.EXPO_PUBLIC_API_URL ||
-  'https://dating-app-backend-x4yq.onrender.com/api';
+  'https://dating-app-backend-three.vercel.app/api';
 
 // Development API URL - use localhost for local testing
 const DEVELOPMENT_API_URL =

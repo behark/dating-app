@@ -29,18 +29,21 @@ let poolStats = {
   waitQueueSize: 0,
 };
 
+// Detect serverless environment (Vercel)
+const isServerless = !!process.env.VERCEL_ENV;
+
 // MongoDB connection options - optimized for high concurrency (swiping traffic)
-// These settings prevent connection pool exhaustion under load
+// In serverless environments, use smaller pool sizes to avoid connection leaks
 // @ts-ignore - Mongoose ConnectOptions type doesn't include all valid options
 const mongoOptions = {
-  // Connection pool settings - sized for concurrent swipe operations
-  maxPoolSize: 50, // Max connections for high traffic (swiping)
-  minPoolSize: 10, // Keep minimum connections warm
+  // Connection pool settings - smaller for serverless, larger for traditional server
+  maxPoolSize: isServerless ? 5 : 50,
+  minPoolSize: isServerless ? 1 : 10,
 
   // Timeout settings - prevent hanging requests
-  serverSelectionTimeoutMS: 10000, // Time to find a server
-  socketTimeoutMS: 45000, // Socket idle timeout
-  maxIdleTimeMS: 30000, // Close idle connections after 30s
+  serverSelectionTimeoutMS: isServerless ? 5000 : 10000,
+  socketTimeoutMS: isServerless ? 30000 : 45000,
+  maxIdleTimeMS: isServerless ? 10000 : 30000,
   waitQueueTimeoutMS: 10000, // Max wait for connection from pool
   connectTimeoutMS: 10000, // Initial connection timeout
 
@@ -52,7 +55,7 @@ const mongoOptions = {
   bufferCommands: false, // Fail fast if not connected (serverless)
 
   // Heartbeat and monitoring
-  heartbeatFrequencyMS: 10000, // Check server health every 10s
+  heartbeatFrequencyMS: isServerless ? 30000 : 10000,
 };
 
 /**
@@ -237,8 +240,8 @@ const monitorPoolHealth = () => {
   }
 };
 
-// Start pool monitoring in non-test environments
-if (process.env.NODE_ENV !== 'test') {
+// Start pool monitoring in non-test, non-serverless environments
+if (process.env.NODE_ENV !== 'test' && !isServerless) {
   setInterval(monitorPoolHealth, 30000); // Check every 30 seconds
 }
 
