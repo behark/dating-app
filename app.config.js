@@ -69,7 +69,7 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.beharkabashis.datingapp',
-      buildNumber: '43',
+      buildNumber: '44',
       // Deep linking support
       associatedDomains: ['applinks:dating-app.com', 'applinks:*.dating-app.com'],
       infoPlist: {
@@ -111,7 +111,7 @@ export default {
     // Android Configuration - Minimum Android 8.0 (API 26)
     android: {
       package: 'com.beharkabashis.datingapp',
-      versionCode: 43,
+      versionCode: 44,
       adaptiveIcon: {
         foregroundImage: './assets/adaptive-icon.png',
         backgroundColor: '#ffffff',
