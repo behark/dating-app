@@ -13,12 +13,15 @@ const AUTH_TOKEN_KEY = 'authToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 
 // Session expired callback
+let _sessionExpiredCallback = null;
 
 /**
  * Set the callback to be called when the session expires
  * @param {Function|null} callback - Function to call on session expiration
  */
-export const setSessionExpiredCallback = () => {};
+export const setSessionExpiredCallback = (callback) => {
+  _sessionExpiredCallback = callback;
+};
 
 const api = {
   // Auth token (cached in memory for performance)
@@ -366,8 +369,11 @@ const api = {
           }
         }
 
-        // Token refresh failed or not applicable - clear tokens and throw
+        // Token refresh failed or not applicable - clear tokens and notify
         this.clearAuthToken();
+        if (typeof _sessionExpiredCallback === 'function') {
+          _sessionExpiredCallback();
+        }
         const errorData = await response.json().catch(() => ({}));
         logger.apiError(endpoint, method, 401, 'Unauthorized - token expired or invalid');
         throw new Error(

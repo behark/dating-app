@@ -201,7 +201,7 @@ export const useSwipeActions = ({
         }
 
         // Save the dislike
-        const result = await SwipeController.saveSwipe(userId, cardId, 'dislike', isPremium);
+        const result = await SwipeController.saveSwipe(userId, cardId, 'pass', isPremium);
         AnalyticsService.logSwipe('pass', cardId);
 
         if (!result.success) {
