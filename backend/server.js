@@ -914,6 +914,16 @@ io.use(async (socket, next) => {
   }
 });
 
+// HTML entity escaping to prevent stored XSS in chat messages
+function sanitizeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 // Socket.io connection handling
 io.on('connection', (socket) => {
   /** @type {any} */
@@ -1081,12 +1091,15 @@ io.on('connection', (socket) => {
       // Determine receiver
       const receiverId = match.swiperId.toString() === senderId ? match.swipedId : match.swiperId;
 
+      // Sanitize content to prevent stored XSS
+      const sanitizedContent = sanitizeHtml(content);
+
       // Create and save message
       const message = new Message({
         matchId,
         senderId,
         receiverId,
-        content,
+        content: sanitizedContent,
         type,
       });
 
@@ -1156,6 +1169,18 @@ io.on('connection', (socket) => {
     try {
       const { messageId: readMessageId, matchId: readMatchId } = data;
       const readUserId = extSocket.userId;
+
+      // Verify the user is a participant of the match before marking messages as read
+      const readMatch = await Swipe.findOne({
+        _id: readMatchId,
+        $or: [{ swiperId: readUserId }, { swipedId: readUserId }],
+        action: 'like',
+      });
+
+      if (!readMatch) {
+        socket.emit('error', { message: 'Match not found or access denied' });
+        return;
+      }
 
       // Update message as read in database
       const message = await Message.findOneAndUpdate(
