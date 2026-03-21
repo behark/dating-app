@@ -374,6 +374,17 @@ const createPayPalSubscription = async (req, res) => {
 const activatePayPalSubscription = async (req, res) => {
   try {
     const { subscriptionId } = req.body;
+    const userId = req.user.id;
+
+    // Verify the subscription belongs to the authenticated user
+    const transaction = await PaymentTransaction.findOne({
+      providerTransactionId: subscriptionId,
+      userId,
+      provider: 'paypal',
+    });
+    if (!transaction) {
+      return sendForbidden(res, { message: 'Subscription not found or does not belong to this user' });
+    }
 
     const result = await PayPalService.activateSubscription(subscriptionId);
 
@@ -430,6 +441,17 @@ const createPayPalOrder = async (req, res) => {
 const capturePayPalOrder = async (req, res) => {
   try {
     const { orderId } = req.body;
+    const userId = req.user.id;
+
+    // Verify the order belongs to the authenticated user
+    const transaction = await PaymentTransaction.findOne({
+      providerTransactionId: orderId,
+      userId,
+      provider: 'paypal',
+    });
+    if (!transaction) {
+      return sendForbidden(res, { message: 'Order not found or does not belong to this user' });
+    }
 
     const result = await PayPalService.captureOrder(orderId);
 

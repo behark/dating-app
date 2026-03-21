@@ -38,9 +38,10 @@ const initializeWebSocket = (httpServer) => {
   const allowedOrigins = [
     process.env.FRONTEND_URL,
     ...corsOrigins,
-    'http://localhost:3000',
-    'http://localhost:8081',
-    'http://localhost:19006',
+    // Only allow localhost origins in non-production environments
+    ...(process.env.NODE_ENV !== 'production'
+      ? ['http://localhost:3000', 'http://localhost:8081', 'http://localhost:19006']
+      : []),
     /\.vercel\.app$/,
     /\.onrender\.com$/, // Support Render.com deployments
   ].filter(Boolean);
