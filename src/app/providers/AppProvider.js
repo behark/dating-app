@@ -147,21 +147,6 @@ export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
   const offlineUnsubscribe = useRef(null);
 
-  // Initialize app state
-  useEffect(() => {
-    const doInit = async () => {
-      await initializeApp();
-    };
-    doInit();
-
-    return () => {
-      if (offlineUnsubscribe.current) {
-        offlineUnsubscribe.current();
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const initializeApp = async () => {
     try {
       // Initialize offline service
@@ -199,6 +184,21 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: ActionTypes.INITIALIZE, payload: {} });
     }
   };
+
+  // Initialize app state
+  useEffect(() => {
+    const doInit = async () => {
+      await initializeApp();
+    };
+    doInit();
+
+    return () => {
+      if (offlineUnsubscribe.current) {
+        offlineUnsubscribe.current();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Actions
   const setLoading = useCallback((isLoading) => {

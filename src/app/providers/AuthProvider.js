@@ -120,6 +120,19 @@ export const AuthProvider = ({ children }) => {
   // Load user data from async storage on app start
   // CRITICAL FIX: Validate token with backend and refresh if expired
   useEffect(() => {
+    // Helper function to clear stored auth data
+    const clearStoredAuth = async () => {
+      try {
+        setCurrentUser(null);
+        setAuthToken(null);
+        setRefreshToken(null);
+        api.clearAuthToken();
+        await AsyncStorage.multiRemove(['currentUser', 'authToken', 'refreshToken']);
+      } catch (error) {
+        logger.error('Error clearing stored auth:', error);
+      }
+    };
+
     const loadUser = async () => {
       try {
         const storedUser = await AsyncStorage.getItem('currentUser');
@@ -222,19 +235,6 @@ export const AuthProvider = ({ children }) => {
         await clearStoredAuth();
       } finally {
         setLoading(false);
-      }
-    };
-
-    // Helper function to clear stored auth data
-    const clearStoredAuth = async () => {
-      try {
-        setCurrentUser(null);
-        setAuthToken(null);
-        setRefreshToken(null);
-        api.clearAuthToken();
-        await AsyncStorage.multiRemove(['currentUser', 'authToken', 'refreshToken']);
-      } catch (error) {
-        logger.error('Error clearing stored auth:', error);
       }
     };
 
@@ -377,6 +377,44 @@ export const AuthProvider = ({ children }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response]);
+
+  const saveUserSession = async (user, token, refToken) => {
+    // Normalize user object - add uid alias for _id (Firebase compatibility)
+    const normalizedUser = {
+      ...user,
+      uid: user._id || user.uid, // Support both MongoDB _id and Firebase uid
+    };
+
+    setCurrentUser(normalizedUser);
+    setAuthToken(token);
+    setRefreshToken(refToken);
+
+    // Set tokens in api service for authenticated requests
+    api.setAuthToken(token);
+    if (refToken) {
+      api.setRefreshToken(refToken);
+    }
+
+    await AsyncStorage.setItem('currentUser', JSON.stringify(normalizedUser));
+    // CRITICAL FIX: Store tokens in secure storage (encrypted)
+    await storeAuthToken(token);
+    if (refToken) {
+      await storeRefreshToken(refToken);
+    }
+
+    // CRITICAL FIX: Set user in Sentry for error tracking
+    setSentryUser(normalizedUser);
+
+    // Register for notifications and update location
+    if (normalizedUser.uid) {
+      try {
+        await NotificationService.registerForPushNotifications(normalizedUser.uid);
+        await LocationService.updateLocationOnLogin(normalizedUser.uid);
+      } catch (error) {
+        logger.error('Error during post-login setup:', error);
+      }
+    }
+  };
 
   const signup = async (email, password, name, age, gender, location) => {
     try {
@@ -749,44 +787,6 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       logger.error('Google sign in error:', error);
       throw error;
-    }
-  };
-
-  const saveUserSession = async (user, token, refToken) => {
-    // Normalize user object - add uid alias for _id (Firebase compatibility)
-    const normalizedUser = {
-      ...user,
-      uid: user._id || user.uid, // Support both MongoDB _id and Firebase uid
-    };
-
-    setCurrentUser(normalizedUser);
-    setAuthToken(token);
-    setRefreshToken(refToken);
-
-    // Set tokens in api service for authenticated requests
-    api.setAuthToken(token);
-    if (refToken) {
-      api.setRefreshToken(refToken);
-    }
-
-    await AsyncStorage.setItem('currentUser', JSON.stringify(normalizedUser));
-    // CRITICAL FIX: Store tokens in secure storage (encrypted)
-    await storeAuthToken(token);
-    if (refToken) {
-      await storeRefreshToken(refToken);
-    }
-
-    // CRITICAL FIX: Set user in Sentry for error tracking
-    setSentryUser(normalizedUser);
-
-    // Register for notifications and update location
-    if (normalizedUser.uid) {
-      try {
-        await NotificationService.registerForPushNotifications(normalizedUser.uid);
-        await LocationService.updateLocationOnLogin(normalizedUser.uid);
-      } catch (error) {
-        logger.error('Error during post-login setup:', error);
-      }
     }
   };
 
