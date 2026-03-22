@@ -73,6 +73,27 @@ export const AuthProvider = ({ children }) => {
     scopes: ['openid', 'profile', 'email'],
   });
 
+  // Helper function for fetch with timeout - defined early to avoid TDZ errors
+  const fetchWithTimeout = async (url, options, timeoutMs = 60000) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Request timed out. Please check your connection and try again.');
+      }
+      throw error;
+    }
+  };
+
   // Register session expiration callback with API service
   useEffect(() => {
     setSessionExpiredCallback(async () => {
@@ -490,26 +511,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Helper function for fetch with timeout
-  const fetchWithTimeout = async (url, options, timeoutMs = 60000) => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-    try {
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal,
-      });
-      clearTimeout(timeoutId);
-      return response;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
-        throw new Error('Request timed out. Please check your connection and try again.');
-      }
-      throw error;
-    }
-  };
+  // fetchWithTimeout is defined at the top of the component
 
   const login = async (email, password) => {
     if (loginInProgress) {
