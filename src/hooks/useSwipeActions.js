@@ -78,6 +78,18 @@ export const useSwipeActions = ({
   }, []);
 
   /**
+   * Track gamification swipe (fire-and-forget, should not block swipe flow)
+   */
+  const trackGamificationSwipe = useCallback(
+    (swipeType) => {
+      GamificationService.trackSwipe(userId, swipeType).catch((error) => {
+        logger.error('Error tracking swipe for gamification:', error);
+      });
+    },
+    [userId]
+  );
+
+  /**
    * Handle swipe right (like)
    */
   const handleSwipeRight = useCallback(
@@ -323,18 +335,6 @@ export const useSwipeActions = ({
       return false;
     }
   }, [lastSwipedCard, userId]);
-
-  /**
-   * Track gamification swipe (fire-and-forget, should not block swipe flow)
-   */
-  const trackGamificationSwipe = useCallback(
-    (swipeType) => {
-      GamificationService.trackSwipe(userId, swipeType).catch((error) => {
-        logger.error('Error tracking swipe for gamification:', error);
-      });
-    },
-    [userId]
-  );
 
   /**
    * Reconcile swipe counters
