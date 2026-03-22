@@ -23,11 +23,7 @@ class GamificationController {
    */
   static async trackSwipe(req, res) {
     try {
-      const { userId } = req.body;
-
-      if (!userId) {
-        return sendError(res, 400, { message: 'User ID is required' });
-      }
+      const userId = req.user.id;
 
       const streak = await GamificationService.updateSwipeStreak(userId);
       const stats = await GamificationService.getUserGamificationStats(userId);
@@ -47,7 +43,7 @@ class GamificationController {
    */
   static async getSwipeStreak(req, res) {
     try {
-      const { userId } = req.params;
+      const userId = req.user.id;
 
       const streak = await GamificationService.getSwipeStreak(userId);
 
@@ -77,7 +73,8 @@ class GamificationController {
    */
   static async awardBadge(req, res) {
     try {
-      const { userId, badgeType, badgeName, badgeDescription, points } = req.body;
+      const userId = req.user.id;
+      const { badgeType, badgeName, badgeDescription, points } = req.body;
 
       const badge = await GamificationService.awardBadge(
         userId,
@@ -102,7 +99,7 @@ class GamificationController {
    */
   static async getUserBadges(req, res) {
     try {
-      const { userId } = req.params;
+      const userId = req.user.id;
 
       const badges = await GamificationService.getUserBadges(userId);
 
@@ -125,7 +122,7 @@ class GamificationController {
    */
   static async getDailyReward(req, res) {
     try {
-      const { userId } = req.params;
+      const userId = req.user.id;
 
       const unclaimed = await GamificationService.getUnclaimedRewards(userId);
 
@@ -167,7 +164,7 @@ class GamificationController {
    */
   static async getUserStats(req, res) {
     try {
-      const { userId } = req.params;
+      const userId = req.user.id;
 
       const stats = await GamificationService.getUserGamificationStats(userId);
 
@@ -190,8 +187,9 @@ class GamificationController {
   static async getStreakLeaderboard(req, res) {
     try {
       const { limit = 10 } = req.query;
+      const safeLimit = Math.min(Math.max(parseInt(limit) || 10, 1), 100);
 
-      const leaderboard = await GamificationService.getStreakLeaderboard(parseInt(limit));
+      const leaderboard = await GamificationService.getStreakLeaderboard(safeLimit);
 
       return sendSuccess(res, 200, {
         message: 'Streak leaderboard retrieved',
@@ -236,7 +234,7 @@ class GamificationController {
    */
   static async updateUserBadges(req, res) {
     try {
-      const { userId } = req.params;
+      const userId = req.user.id;
 
       await GamificationService.updateBadgesForUser(userId);
 
@@ -264,7 +262,7 @@ class GamificationController {
    */
   static async getUserLevel(req, res) {
     try {
-      const { userId } = req.params;
+      const userId = req.user.id;
       const levelData = await GamificationService.getUserLevel(userId);
 
       return sendSuccess(res, 200, {
@@ -282,10 +280,11 @@ class GamificationController {
    */
   static async addXP(req, res) {
     try {
-      const { userId, amount, action } = req.body;
+      const userId = req.user.id;
+      const { amount, action } = req.body;
 
-      if (!userId || !amount) {
-        return sendError(res, 400, { message: 'User ID and amount are required' });
+      if (!amount) {
+        return sendError(res, 400, { message: 'Amount is required' });
       }
 
       const result = await GamificationService.addXP(userId, amount, action);
@@ -327,7 +326,7 @@ class GamificationController {
    */
   static async getDailyChallenges(req, res) {
     try {
-      const { userId } = req.params;
+      const userId = req.user.id;
       const challenges = await GamificationService.getDailyChallenges(userId);
 
       return sendSuccess(res, 200, {
@@ -345,7 +344,8 @@ class GamificationController {
    */
   static async updateChallengeProgress(req, res) {
     try {
-      const { userId, challengeId, progress } = req.body;
+      const userId = req.user.id;
+      const { challengeId, progress } = req.body;
       const result = await GamificationService.updateChallengeProgress(
         userId,
         challengeId,
@@ -370,7 +370,8 @@ class GamificationController {
    */
   static async trackChallengeAction(req, res) {
     try {
-      const { userId, actionType, count } = req.body;
+      const userId = req.user.id;
+      const { actionType, count } = req.body;
       const result = await GamificationService.trackChallengeAction(userId, actionType, count || 1);
 
       return sendSuccess(res, 200, {
@@ -391,7 +392,8 @@ class GamificationController {
    */
   static async claimChallengeReward(req, res) {
     try {
-      const { userId, challengeId } = req.body;
+      const userId = req.user.id;
+      const { challengeId } = req.body;
       const result = await GamificationService.claimChallengeReward(userId, challengeId);
 
       return sendSuccess(res, 200, {
@@ -412,7 +414,7 @@ class GamificationController {
    */
   static async getCompletionBonus(req, res) {
     try {
-      const { userId } = req.params;
+      const userId = req.user.id;
       const bonus = await GamificationService.getCompletionBonus(userId);
 
       return sendSuccess(res, 200, {
@@ -430,7 +432,7 @@ class GamificationController {
    */
   static async claimCompletionBonus(req, res) {
     try {
-      const { userId } = req.params;
+      const userId = req.user.id;
       const result = await GamificationService.claimCompletionBonus(userId);
 
       return sendSuccess(res, 200, {
@@ -455,7 +457,7 @@ class GamificationController {
    */
   static async getUserAchievements(req, res) {
     try {
-      const { userId } = req.params;
+      const userId = req.user.id;
       const achievements = await GamificationService.getUserAchievements(userId);
 
       return sendSuccess(res, 200, {
@@ -476,7 +478,8 @@ class GamificationController {
    */
   static async checkAchievements(req, res) {
     try {
-      const { userId, stats } = req.body;
+      const userId = req.user.id;
+      const { stats } = req.body;
       const result = await GamificationService.checkAchievements(userId, stats);
 
       return sendSuccess(res, 200, {
@@ -494,7 +497,8 @@ class GamificationController {
    */
   static async unlockAchievement(req, res) {
     try {
-      const { userId, achievementId } = req.body;
+      const userId = req.user.id;
+      const { achievementId } = req.body;
       const result = await GamificationService.unlockAchievement(userId, achievementId);
 
       return sendSuccess(res, 200, {
@@ -512,7 +516,8 @@ class GamificationController {
    */
   static async getAchievementProgress(req, res) {
     try {
-      const { userId, achievementId } = req.params;
+      const userId = req.user.id;
+      const { achievementId } = req.params;
       const progress = await GamificationService.getAchievementProgress(userId, achievementId);
 
       return sendSuccess(res, 200, {
@@ -533,7 +538,7 @@ class GamificationController {
    */
   static async getRecentAchievements(req, res) {
     try {
-      const { userId } = req.params;
+      const userId = req.user.id;
       const { limit = 5 } = req.query;
       const achievements = await GamificationService.getRecentAchievements(userId, parseInt(limit));
 

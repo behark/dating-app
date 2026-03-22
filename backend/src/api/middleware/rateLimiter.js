@@ -303,10 +303,14 @@ const signupLimiter = createRateLimiter({
 const loginLimiter = createRateLimiter({
   windowMs: 900000, // 15 minutes
   maxRequests: 5,
-  keyGenerator: (req) => `login:${req.body?.email || req.ip}`,
+  keyGenerator: (req) =>
+    `login:${(req.body?.email || '').toString().toLowerCase().trim() || req.ip}`,
   message: RATE_LIMIT_MESSAGES.AUTH,
   onLimitReached: (req, res) => {
-    logger.warn('Login rate limit reached', { ip: req.ip, email: req.body?.email ? '[redacted]' : 'none' });
+    logger.warn('Login rate limit reached', {
+      ip: req.ip,
+      email: req.body?.email ? '[redacted]' : 'none',
+    });
   },
   failOpen: false, // fail closed to prevent brute-force attacks
 });
@@ -343,7 +347,9 @@ const wsRateLimiter = {
       const result = await rateLimiter.checkLimit(key, maxRequests, windowSeconds);
       return result;
     } catch (/** @type {any} */ error) {
-      logger.error('WebSocket rate limiter error:', { error: error instanceof Error ? error.message : String(error) });
+      logger.error('WebSocket rate limiter error:', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       // Fail closed for WebSocket events
       return { allowed: false, remaining: 0 };
     }
