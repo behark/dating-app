@@ -40,10 +40,10 @@ router.post(
             thumbnailUrl: result.variants?.thumbnail,
           });
         } catch (/** @type {any} */ error) {
-          logger.error('File upload error:', error);
+          logger.error('File upload error:', { error: error.message, stack: error.stack });
           uploadResults.push({
             success: false,
-            error: error.message,
+            error: 'Failed to upload file',
             fileName: file.originalname,
           });
         }
@@ -96,11 +96,10 @@ router.post(
         },
       });
     } catch (/** @type {any} */ error) {
-      logger.error('Upload endpoint error:', error);
+      logger.error('Upload endpoint error:', { error: error.message, stack: error.stack });
       res.status(500).json({
         success: false,
         message: 'Error uploading photos',
-        error: error.message,
       });
     }
   }
@@ -121,11 +120,10 @@ router.get('/signature', authenticate, async (/** @type {any} */ req, res) => {
       data: signature,
     });
   } catch (/** @type {any} */ error) {
-    logger.error('Signature generation error:', error);
+    logger.error('Signature generation error:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error generating upload signature',
-      error: error.message,
     });
   }
 });

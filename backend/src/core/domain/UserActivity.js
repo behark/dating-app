@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 const userActivitySchema = new mongoose.Schema(
   {
@@ -124,7 +125,9 @@ userActivitySchema.statics.logActivity = async function (userId, activityType, m
       createdAt: new Date(),
     });
   } catch (/** @type {any} */ error) {
-    console.error('Error logging activity:', error);
+    logger.error('Error logging activity', {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 };
 

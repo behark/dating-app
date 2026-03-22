@@ -5,8 +5,10 @@
 
 const express = require('express');
 const router = express.Router();
+const { body, query } = require('express-validator');
 const { analyticsMetricsService } = require('../../core/services/AnalyticsMetricsService');
 const { authenticate, isAdmin } = require('../middleware/auth');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 // All metrics routes require authentication and admin role
 router.use(authenticate);
@@ -33,11 +35,10 @@ router.get('/dashboard', isAdmin, async (req, res) => {
       data: dashboard,
     });
   } catch (/** @type {any} */ error) {
-    console.error('Error fetching dashboard metrics:', error);
+    logger.error('Error fetching dashboard metrics:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching dashboard metrics',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -59,11 +60,10 @@ router.get('/dau', isAdmin, async (req, res) => {
       data: dau,
     });
   } catch (/** @type {any} */ error) {
-    console.error('Error fetching DAU:', error);
+    logger.error('Error fetching DAU:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching DAU',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -91,11 +91,10 @@ router.get('/active-users', isAdmin, async (req, res) => {
       },
     });
   } catch (/** @type {any} */ error) {
-    console.error('Error fetching active users:', error);
+    logger.error('Error fetching active users:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching active users',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -122,11 +121,10 @@ router.get('/retention', isAdmin, async (req, res) => {
       data: retention,
     });
   } catch (/** @type {any} */ error) {
-    console.error('Error fetching retention:', error);
+    logger.error('Error fetching retention:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching retention metrics',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -148,11 +146,10 @@ router.get('/retention/rolling', isAdmin, async (req, res) => {
       data: retention,
     });
   } catch (/** @type {any} */ error) {
-    console.error('Error fetching rolling retention:', error);
+    logger.error('Error fetching rolling retention:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching rolling retention',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -183,11 +180,10 @@ router.get('/matches', isAdmin, async (req, res) => {
       },
     });
   } catch (/** @type {any} */ error) {
-    console.error('Error fetching match metrics:', error);
+    logger.error('Error fetching match metrics:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching match metrics',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -218,11 +214,10 @@ router.get('/messages', isAdmin, async (req, res) => {
       },
     });
   } catch (/** @type {any} */ error) {
-    console.error('Error fetching message metrics:', error);
+    logger.error('Error fetching message metrics:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching message metrics',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -253,11 +248,10 @@ router.get('/premium', isAdmin, async (req, res) => {
       },
     });
   } catch (/** @type {any} */ error) {
-    console.error('Error fetching premium metrics:', error);
+    logger.error('Error fetching premium metrics:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching premium metrics',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -282,11 +276,10 @@ router.get('/photos', isAdmin, async (req, res) => {
       data: uploadMetrics,
     });
   } catch (/** @type {any} */ error) {
-    console.error('Error fetching photo metrics:', error);
+    logger.error('Error fetching photo metrics:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error fetching photo metrics',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
@@ -294,31 +287,40 @@ router.get('/photos', isAdmin, async (req, res) => {
 /**
  * @route   POST /api/metrics/crash
  * @desc    Report app crash (from mobile clients)
- * @access  Private
+ * @access  Private (requires authentication to prevent spam)
  */
-router.post('/crash', async (req, res) => {
-  try {
-    const { platform, version, errorMessage, stackTrace } = req.body;
+router.post(
+  '/crash',
+  [
+    body('platform').optional().isString().isLength({ max: 50 }),
+    body('version').optional().isString().isLength({ max: 20 }),
+    body('errorMessage').optional().isString().isLength({ max: 2000 }),
+    body('stackTrace').optional().isString().isLength({ max: 10000 }),
+  ],
+  async (req, res) => {
+    try {
+      const { platform, version, errorMessage, stackTrace } = req.body;
 
-    analyticsMetricsService.trackCrash(
-      platform || 'unknown',
-      version || 'unknown',
-      errorMessage || 'No message',
-      stackTrace || 'No stack trace'
-    );
+      analyticsMetricsService.trackCrash(
+        platform || 'unknown',
+        version || 'unknown',
+        errorMessage || 'No message',
+        stackTrace || 'No stack trace'
+      );
 
-    res.json({
-      success: true,
-      message: 'Crash reported',
-    });
-  } catch (/** @type {any} */ error) {
-    console.error('Error reporting crash:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error reporting crash',
-    });
+      res.json({
+        success: true,
+        message: 'Crash reported',
+      });
+    } catch (/** @type {any} */ error) {
+      logger.error('Error reporting crash:', { error: error.message, stack: error.stack });
+      res.status(500).json({
+        success: false,
+        message: 'Error reporting crash',
+      });
+    }
   }
-});
+);
 
 /**
  * @route   GET /api/metrics/export
@@ -346,8 +348,7 @@ router.get('/export', isAdmin, async (req, res) => {
     const messaging = safeDashboard.messaging || {};
     const monetization = safeDashboard.monetization || {};
     const retention = safeDashboard.retention || {};
-    const generatedAt =
-      safeDashboard.generatedAt || new Date().toISOString();
+    const generatedAt = safeDashboard.generatedAt || new Date().toISOString();
 
     // Convert to CSV format
     const csvRows = [
@@ -371,11 +372,10 @@ router.get('/export', isAdmin, async (req, res) => {
     );
     res.send(csvRows.join('\n'));
   } catch (/** @type {any} */ error) {
-    console.error('Error exporting metrics:', error);
+    logger.error('Error exporting metrics:', { error: error.message, stack: error.stack });
     res.status(500).json({
       success: false,
       message: 'Error exporting metrics',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 });

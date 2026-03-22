@@ -488,7 +488,7 @@ class StripeService {
     if (handler) {
       await handler.call(this, event.data.object, event);
     } else {
-      console.log(`Unhandled Stripe event type: ${event.type}`);
+      logger.warn(`Unhandled Stripe event type: ${event.type}`);
     }
 
     return { received: true, type: event.type };
@@ -546,7 +546,7 @@ class StripeService {
    * Handle subscription creation
    */
   static async handleSubscriptionCreated(subscription, event) {
-    console.log('Subscription created:', subscription.id);
+    logger.info('Subscription created', { subscriptionId: subscription.id });
     // Most handling done in checkout.session.completed
   }
 
@@ -831,7 +831,7 @@ class StripeService {
    * Handle refund status update
    */
   static async handleRefundUpdated(refund, event) {
-    console.log('Refund updated:', refund.id, refund.status);
+    logger.info('Refund updated', { refundId: refund.id, status: refund.status });
   }
 }
 

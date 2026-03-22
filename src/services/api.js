@@ -333,8 +333,19 @@ const api = {
       requestOptions.body = isFormData ? data : JSON.stringify(data);
     }
 
+    // Network timeout via AbortController
+    const timeoutMs = options.timeout || 30000; // Default 30s timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    requestOptions.signal = controller.signal;
+
     try {
-      const response = await fetch(url, requestOptions);
+      let response;
+      try {
+        response = await fetch(url, requestOptions);
+      } finally {
+        clearTimeout(timeoutId);
+      }
       const isResponseOk =
         typeof response?.ok === 'boolean'
           ? response.ok
@@ -409,6 +420,16 @@ const api = {
       // Don't double-wrap errors we already threw (they already have user-friendly messages)
       if (error.message && error.code) {
         throw error;
+      }
+
+      // Handle abort/timeout errors
+      if (error.name === 'AbortError') {
+        logger.apiError(endpoint, method, 'TIMEOUT', error);
+        const timeoutError = new Error(
+          STANDARD_ERROR_MESSAGES.NETWORK_ERROR || 'Request timed out. Please try again.'
+        );
+        timeoutError.code = 'TIMEOUT';
+        throw timeoutError;
       }
 
       // Handle network errors

@@ -6,46 +6,46 @@
 
 export const Colors = {
   // Primary colors
-  primary: '#667eea',
-  primaryDark: '#764ba2',
+  primary: '#6C63FF',
+  primaryDark: '#5A4FCF',
 
   // Text colors
   text: {
-    primary: '#000',
-    secondary: '#666',
-    tertiary: '#999',
+    primary: '#1A1A2E',
+    secondary: '#6B7194',
+    tertiary: '#9CA3C0',
     white: '#fff',
     white90: 'rgba(255, 255, 255, 0.9)',
     white70: 'rgba(255, 255, 255, 0.7)',
     white80: 'rgba(255, 255, 255, 0.8)',
-    dark: '#333',
-    medium: '#555',
-    light: '#ccc',
-    lighter: '#eee',
+    dark: '#1A1A2E',
+    medium: '#4A4E6A',
+    light: '#C5CAE9',
+    lighter: '#E8EAF6',
   },
 
   // Background colors
   background: {
-    white: '#fff',
+    white: '#FFFFFF',
     white10: 'rgba(255, 255, 255, 0.1)',
     white20: 'rgba(255, 255, 255, 0.2)',
     white30: 'rgba(255, 255, 255, 0.3)',
     white90: 'rgba(255, 255, 255, 0.9)',
-    white95: 'rgba(255, 255, 255, 0.95)',
+    white95: 'rgba(255, 255, 255, 0.96)',
     overlay: 'rgba(0, 0, 0, 0.5)',
     overlayDark: 'rgba(0, 0, 0, 0.6)',
-    light: '#f0f0f0',
-    lighter: '#f5f5f5',
-    lightest: '#f8f9fa',
-    gray: '#e9ecef',
-    dark: '#121212',
-    darker: '#1E1E1E',
+    light: '#F0F2FF',
+    lighter: '#F5F6FF',
+    lightest: '#FAFBFF',
+    gray: '#E8EAF6',
+    dark: '#0D0D1A',
+    darker: '#16162B',
     black: '#000',
   },
 
   // Shadow colors
   shadow: {
-    primary: '#667eea',
+    primary: '#6C63FF',
     black: 'rgba(0, 0, 0, 0.3)',
     black50: 'rgba(0, 0, 0, 0.5)',
   },
@@ -65,10 +65,10 @@ export const Colors = {
 
   // Interactive colors (for buttons, links, etc.)
   interactive: {
-    primary: '#667eea',
+    primary: '#6C63FF',
     secondary: '#4ECDC4',
     danger: '#EA4335',
-    disabled: '#DADCE0',
+    disabled: '#D5D8E8',
     success: '#34A853',
     warning: '#FBBC04',
   },
@@ -95,7 +95,7 @@ export const Colors = {
   gamification: {
     level1: '#90BE6D',
     level2: '#4ECDC4',
-    level3: '#667eea',
+    level3: '#6C63FF',
     level4: '#F48FB1',
     level5: '#FF6B6B',
     level6: '#FFD700',
@@ -118,7 +118,7 @@ export const Colors = {
   // Verification badge colors
   verification: {
     verified: '#4ECDC4',
-    premium: '#667eea',
+    premium: '#6C63FF',
     safety: '#FF6B6B',
     social: '#3B82F6',
     photo: '#8B5CF6',
@@ -134,7 +134,7 @@ export const Colors = {
     sad: '#74B9FF',
     angry: '#FF7675',
     fire: '#FF9F43',
-    thumbsup: '#667eea',
+    thumbsup: '#6C63FF',
     clap: '#F8B500',
   },
 
@@ -150,60 +150,63 @@ export const Colors = {
 
   // Border colors
   border: {
-    light: '#ddd',
-    medium: '#ccc',
-    dark: '#999',
-    primary: '#667eea',
+    light: '#E8EAF6',
+    medium: '#C5CAE9',
+    dark: '#9FA8DA',
+    primary: '#6C63FF',
     white: '#fff',
-    gray: '#e9ecef',
+    gray: '#E8EAF6',
     transparent: 'transparent',
   },
 
   // Gradient colors
   gradient: {
-    primary: ['#667eea', '#764ba2'],
-    light: ['#f5f7fa', '#c3cfe2'],
-    pink: ['#f093fb', '#f5576c'],
-    sunset: ['#ff9a9e', '#fecfef'],
-    ocean: ['#00c6ff', '#0072ff'],
-    forest: ['#56ab2f', '#a8e063'],
+    primary: ['#6C63FF', '#9F7AEA'],
+    light: ['#F0F2FF', '#E8EAF6'],
+    pink: ['#FF6B9D', '#F43F5E'],
+    sunset: ['#FF9A9E', '#FECFEF'],
+    ocean: ['#00C6FF', '#0072FF'],
+    forest: ['#56AB2F', '#A8E063'],
     // Accent gradients
-    teal: ['#4ECDC4', '#44A08D'],
-    red: ['#FF6B6B', '#EE5A6F'],
+    teal: ['#4ECDC4', '#2DB5AA'],
+    red: ['#FF6B6B', '#F43F5E'],
     redOrange: ['#FF6B6B', '#FF8E53'],
-    gold: ['#FFD700', '#FFA500'],
+    gold: ['#FFD700', '#FF9500'],
     purple: ['#8B5CF6', '#7C3AED'],
-    blue: ['#3B82F6', '#1D4ED8'],
+    blue: ['#3B82F6', '#6366F1'],
     green: ['#10B981', '#059669'],
     // Status gradients
     success: ['#4CAF50', '#81C784'],
     info: ['#2196F3', '#64B5F6'],
     // Disabled/placeholder gradients
-    disabled: ['#ccc', '#bbb'],
-    placeholder: ['#ccc', '#bbb'],
+    disabled: ['#C5CAE9', '#B0B8D6'],
+    placeholder: ['#C5CAE9', '#B0B8D6'],
     // Theme-specific gradients
-    dark: ['#232526', '#414345'],
-    pinkSoft: ['#ee9ca7', '#ffdde1'],
+    dark: ['#0D0D1A', '#1A1A2E'],
+    pinkSoft: ['#FFE0E8', '#FFDDE1'],
     oceanDeep: ['#134E5E', '#71B280'],
-    purplePink: ['#ec4899', '#be185d'],
-    yellow: ['#f7971e', '#ffd200'],
+    purplePink: ['#EC4899', '#BE185D'],
+    yellow: ['#F7971E', '#FFD200'],
+    // Premium glass effect
+    glass: ['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.05)'],
+    glassLight: ['rgba(255,255,255,0.9)', 'rgba(255,255,255,0.7)'],
   },
 
   // UI element colors
   ui: {
-    online: '#FFD700',
-    offline: '#999',
-    placeholder: '#ccc',
-    disabled: '#9E9E9E',
-    divider: '#e9ecef',
-    card: '#fff',
-    cardBorder: '#e9ecef',
-    input: '#f8f9fa',
-    inputBorder: '#e9ecef',
-    buttonPrimary: '#667eea',
-    buttonSecondary: '#f8f9fa',
+    online: '#10B981',
+    offline: '#9CA3C0',
+    placeholder: '#C5CAE9',
+    disabled: '#B0B8D6',
+    divider: '#E8EAF6',
+    card: '#FFFFFF',
+    cardBorder: '#E8EAF6',
+    input: '#F5F6FF',
+    inputBorder: '#E8EAF6',
+    buttonPrimary: '#6C63FF',
+    buttonSecondary: '#F5F6FF',
     buttonText: '#fff',
-    link: '#667eea',
+    link: '#6C63FF',
   },
 
   // Brand colors (for third-party integrations)

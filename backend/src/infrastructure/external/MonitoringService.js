@@ -4,6 +4,7 @@
  */
 
 const Sentry = require('@sentry/node');
+const { logger } = require('./LoggingService');
 
 class MonitoringService {
   constructor() {
@@ -18,7 +19,7 @@ class MonitoringService {
    */
   initSentry(app) {
     if (!process.env.SENTRY_DSN) {
-      console.log('⚠️  Sentry DSN not configured, skipping Sentry initialization');
+      logger.info('Sentry DSN not configured, skipping Sentry initialization');
       return;
     }
 
@@ -26,11 +27,9 @@ class MonitoringService {
     // Express integration is handled via middleware in server.js
     if (Sentry.getCurrentHub().getClient()) {
       this.initialized = true;
-      console.log(
-        '✅ Sentry already initialized (from instrument.js), ready for Express middleware'
-      );
+      logger.info('Sentry already initialized (from instrument.js), ready for Express middleware');
     } else {
-      console.log('⚠️  Sentry not initialized yet');
+      logger.warn('Sentry not initialized yet');
     }
   }
 
@@ -162,7 +161,7 @@ class MonitoringService {
    * @deprecated Use startSpan instead. This is kept for backward compatibility.
    */
   startTransaction(name, op = 'function') {
-    console.warn('startTransaction is deprecated in Sentry v8+. Use startSpan instead.');
+    logger.warn('startTransaction is deprecated in Sentry v8+. Use startSpan instead.');
     // Return a mock transaction object for backward compatibility
     return {
       name,

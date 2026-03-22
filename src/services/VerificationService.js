@@ -69,14 +69,30 @@ export class VerificationService {
       }
 
       const token = await api.getAuthToken();
-      const uploadResponse = await fetch(`${API_URL}/upload/verification`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
-        },
-        body: formData,
-      });
+
+      // Use AbortController for timeout on upload (60s for file uploads)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+      let uploadResponse;
+      try {
+        uploadResponse = await fetch(`${API_URL}/upload/verification`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+          body: formData,
+          signal: controller.signal,
+        });
+      } catch (fetchError) {
+        if (fetchError.name === 'AbortError') {
+          throw new Error('Upload timed out. Please try again with a smaller file.');
+        }
+        throw fetchError;
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       if (!uploadResponse.ok) {
         throw new Error(`Upload failed: ${uploadResponse.status}`);

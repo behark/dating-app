@@ -16,7 +16,10 @@ const getEncryptionKey = () => {
     if (process.env.NODE_ENV === 'production') {
       throw new Error('ENCRYPTION_KEY environment variable is required in production');
     }
-    console.warn('WARNING: ENCRYPTION_KEY not set, falling back to JWT_SECRET. Do NOT use this in production.');
+    const { logger } = require('../../infrastructure/external/LoggingService');
+    logger.warn(
+      'ENCRYPTION_KEY not set, falling back to JWT_SECRET. Do NOT use this in production.'
+    );
   }
   const masterKey = process.env.ENCRYPTION_KEY || process.env.JWT_SECRET;
   if (!masterKey) {
@@ -49,7 +52,9 @@ const encrypt = (plaintext) => {
   } catch (/** @type {any} */ error) {
     // Log securely without exposing encryption internals
     const { logger } = require('../../infrastructure/external/LoggingService');
-    logger.error('Encryption error', { error: error instanceof Error ? error.message : String(error) });
+    logger.error('Encryption error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw new Error('Failed to encrypt data');
   }
 };
@@ -89,7 +94,9 @@ const decrypt = (encryptedData) => {
     return plaintext;
   } catch (/** @type {any} */ error) {
     const { logger } = require('../../infrastructure/external/LoggingService');
-    logger.error('Decryption error', { error: error instanceof Error ? error.message : String(error) });
+    logger.error('Decryption error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     // Return original data if decryption fails (might not be encrypted)
     return encryptedData;
   }
@@ -144,7 +151,9 @@ const encryptMessage = (message, userKey) => {
     return `${iv.toString('base64')}:${authTag.toString('base64')}:${ciphertext}`;
   } catch (/** @type {any} */ error) {
     const { logger } = require('../../infrastructure/external/LoggingService');
-    logger.error('Message encryption error', { error: error instanceof Error ? error.message : String(error) });
+    logger.error('Message encryption error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw new Error('Failed to encrypt message');
   }
 };
@@ -183,7 +192,9 @@ const decryptMessage = (encryptedMessage, userKey) => {
     return plaintext;
   } catch (/** @type {any} */ error) {
     const { logger } = require('../../infrastructure/external/LoggingService');
-    logger.error('Message decryption error', { error: error instanceof Error ? error.message : String(error) });
+    logger.error('Message decryption error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return encryptedMessage;
   }
 };

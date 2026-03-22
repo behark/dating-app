@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef, startTransition } from 'react';
 import { InteractionManager } from 'react-native';
-import { getUserRepository } from '../../../repositories';
+import { getUserRepository } from '../../../services/repositories';
 import { LocationService } from '../../../services/LocationService';
 import { PreferencesService } from '../../../services/PreferencesService';
 import { PremiumService } from '../../../services/PremiumService';
@@ -27,7 +27,7 @@ export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
 
   const initializeLocation = useCallback(async () => {
     try {
-      const hasPermission = await LocationService.requestPermissions();
+      const hasPermission = await LocationService.requestLocationPermission();
       if (!hasPermission) {
         logger.info('Location permission denied, using default');
         return null;
@@ -54,7 +54,7 @@ export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
           return;
         }
 
-        const preferences = await PreferencesService.getPreferences();
+        const preferences = await PreferencesService.getUserPreferences(userId);
         const profiles = await userRepository.getDiscoveryProfiles({
           location: location?.coords || userLocation?.coords,
           radius: discoveryRadius,
@@ -88,7 +88,7 @@ export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
   const loadPremiumStatus = useCallback(async () => {
     if (!userId) return;
     try {
-      const status = await PremiumService.getPremiumStatus(userId);
+      const status = await PremiumService.checkPremiumStatus(userId);
       setPremiumFeatures(status?.features || {});
     } catch (error) {
       logger.error('Error loading premium status:', error);
@@ -107,13 +107,15 @@ export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
   const advanceCard = useCallback(() => {
     startTransition(() => {
       setCurrentIndex((prev) => prev + 1);
-      const newCount = swipesUsedToday + 1;
-      setSwipesUsedToday(newCount);
-      if (!isPremium) {
-        setSwipesRemaining(Math.max(0, 50 - newCount));
-      }
+      setSwipesUsedToday((prev) => {
+        const newCount = prev + 1;
+        if (!isPremium) {
+          setSwipesRemaining(Math.max(0, 50 - newCount));
+        }
+        return newCount;
+      });
     });
-  }, [isPremium, swipesUsedToday]);
+  }, [isPremium]);
 
   const currentCard = cards[currentIndex] || null;
   const hasMoreCards = currentIndex < cards.length;

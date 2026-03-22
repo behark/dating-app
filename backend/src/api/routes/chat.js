@@ -1,5 +1,5 @@
 const express = require('express');
-const { body, param, validationResult } = require('express-validator');
+const { body, param, query, validationResult } = require('express-validator');
 const {
   getMessages,
   getConversations,
@@ -49,8 +49,8 @@ router.get(
   [
     param('matchId').isMongoId().withMessage('Invalid match ID format'),
     // Optional query params validation
-    body('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
-    body('limit')
+    query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
+    query('limit')
       .optional()
       .isInt({ min: 1, max: 100 })
       .withMessage('Limit must be between 1 and 100'),
@@ -60,13 +60,28 @@ router.get(
 );
 
 // PUT /api/chat/messages/:matchId/read - Mark messages as read for a match
-router.put('/messages/:matchId/read', markAsRead);
+router.put(
+  '/messages/:matchId/read',
+  [param('matchId').isMongoId().withMessage('Invalid match ID format')],
+  handleValidationErrors,
+  markAsRead
+);
 
 // PUT /api/chat/messages/:messageId/read-single - Mark single message as read
-router.put('/messages/:messageId/read-single', markMessageAsRead);
+router.put(
+  '/messages/:messageId/read-single',
+  [param('messageId').isMongoId().withMessage('Invalid message ID format')],
+  handleValidationErrors,
+  markMessageAsRead
+);
 
 // GET /api/chat/receipts/:matchId - Get read receipts for a conversation
-router.get('/receipts/:matchId', getReadReceipts);
+router.get(
+  '/receipts/:matchId',
+  [param('matchId').isMongoId().withMessage('Invalid match ID format')],
+  handleValidationErrors,
+  getReadReceipts
+);
 
 // POST /api/chat/messages/encrypted - Send an encrypted message
 router.post(
@@ -89,7 +104,12 @@ router.post(
 );
 
 // DELETE /api/chat/messages/:messageId - Delete a message
-router.delete('/messages/:messageId', deleteMessage);
+router.delete(
+  '/messages/:messageId',
+  [param('messageId').isMongoId().withMessage('Invalid message ID format')],
+  handleValidationErrors,
+  deleteMessage
+);
 
 // POST /api/chat/messages/reactions - Add reaction to message
 router.post(

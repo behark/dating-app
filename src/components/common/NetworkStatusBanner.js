@@ -110,6 +110,9 @@ const NetworkStatusBanner = ({ style, showWhenOnline = true, autoHideDelay = 300
         },
         style,
       ]}
+      accessibilityRole="alert"
+      accessibilityLiveRegion="assertive"
+      accessibilityLabel={message}
       {...(Platform.OS === 'web'
         ? { style: { pointerEvents: isOnline && !wasOfflineRef.current ? 'none' : 'auto' } }
         : { pointerEvents: isOnline && !wasOfflineRef.current ? 'none' : 'auto' })}
@@ -121,11 +124,21 @@ const NetworkStatusBanner = ({ style, showWhenOnline = true, autoHideDelay = 300
 
       <View style={styles.actions}>
         {!isOnline && onRetry && (
-          <TouchableOpacity onPress={handleRetry} style={styles.retryButton}>
+          <TouchableOpacity
+            onPress={handleRetry}
+            style={styles.retryButton}
+            accessibilityRole="button"
+            accessibilityLabel="Retry connection"
+          >
             <Ionicons name="refresh" size={18} color={Colors.background.white} />
           </TouchableOpacity>
         )}
-        <TouchableOpacity onPress={handleDismiss} style={styles.dismissButton}>
+        <TouchableOpacity
+          onPress={handleDismiss}
+          style={styles.dismissButton}
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss network status banner"
+        >
           <Ionicons name="close" size={18} color={Colors.background.white} />
         </TouchableOpacity>
       </View>

@@ -5,6 +5,7 @@
 
 const mongoose = require('mongoose');
 const { getCircuitBreaker, CIRCUIT_BREAKER_STATES } = require('../shared/utils/retryUtils');
+const { logger } = require('../infrastructure/external/LoggingService');
 
 // Enable bufferCommands globally to allow queuing before connection
 mongoose.set('bufferCommands', true);
@@ -63,7 +64,7 @@ const mongoOptions = {
  */
 const connectDB = async () => {
   if (isConnected && mongoose.connection.readyState === 1) {
-    console.log('Using existing MongoDB connection');
+    logger.info('Using existing MongoDB connection');
     return mongoose.connection;
   }
 
@@ -71,7 +72,7 @@ const connectDB = async () => {
   const mongoURI = process.env.MONGODB_URI || process.env.MONGODB_URL;
 
   if (!mongoURI) {
-    console.warn('MONGODB_URI or MONGODB_URL not set - database features will be unavailable');
+    logger.warn('MONGODB_URI or MONGODB_URL not set - database features will be unavailable');
     return null;
   }
 
@@ -92,8 +93,8 @@ const connectDB = async () => {
 
       isConnected = true;
       connectionRetries = 0;
-      console.log(`MongoDB Connected: ${conn.connection.host}`);
-      console.log(`MongoDB Database: ${conn.connection.name}`);
+      logger.info(`MongoDB Connected: ${conn.connection.host}`);
+      logger.info(`MongoDB Database: ${conn.connection.name}`);
 
       // Setup event handlers
       setupConnectionHandlers();
@@ -101,21 +102,21 @@ const connectDB = async () => {
       // Set global query timeout to prevent hanging queries
       // This applies to all queries that don't have explicit maxTimeMS
       mongoose.set('maxTimeMS', 10000); // 10 seconds default timeout
-      console.log('✅ MongoDB global query timeout set to 10s');
+      logger.info('MongoDB global query timeout set to 10s');
 
       return conn.connection;
     }, 'mongodb_connection');
   } catch (/** @type {any} */ error) {
     const err = /** @type {Error} */ (error);
     const errorMessage = err.message || String(err);
-    console.error('MongoDB connection failed:', errorMessage);
+    logger.error('MongoDB connection failed', { error: errorMessage });
     isConnected = false;
 
     // Retry logic
     if (connectionRetries < MAX_RETRIES) {
       connectionRetries++;
       const delay = Math.min(1000 * Math.pow(2, connectionRetries), 30000);
-      console.log(
+      logger.info(
         `Retrying connection in ${delay}ms (attempt ${connectionRetries}/${MAX_RETRIES})`
       );
 
@@ -135,12 +136,12 @@ const connectDB = async () => {
  */
 const setupConnectionHandlers = () => {
   mongoose.connection.on('error', (error) => {
-    console.error('MongoDB connection error:', error);
+    logger.error('MongoDB connection error', { error: error.message || String(error) });
     isConnected = false;
   });
 
   mongoose.connection.on('disconnected', () => {
-    console.log('MongoDB disconnected');
+    logger.warn('MongoDB disconnected');
     isConnected = false;
 
     // Attempt reconnection
@@ -150,7 +151,7 @@ const setupConnectionHandlers = () => {
   });
 
   mongoose.connection.on('reconnected', () => {
-    console.log('MongoDB reconnected');
+    logger.info('MongoDB reconnected');
     isConnected = true;
   });
 };
@@ -159,14 +160,14 @@ const setupConnectionHandlers = () => {
  * Graceful shutdown handler
  */
 const gracefulShutdown = async (signal) => {
-  console.log(`${signal} received. Closing MongoDB connection...`);
+  logger.info(`${signal} received. Closing MongoDB connection...`);
   try {
     await mongoose.connection.close();
-    console.log('MongoDB connection closed');
+    logger.info('MongoDB connection closed');
   } catch (/** @type {any} */ error) {
     const err = /** @type {Error} */ (error);
     const errorMessage = err.message || String(err);
-    console.error('Error closing MongoDB connection:', errorMessage);
+    logger.error('Error closing MongoDB connection', { error: errorMessage });
   }
 };
 
@@ -220,7 +221,7 @@ const monitorPoolHealth = () => {
 
         // Warn if pool utilization is high (>80%)
         if (poolStats.utilizationPercent > 80) {
-          console.warn(
+          logger.warn(
             `[DB POOL WARNING] High pool utilization: ${poolStats.utilizationPercent}% ` +
               `(${totalConnections}/${mongoOptions.maxPoolSize} connections)`
           );
@@ -228,7 +229,7 @@ const monitorPoolHealth = () => {
 
         // Critical warning if pool is nearly exhausted (>95%)
         if (poolStats.utilizationPercent > 95) {
-          console.error(
+          logger.error(
             `[DB POOL CRITICAL] Pool near exhaustion: ${poolStats.utilizationPercent}% ` +
               `- requests may start failing with 500 errors!`
           );
@@ -254,7 +255,7 @@ if (process.env.NODE_ENV !== 'test' && !isServerless) {
 const enableSlowQueryProfiling = async (thresholdMs = 100) => {
   try {
     if (!mongoose.connection.db) {
-      console.warn('Database not connected, skipping profiling setup');
+      logger.warn('Database not connected, skipping profiling setup');
       return;
     }
 
@@ -265,7 +266,7 @@ const enableSlowQueryProfiling = async (thresholdMs = 100) => {
       slowms: thresholdMs,
     });
 
-    console.log(`✅ MongoDB slow query profiling enabled (threshold: ${thresholdMs}ms)`);
+    logger.info(`MongoDB slow query profiling enabled (threshold: ${thresholdMs}ms)`);
 
     // Optional: Set up periodic slow query log reader
     if (process.env.NODE_ENV !== 'test') {
@@ -280,11 +281,10 @@ const enableSlowQueryProfiling = async (thresholdMs = 100) => {
             .toArray();
 
           if (slowQueries.length > 0) {
-            console.warn(`[SLOW QUERIES] Found ${slowQueries.length} slow queries in last check:`);
+            logger.warn(`[SLOW QUERIES] Found ${slowQueries.length} slow queries in last check`);
             slowQueries.forEach((q) => {
-              console.warn(
-                `  - ${q.op} on ${q.ns}: ${q.millis}ms`,
-                q.command ? JSON.stringify(q.command).substring(0, 200) : ''
+              logger.warn(
+                `  - ${q.op} on ${q.ns}: ${q.millis}ms ${q.command ? JSON.stringify(q.command).substring(0, 200) : ''}`
               );
             });
           }
@@ -299,9 +299,9 @@ const enableSlowQueryProfiling = async (thresholdMs = 100) => {
 
     // MongoDB Atlas and other managed services often disable profiling
     if (errorMessage.includes('CMD_NOT_ALLOWED') || errorMessage.includes('profile')) {
-      console.log('ℹ️  Slow query profiling not available (normal for managed MongoDB services)');
+      logger.info('Slow query profiling not available (normal for managed MongoDB services)');
     } else {
-      console.warn('Could not enable slow query profiling:', errorMessage);
+      logger.warn('Could not enable slow query profiling', { error: errorMessage });
     }
   }
 };
@@ -314,7 +314,7 @@ const enableSlowQueryProfiling = async (thresholdMs = 100) => {
 const createIndexes = async () => {
   try {
     if (!mongoose.connection.db) {
-      console.warn('Database not connected, skipping index creation');
+      logger.warn('Database not connected, skipping index creation');
       return;
     }
 
@@ -330,7 +330,7 @@ const createIndexes = async () => {
         } catch (/** @type {any} */ error) {
           const err = /** @type {Error} */ (error);
           if (err && err.message && err.message.includes('already exists')) {
-            console.log(`⚠️ Some indexes for ${collection} already exist, skipping duplicates`);
+            logger.info(`Some indexes for ${collection} already exist, skipping duplicates`);
           } else {
             throw error;
           }
@@ -402,14 +402,14 @@ const createIndexes = async () => {
 
     await Promise.race([indexCreationPromise(), timeoutPromise]);
 
-    console.log('✅ Database indexes created successfully');
+    logger.info('Database indexes created successfully');
 
     // Enable slow query profiling after indexes are created
     await enableSlowQueryProfiling(100);
   } catch (/** @type {any} */ error) {
     const err = /** @type {Error} */ (error);
     const errorMessage = err.message || String(err);
-    console.error('Error creating indexes:', errorMessage);
+    logger.error('Error creating indexes', { error: errorMessage });
   }
 };
 

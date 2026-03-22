@@ -434,14 +434,16 @@ export const ChatProvider = ({ children }) => {
           )
         );
 
-        setUnreadCount((prev) =>
-          Math.max(0, prev - (conversations.find((c) => c.matchId === matchId)?.unreadCount || 0))
-        );
+        setUnreadCount((prev) => {
+          // Use conversationsRef to avoid stale closure over conversations array
+          const conv = conversationsRef.current.find((c) => c.matchId === matchId);
+          return Math.max(0, prev - (conv?.unreadCount || 0));
+        });
       } catch (error) {
         logger.error('Error marking messages as read:', error);
       }
     },
-    [currentUser?.uid, currentUser?._id, conversations]
+    [currentUser?.uid, currentUser?._id]
   );
 
   useEffect(() => {

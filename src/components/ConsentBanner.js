@@ -102,7 +102,7 @@ const ConsentBanner = ({ visible, onConsentComplete }) => {
       accessibilityLabel="Privacy and consent dialog"
     >
       <LinearGradient
-        colors={[Colors.primary, Colors.secondary]}
+        colors={[Colors.primary, '#8B5CF6', Colors.gradient.pink[0]]}
         style={styles.container}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -267,10 +267,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   content: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    borderRadius: 24,
+    padding: 24,
     marginBottom: 20,
+    shadowColor: '#1A1A2E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 8,
   },
   description: {
     fontSize: 16,
@@ -303,11 +308,13 @@ const styles = StyleSheet.create({
   preferenceItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 14,
     marginBottom: 8,
-    backgroundColor: Colors.background.light,
+    backgroundColor: '#F5F6FF',
+    borderWidth: 1,
+    borderColor: '#E8EAF6',
   },
   checkboxContainer: {
     marginRight: 12,
@@ -355,9 +362,13 @@ const styles = StyleSheet.create({
     right: 0,
     padding: 24,
     paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderTopWidth: 1,
-    borderTopColor: Colors.border.gray,
+    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    borderTopWidth: 0,
+    shadowColor: '#1A1A2E',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 5,
   },
   button: {
     borderRadius: 12,
@@ -368,14 +379,21 @@ const styles = StyleSheet.create({
   },
   acceptButton: {
     backgroundColor: Colors.primary,
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+    borderRadius: 14,
   },
   buttonDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   buttonText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
     color: Colors.background.white,
+    letterSpacing: 0.3,
   },
 });
 

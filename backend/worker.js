@@ -11,6 +11,7 @@ const {
   initializeProcessors,
   scheduleRecurringJobs,
 } = require('./src/core/services/JobProcessors');
+const { logger } = require('./src/infrastructure/external/LoggingService');
 
 // Graceful shutdown flag
 let isShuttingDown = false;
@@ -26,12 +27,11 @@ const connectWorkerDB = async () => {
     if (!connection) {
       throw new Error('Failed to connect to MongoDB');
     }
-    console.log('Worker connected to MongoDB');
+    logger.info('Worker connected to MongoDB');
   } catch (/** @type {any} */ error) {
-    console.error(
-      'Worker MongoDB connection failed:',
-      error instanceof Error ? error.message : String(error)
-    );
+    logger.error('Worker MongoDB connection failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw error;
   }
 };
@@ -40,18 +40,18 @@ const connectWorkerDB = async () => {
  * Start the worker
  */
 const startWorker = async () => {
-  console.log('========================================');
-  console.log('Starting Background Job Worker');
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Time: ${new Date().toISOString()}`);
-  console.log('========================================');
+  logger.info('========================================');
+  logger.info('Starting Background Job Worker');
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`Time: ${new Date().toISOString()}`);
+  logger.info('========================================');
 
   try {
     // Connect to databases using centralized connection
     await connectWorkerDB();
     await initRedis();
 
-    console.log('Database connections established');
+    logger.info('Database connections established');
 
     // Initialize job processors
     initializeProcessors();
@@ -59,10 +59,12 @@ const startWorker = async () => {
     // Schedule recurring jobs
     await scheduleRecurringJobs();
 
-    console.log('Worker started successfully');
-    console.log('Listening for jobs...');
+    logger.info('Worker started successfully');
+    logger.info('Listening for jobs...');
   } catch (/** @type {any} */ error) {
-    console.error('Failed to start worker:', error);
+    logger.error('Failed to start worker', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     process.exit(1);
   }
 };
@@ -74,7 +76,7 @@ const shutdown = async (signal) => {
   if (isShuttingDown) return;
   isShuttingDown = true;
 
-  console.log(`\n${signal} received. Starting graceful shutdown...`);
+  logger.info(`${signal} received. Starting graceful shutdown...`);
 
   try {
     // Close queue connections
@@ -88,10 +90,12 @@ const shutdown = async (signal) => {
     // Close MongoDB using centralized graceful shutdown
     await dbGracefulShutdown(signal);
 
-    console.log('Worker shut down gracefully');
+    logger.info('Worker shut down gracefully');
     process.exit(0);
   } catch (/** @type {any} */ error) {
-    console.error('Error during shutdown:', error);
+    logger.error('Error during shutdown', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     process.exit(1);
   }
 };
@@ -102,12 +106,12 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
+  logger.error('Uncaught Exception', { error: error.message, stack: error.stack });
   shutdown('uncaughtException');
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('Unhandled Rejection', { reason: String(reason) });
 });
 
 // Start worker

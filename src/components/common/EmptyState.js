@@ -21,7 +21,7 @@ import { Colors } from '../../constants/colors';
  */
 const EmptyState = ({
   icon,
-  iconSize = 80,
+  iconSize = 72,
   title,
   description,
   buttonText,
@@ -29,12 +29,16 @@ const EmptyState = ({
   secondaryButtonText,
   onSecondaryButtonPress,
   variant = 'default',
-  gradientColors = ['rgba(102, 126, 234, 0.1)', 'rgba(118, 75, 162, 0.1)'],
+  gradientColors = ['rgba(108, 99, 255, 0.06)', 'rgba(159, 122, 234, 0.06)'],
   style,
 }) => (
   <View style={[styles.container, style]}>
     <LinearGradient colors={gradientColors} style={styles.card}>
-      {icon && <Ionicons name={icon} size={iconSize} color={Colors.primary} />}
+      {icon && (
+        <View style={styles.iconWrapper}>
+          <Ionicons name={icon} size={iconSize} color={Colors.primary} />
+        </View>
+      )}
       {title && <Text style={styles.title}>{title}</Text>}
       {description && <Text style={styles.description}>{description}</Text>}
       {buttonText && onButtonPress && (
@@ -62,37 +66,43 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
+    paddingVertical: 48,
   },
   card: {
     width: '100%',
-    padding: 40,
-    borderRadius: 20,
+    padding: 36,
+    borderRadius: 24,
     alignItems: 'center',
   },
+  iconWrapper: {
+    marginBottom: 8,
+    opacity: 0.9,
+  },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
     color: Colors.text.dark,
-    marginTop: 20,
+    marginTop: 16,
     marginBottom: 10,
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   description: {
-    fontSize: 16,
+    fontSize: 15,
     color: Colors.text.secondary,
     textAlign: 'center',
-    marginBottom: 30,
-    lineHeight: 24,
+    marginBottom: 28,
+    lineHeight: 22,
+    paddingHorizontal: 8,
   },
   button: {
-    borderRadius: 15,
+    borderRadius: 14,
     overflow: 'hidden',
     width: '100%',
     shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowRadius: 12,
     elevation: 8,
   },
   buttonGradient: {
@@ -102,22 +112,22 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: Colors.background.white,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   secondaryButton: {
-    marginTop: 12,
+    marginTop: 14,
     paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 15,
-    borderWidth: 2,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+    borderWidth: 1.5,
     borderColor: Colors.primary,
     backgroundColor: 'transparent',
   },
   secondaryButtonText: {
     color: Colors.primary,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     textAlign: 'center',
   },

@@ -2,6 +2,7 @@
  * Storage Service
  * Handles file uploads to AWS S3 or Cloudinary with CDN support
  */
+const { logger } = require('../external/LoggingService');
 
 const {
   S3Client,
@@ -424,7 +425,9 @@ const StorageService = {
 
       return { safe, moderation };
     } catch (/** @type {any} */ error) {
-      console.error('Moderation error:', error);
+      logger.error('Moderation error', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return {
         safe: true,
         moderation: null,

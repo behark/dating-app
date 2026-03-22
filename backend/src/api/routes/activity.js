@@ -1,5 +1,5 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+const { body, param, validationResult } = require('express-validator');
 const {
   updateOnlineStatus,
   getOnlineStatus,
@@ -41,10 +41,23 @@ router.post(
 );
 
 // Get online status of a user - SECURITY: Requires auth and can only view matched users' status
-router.get('/online-status/:userId', authenticate, authorizeMatchedUsers, getOnlineStatus);
+router.get(
+  '/online-status/:userId',
+  authenticate,
+  [param('userId').isMongoId().withMessage('Invalid user ID format')],
+  handleValidationErrors,
+  authorizeMatchedUsers,
+  getOnlineStatus
+);
 
 // View a profile
-router.post('/view-profile/:userId', authenticate, viewProfile);
+router.post(
+  '/view-profile/:userId',
+  authenticate,
+  [param('userId').isMongoId().withMessage('Invalid user ID format')],
+  handleValidationErrors,
+  viewProfile
+);
 
 // Get profile views (own profile)
 router.get('/profile-views', authenticate, getProfileViews);

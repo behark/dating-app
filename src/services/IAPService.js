@@ -40,18 +40,24 @@ class IAPService {
 
     if (this.isConnected) return;
 
-    await IAP.initConnection();
+    try {
+      await IAP.initConnection();
 
-    // Set up purchase listeners
-    this.purchaseUpdateSubscription = IAP.purchaseUpdatedListener((purchase) => {
-      this.handlePurchaseUpdate(purchase);
-    });
+      // Set up purchase listeners
+      this.purchaseUpdateSubscription = IAP.purchaseUpdatedListener((purchase) => {
+        this.handlePurchaseUpdate(purchase);
+      });
 
-    this.purchaseErrorSubscription = IAP.purchaseErrorListener((error) => {
-      logger.error('IAP purchase error:', error);
-    });
+      this.purchaseErrorSubscription = IAP.purchaseErrorListener((error) => {
+        logger.error('IAP purchase error:', error);
+      });
 
-    this.isConnected = true;
+      this.isConnected = true;
+    } catch (error) {
+      logger.error('Failed to initialize IAP connection:', error);
+      this.isConnected = false;
+      throw error;
+    }
   }
 
   /**
@@ -84,9 +90,13 @@ class IAPService {
       return [];
     }
 
-    await this.initialize();
-
-    return await IAP.getSubscriptions(subscriptionIds);
+    try {
+      await this.initialize();
+      return await IAP.getSubscriptions(subscriptionIds);
+    } catch (error) {
+      if (__DEV__) logger.error('Error getting subscriptions:', error);
+      throw error;
+    }
   }
 
   /**

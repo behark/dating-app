@@ -3,6 +3,7 @@
  *
  * Defines subscription tier configurations and features
  */
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 const mongoose = require('mongoose');
 
@@ -264,7 +265,7 @@ subscriptionTierSchema.statics.initializeDefaultTiers = async function () {
     await this.findOneAndUpdate({ tierId: tier.tierId }, tier, { upsert: true, new: true });
   }
 
-  console.log('Default subscription tiers initialized');
+  logger.info('Default subscription tiers initialized');
 };
 
 // Instance method: Check if tier has feature

@@ -1,13 +1,13 @@
 export const colors = {
-  primary: '#667eea',
+  primary: '#6C63FF',
   secondary: '#4ECDC4',
   background: {
-    light: '#fff',
-    dark: '#121212',
+    light: '#FAFBFF',
+    dark: '#0D0D1A',
   },
   text: {
-    primary: '#000',
-    secondary: '#666',
+    primary: '#1A1A2E',
+    secondary: '#6B7194',
   },
   // Additional colors
   accent: {
@@ -28,8 +28,17 @@ export const colors = {
     info: '#2196F3',
   },
   border: {
-    light: '#ddd',
-    medium: '#ccc',
-    dark: '#999',
+    light: '#E8EAF6',
+    medium: '#C5CAE9',
+    dark: '#9FA8DA',
+  },
+  // Dark mode specific (premium feel)
+  dark: {
+    surface: '#1A1A2E',
+    surfaceElevated: '#232342',
+    surfaceHighlight: '#2D2D52',
+    border: '#3A3A5C',
+    textPrimary: '#F0F0FF',
+    textSecondary: '#9B9BC0',
   },
 };

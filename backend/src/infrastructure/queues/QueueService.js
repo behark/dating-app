@@ -5,6 +5,7 @@
 
 const Bull = require('bull');
 const { getRedis } = require('../../config/redis');
+const { logger } = require('../external/LoggingService');
 
 // Queue configurations with timeout and retry limits
 const QUEUE_CONFIG = {
@@ -121,27 +122,27 @@ const getQueue = (queueName) => {
  */
 const setupQueueEvents = (queue, queueName) => {
   queue.on('error', (error) => {
-    console.error(`Queue ${queueName} error:`, error);
+    logger.error(`Queue ${queueName} error`, { error: error.message });
   });
 
   queue.on('waiting', (jobId) => {
-    console.log(`Job ${jobId} waiting in ${queueName}`);
+    logger.debug(`Job ${jobId} waiting in ${queueName}`);
   });
 
   queue.on('active', (job) => {
-    console.log(`Job ${job.id} started in ${queueName}`);
+    logger.debug(`Job ${job.id} started in ${queueName}`);
   });
 
   queue.on('completed', (job, result) => {
-    console.log(`Job ${job.id} completed in ${queueName}`);
+    logger.debug(`Job ${job.id} completed in ${queueName}`);
   });
 
   queue.on('failed', (job, error) => {
-    console.error(`Job ${job.id} failed in ${queueName}:`, error.message);
+    logger.error(`Job ${job.id} failed in ${queueName}`, { error: error.message });
   });
 
   queue.on('stalled', (job) => {
-    console.warn(`Job ${job.id} stalled in ${queueName}`);
+    logger.warn(`Job ${job.id} stalled in ${queueName}`);
   });
 };
 
@@ -160,7 +161,7 @@ const QueueService = {
       ...options,
     });
 
-    console.log(`Added job ${job.id} to ${queueName}: ${jobType}`);
+    logger.info(`Added job ${job.id} to ${queueName}: ${jobType}`);
     return job;
   },
 
@@ -285,7 +286,7 @@ const QueueService = {
   async closeAll() {
     const closePromises = Object.values(queues).map((queue) => queue.close());
     await Promise.all(closePromises);
-    console.log('All queues closed');
+    logger.info('All queues closed');
   },
 
   // Convenience methods for common jobs

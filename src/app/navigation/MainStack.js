@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Platform } from 'react-native';
 import { useChat } from '../providers/ChatProvider';
 import { Colors } from '../../constants/colors';
 import HapticFeedback from '../../utils/haptics';
@@ -60,8 +61,8 @@ const MainTabs = () => {
           backgroundColor: Colors.background.white,
           borderTopWidth: 1,
           borderTopColor: Colors.border.gray,
-          height: 60,
-          paddingBottom: 8,
+          height: Platform.OS === 'ios' ? 88 : 60,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
           paddingTop: 8,
           shadowColor: Colors.text.primary,
           shadowOffset: { width: 0, height: -2 },
@@ -73,6 +74,9 @@ const MainTabs = () => {
           fontSize: 12,
           fontWeight: '600',
         },
+        // Ensure tab bar items are accessible
+        tabBarAllowFontScaling: true,
+        tabBarHideOnKeyboard: true,
       }}
       screenListeners={{
         tabPress: () => {
@@ -84,6 +88,8 @@ const MainTabs = () => {
         name="Discover"
         component={HomeScreen}
         options={{
+          title: 'Discover',
+          tabBarAccessibilityLabel: 'Discover new people',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="flame" size={size || 26} color={color} />
           ),
@@ -93,16 +99,32 @@ const MainTabs = () => {
         name="Matches"
         component={MatchesScreen}
         options={{
+          title: 'Matches',
+          tabBarAccessibilityLabel:
+            unreadCount > 0
+              ? `Matches, ${unreadCount} unread message${unreadCount === 1 ? '' : 's'}`
+              : 'Matches and conversations',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="heart" size={size || 26} color={color} />
           ),
           tabBarBadge: unreadCount > 0 ? unreadCount : null,
+          tabBarBadgeStyle: {
+            backgroundColor: '#e94057',
+            color: '#fff',
+            fontSize: 11,
+            fontWeight: '700',
+            minWidth: 18,
+            height: 18,
+            lineHeight: 18,
+          },
         }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
+          title: 'Profile',
+          tabBarAccessibilityLabel: 'Your profile',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size || 26} color={color} />
           ),
@@ -113,141 +135,34 @@ const MainTabs = () => {
 };
 
 const MainStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="Main" component={MainTabs} />
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      animation: 'slide_from_right',
+      gestureEnabled: true,
+      animationTypeForReplace: 'push',
+    }}
+  >
+    {/* Main tab bar -- root of authenticated flow */}
+    <Stack.Screen name="Main" component={MainTabs} options={{ gestureEnabled: false }} />
+
+    {/* Chat & Messaging */}
     <Stack.Screen
       name="Chat"
       component={EnhancedChatScreen}
       options={{
-        headerShown: false,
+        title: 'Chat',
         presentation: 'card',
+        gestureEnabled: true,
       }}
     />
+
+    {/* Profile Screens */}
     <Stack.Screen
       name="ViewProfile"
       component={ViewProfileScreen}
       options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="Preferences"
-      component={PreferencesScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="NotificationPreferences"
-      component={NotificationPreferencesScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="Verification"
-      component={VerificationScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="Premium"
-      component={PremiumScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="PhotoGallery"
-      component={PhotoGalleryScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="ReportUser"
-      component={ReportUserScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="SafetyTips"
-      component={SafetyTipsScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="SafetyAdvanced"
-      component={SafetyAdvancedScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="PrivacySettings"
-      component={PrivacySettingsScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="PrivacyPolicy"
-      component={PrivacyPolicyScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="TermsOfService"
-      component={TermsOfServiceScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="AIInsights"
-      component={AIInsightsScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="Events"
-      component={EventsScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="ProfileSharing"
-      component={ProfileSharingScreen}
-      options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="SocialMediaConnection"
-      component={SocialMediaConnectionScreen}
-      options={{
-        headerShown: false,
+        title: 'View Profile',
         presentation: 'card',
       }}
     />
@@ -255,95 +170,101 @@ const MainStack = () => (
       name="EditProfile"
       component={EditProfileScreen}
       options={{
-        headerShown: false,
+        title: 'Edit Profile',
         presentation: 'card',
       }}
     />
     <Stack.Screen
-      name="VerifyEmail"
-      component={EmailVerificationScreen}
+      name="PhotoGallery"
+      component={PhotoGalleryScreen}
       options={{
-        headerShown: false,
+        title: 'Photos',
         presentation: 'card',
       }}
     />
     <Stack.Screen
-      name="PhoneVerification"
-      component={PhoneVerificationScreen}
+      name="ProfileSharing"
+      component={ProfileSharingScreen}
       options={{
-        headerShown: false,
+        title: 'Share Profile',
         presentation: 'card',
       }}
     />
     <Stack.Screen
-      name="ForgotPassword"
-      component={ForgotPasswordScreen}
+      name="ProfileViews"
+      component={ProfileViewsScreen}
       options={{
-        headerShown: false,
+        title: 'Profile Views',
         presentation: 'card',
       }}
     />
     <Stack.Screen
-      name="CreateEvent"
-      component={CreateEventScreen}
+      name="Verification"
+      component={VerificationScreen}
       options={{
-        headerShown: false,
+        title: 'Verify Your Identity',
+        presentation: 'card',
+      }}
+    />
+
+    {/* Settings & Preferences */}
+    <Stack.Screen
+      name="Preferences"
+      component={PreferencesScreen}
+      options={{
+        title: 'Preferences',
         presentation: 'card',
       }}
     />
     <Stack.Screen
-      name="EventDetail"
-      component={EventDetailScreen}
+      name="NotificationPreferences"
+      component={NotificationPreferencesScreen}
       options={{
-        headerShown: false,
+        title: 'Notification Settings',
         presentation: 'card',
       }}
     />
     <Stack.Screen
-      name="CreateGroupDate"
-      component={CreateGroupDateScreen}
+      name="PrivacySettings"
+      component={PrivacySettingsScreen}
       options={{
-        headerShown: false,
+        title: 'Privacy Settings',
         presentation: 'card',
       }}
     />
     <Stack.Screen
-      name="GroupDateDetail"
-      component={GroupDateDetailScreen}
+      name="SocialMediaConnection"
+      component={SocialMediaConnectionScreen}
       options={{
-        headerShown: false,
+        title: 'Connected Accounts',
+        presentation: 'card',
+      }}
+    />
+
+    {/* Legal */}
+    <Stack.Screen
+      name="PrivacyPolicy"
+      component={PrivacyPolicyScreen}
+      options={{
+        title: 'Privacy Policy',
         presentation: 'card',
       }}
     />
     <Stack.Screen
-      name="MatchAnimation"
-      component={MatchAnimationScreen}
+      name="TermsOfService"
+      component={TermsOfServiceScreen}
       options={{
-        headerShown: false,
-        presentation: 'modal',
-      }}
-    />
-    <Stack.Screen
-      name="AddEmergencyContact"
-      component={AddEmergencyContactScreen}
-      options={{
-        headerShown: false,
+        title: 'Terms of Service',
         presentation: 'card',
       }}
     />
+
+    {/* Premium */}
     <Stack.Screen
-      name="TopPicks"
-      component={TopPicksScreen}
+      name="Premium"
+      component={PremiumScreen}
       options={{
-        headerShown: false,
-        presentation: 'card',
-      }}
-    />
-    <Stack.Screen
-      name="Explore"
-      component={ExploreScreen}
-      options={{
-        headerShown: false,
+        title: 'Premium',
         presentation: 'card',
       }}
     />
@@ -351,16 +272,149 @@ const MainStack = () => (
       name="SuperLike"
       component={SuperLikeScreen}
       options={{
-        headerShown: false,
+        title: 'Super Like',
         presentation: 'modal',
+        animation: 'slide_from_bottom',
       }}
     />
     <Stack.Screen
-      name="ProfileViews"
-      component={ProfileViewsScreen}
+      name="TopPicks"
+      component={TopPicksScreen}
       options={{
-        headerShown: false,
+        title: 'Top Picks',
         presentation: 'card',
+      }}
+    />
+
+    {/* Discovery & Explore */}
+    <Stack.Screen
+      name="Explore"
+      component={ExploreScreen}
+      options={{
+        title: 'Explore',
+        presentation: 'card',
+      }}
+    />
+    <Stack.Screen
+      name="AIInsights"
+      component={AIInsightsScreen}
+      options={{
+        title: 'AI Insights',
+        presentation: 'card',
+      }}
+    />
+
+    {/* Events & Group Dates */}
+    <Stack.Screen
+      name="Events"
+      component={EventsScreen}
+      options={{
+        title: 'Events',
+        presentation: 'card',
+      }}
+    />
+    <Stack.Screen
+      name="CreateEvent"
+      component={CreateEventScreen}
+      options={{
+        title: 'Create Event',
+        presentation: 'card',
+      }}
+    />
+    <Stack.Screen
+      name="EventDetail"
+      component={EventDetailScreen}
+      options={{
+        title: 'Event Details',
+        presentation: 'card',
+      }}
+    />
+    <Stack.Screen
+      name="CreateGroupDate"
+      component={CreateGroupDateScreen}
+      options={{
+        title: 'Create Group Date',
+        presentation: 'card',
+      }}
+    />
+    <Stack.Screen
+      name="GroupDateDetail"
+      component={GroupDateDetailScreen}
+      options={{
+        title: 'Group Date',
+        presentation: 'card',
+      }}
+    />
+
+    {/* Safety */}
+    <Stack.Screen
+      name="ReportUser"
+      component={ReportUserScreen}
+      options={{
+        title: 'Report User',
+        presentation: 'card',
+      }}
+    />
+    <Stack.Screen
+      name="SafetyTips"
+      component={SafetyTipsScreen}
+      options={{
+        title: 'Safety Tips',
+        presentation: 'card',
+      }}
+    />
+    <Stack.Screen
+      name="SafetyAdvanced"
+      component={SafetyAdvancedScreen}
+      options={{
+        title: 'Advanced Safety',
+        presentation: 'card',
+      }}
+    />
+    <Stack.Screen
+      name="AddEmergencyContact"
+      component={AddEmergencyContactScreen}
+      options={{
+        title: 'Emergency Contact',
+        presentation: 'card',
+      }}
+    />
+
+    {/* Verification & Auth (in-app) */}
+    <Stack.Screen
+      name="VerifyEmail"
+      component={EmailVerificationScreen}
+      options={{
+        title: 'Verify Email',
+        presentation: 'card',
+      }}
+    />
+    <Stack.Screen
+      name="PhoneVerification"
+      component={PhoneVerificationScreen}
+      options={{
+        title: 'Verify Phone',
+        presentation: 'card',
+      }}
+    />
+    <Stack.Screen
+      name="ForgotPassword"
+      component={ForgotPasswordScreen}
+      options={{
+        title: 'Reset Password',
+        presentation: 'card',
+      }}
+    />
+
+    {/* Fullscreen Modals */}
+    <Stack.Screen
+      name="MatchAnimation"
+      component={MatchAnimationScreen}
+      options={{
+        title: 'New Match',
+        presentation: 'transparentModal',
+        animation: 'fade',
+        gestureEnabled: false,
       }}
     />
   </Stack.Navigator>

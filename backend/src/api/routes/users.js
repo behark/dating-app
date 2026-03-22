@@ -111,7 +111,8 @@ router.get('/:id', authenticate, async (req, res) => {
       data: { user },
     });
   } catch (/** @type {any} */ error) {
-    console.error('Error getting user profile:', error);
+    const { logger } = require('../../infrastructure/external/LoggingService');
+    logger.error('Error getting user profile:', { error: error.message, stack: error.stack });
     return sendError(res, 500, {
       message: 'Failed to retrieve user profile',
       error: 'INTERNAL_ERROR',

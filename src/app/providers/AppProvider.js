@@ -149,13 +149,17 @@ export const AppProvider = ({ children }) => {
 
   // Initialize app state
   useEffect(() => {
-    initializeApp();
+    const doInit = async () => {
+      await initializeApp();
+    };
+    doInit();
 
     return () => {
       if (offlineUnsubscribe.current) {
         offlineUnsubscribe.current();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const initializeApp = async () => {

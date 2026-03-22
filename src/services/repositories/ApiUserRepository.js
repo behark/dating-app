@@ -46,10 +46,15 @@ export class ApiUserRepository extends UserRepository {
       ...options.headers,
     };
 
+    // Add timeout via AbortController (30s default)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), options.timeout || 30000);
+
     try {
       const response = await fetch(`${API_URL}${endpoint}`, {
         ...options,
         headers,
+        signal: controller.signal,
       });
 
       const data = await response.json();
@@ -65,8 +70,14 @@ export class ApiUserRepository extends UserRepository {
 
       return data;
     } catch (error) {
-      logger.error(`API Request Failed [${endpoint}]`, error, { endpoint });
+      if (error.name === 'AbortError') {
+        logger.error(`API Request Timeout [${endpoint}]`, null, { endpoint });
+      } else {
+        logger.error(`API Request Failed [${endpoint}]`, error, { endpoint });
+      }
       return null;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

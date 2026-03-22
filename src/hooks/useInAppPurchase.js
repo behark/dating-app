@@ -8,7 +8,7 @@
  * Uses react-native-iap library (must be installed separately)
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { PaymentService } from '../services/PaymentService';
@@ -39,9 +39,17 @@ export const useInAppPurchase = () => {
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [error, setError] = useState(null);
+  const mountedRef = useRef(true);
+
+  // Keep a ref to authToken so purchase handlers always see the latest value
+  const authTokenRef = useRef(authToken);
+  useEffect(() => {
+    authTokenRef.current = authToken;
+  }, [authToken]);
 
   // Initialize IAP connection and fetch products
   useEffect(() => {
+    mountedRef.current = true;
     let iapModule = null;
     let purchaseUpdateSubscription = null;
     let purchaseErrorSubscription = null;
@@ -50,7 +58,7 @@ export const useInAppPurchase = () => {
       try {
         // Only import react-native-iap on native platforms
         if (Platform.OS === 'web') {
-          setLoading(false);
+          if (mountedRef.current) setLoading(false);
           return;
         }
 
@@ -73,24 +81,30 @@ export const useInAppPurchase = () => {
           await flushFailedPurchasesCachedAsPendingAndroid();
         }
 
+        if (!mountedRef.current) return;
+
         // Fetch products
         const [fetchedProducts, fetchedSubscriptions] = await Promise.all([
           getProducts({ skus: CONSUMABLE_SKUS }),
           getSubscriptions({ skus: SUBSCRIPTION_SKUS }),
         ]);
 
+        if (!mountedRef.current) return;
+
         setProducts(fetchedProducts);
         setSubscriptions(fetchedSubscriptions);
 
-        // Set up purchase listeners
+        // Set up purchase listeners (use handlePurchaseUpdateRef to avoid stale closure)
         purchaseUpdateSubscription = purchaseUpdatedListener(handlePurchaseUpdate);
         purchaseErrorSubscription = purchaseErrorListener(handlePurchaseError);
 
         setLoading(false);
       } catch (err) {
         logger.error('Error initializing IAP', err);
-        setError(err.message);
-        setLoading(false);
+        if (mountedRef.current) {
+          setError(err.message);
+          setLoading(false);
+        }
       }
     };
 
@@ -98,6 +112,7 @@ export const useInAppPurchase = () => {
 
     // Cleanup
     return () => {
+      mountedRef.current = false;
       if (purchaseUpdateSubscription) {
         purchaseUpdateSubscription.remove();
       }
@@ -111,11 +126,12 @@ export const useInAppPurchase = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handle successful purchase
+  // Handle successful purchase (uses authTokenRef to avoid stale closure)
   const handlePurchaseUpdate = async (purchase) => {
+    if (!mountedRef.current) return;
     try {
       setPurchasing(true);
-      const token = authToken;
+      const token = authTokenRef.current;
 
       // Get receipt data
       const receipt = purchase.transactionReceipt;
@@ -171,6 +187,7 @@ export const useInAppPurchase = () => {
   // Handle purchase error
   const handlePurchaseError = (error) => {
     logger.error('Purchase error', error);
+    if (!mountedRef.current) return;
     setPurchasing(false);
 
     // Don't show alert for user cancellation

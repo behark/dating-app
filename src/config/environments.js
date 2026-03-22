@@ -106,7 +106,6 @@ export class EnvironmentConfig {
     const config = this.getConfig();
     const features = this.getFeatureFlags();
 
-    const logger = require('../utils/logger').default;
     logger.info('Environment Configuration', {
       environment: env,
       apiUrl: config.apiUrl,
@@ -118,12 +117,14 @@ export class EnvironmentConfig {
   }
 
   static validateEnvironmentVariables() {
-    const requiredVars = ['EXPO_PUBLIC_API_URL', 'EXPO_PUBLIC_BACKEND_URL'];
+    // At least one API URL env var should be set (they are alternatives, not both required)
+    const apiUrlVars = ['EXPO_PUBLIC_API_URL', 'EXPO_PUBLIC_BACKEND_URL'];
+    const hasApiUrl = apiUrlVars.some((varName) => !!process.env[varName]);
 
-    const missing = requiredVars.filter((varName) => !process.env[varName]);
-
-    if (missing.length > 0) {
-      logger.error('Missing required environment variables:', missing);
+    if (!hasApiUrl) {
+      logger.warn('No API URL environment variable set. Using default URL.', {
+        checked: apiUrlVars,
+      });
       return false;
     }
 

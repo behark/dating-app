@@ -12,8 +12,27 @@
  */
 
 const express = require('express');
+const { body, validationResult } = require('express-validator');
 const paymentController = require('../controllers/paymentController');
 const { authenticate } = require('../middleware/auth');
+
+// Helper middleware to handle validation errors
+const handleValidationErrors = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: errors.array().map((err) => {
+        if ('path' in err) {
+          return { field: err.path, message: err.msg };
+        }
+        return { field: 'unknown', message: err.msg };
+      }),
+    });
+  }
+  next();
+};
 
 const router = express.Router();
 
@@ -50,7 +69,12 @@ router.get('/history', paymentController.getBillingHistory);
 // ==================== STRIPE ROUTES ====================
 
 // Create checkout session for subscription
-router.post('/stripe/checkout', paymentController.createStripeCheckout);
+router.post(
+  '/stripe/checkout',
+  [body('planType').isIn(['monthly', 'yearly']).withMessage('Plan type must be monthly or yearly')],
+  handleValidationErrors,
+  paymentController.createStripeCheckout
+);
 
 // Create payment intent for one-time purchase
 router.post('/stripe/payment-intent', paymentController.createStripePaymentIntent);
@@ -78,7 +102,12 @@ router.post('/paypal/order/capture', paymentController.capturePayPalOrder);
 // ==================== APPLE IAP ROUTES ====================
 
 // Validate receipt
-router.post('/apple/validate', paymentController.validateAppleReceipt);
+router.post(
+  '/apple/validate',
+  [body('receiptData').notEmpty().withMessage('Receipt data is required')],
+  handleValidationErrors,
+  paymentController.validateAppleReceipt
+);
 
 // Restore purchases
 router.post('/apple/restore', paymentController.restoreApplePurchases);
@@ -86,7 +115,15 @@ router.post('/apple/restore', paymentController.restoreApplePurchases);
 // ==================== GOOGLE PLAY ROUTES ====================
 
 // Validate purchase
-router.post('/google/validate', paymentController.validateGooglePurchase);
+router.post(
+  '/google/validate',
+  [
+    body('purchaseToken').notEmpty().withMessage('Purchase token is required'),
+    body('productId').notEmpty().withMessage('Product ID is required'),
+  ],
+  handleValidationErrors,
+  paymentController.validateGooglePurchase
+);
 
 // Restore purchases
 router.post('/google/restore', paymentController.restoreGooglePurchases);
@@ -102,6 +139,17 @@ router.post('/subscription/resume', paymentController.resumeSubscription);
 // ==================== REFUND ROUTES ====================
 
 // Request refund
-router.post('/refund/request', paymentController.requestRefund);
+router.post(
+  '/refund/request',
+  [
+    body('reason')
+      .trim()
+      .notEmpty()
+      .withMessage('Refund reason is required')
+      .isLength({ max: 1000 }),
+  ],
+  handleValidationErrors,
+  paymentController.requestRefund
+);
 
 module.exports = router;

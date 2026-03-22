@@ -472,7 +472,7 @@ class GooglePlayService {
       const { subscriptionNotification, oneTimeProductNotification, testNotification } = data;
 
       if (testNotification) {
-        console.log('Received Google Play test notification');
+        logger.info('Received Google Play test notification');
         return { success: true, type: 'test' };
       }
 
@@ -535,7 +535,7 @@ class GooglePlayService {
         break;
 
       case 8: // SUBSCRIPTION_PRICE_CHANGE_CONFIRMED
-        console.log('Price change confirmed');
+        logger.info('Price change confirmed');
         break;
 
       case 9: // SUBSCRIPTION_DEFERRED
@@ -547,7 +547,7 @@ class GooglePlayService {
         break;
 
       case 11: // SUBSCRIPTION_PAUSE_SCHEDULE_CHANGED
-        console.log('Pause schedule changed');
+        logger.info('Pause schedule changed');
         break;
 
       case 12: // SUBSCRIPTION_REVOKED
@@ -559,7 +559,7 @@ class GooglePlayService {
         break;
 
       default:
-        console.log(`Unknown Google subscription notification type: ${notificationType}`);
+        logger.warn(`Unknown Google subscription notification type: ${notificationType}`);
     }
 
     return { success: true, notificationType };

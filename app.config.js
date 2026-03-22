@@ -161,7 +161,7 @@ export default {
       name: 'Dating App',
       shortName: 'Dating',
       description: 'Find meaningful connections with people near you',
-      themeColor: '#667eea',
+      themeColor: '#6C63FF',
       backgroundColor: '#ffffff',
       // Enable PWA features
       startUrl: '/',

@@ -80,7 +80,6 @@ export const useSwipeActions = ({
   /**
    * Handle swipe right (like)
    */
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleSwipeRight = useCallback(
     async (card) => {
       // Guest mode handling
@@ -150,7 +149,6 @@ export const useSwipeActions = ({
         endSwipe();
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       userId,
       isPremium,
@@ -162,6 +160,7 @@ export const useSwipeActions = ({
       endSwipe,
       onOptimisticUpdate,
       onMatchFound,
+      trackGamificationSwipe,
     ]
   );
 
@@ -326,15 +325,13 @@ export const useSwipeActions = ({
   }, [lastSwipedCard, userId]);
 
   /**
-   * Track gamification swipe
+   * Track gamification swipe (fire-and-forget, should not block swipe flow)
    */
   const trackGamificationSwipe = useCallback(
-    async (swipeType) => {
-      try {
-        await GamificationService.trackSwipe(userId, swipeType);
-      } catch (error) {
+    (swipeType) => {
+      GamificationService.trackSwipe(userId, swipeType).catch((error) => {
         logger.error('Error tracking swipe for gamification:', error);
-      }
+      });
     },
     [userId]
   );

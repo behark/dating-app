@@ -1,5 +1,5 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+const { body, param, validationResult } = require('express-validator');
 const {
   updateProfile,
   getProfile,
@@ -56,7 +56,15 @@ router.get('/me', authenticate, apiCache('profile', 300), getMyProfile);
 
 // Get user profile - SECURITY: Requires authentication and can only view matched users' profiles
 // (or own profile). This prevents IDOR attacks where attackers enumerate user IDs.
-router.get('/:userId', authenticate, authorizeMatchedUsers, apiCache('profile', 300), getProfile);
+router.get(
+  '/:userId',
+  authenticate,
+  [param('userId').isMongoId().withMessage('Invalid user ID format')],
+  handleValidationErrors,
+  authorizeMatchedUsers,
+  apiCache('profile', 300),
+  getProfile
+);
 
 // Update profile - invalidates cache
 router.put(
@@ -96,15 +104,31 @@ router.put(
 );
 
 // Delete photo
-router.delete('/photos/:photoId', authenticate, deletePhoto);
+router.delete(
+  '/photos/:photoId',
+  authenticate,
+  [param('photoId').isMongoId().withMessage('Invalid photo ID format')],
+  handleValidationErrors,
+  deletePhoto
+);
 
 // Photo moderation (admin only)
-router.put('/photos/:photoId/approve', authenticate, isAdmin, approvePhoto);
+router.put(
+  '/photos/:photoId/approve',
+  authenticate,
+  isAdmin,
+  [param('photoId').isMongoId().withMessage('Invalid photo ID format')],
+  handleValidationErrors,
+  approvePhoto
+);
 router.put(
   '/photos/:photoId/reject',
   authenticate,
   isAdmin,
-  [body('reason').optional().trim()],
+  [
+    param('photoId').isMongoId().withMessage('Invalid photo ID format'),
+    body('reason').optional().trim(),
+  ],
   handleValidationErrors,
   rejectPhoto
 );

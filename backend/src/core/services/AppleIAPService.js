@@ -484,7 +484,7 @@ class AppleIAPService {
     });
 
     if (!transaction) {
-      console.log('No matching transaction found for Apple notification');
+      logger.warn('No matching transaction found for Apple notification');
       return;
     }
 
@@ -538,11 +538,11 @@ class AppleIAPService {
 
       case 'CONSUMPTION_REQUEST':
         // Apple requesting consumption info for refund
-        console.log('Consumption request received');
+        logger.info('Consumption request received');
         break;
 
       default:
-        console.log(`Unhandled Apple notification type: ${type}`);
+        logger.warn(`Unhandled Apple notification type: ${type}`);
     }
   }
 
@@ -642,7 +642,7 @@ class AppleIAPService {
    */
   static async handleRenewalPrefChange(userId, renewalInfo) {
     // Log the change for analytics
-    console.log(`User ${userId} changed renewal preference to ${renewalInfo?.autoRenewProductId}`);
+    logger.info(`User ${userId} changed renewal preference to ${renewalInfo?.autoRenewProductId}`);
   }
 
   /**

@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect } from 'react';
 import { Linking, Platform } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ErrorBoundary, { SimpleErrorBoundary } from './src/components/common/ErrorBoundary';
 import NetworkStatusBanner from './src/components/common/NetworkStatusBanner';
 import { AppProvider } from './src/context/AppContext';
@@ -159,17 +160,19 @@ export default function App() {
 
   return (
     <SimpleErrorBoundary>
-      <ThemeProvider>
-        <AppProvider>
-          <AuthProvider>
-            <SocketProvider>
-              <ChatProvider>
-                <AppWithErrorHandling />
-              </ChatProvider>
-            </SocketProvider>
-          </AuthProvider>
-        </AppProvider>
-      </ThemeProvider>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <AppProvider>
+            <AuthProvider>
+              <SocketProvider>
+                <ChatProvider>
+                  <AppWithErrorHandling />
+                </ChatProvider>
+              </SocketProvider>
+            </AuthProvider>
+          </AppProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
     </SimpleErrorBoundary>
   );
 }

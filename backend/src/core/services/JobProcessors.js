@@ -38,7 +38,7 @@ const initializeProcessors = () => {
   // Cleanup processors
   setupCleanupProcessors();
 
-  console.log('All job processors initialized');
+  logger.info('All job processors initialized');
 };
 
 /**
@@ -540,7 +540,7 @@ const setupAnalyticsProcessors = () => {
 
     // Store in analytics collection or send to external service
     // For now, log and update user activity
-    console.log(`Analytics: ${eventType} for user ${userId}`, eventData);
+    logger.info(`Analytics: ${eventType} for user ${userId}`, { eventData });
 
     await User.updateOne(
       { _id: userId },
@@ -621,7 +621,7 @@ const setupCleanupProcessors = () => {
 
     if (oldMessages.length > 0) {
       // In production, you'd move these to an archive collection
-      console.log(`Archiving ${oldMessages.length} old messages`);
+      logger.info(`Archiving ${oldMessages.length} old messages`);
     }
 
     return { success: true, archived: oldMessages.length };
@@ -690,7 +690,7 @@ const scheduleRecurringJobs = async () => {
     { cron: '0 2 * * *' }
   );
 
-  console.log('Recurring jobs scheduled');
+  logger.info('Recurring jobs scheduled');
 };
 
 module.exports = {

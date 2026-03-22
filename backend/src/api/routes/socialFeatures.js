@@ -33,13 +33,32 @@ const handleValidationErrors = (req, res, next) => {
  * GROUP DATES
  */
 // Create a group date
-router.post('/group-dates', SocialFeaturesController.createGroupDate);
+router.post(
+  '/group-dates',
+  [
+    body('title').optional().trim().isLength({ max: 200 }),
+    body('description').optional().trim().isLength({ max: 2000 }),
+    body('maxParticipants').optional().isInt({ min: 2, max: 50 }),
+  ],
+  handleValidationErrors,
+  SocialFeaturesController.createGroupDate
+);
 
 // Join a group date
-router.post('/group-dates/:groupDateId/join', SocialFeaturesController.joinGroupDate);
+router.post(
+  '/group-dates/:groupDateId/join',
+  [param('groupDateId').isMongoId().withMessage('Invalid group date ID format')],
+  handleValidationErrors,
+  SocialFeaturesController.joinGroupDate
+);
 
 // Leave a group date
-router.post('/group-dates/:groupDateId/leave', SocialFeaturesController.leaveGroupDate);
+router.post(
+  '/group-dates/:groupDateId/leave',
+  [param('groupDateId').isMongoId().withMessage('Invalid group date ID format')],
+  handleValidationErrors,
+  SocialFeaturesController.leaveGroupDate
+);
 
 // Get nearby group dates
 router.get('/group-dates/nearby', SocialFeaturesController.getNearbyGroupDates);
@@ -48,10 +67,24 @@ router.get('/group-dates/nearby', SocialFeaturesController.getNearbyGroupDates);
  * FRIEND REVIEWS
  */
 // Create a friend review
-router.post('/reviews', SocialFeaturesController.createFriendReview);
+router.post(
+  '/reviews',
+  [
+    body('userId').isMongoId().withMessage('Invalid user ID format'),
+    body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+    body('content').optional().trim().isLength({ max: 1000 }),
+  ],
+  handleValidationErrors,
+  SocialFeaturesController.createFriendReview
+);
 
 // Get reviews for a user
-router.get('/reviews/:userId', SocialFeaturesController.getUserReviews);
+router.get(
+  '/reviews/:userId',
+  [param('userId').isMongoId().withMessage('Invalid user ID format')],
+  handleValidationErrors,
+  SocialFeaturesController.getUserReviews
+);
 
 /**
  * IN-APP EVENTS

@@ -5,6 +5,7 @@
 
 const Redis = require('ioredis');
 const NodeCache = require('node-cache');
+const { logger } = require('../infrastructure/external/LoggingService');
 
 // In-memory fallback cache for when Redis is unavailable
 const localCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
@@ -31,7 +32,7 @@ const redisConfig = {
   maxRetriesPerRequest: null, // Disable automatic retries
   retryStrategy: (times) => {
     if (times > MAX_RECONNECT_ATTEMPTS || !shouldReconnect) {
-      console.log(
+      logger.warn(
         'Redis: Stopping reconnection attempts. Redis will work in degraded mode (no caching).'
       );
       return null; // Stop reconnecting
@@ -79,7 +80,7 @@ const CACHE_KEYS = {
 const initRedis = async () => {
   // If Redis is disabled, skip initialization
   if (!REDIS_ENABLED) {
-    console.log('Redis is disabled (REDIS_ENABLED=false). Running without cache.');
+    logger.info('Redis is disabled (REDIS_ENABLED=false). Running without cache.');
     return null;
   }
 
@@ -105,7 +106,7 @@ const initRedis = async () => {
         tls: redisUrl.startsWith('rediss://') ? {} : undefined,
         retryStrategy: (times) => {
           if (times > MAX_RECONNECT_ATTEMPTS || !shouldReconnect) {
-            console.log('Redis: Stopping reconnection attempts. Running without cache.');
+            logger.warn('Redis: Stopping reconnection attempts. Running without cache.');
             return null;
           }
           return Math.min(times * 200, 2000);
@@ -118,12 +119,12 @@ const initRedis = async () => {
 
     // Event handlers
     redisClient.on('connect', () => {
-      console.log('Redis connecting...');
+      logger.info('Redis connecting...');
       reconnectAttempts = 0; // Reset on successful connection attempt
     });
 
     redisClient.on('ready', () => {
-      console.log('✅ Redis connected and ready');
+      logger.info('Redis connected and ready');
       isConnected = true;
       reconnectAttempts = 0; // Reset on successful connection
     });
@@ -131,10 +132,9 @@ const initRedis = async () => {
     redisClient.on('error', (error) => {
       // Only log first few errors to avoid spam
       if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-        console.error(
-          `Redis error (attempt ${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS}):`,
-          error.message
-        );
+        logger.error(`Redis error (attempt ${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})`, {
+          error: error.message,
+        });
       }
       isConnected = false;
       reconnectAttempts++;
@@ -142,21 +142,22 @@ const initRedis = async () => {
       // After max attempts, stop trying
       if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
         shouldReconnect = false;
-        console.log('⚠️  Redis unavailable after multiple attempts. App will run without caching.');
-        console.log('   To disable Redis completely, set REDIS_ENABLED=false in your .env file');
+        logger.warn(
+          'Redis unavailable after multiple attempts. App will run without caching. To disable Redis completely, set REDIS_ENABLED=false in your .env file'
+        );
       }
     });
 
     redisClient.on('close', () => {
       if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-        console.log('Redis connection closed');
+        logger.info('Redis connection closed');
       }
       isConnected = false;
     });
 
     redisClient.on('reconnecting', (delay) => {
       if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-        console.log(
+        logger.info(
           `Redis reconnecting... (attempt ${reconnectAttempts + 1}/${MAX_RECONNECT_ATTEMPTS})`
         );
       }
@@ -176,16 +177,15 @@ const initRedis = async () => {
     reconnectAttempts++;
 
     if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-      console.error(
-        `Failed to initialize Redis (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}):`,
-        errorMessage
+      logger.error(
+        `Failed to initialize Redis (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`,
+        { error: errorMessage }
       );
     } else {
       shouldReconnect = false;
-      console.log(
-        '⚠️  Redis initialization failed after multiple attempts. App will run without caching.'
+      logger.warn(
+        'Redis initialization failed after multiple attempts. App will run without caching. To disable Redis completely, set REDIS_ENABLED=false in your .env file'
       );
-      console.log('   To disable Redis completely, set REDIS_ENABLED=false in your .env file');
     }
 
     isConnected = false;
@@ -224,7 +224,7 @@ const cache = {
       return data ? JSON.parse(data) : null;
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache get error:', errorMessage);
+      logger.error('Cache get error', { error: errorMessage });
       return null;
     }
   },
@@ -241,7 +241,7 @@ const cache = {
       return true;
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache set error:', errorMessage);
+      logger.error('Cache set error', { error: errorMessage });
       return false;
     }
   },
@@ -258,7 +258,7 @@ const cache = {
       return true;
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache delete error:', errorMessage);
+      logger.error('Cache delete error', { error: errorMessage });
       return false;
     }
   },
@@ -278,7 +278,7 @@ const cache = {
       return true;
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache delete pattern error:', errorMessage);
+      logger.error('Cache delete pattern error', { error: errorMessage });
       return false;
     }
   },
@@ -294,7 +294,7 @@ const cache = {
       return await client.exists(key);
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache exists error:', errorMessage);
+      logger.error('Cache exists error', { error: errorMessage });
       return false;
     }
   },
@@ -321,7 +321,7 @@ const cache = {
       return value;
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache incr error:', errorMessage);
+      logger.error('Cache incr error', { error: errorMessage });
       // Fallback to in-memory counter on error
       const current = localCache.get(key) || 0;
       const newValue = current + 1;
@@ -342,7 +342,7 @@ const cache = {
       return parseInt(value) || 0;
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache getCounter error:', errorMessage);
+      logger.error('Cache getCounter error', { error: errorMessage });
       return 0;
     }
   },
@@ -359,7 +359,7 @@ const cache = {
       return true;
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache zadd error:', errorMessage);
+      logger.error('Cache zadd error', { error: errorMessage });
       return false;
     }
   },
@@ -378,7 +378,7 @@ const cache = {
       return await client.zrevrange(key, start, stop);
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache zrevrange error:', errorMessage);
+      logger.error('Cache zrevrange error', { error: errorMessage });
       return [];
     }
   },
@@ -395,7 +395,7 @@ const cache = {
       return true;
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache hset error:', errorMessage);
+      logger.error('Cache hset error', { error: errorMessage });
       return false;
     }
   },
@@ -412,7 +412,7 @@ const cache = {
       return data ? JSON.parse(data) : null;
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache hget error:', errorMessage);
+      logger.error('Cache hget error', { error: errorMessage });
       return null;
     }
   },
@@ -440,7 +440,7 @@ const cache = {
       return result;
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache hgetall error:', errorMessage);
+      logger.error('Cache hgetall error', { error: errorMessage });
       return null;
     }
   },
@@ -457,7 +457,7 @@ const cache = {
       return true;
     } catch (/** @type {any} */ error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('Cache expire error:', errorMessage);
+      logger.error('Cache expire error', { error: errorMessage });
       return false;
     }
   },
@@ -525,7 +525,7 @@ const rateLimiter = {
 const closeRedis = async () => {
   if (redisClient) {
     await redisClient.quit();
-    console.log('Redis connection closed');
+    logger.info('Redis connection closed');
   }
 };
 

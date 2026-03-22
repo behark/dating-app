@@ -44,8 +44,7 @@ function initializeNotifications() {
       });
     }
   } catch (error) {
-    if (__DEV__)
-      logger.warn('expo-notifications not installed. Push notifications will not work.');
+    if (__DEV__) logger.warn('expo-notifications not installed. Push notifications will not work.');
   }
 
   notificationsInitialized = true;
@@ -132,7 +131,7 @@ export class NotificationService {
         name: 'Default',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#667eea',
+        lightColor: '#6C63FF',
       });
 
       // Messages channel

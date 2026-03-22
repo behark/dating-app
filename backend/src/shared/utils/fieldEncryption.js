@@ -5,6 +5,7 @@
 
 const { Schema } = require('mongoose');
 const { encrypt, decrypt } = require('./encryption');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 /**
  * List of fields that should be encrypted at rest
@@ -151,10 +152,9 @@ const decryptDocument = (doc, fields) => {
         obj[field] = decrypt(obj[field]);
       } catch (/** @type {any} */ e) {
         // Keep encrypted value if decryption fails
-        console.error(
-          `Failed to decrypt field ${field}:`,
-          e instanceof Error ? e.message : String(e)
-        );
+        logger.error(`Failed to decrypt field ${field}`, {
+          error: e instanceof Error ? e.message : String(e),
+        });
       }
     }
   }
@@ -194,7 +194,7 @@ const decryptFields = (data, fields) => {
       try {
         result[field] = decrypt(result[field]);
       } catch (/** @type {any} */ e) {
-        console.error(`Failed to decrypt field ${field}`);
+        logger.error(`Failed to decrypt field ${field}`);
       }
     }
   }

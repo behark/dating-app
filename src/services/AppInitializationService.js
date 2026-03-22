@@ -103,7 +103,7 @@ class AppInitializationService {
     }
 
     // Defer non-critical initialization to reduce time-to-interactive
-    setTimeout(() => {
+    const deferredTimerId = setTimeout(() => {
       // Initialize IAP service (only on native platforms)
       if (Platform.OS !== 'web') {
         IAPService.initialize().catch((error) => {
@@ -139,14 +139,18 @@ class AppInitializationService {
         { distribution: [0.34, 0.33, 0.33] }
       );
 
-      UserBehaviorAnalytics.registerABTest(
-        'premium_cta',
-        ['control', 'urgency', 'social_proof'],
-        { distribution: [0.34, 0.33, 0.33] }
-      );
+      UserBehaviorAnalytics.registerABTest('premium_cta', ['control', 'urgency', 'social_proof'], {
+        distribution: [0.34, 0.33, 0.33],
+      });
     }, 2000); // Defer by 2s to let UI become interactive first
 
-    return notificationCleanup;
+    // Return combined cleanup function
+    return () => {
+      clearTimeout(deferredTimerId);
+      if (notificationCleanup) {
+        notificationCleanup();
+      }
+    };
   }
 
   static setupConsoleWarnings() {

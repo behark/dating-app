@@ -31,8 +31,8 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// Get all available prompts
-router.get('/prompts/list', getAllPrompts);
+// Get all available prompts (public - used to show prompts during profile setup)
+router.get('/prompts/list', authenticate, getAllPrompts);
 
 // Update profile prompts
 router.put(

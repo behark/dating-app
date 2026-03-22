@@ -1,5 +1,5 @@
 import * as Location from 'expo-location';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import logger from '../utils/logger';
 
 /**
@@ -41,11 +41,16 @@ export const useLocation = (options = {}) => {
     }
   }, []);
 
+  // Guard ref to prevent concurrent location fetches
+  const isFetchingRef = useRef(false);
+
   /**
    * Get current location
    */
   const getCurrentLocation = useCallback(async () => {
-    if (loading) return null;
+    // Use ref to guard against concurrent calls (avoids stale closure with loading state)
+    if (isFetchingRef.current) return null;
+    isFetchingRef.current = true;
 
     setLoading(true);
     setError(null);
@@ -78,7 +83,6 @@ export const useLocation = (options = {}) => {
       return currentLocation.coords;
     } catch (err) {
       const errorMessage = err.message || 'Failed to get location';
-      setError(errorMessage);
       logger.error('Error getting location', err);
 
       // Show user-friendly error message
@@ -93,20 +97,26 @@ export const useLocation = (options = {}) => {
       return null;
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
-  }, [loading, requestPermission, enableHighAccuracy, timeout, maximumAge, requestPermissions]);
+  }, [requestPermission, enableHighAccuracy, timeout, maximumAge, requestPermissions]);
 
   /**
-   * Initialize location on mount
+   * Initialize location on mount (run once)
    */
+  const hasInitializedRef = useRef(false);
   useEffect(() => {
+    if (hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+
     if (autoRequest) {
       getCurrentLocation();
     } else if (requestPermission) {
       // Just check permissions without requesting location
       requestPermissions();
     }
-  }, [autoRequest, getCurrentLocation, requestPermission, requestPermissions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Clear location data

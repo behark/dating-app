@@ -228,7 +228,8 @@ const createPaginatedResponse = (data, options = {}) => {
  */
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch((error) => {
-    console.error('Controller error:', error);
+    const { logger } = require('../../infrastructure/external/LoggingService');
+    logger.error('Controller error:', { error: error.message, stack: error.stack });
 
     // Handle specific error types
     if (error.name === 'ValidationError') {

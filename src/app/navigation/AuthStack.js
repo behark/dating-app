@@ -13,27 +13,40 @@ import {
 const Stack = createNativeStackNavigator();
 
 const AuthStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      animation: 'slide_from_right',
+      gestureEnabled: true,
+      // Prevent blank flash between screens
+      animationTypeForReplace: 'push',
+    }}
+  >
     {/* Guest mode: Show HomeScreen with limited access */}
     <Stack.Screen
       name="Home"
       component={HomeScreen}
       options={{
         headerShown: false,
+        // Home is the root -- no gesture back
+        gestureEnabled: false,
       }}
     />
     <Stack.Screen
       name="Login"
       component={LoginScreen}
       options={{
+        title: 'Sign In',
         presentation: 'modal',
+        animation: 'slide_from_bottom',
+        gestureEnabled: true,
       }}
     />
     <Stack.Screen
       name="Register"
       component={RegisterScreen}
       options={{
-        headerShown: false,
+        title: 'Create Account',
         presentation: 'card',
       }}
     />
@@ -41,7 +54,7 @@ const AuthStack = () => (
       name="ForgotPassword"
       component={ForgotPasswordScreen}
       options={{
-        headerShown: false,
+        title: 'Reset Password',
         presentation: 'card',
       }}
     />
@@ -49,15 +62,17 @@ const AuthStack = () => (
       name="VerifyEmail"
       component={EmailVerificationScreen}
       options={{
-        headerShown: false,
+        title: 'Verify Email',
         presentation: 'card',
+        // Prevent going back from verification to avoid confusion
+        gestureEnabled: false,
       }}
     />
     <Stack.Screen
       name="TermsOfService"
       component={TermsOfServiceScreen}
       options={{
-        headerShown: false,
+        title: 'Terms of Service',
         presentation: 'card',
       }}
     />
@@ -65,7 +80,7 @@ const AuthStack = () => (
       name="PrivacyPolicy"
       component={PrivacyPolicyScreen}
       options={{
-        headerShown: false,
+        title: 'Privacy Policy',
         presentation: 'card',
       }}
     />

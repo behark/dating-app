@@ -3,7 +3,7 @@
  * Prevents rapid function calls (e.g., double-clicks on buttons)
  */
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 
 /**
  * Custom hook for debouncing function calls
@@ -13,6 +13,15 @@ import { useRef, useCallback } from 'react';
  */
 export const useDebounce = (fn, delay = 300) => {
   const timeoutRef = useRef(null);
+
+  // Cleanup timeout on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return useCallback(
     (...args) => {

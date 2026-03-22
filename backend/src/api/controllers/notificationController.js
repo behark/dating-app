@@ -69,7 +69,6 @@ exports.updateNotificationPreferences = async (req, res) => {
     });
     sendError(res, 500, {
       message: 'Error updating notification preferences',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -110,7 +109,6 @@ exports.getNotificationPreferences = async (req, res) => {
     });
     sendError(res, 500, {
       message: 'Error fetching notification preferences',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -233,7 +231,6 @@ exports.sendNotification = async (req, res) => {
     logger.error('Send notification error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error sending notification',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -316,7 +313,6 @@ exports.sendBulkNotification = async (req, res) => {
     logger.error('Send bulk notification error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error sending bulk notification',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -360,7 +356,6 @@ exports.enableNotifications = async (req, res) => {
     logger.error('Enable notifications error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error enabling notifications',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -404,7 +399,6 @@ exports.disableNotifications = async (req, res) => {
     logger.error('Disable notifications error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error disabling notifications',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -462,7 +456,6 @@ exports.getNotifications = async (req, res) => {
     logger.error('Get notifications error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error fetching notifications',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -502,7 +495,6 @@ exports.markNotificationAsRead = async (req, res) => {
     logger.error('Mark notification as read error:', { error: error.message, stack: error.stack });
     sendError(res, 500, {
       message: 'Error marking notification as read',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 };
@@ -531,7 +523,6 @@ exports.markAllAsRead = async (req, res) => {
     });
     sendError(res, 500, {
       message: 'Error marking all notifications as read',
-      error: error instanceof Error ? error.message : String(error),
     });
   }
 };

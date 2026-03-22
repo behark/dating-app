@@ -9,6 +9,7 @@ const {
   asyncHandler,
 } = require('../../shared/utils/responseHelpers');
 const GamificationService = require('../../core/services/GamificationService');
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 const SwipeStreak = require('../../core/domain/SwipeStreak');
 
@@ -25,21 +26,19 @@ class GamificationController {
       const { userId } = req.body;
 
       if (!userId) {
-        return res.status(400).json({ error: 'User ID is required' });
+        return sendError(res, 400, { message: 'User ID is required' });
       }
 
       const streak = await GamificationService.updateSwipeStreak(userId);
       const stats = await GamificationService.getUserGamificationStats(userId);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Swipe tracked successfully',
         data: { streak, stats },
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to track swipe',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to track swipe:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to track swipe' });
     }
   }
 
@@ -53,7 +52,8 @@ class GamificationController {
       const streak = await GamificationService.getSwipeStreak(userId);
 
       if (!streak) {
-        return res.json({
+        return sendSuccess(res, 200, {
+          message: 'Swipe streak retrieved',
           data: {
             currentStreak: 0,
             longestStreak: 0,
@@ -62,12 +62,13 @@ class GamificationController {
         });
       }
 
-      res.json({ data: streak });
-    } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get swipe streak',
-        message: error instanceof Error ? error.message : String(error),
+      return sendSuccess(res, 200, {
+        message: 'Swipe streak retrieved',
+        data: streak,
       });
+    } catch (/** @type {any} */ error) {
+      logger.error('Failed to get swipe streak:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to get swipe streak' });
     }
   }
 
@@ -86,15 +87,13 @@ class GamificationController {
         points
       );
 
-      res.json({
-        success: true,
-        badge,
+      return sendSuccess(res, 200, {
+        message: 'Badge awarded successfully',
+        data: { badge },
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to award badge',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to award badge:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to award badge' });
     }
   }
 
@@ -107,16 +106,17 @@ class GamificationController {
 
       const badges = await GamificationService.getUserBadges(userId);
 
-      res.json({
-        badges,
-        totalBadges: badges.length,
-        unlockedBadges: badges.filter((b) => b.isUnlocked).length,
+      return sendSuccess(res, 200, {
+        message: 'User badges retrieved',
+        data: {
+          badges,
+          totalBadges: badges.length,
+          unlockedBadges: badges.filter((b) => b.isUnlocked).length,
+        },
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get badges',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to get badges:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to get badges' });
     }
   }
 
@@ -129,16 +129,17 @@ class GamificationController {
 
       const unclaimed = await GamificationService.getUnclaimedRewards(userId);
 
-      res.json({
-        unclaimedRewards: unclaimed,
-        totalUnclaimed: unclaimed.length,
-        totalValue: unclaimed.reduce((sum, r) => sum + r.rewardValue, 0),
+      return sendSuccess(res, 200, {
+        message: 'Daily rewards retrieved',
+        data: {
+          unclaimedRewards: unclaimed,
+          totalUnclaimed: unclaimed.length,
+          totalValue: unclaimed.reduce((sum, r) => sum + r.rewardValue, 0),
+        },
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get daily reward',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to get daily reward:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to get daily reward' });
     }
   }
 
@@ -151,15 +152,13 @@ class GamificationController {
 
       const reward = await GamificationService.claimReward(rewardId);
 
-      res.json({
-        success: true,
-        reward,
+      return sendSuccess(res, 200, {
+        message: 'Reward claimed successfully',
+        data: { reward },
       });
     } catch (/** @type {any} */ error) {
-      res.status(400).json({
-        error: 'Failed to claim reward',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to claim reward:', { error: error.message, stack: error.stack });
+      return sendError(res, 400, { message: 'Failed to claim reward' });
     }
   }
 
@@ -172,12 +171,16 @@ class GamificationController {
 
       const stats = await GamificationService.getUserGamificationStats(userId);
 
-      res.json(stats);
-    } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get gamification stats',
-        message: error instanceof Error ? error.message : String(error),
+      return sendSuccess(res, 200, {
+        message: 'Gamification stats retrieved',
+        data: stats,
       });
+    } catch (/** @type {any} */ error) {
+      logger.error('Failed to get gamification stats:', {
+        error: error.message,
+        stack: error.stack,
+      });
+      return sendError(res, 500, { message: 'Failed to get gamification stats' });
     }
   }
 
@@ -190,15 +193,16 @@ class GamificationController {
 
       const leaderboard = await GamificationService.getStreakLeaderboard(parseInt(limit));
 
-      res.json({
-        leaderboard,
-        count: leaderboard.length,
+      return sendSuccess(res, 200, {
+        message: 'Streak leaderboard retrieved',
+        data: {
+          leaderboard,
+          count: leaderboard.length,
+        },
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get leaderboard',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to get leaderboard:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to get leaderboard' });
     }
   }
 
@@ -211,15 +215,19 @@ class GamificationController {
 
       const leaderboard = await GamificationService.getLongestStreakLeaderboard(parseInt(limit));
 
-      res.json({
-        leaderboard,
-        count: leaderboard.length,
+      return sendSuccess(res, 200, {
+        message: 'Longest streak leaderboard retrieved',
+        data: {
+          leaderboard,
+          count: leaderboard.length,
+        },
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get longest streak leaderboard',
-        message: error instanceof Error ? error.message : String(error),
+      logger.error('Failed to get longest streak leaderboard:', {
+        error: error.message,
+        stack: error.stack,
       });
+      return sendError(res, 500, { message: 'Failed to get longest streak leaderboard' });
     }
   }
 
@@ -234,18 +242,16 @@ class GamificationController {
 
       const updatedBadges = await GamificationService.getUserBadges(userId);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Badges updated successfully',
         data: {
           badges: updatedBadges,
           updated: updatedBadges.length,
         },
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to update badges',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to update badges:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to update badges' });
     }
   }
 
@@ -261,15 +267,13 @@ class GamificationController {
       const { userId } = req.params;
       const levelData = await GamificationService.getUserLevel(userId);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'User level retrieved',
         data: levelData,
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get user level',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to get user level:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to get user level' });
     }
   }
 
@@ -281,20 +285,18 @@ class GamificationController {
       const { userId, amount, action } = req.body;
 
       if (!userId || !amount) {
-        return res.status(400).json({ error: 'User ID and amount are required' });
+        return sendError(res, 400, { message: 'User ID and amount are required' });
       }
 
       const result = await GamificationService.addXP(userId, amount, action);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'XP added successfully',
         data: result,
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to add XP',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to add XP:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to add XP' });
     }
   }
 
@@ -306,15 +308,13 @@ class GamificationController {
       const { level } = req.params;
       const rewards = await GamificationService.getLevelRewards(parseInt(level));
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Level rewards retrieved',
         data: rewards,
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get level rewards',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to get level rewards:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to get level rewards' });
     }
   }
 
@@ -330,15 +330,13 @@ class GamificationController {
       const { userId } = req.params;
       const challenges = await GamificationService.getDailyChallenges(userId);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Daily challenges retrieved',
         data: challenges,
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get daily challenges',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to get daily challenges:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to get daily challenges' });
     }
   }
 
@@ -354,15 +352,16 @@ class GamificationController {
         progress
       );
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Challenge progress updated',
         data: result,
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to update challenge progress',
-        message: error instanceof Error ? error.message : String(error),
+      logger.error('Failed to update challenge progress:', {
+        error: error.message,
+        stack: error.stack,
       });
+      return sendError(res, 500, { message: 'Failed to update challenge progress' });
     }
   }
 
@@ -374,15 +373,16 @@ class GamificationController {
       const { userId, actionType, count } = req.body;
       const result = await GamificationService.trackChallengeAction(userId, actionType, count || 1);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Challenge action tracked',
         data: result,
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to track challenge action',
-        message: error instanceof Error ? error.message : String(error),
+      logger.error('Failed to track challenge action:', {
+        error: error.message,
+        stack: error.stack,
       });
+      return sendError(res, 500, { message: 'Failed to track challenge action' });
     }
   }
 
@@ -394,15 +394,16 @@ class GamificationController {
       const { userId, challengeId } = req.body;
       const result = await GamificationService.claimChallengeReward(userId, challengeId);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Challenge reward claimed',
         data: result,
       });
     } catch (/** @type {any} */ error) {
-      res.status(400).json({
-        error: 'Failed to claim challenge reward',
-        message: error instanceof Error ? error.message : String(error),
+      logger.error('Failed to claim challenge reward:', {
+        error: error.message,
+        stack: error.stack,
       });
+      return sendError(res, 400, { message: 'Failed to claim challenge reward' });
     }
   }
 
@@ -414,15 +415,13 @@ class GamificationController {
       const { userId } = req.params;
       const bonus = await GamificationService.getCompletionBonus(userId);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Completion bonus retrieved',
         data: bonus,
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get completion bonus',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to get completion bonus:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to get completion bonus' });
     }
   }
 
@@ -434,15 +433,16 @@ class GamificationController {
       const { userId } = req.params;
       const result = await GamificationService.claimCompletionBonus(userId);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Completion bonus claimed',
         data: result,
       });
     } catch (/** @type {any} */ error) {
-      res.status(400).json({
-        error: 'Failed to claim completion bonus',
-        message: error instanceof Error ? error.message : String(error),
+      logger.error('Failed to claim completion bonus:', {
+        error: error.message,
+        stack: error.stack,
       });
+      return sendError(res, 400, { message: 'Failed to claim completion bonus' });
     }
   }
 
@@ -458,15 +458,16 @@ class GamificationController {
       const { userId } = req.params;
       const achievements = await GamificationService.getUserAchievements(userId);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'User achievements retrieved',
         data: achievements,
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get user achievements',
-        message: error instanceof Error ? error.message : String(error),
+      logger.error('Failed to get user achievements:', {
+        error: error.message,
+        stack: error.stack,
       });
+      return sendError(res, 500, { message: 'Failed to get user achievements' });
     }
   }
 
@@ -478,15 +479,13 @@ class GamificationController {
       const { userId, stats } = req.body;
       const result = await GamificationService.checkAchievements(userId, stats);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Achievements checked',
         data: result,
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to check achievements',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to check achievements:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to check achievements' });
     }
   }
 
@@ -498,15 +497,13 @@ class GamificationController {
       const { userId, achievementId } = req.body;
       const result = await GamificationService.unlockAchievement(userId, achievementId);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Achievement unlocked',
         data: result,
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to unlock achievement',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Failed to unlock achievement:', { error: error.message, stack: error.stack });
+      return sendError(res, 500, { message: 'Failed to unlock achievement' });
     }
   }
 
@@ -518,15 +515,16 @@ class GamificationController {
       const { userId, achievementId } = req.params;
       const progress = await GamificationService.getAchievementProgress(userId, achievementId);
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Achievement progress retrieved',
         data: progress,
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get achievement progress',
-        message: error instanceof Error ? error.message : String(error),
+      logger.error('Failed to get achievement progress:', {
+        error: error.message,
+        stack: error.stack,
       });
+      return sendError(res, 500, { message: 'Failed to get achievement progress' });
     }
   }
 
@@ -539,15 +537,16 @@ class GamificationController {
       const { limit = 5 } = req.query;
       const achievements = await GamificationService.getRecentAchievements(userId, parseInt(limit));
 
-      res.json({
-        success: true,
+      return sendSuccess(res, 200, {
+        message: 'Recent achievements retrieved',
         data: achievements,
       });
     } catch (/** @type {any} */ error) {
-      res.status(500).json({
-        error: 'Failed to get recent achievements',
-        message: error instanceof Error ? error.message : String(error),
+      logger.error('Failed to get recent achievements:', {
+        error: error.message,
+        stack: error.stack,
       });
+      return sendError(res, 500, { message: 'Failed to get recent achievements' });
     }
   }
 }

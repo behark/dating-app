@@ -8,6 +8,7 @@
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const axios = require('axios').default;
+const { logger } = require('../../infrastructure/external/LoggingService');
 
 // Initialize Google OAuth client
 const googleClient = new OAuth2Client();
@@ -87,7 +88,7 @@ const verifyGoogleToken = async (idToken, clientId = undefined) => {
 
     // Log error without sensitive data (error object may contain tokens)
     const safeError = error instanceof Error ? error.message : String(error);
-    console.error('Google token verification error:', safeError);
+    logger.error('Google token verification error', { error: safeError });
     throw new Error(`Google token verification failed: ${errorMessage}`);
   }
 };

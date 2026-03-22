@@ -521,7 +521,7 @@ class PayPalService {
     if (handler) {
       await handler.call(this, event.resource, event);
     } else {
-      console.log(`Unhandled PayPal event type: ${event.event_type}`);
+      logger.warn(`Unhandled PayPal event type: ${event.event_type}`);
     }
 
     return { received: true, type: event.event_type };
@@ -531,7 +531,7 @@ class PayPalService {
    * Handle subscription created
    */
   static async handleSubscriptionCreated(resource, event) {
-    console.log('PayPal subscription created:', resource.id);
+    logger.info('PayPal subscription created', { subscriptionId: resource.id });
   }
 
   /**
@@ -680,7 +680,7 @@ class PayPalService {
    * Handle capture completed
    */
   static async handleCaptureCompleted(resource, event) {
-    console.log('PayPal capture completed:', resource.id);
+    logger.info('PayPal capture completed', { captureId: resource.id });
   }
 
   /**

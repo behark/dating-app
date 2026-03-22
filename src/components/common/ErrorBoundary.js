@@ -459,6 +459,13 @@ class ErrorBoundary extends React.Component {
                       onPress={this.handleRetry}
                       activeOpacity={0.7}
                       disabled={isRetrying}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        isRetrying
+                          ? 'Retrying'
+                          : `Try again, ${maxRetries - retryCount} attempts remaining`
+                      }
+                      accessibilityState={{ disabled: isRetrying, busy: isRetrying }}
                     >
                       <Ionicons
                         name="refresh"
@@ -475,6 +482,8 @@ class ErrorBoundary extends React.Component {
                       style={[styles.simpleButton, styles.simpleResetButton]}
                       onPress={this.handleReset}
                       activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel="Reset the app to its initial state"
                     >
                       <Ionicons name="home" size={16} color={Colors.text.secondary} />
                       <Text style={styles.simpleResetButtonText}>Reset</Text>
@@ -507,12 +516,18 @@ class ErrorBoundary extends React.Component {
               ]}
             >
               {/* Error Icon */}
-              <View style={styles.errorIcon}>
+              <View
+                style={styles.errorIcon}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+              >
                 <Ionicons name={errorDetails.icon} size={80} color={Colors.text.white} />
               </View>
 
               {/* Error Title & Message */}
-              <Text style={styles.errorTitle}>{errorDetails.title}</Text>
+              <Text style={styles.errorTitle} accessibilityRole="header">
+                {errorDetails.title}
+              </Text>
               <Text style={styles.errorMessage}>{errorDetails.message}</Text>
 
               {/* Retry Counter */}
@@ -548,6 +563,12 @@ class ErrorBoundary extends React.Component {
                         onPress={() => this.handleAction(action.id)}
                         activeOpacity={0.8}
                         disabled={isRetrying}
+                        accessibilityRole="button"
+                        accessibilityLabel={action.label}
+                        accessibilityState={{
+                          disabled: isRetrying,
+                          busy: isRetrying && action.id === 'retry',
+                        }}
                       >
                         {action.id === 'retry' ? (
                           <LinearGradient
@@ -619,6 +640,8 @@ class ErrorBoundary extends React.Component {
                 style={styles.reportButton}
                 onPress={this.handleReportError}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Report this issue to the support team"
               >
                 <Text style={styles.reportButtonText}>Report Issue</Text>
               </TouchableOpacity>

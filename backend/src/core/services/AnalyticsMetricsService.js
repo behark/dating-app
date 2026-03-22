@@ -62,10 +62,9 @@ class AnalyticsMetricsService {
           return redisValue;
         }
       } catch (/** @type {any} */ error) {
-        console.warn(
-          'Redis cache get error, falling back to memory:',
-          error instanceof Error ? error.message : String(error)
-        );
+        logger.warn('Redis cache get error, falling back to memory', {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
 
@@ -90,10 +89,9 @@ class AnalyticsMetricsService {
       try {
         await cache.set(`${METRICS_CACHE_PREFIX}${key}`, value, ttl);
       } catch (/** @type {any} */ error) {
-        console.warn(
-          'Redis cache set error:',
-          error instanceof Error ? error.message : String(error)
-        );
+        logger.warn('Redis cache set error', {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
   }
@@ -109,10 +107,9 @@ class AnalyticsMetricsService {
       try {
         await cache.del(`${METRICS_CACHE_PREFIX}${key}`);
       } catch (/** @type {any} */ error) {
-        console.warn(
-          'Redis cache delete error:',
-          error instanceof Error ? error.message : String(error)
-        );
+        logger.warn('Redis cache delete error', {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
   }
@@ -133,10 +130,9 @@ class AnalyticsMetricsService {
       try {
         await cache.delByPattern(`${METRICS_CACHE_PREFIX}${pattern}`);
       } catch (/** @type {any} */ error) {
-        console.warn(
-          'Redis cache pattern delete error:',
-          error instanceof Error ? error.message : String(error)
-        );
+        logger.warn('Redis cache pattern delete error', {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
   }
@@ -916,10 +912,9 @@ class AnalyticsMetricsService {
       try {
         await cache.delByPattern(`${METRICS_CACHE_PREFIX}*`);
       } catch (/** @type {any} */ error) {
-        console.warn(
-          'Redis cache clear error:',
-          error instanceof Error ? error.message : String(error)
-        );
+        logger.warn('Redis cache clear error', {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
   }

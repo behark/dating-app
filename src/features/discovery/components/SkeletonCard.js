@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   container: {
     width: CARD_WIDTH, // Match SwipeCard width
     height: CARD_HEIGHT,
-    borderRadius: 20,
+    borderRadius: 24,
     ...Platform.select({
       web: {
         // On web, use same centering approach as SwipeCard
@@ -114,11 +114,11 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
       },
     }),
-    shadowColor: Colors.text.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: '#6C63FF',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 6,
     overflow: 'hidden',
   },
   imageSkeleton: {
