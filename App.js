@@ -13,6 +13,16 @@ import { SocketProvider } from './src/context/SocketContext';
 import AppNavigator from './src/app/navigation/AppNavigator';
 import AppInitializationService from './src/services/AppInitializationService';
 import { UpdateService } from './src/services/UpdateService';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Vercel Analytics and Speed Insights (web only)
 // Using dynamic imports for web platform to avoid breaking native builds
@@ -159,20 +169,22 @@ export default function App() {
   }, []);
 
   return (
-    <SimpleErrorBoundary>
-      <SafeAreaProvider>
-        <ThemeProvider>
-          <AppProvider>
-            <AuthProvider>
-              <SocketProvider>
-                <ChatProvider>
-                  <AppWithErrorHandling />
-                </ChatProvider>
-              </SocketProvider>
-            </AuthProvider>
-          </AppProvider>
-        </ThemeProvider>
-      </SafeAreaProvider>
-    </SimpleErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <SimpleErrorBoundary>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            <AppProvider>
+              <AuthProvider>
+                <SocketProvider>
+                  <ChatProvider>
+                    <AppWithErrorHandling />
+                  </ChatProvider>
+                </SocketProvider>
+              </AuthProvider>
+            </AppProvider>
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </SimpleErrorBoundary>
+    </QueryClientProvider>
   );
 }

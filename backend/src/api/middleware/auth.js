@@ -59,11 +59,17 @@ exports.authenticate = async (req, res, next) => {
           });
         }
       } catch (/** @type {any} */ mongoError) {
-        // If MongoDB check also fails, log error but continue
-        // This prevents a single point of failure from blocking all requests
-        redisLogger.error('MongoDB blacklist check failed', {
+        // Both Redis and MongoDB failed — fail closed in production to prevent
+        // revoked tokens from being accepted during an outage
+        redisLogger.error('MongoDB blacklist check also failed — failing closed', {
           error: mongoError instanceof Error ? mongoError.message : String(mongoError),
         });
+        if (process.env.NODE_ENV === 'production') {
+          return res.status(503).json({
+            success: false,
+            message: 'Authentication service temporarily unavailable. Please try again.',
+          });
+        }
       }
     }
 
@@ -77,12 +83,13 @@ exports.authenticate = async (req, res, next) => {
       });
     }
 
-    // In test mode we can trust signed token payload without DB lookup.
+    // In test mode we can trust signed token payload without DB lookup,
+    // but NEVER trust role from token — always default to 'user'.
     if (process.env.NODE_ENV === 'test') {
       req.user = {
         _id: decoded.userId,
         id: decoded.userId,
-        role: decoded.role || 'user',
+        role: 'user',
       };
       return next();
     }

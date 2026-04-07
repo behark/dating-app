@@ -65,8 +65,8 @@ describe('WebSocket Integration Tests', () => {
     });
 
     it('should handle multiple concurrent connections', () => {
-      wsServer.addClient('user_1');
-      wsServer.addClient('user_2');
+      wsServer.addClient('507f191e810c19729de860e1');
+      wsServer.addClient('507f191e810c19729de860e2');
       wsServer.addClient('user_3');
 
       expect(wsServer.clients.size).toBe(3);
@@ -75,8 +75,8 @@ describe('WebSocket Integration Tests', () => {
 
   describe('Message Broadcasting', () => {
     it('should broadcast message to all clients', () => {
-      const client1 = wsServer.addClient('user_1');
-      const client2 = wsServer.addClient('user_2');
+      const client1 = wsServer.addClient('507f191e810c19729de860e1');
+      const client2 = wsServer.addClient('507f191e810c19729de860e2');
 
       wsServer.broadcast({ type: 'announcement', message: 'Hello everyone!' });
 
@@ -85,10 +85,10 @@ describe('WebSocket Integration Tests', () => {
     });
 
     it('should send message to specific user', () => {
-      const client1 = wsServer.addClient('user_1');
-      const client2 = wsServer.addClient('user_2');
+      const client1 = wsServer.addClient('507f191e810c19729de860e1');
+      const client2 = wsServer.addClient('507f191e810c19729de860e2');
 
-      wsServer.sendToUser('user_1', { type: 'private', message: 'Hello user 1!' });
+      wsServer.sendToUser('507f191e810c19729de860e1', { type: 'private', message: 'Hello user 1!' });
 
       expect(client1.send).toHaveBeenCalled();
       expect(client2.send).not.toHaveBeenCalled();
@@ -117,19 +117,19 @@ describe('WebSocket Integration Tests', () => {
     });
 
     it('should handle typing indicator', () => {
-      wsServer.addClient('user_1');
-      const user2 = wsServer.addClient('user_2');
+      wsServer.addClient('507f191e810c19729de860e1');
+      const user2 = wsServer.addClient('507f191e810c19729de860e2');
 
       const typingEvent = {
         type: 'typing',
         data: {
-          userId: 'user_1',
+          userId: '507f191e810c19729de860e1',
           conversationId: 'conv_123',
           isTyping: true,
         },
       };
 
-      wsServer.sendToUser('user_2', typingEvent);
+      wsServer.sendToUser('507f191e810c19729de860e2', typingEvent);
 
       expect(user2.send).toHaveBeenCalledWith(JSON.stringify(typingEvent));
     });
@@ -155,20 +155,20 @@ describe('WebSocket Integration Tests', () => {
 
   describe('Match Events', () => {
     it('should notify both users on match', () => {
-      const user1 = wsServer.addClient('user_1');
-      const user2 = wsServer.addClient('user_2');
+      const user1 = wsServer.addClient('507f191e810c19729de860e1');
+      const user2 = wsServer.addClient('507f191e810c19729de860e2');
 
       const matchEvent = {
         type: 'new_match',
         data: {
           matchId: 'match_123',
-          users: ['user_1', 'user_2'],
+          users: ['507f191e810c19729de860e1', '507f191e810c19729de860e2'],
           timestamp: new Date().toISOString(),
         },
       };
 
-      wsServer.sendToUser('user_1', matchEvent);
-      wsServer.sendToUser('user_2', matchEvent);
+      wsServer.sendToUser('507f191e810c19729de860e1', matchEvent);
+      wsServer.sendToUser('507f191e810c19729de860e2', matchEvent);
 
       expect(user1.send).toHaveBeenCalledWith(JSON.stringify(matchEvent));
       expect(user2.send).toHaveBeenCalledWith(JSON.stringify(matchEvent));
@@ -177,8 +177,8 @@ describe('WebSocket Integration Tests', () => {
 
   describe('Presence Events', () => {
     it('should broadcast user online status', () => {
-      const user1 = wsServer.addClient('user_1');
-      const user2 = wsServer.addClient('user_2');
+      const user1 = wsServer.addClient('507f191e810c19729de860e1');
+      const user2 = wsServer.addClient('507f191e810c19729de860e2');
 
       const onlineEvent = {
         type: 'user_online',
@@ -195,17 +195,17 @@ describe('WebSocket Integration Tests', () => {
     });
 
     it('should broadcast user offline status', () => {
-      const user1 = wsServer.addClient('user_1');
+      const user1 = wsServer.addClient('507f191e810c19729de860e1');
 
       const offlineEvent = {
         type: 'user_offline',
         data: {
-          userId: 'user_2',
+          userId: '507f191e810c19729de860e2',
           lastSeen: new Date().toISOString(),
         },
       };
 
-      wsServer.sendToUser('user_1', offlineEvent);
+      wsServer.sendToUser('507f191e810c19729de860e1', offlineEvent);
 
       expect(user1.send).toHaveBeenCalledWith(JSON.stringify(offlineEvent));
     });
@@ -222,7 +222,7 @@ describe('WebSocket Integration Tests', () => {
     });
 
     it('should not send to closed connections', () => {
-      const client = wsServer.addClient('user_1');
+      const client = wsServer.addClient('507f191e810c19729de860e1');
       client.readyState = WebSocket.CLOSED;
 
       wsServer.broadcast({ type: 'test' });

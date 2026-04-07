@@ -24,9 +24,10 @@ jest.mock('../../src/api/middleware/auth', () => ({
     if (!req.headers.authorization) {
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
-    req.user = { _id: 'user_1' };
+    req.user = { _id: '507f191e810c19729de860e1', role: 'admin' };
     next();
   }),
+  isAdmin: jest.fn((req, res, next) => next()),
 }));
 
 const createApp = () => {
@@ -66,7 +67,7 @@ describe('notifications routes', () => {
 
   it('serves notification listing and read operations', async () => {
     const list = await request(app).get('/api/notifications').set(auth);
-    const readOne = await request(app).put('/api/notifications/n1/read').set(auth);
+    const readOne = await request(app).put('/api/notifications/507f191e810c19729de86001/read').set(auth);
     const readAll = await request(app).put('/api/notifications/read-all').set(auth);
 
     expect(list.status).toBe(200);
@@ -78,11 +79,21 @@ describe('notifications routes', () => {
     const send = await request(app)
       .post('/api/notifications/send')
       .set(auth)
-      .send({ userId: 'u2', title: 'hello' });
+      .send({
+        toUserId: '507f191e810c19729de860e2',
+        type: 'message',
+        title: 'Test notification',
+        message: 'Test message content'
+      });
     const bulk = await request(app)
       .post('/api/notifications/send-bulk')
       .set(auth)
-      .send({ userIds: ['u2', 'u3'], title: 'hello' });
+      .send({
+        userIds: ['507f191e810c19729de860e2', '507f191e810c19729de860e3'],
+        type: 'message',
+        title: 'Test bulk notification',
+        message: 'Test bulk message content'
+      });
     const enable = await request(app).put('/api/notifications/enable').set(auth);
     const disable = await request(app).put('/api/notifications/disable').set(auth);
 

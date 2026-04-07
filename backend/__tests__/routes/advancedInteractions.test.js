@@ -15,7 +15,7 @@ jest.mock('../../src/api/middleware/auth', () => ({
     if (!req.headers.authorization) {
       return res.status(401).json({ success: false });
     }
-    req.user = { _id: 'user_1' };
+    req.user = { _id: '507f191e810c19729de860e1' };
     next();
   }),
 }));
@@ -47,8 +47,12 @@ describe('advanced interaction routes', () => {
 
   it('routes super-like endpoints', async () => {
     const auth = { Authorization: 'Bearer token' };
-    const send = await request(app).post('/api/interactions/super-like').set(auth).send({});
+    const send = await request(app)
+      .post('/api/interactions/super-like')
+      .set(auth)
+      .send({ targetUserId: '507f191e810c19729de860e2' });
     const quota = await request(app).get('/api/interactions/super-like-quota').set(auth);
+
     expect(send.status).toBe(200);
     expect(quota.status).toBe(200);
     expect(controller.sendSuperLike).toHaveBeenCalled();

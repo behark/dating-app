@@ -31,7 +31,7 @@ jest.mock('../../src/api/middleware/auth', () => ({
     if (!req.headers.authorization) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
-    req.user = { _id: 'user_1' };
+    req.user = { _id: '507f191e810c19729de860e1' };
     next();
   }),
 }));
@@ -91,19 +91,19 @@ describe('payment routes', () => {
   });
 
   it('routes stripe endpoints', async () => {
-    const checkout = await agent
+    const checkout = await request(createAppAndAgent().app)
       .post('/api/payment/stripe/checkout')
       .set('Authorization', 'Bearer token')
-      .send({ planId: 'gold' });
-    const intent = await agent
+      .send({ planType: 'monthly' });
+    const intent = await request(createAppAndAgent().app)
       .post('/api/payment/stripe/payment-intent')
       .set('Authorization', 'Bearer token')
       .send({ amount: 999 });
-    const setup = await agent
+    const setup = await request(createAppAndAgent().app)
       .post('/api/payment/stripe/setup-intent')
       .set('Authorization', 'Bearer token')
       .send({});
-    const portal = await agent
+    const portal = await request(createAppAndAgent().app)
       .get('/api/payment/stripe/portal')
       .set('Authorization', 'Bearer token');
 
@@ -116,22 +116,25 @@ describe('payment routes', () => {
   it('routes paypal/apple/google endpoints', async () => {
     const authHeader = { Authorization: 'Bearer token' };
 
-    const paypalSub = await agent
+    const paypalSub = await request(createAppAndAgent().app)
       .post('/api/payment/paypal/subscription')
       .set(authHeader)
-      .send({});
-    const paypalOrder = await agent
+      .send({ planId: 'monthly' });
+    const paypalOrder = await request(createAppAndAgent().app)
       .post('/api/payment/paypal/order')
       .set(authHeader)
-      .send({});
-    const appleValidate = await agent
+      .send({ amount: 999 });
+    const appleValidate = await request(createAppAndAgent().app)
       .post('/api/payment/apple/validate')
       .set(authHeader)
-      .send({});
-    const googleValidate = await agent
+      .send({ receiptData: 'mock-receipt-data' });
+    const googleValidate = await request(createAppAndAgent().app)
       .post('/api/payment/google/validate')
       .set(authHeader)
-      .send({});
+      .send({
+        purchaseToken: 'mock-purchase-token',
+        productId: 'premium.monthly'
+      });
 
     expect(paypalSub.status).toBe(200);
     expect(paypalOrder.status).toBe(200);
@@ -142,15 +145,18 @@ describe('payment routes', () => {
   it('routes subscription management and refunds', async () => {
     const authHeader = { Authorization: 'Bearer token' };
 
-    const cancel = await agent
+    const cancel = await request(createAppAndAgent().app)
       .post('/api/payment/subscription/cancel')
       .set(authHeader)
       .send({});
-    const resume = await agent
+    const resume = await request(createAppAndAgent().app)
       .post('/api/payment/subscription/resume')
       .set(authHeader)
       .send({});
-    const refund = await agent.post('/api/payment/refund/request').set(authHeader).send({});
+    const refund = await request(createAppAndAgent().app)
+      .post('/api/payment/refund/request')
+      .set(authHeader)
+      .send({ reason: 'Not satisfied with service' });
 
     expect(cancel.status).toBe(200);
     expect(resume.status).toBe(200);

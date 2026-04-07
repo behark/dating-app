@@ -3,7 +3,11 @@
  * Tests token management, refresh logic, and session expiration
  */
 import api, { setSessionExpiredCallback } from '../api';
-import { getTokenSecurely, storeTokenSecurely, removeTokenSecurely } from '../../utils/secureStorage';
+import {
+  getTokenSecurely,
+  storeTokenSecurely,
+  removeTokenSecurely,
+} from '../../utils/secureStorage';
 
 // Mock secure storage
 jest.mock('../../utils/secureStorage', () => ({

@@ -32,7 +32,7 @@ jest.mock('../../src/api/middleware/auth', () => ({
     if (!req.headers.authorization) {
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
-    req.user = { _id: 'user_1', id: 'user_1', role: req.headers['x-role'] || 'user' };
+    req.user = { _id: '507f191e810c19729de860e1', id: '507f191e810c19729de860e1', role: req.headers['x-role'] || 'user' };
     next();
   }),
   authorizeMatchedUsers: jest.fn((req, res, next) => next()),
@@ -70,7 +70,7 @@ describe('profile routes', () => {
 
   it('serves authenticated profile endpoints', async () => {
     const me = await request(app).get('/api/profile/me').set(auth);
-    const other = await request(app).get('/api/profile/target_user').set(auth);
+    const other = await request(app).get('/api/profile/507f191e810c19729de860e2').set(auth);
 
     expect(me.status).toBe(200);
     expect(other.status).toBe(200);
@@ -104,9 +104,9 @@ describe('profile routes', () => {
     const reorder = await request(app)
       .put('/api/profile/photos/reorder')
       .set(auth)
-      .send({ photoIds: ['p1', 'p2'] });
+      .send({ photoIds: ['507f191e810c19729de860e1', '507f191e810c19729de860e2'] });
 
-    const del = await request(app).delete('/api/profile/photos/p1').set(auth);
+    const del = await request(app).delete('/api/profile/photos/507f191e810c19729de860e1').set(auth);
 
     expect(invalid.status).toBe(400);
     expect(validUpload.status).toBe(200);
@@ -115,13 +115,13 @@ describe('profile routes', () => {
   });
 
   it('enforces admin-only photo moderation endpoints', async () => {
-    const userApprove = await request(app).put('/api/profile/photos/p1/approve').set(auth);
+    const userApprove = await request(app).put('/api/profile/photos/507f191e810c19729de860e1/approve').set(auth);
     const adminApprove = await request(app)
-      .put('/api/profile/photos/p1/approve')
+      .put('/api/profile/photos/507f191e810c19729de860e1/approve')
       .set(auth)
       .set('x-role', 'admin');
     const adminReject = await request(app)
-      .put('/api/profile/photos/p1/reject')
+      .put('/api/profile/photos/507f191e810c19729de860e1/reject')
       .set(auth)
       .set('x-role', 'admin')
       .send({ reason: 'bad image' });

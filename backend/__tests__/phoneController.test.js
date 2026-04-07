@@ -1,8 +1,33 @@
 const crypto = require('crypto');
 
-jest.mock('../src/core/domain/User', () => ({
-  findById: jest.fn(),
-}));
+jest.mock('../src/core/domain/User', () => {
+  let _findByIdValue = null;
+  const chainable = (valueFn) => {
+    const query = {
+      select: jest.fn().mockImplementation(() => query),
+      lean: jest.fn().mockImplementation(() => query),
+      then: (resolve, reject) => valueFn().then(resolve, reject),
+    };
+    return query;
+  };
+  return {
+    findById: Object.assign(
+      jest.fn(() => chainable(() => Promise.resolve(_findByIdValue))),
+      {
+        mockResolvedValue: (val) => { _findByIdValue = val; },
+        mockResolvedValueOnce: function (val) {
+          const orig = _findByIdValue;
+          const self = this;
+          const parentFn = require('../src/core/domain/User').findById;
+          parentFn.mockImplementationOnce(() => {
+            _findByIdValue = orig;
+            return chainable(() => Promise.resolve(val));
+          });
+        },
+      }
+    ),
+  };
+});
 
 const User = require('../src/core/domain/User');
 const phoneController = require('../src/api/controllers/phoneController');
@@ -20,7 +45,7 @@ describe('phoneController.verifyPhone', () => {
   });
 
   const makeUser = (overrides = {}) => ({
-    _id: 'u1',
+    _id: '507f191e810c19729de860e1',
     phoneVerificationCode: undefined,
     phoneVerificationCodeExpiry: undefined,
     save: jest.fn().mockResolvedValue(true),
@@ -31,7 +56,7 @@ describe('phoneController.verifyPhone', () => {
     const user = makeUser();
     User.findById.mockResolvedValue(user);
 
-    const req = { user: { _id: 'u1' }, body: { code: '123456' } };
+    const req = { user: { _id: '507f191e810c19729de860e1' }, body: { code: '123456' } };
     const res = mockRes();
 
     await phoneController.verifyPhone(req, res);
@@ -49,7 +74,7 @@ describe('phoneController.verifyPhone', () => {
     });
     User.findById.mockResolvedValue(user);
 
-    const req = { user: { _id: 'u1' }, body: { code } };
+    const req = { user: { _id: '507f191e810c19729de860e1' }, body: { code } };
     const res = mockRes();
 
     await phoneController.verifyPhone(req, res);
@@ -70,7 +95,7 @@ describe('phoneController.verifyPhone', () => {
     });
     User.findById.mockResolvedValue(user);
 
-    const req = { user: { _id: 'u1' }, body: { code } };
+    const req = { user: { _id: '507f191e810c19729de860e1' }, body: { code } };
     const res = mockRes();
 
     await phoneController.verifyPhone(req, res);

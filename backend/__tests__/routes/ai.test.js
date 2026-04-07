@@ -29,7 +29,7 @@ jest.mock('../../src/api/middleware/auth', () => ({
     if (!req.headers.authorization) {
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
-    req.user = { _id: req.headers['x-user-id'] || 'user_1' };
+    req.user = { _id: req.headers['x-user-id'] || '507f191e810c19729de860e1' };
     next();
   }),
   authorizeOwner: jest.fn(() => (req, res, next) => {
@@ -69,8 +69,8 @@ describe('ai routes', () => {
     const legacy = await request(app)
       .post('/api/ai/icebreaker')
       .set(auth)
-      .send({ targetUserId: 'u2' });
-    const match = await request(app).post('/api/ai/icebreaker').set(auth).send({ matchId: 'm1' });
+      .send({ targetUserId: '507f191e810c19729de860e2' });
+    const match = await request(app).post('/api/ai/icebreaker').set(auth).send({ matchId: '507f191e810c19729de860f1' });
 
     expect(legacy.status).toBe(200);
     expect(match.status).toBe(200);
@@ -86,7 +86,7 @@ describe('ai routes', () => {
     const starters = await request(app)
       .post('/api/ai/conversation-starters')
       .set(auth)
-      .send({ targetUserId: 'u2' });
+      .send({ targetUserId: '507f191e810c19729de860e2' });
     const analyze = await request(app)
       .post('/api/ai/analyze-photo')
       .set(auth)
@@ -98,22 +98,22 @@ describe('ai routes', () => {
   });
 
   it('enforces owner authorization on owner routes', async () => {
-    const ownPhotos = await request(app).get('/api/ai/smart-photos/user_1').set(auth);
-    const otherPhotos = await request(app).get('/api/ai/smart-photos/user_2').set(auth);
+    const ownPhotos = await request(app).get('/api/ai/smart-photos/507f191e810c19729de860e1').set(auth);
+    const otherPhotos = await request(app).get('/api/ai/smart-photos/507f191e810c19729de860e2').set(auth);
 
     expect(ownPhotos.status).toBe(200);
     expect(otherPhotos.status).toBe(403);
   });
 
   it('serves owner-only insights and suggestion endpoints', async () => {
-    const headers = { ...auth, 'x-user-id': 'user_1' };
+    const headers = { ...auth, 'x-user-id': '507f191e810c19729de860e1' };
 
     const compatibility = await request(app)
-      .get('/api/ai/compatibility/user_1/user_2')
+      .get('/api/ai/compatibility/507f191e810c19729de860e1/507f191e810c19729de860e2')
       .set(headers);
-    const matches = await request(app).get('/api/ai/personalized-matches/user_1').set(headers);
-    const profile = await request(app).get('/api/ai/profile-suggestions/user_1').set(headers);
-    const insights = await request(app).get('/api/ai/conversation-insights/user_1').set(headers);
+    const matches = await request(app).get('/api/ai/personalized-matches/507f191e810c19729de860e1').set(headers);
+    const profile = await request(app).get('/api/ai/profile-suggestions/507f191e810c19729de860e1').set(headers);
+    const insights = await request(app).get('/api/ai/conversation-insights/507f191e810c19729de860e1').set(headers);
 
     expect(compatibility.status).toBe(200);
     expect(matches.status).toBe(200);

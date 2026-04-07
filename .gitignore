@@ -75,3 +75,4 @@ backend/logs/
 test-*-connection.js
 backend/.env.production
 .env.local
+./. (4).env

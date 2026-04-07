@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/no-duplicate-string */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -7,86 +7,69 @@ import { Colors } from '../../../constants/colors';
 import { PremiumService } from '../../../services/PremiumService';
 import { useAuth } from '../../../context/AuthContext';
 import { showStandardError } from '../../../utils/errorHandler';
-import Toast from '../../../utils/toast';
-import logger from '../../../utils/logger';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const PremiumScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
-  const [premiumStatus, setPremiumStatus] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
-  const [backendError, setBackendError] = useState(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    loadPremiumStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // ── Fetch: premium status ──────────────────────────────────────────────────────────
+  const {
+    data: premiumStatus,
+    isLoading: loading,
+    isError: backendError,
+    refetch: refetchStatus,
+  } = useQuery({
+    queryKey: ['premiumStatus', currentUser?.uid],
+    queryFn: () => PremiumService.checkPremiumStatus(currentUser.uid),
+    enabled: !!currentUser?.uid,
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
+  });
 
-  const loadPremiumStatus = async () => {
-    try {
-      const status = await PremiumService.checkPremiumStatus(currentUser.uid);
-      setPremiumStatus(status);
-      setBackendError(false);
-    } catch (error) {
-      logger.error('Error loading premium status:', error);
-      setBackendError(true);
-      Toast.show({
-        type: 'info',
-        text1: 'Network issue',
-        text2: 'Cannot reach server. Tap retry.',
-        actionLabel: 'Retry',
-        onPress: loadPremiumStatus,
-      });
-      showStandardError(error, 'load', 'Unable to Load');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const invalidatePremium = () =>
+    queryClient.invalidateQueries({ queryKey: ['premiumStatus', currentUser?.uid] });
 
-  const handleStartTrial = async () => {
-    if (processing) return;
-
-    setProcessing(true);
-    try {
-      const result = await PremiumService.startTrialSubscription(currentUser.uid);
+  // ── Mutation: start trial ────────────────────────────────────────────────────────
+  const { mutate: doStartTrial, isPending: startingTrial } = useMutation({
+    mutationFn: () => PremiumService.startTrialSubscription(currentUser.uid),
+    onSuccess: (result) => {
       if (result.success) {
-        Alert.alert(
-          'Trial Started! 🎉',
-          `Your 7-day premium trial has begun. Enjoy all premium features!`,
-          [{ text: 'Awesome!', onPress: loadPremiumStatus }]
-        );
+        Alert.alert('Trial Started! 🎉', 'Your 7-day premium trial has begun. Enjoy all premium features!', [
+          { text: 'Awesome!', onPress: invalidatePremium },
+        ]);
       } else {
         showStandardError(result.error || 'Unable to start trial', 'update', 'Trial Failed');
       }
-    } catch (error) {
-      logger.error('Error starting trial:', error);
-      showStandardError(error, 'update', 'Trial Failed');
-    } finally {
-      setProcessing(false);
-    }
-  };
+    },
+    onError: (error) => showStandardError(error, 'update', 'Trial Failed'),
+  });
 
-  const handleUpgrade = async (planType) => {
-    if (processing) return;
-
-    setProcessing(true);
-    try {
-      const result = await PremiumService.upgradeToPremium(currentUser.uid, planType);
+  // ── Mutation: upgrade plan ───────────────────────────────────────────────────────
+  const { mutate: doUpgrade, isPending: upgrading } = useMutation({
+    mutationFn: (planType) => PremiumService.upgradeToPremium(currentUser.uid, planType),
+    onSuccess: (result) => {
       if (result.success) {
-        Alert.alert(
-          'Upgrade Successful! 🚀',
-          `You've been upgraded to premium! Enjoy all features.`,
-          [{ text: 'Amazing!', onPress: loadPremiumStatus }]
-        );
+        Alert.alert('Upgrade Successful! 🚀', "You've been upgraded to premium! Enjoy all features.", [
+          { text: 'Amazing!', onPress: invalidatePremium },
+        ]);
       } else {
         showStandardError(result.error || 'Unable to upgrade', 'update', 'Upgrade Failed');
       }
-    } catch (error) {
-      logger.error('Error upgrading:', error);
-      showStandardError(error, 'update', 'Upgrade Failed');
-    } finally {
-      setProcessing(false);
-    }
+    },
+    onError: (error) => showStandardError(error, 'update', 'Upgrade Failed'),
+  });
+
+  const processing = startingTrial || upgrading;
+
+  const handleStartTrial = () => {
+    if (processing) return;
+    doStartTrial();
+  };
+
+  const handleUpgrade = (planType) => {
+    if (processing) return;
+    doUpgrade(planType);
   };
 
   const renderFeatureItem = (icon, title, description, isPremium = false) => (
@@ -192,7 +175,7 @@ const PremiumScreen = ({ navigation }) => {
           <View style={styles.backendWarning}>
             <Ionicons name="cloud-offline" size={16} color={Colors.background.white} />
             <Text style={styles.backendWarningText}>Network issue — data may be cached</Text>
-            <TouchableOpacity onPress={loadPremiumStatus} style={styles.backendRetry}>
+            <TouchableOpacity onPress={refetchStatus} style={styles.backendRetry}>
               <Text style={styles.backendRetryText}>Retry</Text>
             </TouchableOpacity>
           </View>

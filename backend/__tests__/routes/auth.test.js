@@ -26,7 +26,7 @@ jest.mock('../../src/api/middleware/auth', () => ({
     if (!req.headers.authorization) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
-    req.user = { _id: 'user_1', role: 'user' };
+    req.user = { _id: '507f191e810c19729de860e1', role: 'user' };
     next();
   }),
 }));

@@ -148,7 +148,7 @@ describe('Database Integration Tests', () => {
   describe('Match Operations', () => {
     const testMatch = {
       _id: 'match_123',
-      users: ['user_1', 'user_2'],
+      users: ['507f191e810c19729de860e1', '507f191e810c19729de860e2'],
       createdAt: new Date(),
       conversation: 'conv_123',
       status: 'active',
@@ -159,11 +159,11 @@ describe('Database Integration Tests', () => {
         mockMatchModel.create.mockResolvedValue(testMatch);
 
         const result = await mockMatchModel.create({
-          users: ['user_1', 'user_2'],
+          users: ['507f191e810c19729de860e1', '507f191e810c19729de860e2'],
         });
 
-        expect(result.users).toContain('user_1');
-        expect(result.users).toContain('user_2');
+        expect(result.users).toContain('507f191e810c19729de860e1');
+        expect(result.users).toContain('507f191e810c19729de860e2');
       });
     });
 
@@ -172,18 +172,18 @@ describe('Database Integration Tests', () => {
         mockMatchModel.find.mockResolvedValue([testMatch]);
 
         const result = await mockMatchModel.find({
-          users: { $in: ['user_1'] },
+          users: { $in: ['507f191e810c19729de860e1'] },
         });
 
         expect(result).toHaveLength(1);
-        expect(result[0].users).toContain('user_1');
+        expect(result[0].users).toContain('507f191e810c19729de860e1');
       });
 
       it('should find specific match between users', async () => {
         mockMatchModel.findOne.mockResolvedValue(testMatch);
 
         const result = await mockMatchModel.findOne({
-          users: { $all: ['user_1', 'user_2'] },
+          users: { $all: ['507f191e810c19729de860e1', '507f191e810c19729de860e2'] },
         });
 
         expect(result).toEqual(testMatch);
@@ -195,7 +195,7 @@ describe('Database Integration Tests', () => {
     const testMessage = {
       _id: 'msg_123',
       conversationId: 'conv_123',
-      senderId: 'user_1',
+      senderId: '507f191e810c19729de860e1',
       content: 'Hello!',
       type: 'text',
       read: false,
@@ -208,7 +208,7 @@ describe('Database Integration Tests', () => {
 
         const result = await mockMessageModel.create({
           conversationId: 'conv_123',
-          senderId: 'user_1',
+          senderId: '507f191e810c19729de860e1',
           content: 'Hello!',
         });
 
@@ -238,7 +238,7 @@ describe('Database Integration Tests', () => {
         mockMessageModel.updateMany.mockResolvedValue({ modifiedCount: 5 });
 
         const result = await mockMessageModel.updateMany(
-          { conversationId: 'conv_123', senderId: { $ne: 'user_1' } },
+          { conversationId: 'conv_123', senderId: { $ne: '507f191e810c19729de860e1' } },
           { read: true }
         );
 
@@ -253,7 +253,7 @@ describe('Database Integration Tests', () => {
         const result = await mockMessageModel.countDocuments({
           conversationId: 'conv_123',
           read: false,
-          senderId: { $ne: 'user_1' },
+          senderId: { $ne: '507f191e810c19729de860e1' },
         });
 
         expect(result).toBe(3);
@@ -265,8 +265,8 @@ describe('Database Integration Tests', () => {
     describe('Find Users Near Location', () => {
       it('should find users within radius', async () => {
         const nearbyUsers = [
-          { _id: 'user_1', name: 'Alice', distance: 5 },
-          { _id: 'user_2', name: 'Bob', distance: 10 },
+          { _id: '507f191e810c19729de860e1', name: 'Alice', distance: 5 },
+          { _id: '507f191e810c19729de860e2', name: 'Bob', distance: 10 },
         ];
         mockUserModel.aggregate.mockResolvedValue(nearbyUsers);
 
@@ -356,10 +356,10 @@ describe('Database Integration Tests', () => {
 
           try {
             // Create match
-            await mockMatchModel.create({ users: ['user_1', 'user_2'] });
+            await mockMatchModel.create({ users: ['507f191e810c19729de860e1', '507f191e810c19729de860e2'] });
             // Update both users
-            await mockUserModel.findByIdAndUpdate('user_1', { $push: { matches: 'match_123' } });
-            await mockUserModel.findByIdAndUpdate('user_2', { $push: { matches: 'match_123' } });
+            await mockUserModel.findByIdAndUpdate('507f191e810c19729de860e1', { $push: { matches: 'match_123' } });
+            await mockUserModel.findByIdAndUpdate('507f191e810c19729de860e2', { $push: { matches: 'match_123' } });
 
             await session.commitTransaction();
           } catch (/** @type {any} */ error) {

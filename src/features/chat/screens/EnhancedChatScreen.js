@@ -316,114 +316,134 @@ const EnhancedChatScreen = ({ route, navigation }) => {
   );
 
   // Render message item
-  const renderMessage = useCallback(({ item }) => {
-    const isMe = item.senderId === currentUser.uid;
-    const time = new Date(item.createdAt).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+  const renderMessage = useCallback(
+    ({ item }) => {
+      const isMe = item.senderId === currentUser.uid;
+      const time = new Date(item.createdAt).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
 
-    const reactions = messageReactions[item._id] || {};
-    const reactionEntries = Object.entries(reactions).filter(([key]) => key !== 'myReactions');
+      const reactions = messageReactions[item._id] || {};
+      const reactionEntries = Object.entries(reactions).filter(([key]) => key !== 'myReactions');
 
-    // Send read receipt for unread messages
-    if (!isMe && !item.isRead && matchId) {
-      const existingTimer = readReceiptTimers.current.get(item._id);
-      if (existingTimer) {
-        clearTimeout(existingTimer);
+      // Send read receipt for unread messages
+      if (!isMe && !item.isRead && matchId) {
+        const existingTimer = readReceiptTimers.current.get(item._id);
+        if (existingTimer) {
+          clearTimeout(existingTimer);
+        }
+        const timer = setTimeout(() => {
+          sendReadReceipt(item._id);
+          readReceiptTimers.current.delete(item._id);
+        }, 500);
+        readReceiptTimers.current.set(item._id, timer);
       }
-      const timer = setTimeout(() => {
-        sendReadReceipt(item._id);
-        readReceiptTimers.current.delete(item._id);
-      }, 500);
-      readReceiptTimers.current.set(item._id, timer);
-    }
 
-    return (
-      <Pressable
-        onLongPress={() => handleMessageLongPress(item)}
-        style={[styles.messageWrapper, isMe ? styles.myMessageWrapper : styles.theirMessageWrapper]}
-      >
-        {item.type === 'image' || item.type === 'gif' ? (
-          <View style={styles.imageMessageWrapper}>
-            <Image source={{ uri: item.imageUrl }} style={styles.messageImage} resizeMode="cover" />
-            {item.content && (
-              <Text style={isMe ? styles.myMessageText : styles.theirMessageText}>
-                {item.content}
-              </Text>
-            )}
-            <Text style={isMe ? styles.myTimestamp : styles.theirTimestamp}>{time}</Text>
-          </View>
-        ) : isMe ? (
-          <LinearGradient
-            colors={themeStyles.messageBubble?.gradient || Colors.gradient.primary}
-            style={styles.myMessage}
-          >
-            <Text style={styles.myMessageText}>{item.content}</Text>
-            <View style={styles.messageFooter}>
-              <Text style={styles.myTimestamp}>{time}</Text>
-              {item.isRead ? (
-                <Ionicons
-                  name="checkmark-done"
-                  size={12}
-                  color="rgba(255, 255, 255, 0.8)"
-                  style={styles.readStatusIcon}
-                />
-              ) : (
-                <Ionicons
-                  name="checkmark"
-                  size={12}
-                  color="rgba(255, 255, 255, 0.6)"
-                  style={styles.readStatusIcon}
-                />
+      return (
+        <Pressable
+          onLongPress={() => handleMessageLongPress(item)}
+          style={[
+            styles.messageWrapper,
+            isMe ? styles.myMessageWrapper : styles.theirMessageWrapper,
+          ]}
+        >
+          {item.type === 'image' || item.type === 'gif' ? (
+            <View style={styles.imageMessageWrapper}>
+              <Image
+                source={{ uri: item.imageUrl }}
+                style={styles.messageImage}
+                resizeMode="cover"
+              />
+              {item.content && (
+                <Text style={isMe ? styles.myMessageText : styles.theirMessageText}>
+                  {item.content}
+                </Text>
               )}
+              <Text style={isMe ? styles.myTimestamp : styles.theirTimestamp}>{time}</Text>
             </View>
-          </LinearGradient>
-        ) : (
-          <View
-            style={[
-              styles.theirMessage,
-              { backgroundColor: themeStyles.receiverBubbleColor || Colors.background.light },
-            ]}
-          >
-            <Text
+          ) : isMe ? (
+            <LinearGradient
+              colors={themeStyles.messageBubble?.gradient || Colors.gradient.primary}
+              style={styles.myMessage}
+            >
+              <Text style={styles.myMessageText}>{item.content}</Text>
+              <View style={styles.messageFooter}>
+                <Text style={styles.myTimestamp}>{time}</Text>
+                {item.isRead ? (
+                  <Ionicons
+                    name="checkmark-done"
+                    size={12}
+                    color="rgba(255, 255, 255, 0.8)"
+                    style={styles.readStatusIcon}
+                  />
+                ) : (
+                  <Ionicons
+                    name="checkmark"
+                    size={12}
+                    color="rgba(255, 255, 255, 0.6)"
+                    style={styles.readStatusIcon}
+                  />
+                )}
+              </View>
+            </LinearGradient>
+          ) : (
+            <View
               style={[
-                styles.theirMessageText,
-                { color: themeStyles.receiverTextColor || Colors.text.dark },
+                styles.theirMessage,
+                { backgroundColor: themeStyles.receiverBubbleColor || Colors.background.light },
               ]}
             >
-              {item.content}
-            </Text>
-            <Text style={styles.theirTimestamp}>{time}</Text>
-          </View>
-        )}
+              <Text
+                style={[
+                  styles.theirMessageText,
+                  { color: themeStyles.receiverTextColor || Colors.text.dark },
+                ]}
+              >
+                {item.content}
+              </Text>
+              <Text style={styles.theirTimestamp}>{time}</Text>
+            </View>
+          )}
 
-        {/* Message Reactions Display */}
-        {reactionEntries.length > 0 && (
-          <View
-            style={[styles.reactionsContainer, isMe ? styles.reactionsRight : styles.reactionsLeft]}
-          >
-            {reactionEntries.map(([reactionId, count]) => {
-              const reaction = REACTIONS.find((r) => r.id === reactionId);
-              if (!reaction || count === 0) return null;
-              return (
-                <View key={reactionId} style={styles.reactionBubble}>
-                  <Text style={styles.reactionEmoji}>{reaction.emoji}</Text>
-                  {count > 1 && <Text style={styles.reactionCount}>{count}</Text>}
-                </View>
-              );
-            })}
-          </View>
-        )}
+          {/* Message Reactions Display */}
+          {reactionEntries.length > 0 && (
+            <View
+              style={[
+                styles.reactionsContainer,
+                isMe ? styles.reactionsRight : styles.reactionsLeft,
+              ]}
+            >
+              {reactionEntries.map(([reactionId, count]) => {
+                const reaction = REACTIONS.find((r) => r.id === reactionId);
+                if (!reaction || count === 0) return null;
+                return (
+                  <View key={reactionId} style={styles.reactionBubble}>
+                    <Text style={styles.reactionEmoji}>{reaction.emoji}</Text>
+                    {count > 1 && <Text style={styles.reactionCount}>{count}</Text>}
+                  </View>
+                );
+              })}
+            </View>
+          )}
 
-        {/* Quick Reaction Button */}
-        <QuickReactionButton
-          onPress={() => handleMessageLongPress(item)}
-          style={isMe ? styles.quickReactionRight : styles.quickReactionLeft}
-        />
-      </Pressable>
-    );
-  }, [currentUser.uid, matchId, sendReadReceipt, messageReactions, themeStyles, handleMessageLongPress]);
+          {/* Quick Reaction Button */}
+          <QuickReactionButton
+            onPress={() => handleMessageLongPress(item)}
+            style={isMe ? styles.quickReactionRight : styles.quickReactionLeft}
+          />
+        </Pressable>
+      );
+    },
+    [
+      currentUser.uid,
+      matchId,
+      sendReadReceipt,
+      messageReactions,
+      themeStyles,
+      handleMessageLongPress,
+    ]
+  );
 
   // Render header options menu
   const renderHeaderMenu = () => (

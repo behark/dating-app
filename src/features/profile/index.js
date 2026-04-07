@@ -6,3 +6,7 @@ export { default as EnhancedProfileEditScreen } from './screens/EnhancedProfileE
 export { default as ViewProfileScreen } from './screens/ViewProfileScreen';
 export { default as PhotoGalleryScreen } from './screens/PhotoGalleryScreen';
 export { default as VerificationScreen } from './screens/VerificationScreen';
+
+// Hooks
+export { useProfile, profileQueryKeys } from './hooks/useProfile';
+

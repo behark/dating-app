@@ -18,7 +18,7 @@ jest.mock('../../src/api/middleware/auth', () => ({
     if (!req.headers.authorization) {
       return res.status(401).json({ success: false });
     }
-    req.user = { _id: 'user_1' };
+    req.user = { _id: '507f191e810c19729de860e1' };
     next();
   }),
 }));
@@ -50,10 +50,16 @@ describe('media message routes', () => {
 
   it('routes gif and sticker endpoints', async () => {
     const auth = { Authorization: 'Bearer token' };
-    const gif = await request(app).post('/api/media/gif').set(auth).send({});
+    const gif = await request(app)
+      .post('/api/media/gif')
+      .set(auth)
+      .send({ matchId: '507f191e810c19729de860e1', gifUrl: 'https://example.com/gif.gif' });
     const popular = await request(app).get('/api/media/gifs/popular').set(auth);
     const search = await request(app).get('/api/media/gifs/search?q=fun').set(auth);
-    const sticker = await request(app).post('/api/media/sticker').set(auth).send({});
+    const sticker = await request(app)
+      .post('/api/media/sticker')
+      .set(auth)
+      .send({ matchId: '507f191e810c19729de860e1', stickerId: 'sticker_123' });
     const packs = await request(app).get('/api/media/sticker-packs').set(auth);
 
     expect(gif.status).toBe(200);
@@ -66,10 +72,22 @@ describe('media message routes', () => {
 
   it('routes voice and video endpoints', async () => {
     const auth = { Authorization: 'Bearer token' };
-    const voice = await request(app).post('/api/media/voice').set(auth).send({});
-    const transcribe = await request(app).post('/api/media/voice/transcribe').set(auth).send({});
-    const call = await request(app).post('/api/media/video-call/initiate').set(auth).send({});
-    const status = await request(app).put('/api/media/video-call/status').set(auth).send({});
+    const voice = await request(app)
+      .post('/api/media/voice')
+      .set(auth)
+      .send({ matchId: '507f191e810c19729de860e1', duration: 30 });
+    const transcribe = await request(app)
+      .post('/api/media/voice/transcribe')
+      .set(auth)
+      .send({ messageId: '507f191e810c19729de860e1' });
+    const call = await request(app)
+      .post('/api/media/video-call/initiate')
+      .set(auth)
+      .send({ matchId: '507f191e810c19729de860e1' });
+    const status = await request(app)
+      .put('/api/media/video-call/status')
+      .set(auth)
+      .send({ callId: 'call_123', status: 'connected' });
 
     expect(voice.status).toBe(200);
     expect(transcribe.status).toBe(200);

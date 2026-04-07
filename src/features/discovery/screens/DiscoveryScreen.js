@@ -953,16 +953,19 @@ const HomeScreen = ({ navigation }) => {
               <View style={styles.cardsContainer}>
                 <View style={styles.cardsWrapper}>
                   {/* Preload next 2 cards behind the current one for smooth transitions */}
-                  {cards.slice(currentIndex + 1, currentIndex + 3).map((nextCard, i) => (
-                    <SwipeCard
-                      key={nextCard.id || nextCard._id}
-                      card={nextCard}
-                      index={currentIndex + i + 1}
-                      onSwipeLeft={noopCallback}
-                      onSwipeRight={noopCallback}
-                      onViewProfile={noopCallback}
-                    />
-                  )).reverse()}
+                  {cards
+                    .slice(currentIndex + 1, currentIndex + 3)
+                    .map((nextCard, i) => (
+                      <SwipeCard
+                        key={nextCard.id || nextCard._id}
+                        card={nextCard}
+                        index={currentIndex + i + 1}
+                        onSwipeLeft={noopCallback}
+                        onSwipeRight={noopCallback}
+                        onViewProfile={noopCallback}
+                      />
+                    ))
+                    .reverse()}
                   {/* Active card on top */}
                   <SwipeCard
                     key={cards[currentIndex].id || cards[currentIndex]._id}

@@ -126,9 +126,16 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       minlength: 8,
+      select: false,
     },
-    passwordResetToken: String,
-    passwordResetTokenExpiry: Date,
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+    passwordResetTokenExpiry: {
+      type: Date,
+      select: false,
+    },
 
     // Phone verification
     phoneNumber: {
@@ -141,8 +148,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    phoneVerificationCode: String,
-    phoneVerificationCodeExpiry: Date,
+    phoneVerificationCode: {
+      type: String,
+      select: false,
+    },
+    phoneVerificationCodeExpiry: {
+      type: Date,
+      select: false,
+    },
 
     // OAuth providers
     googleId: {
@@ -239,8 +252,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    emailVerificationToken: String,
-    emailVerificationTokenExpiry: Date,
+    emailVerificationToken: {
+      type: String,
+      select: false,
+    },
+    emailVerificationTokenExpiry: {
+      type: Date,
+      select: false,
+    },
 
     // Account safety & moderation
     suspended: {

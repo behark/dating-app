@@ -218,8 +218,8 @@ exports.login = async (req, res) => {
       ]);
     }
 
-    // Find user
-    const user = await User.findOne({ email: email.toLowerCase() });
+    // Find user (include password since it has select: false)
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
     if (!user) {
       return sendUnauthorized(res, 'Invalid email or password');
     }
@@ -288,7 +288,7 @@ exports.verifyEmail = async (req, res) => {
     const user = await User.findOne({
       emailVerificationToken: hashedToken,
       emailVerificationTokenExpiry: { $gt: Date.now() },
-    });
+    }).select('+emailVerificationToken +emailVerificationTokenExpiry');
 
     if (!user) {
       return sendError(res, 400, { message: 'Invalid or expired verification token' });
@@ -324,7 +324,7 @@ exports.forgotPassword = async (req, res) => {
       return sendError(res, 400, { message: 'Email is required' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+passwordResetToken +passwordResetTokenExpiry');
     if (!user) {
       // Don't reveal if email exists for security
       return sendSuccess(res, 200, {
@@ -380,7 +380,7 @@ exports.resetPassword = async (req, res) => {
     const user = await User.findOne({
       passwordResetToken: hashedToken,
       passwordResetTokenExpiry: { $gt: Date.now() },
-    });
+    }).select('+passwordResetToken +passwordResetTokenExpiry');
 
     if (!user) {
       return sendError(res, 400, { message: 'Invalid or expired reset token' });
@@ -525,7 +525,7 @@ exports.deleteAccount = async (req, res) => {
     const userId = req.user.id;
     const { password } = req.body;
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('+password');
     if (!user) {
       return sendNotFound(res, 'User', userId);
     }
@@ -770,12 +770,12 @@ exports.googleAuth = async (req, res) => {
         },
         photos: finalPhotoUrl
           ? [
-              {
-                url: finalPhotoUrl,
-                order: 0,
-                moderationStatus: 'approved',
-              },
-            ]
+            {
+              url: finalPhotoUrl,
+              order: 0,
+              moderationStatus: 'approved',
+            },
+          ]
           : [],
       });
       await user.save();
@@ -908,12 +908,12 @@ exports.facebookAuth = async (req, res) => {
         photos:
           verifiedPhotoUrl || photoUrl
             ? [
-                {
-                  url: verifiedPhotoUrl || photoUrl,
-                  order: 0,
-                  moderationStatus: 'approved',
-                },
-              ]
+              {
+                url: verifiedPhotoUrl || photoUrl,
+                order: 0,
+                moderationStatus: 'approved',
+              },
+            ]
             : [],
       });
       await user.save();

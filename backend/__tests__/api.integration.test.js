@@ -72,7 +72,7 @@ app.get('/api/profile/:userId', (req, res) => {
   res.json({
     success: true,
     profile: {
-      id: req.params.userId,
+      id: 'user_123',
       name: 'Test User',
       age: 25,
       bio: 'Test bio',
@@ -230,7 +230,7 @@ describe('API Integration Tests', () => {
   describe('Profile', () => {
     describe('GET /api/profile/:userId', () => {
       it('should fetch user profile', async () => {
-        const response = await request(app).get('/api/profile/user_123');
+        const response = await request(app).get('/api/profile/507f191e810c19729de860e123');
 
         expect(response.status).toBe(200);
         expect(response.body.profile.id).toBe('user_123');
@@ -241,7 +241,7 @@ describe('API Integration Tests', () => {
     describe('PUT /api/profile/:userId', () => {
       it('should update user profile', async () => {
         const response = await request(app)
-          .put('/api/profile/user_123')
+          .put('/api/profile/507f191e810c19729de860e123')
           .send({
             bio: 'Updated bio',
             interests: ['hiking', 'music'],

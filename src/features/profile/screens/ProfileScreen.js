@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   Image,
@@ -13,77 +13,52 @@ import {
   TouchableOpacity,
   View,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import BadgeShowcase from '../../../components/Gamification/BadgeShowcase';
 import { Colors } from '../../../constants/colors';
 import { useAuth } from '../../../context/AuthContext';
-import { ProfileService } from '../../../services/ProfileService';
 import api from '../../../services/api';
 import { API_URL } from '../../../config/api';
 import HapticFeedback from '../../../utils/haptics';
 import logger from '../../../utils/logger';
 import { shadowToWebBoxShadow, textShadowToWeb } from '../../../utils/stylePlatform';
+import { useProfile } from '../hooks/useProfile';
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const { currentUser, logout } = useAuth();
+
+  // ── Local controlled-input state ─────────────────────────────────────────
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [bio, setBio] = useState('');
   const [photoURL, setPhotoURL] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [userBadges, setUserBadges] = useState([]);
+  // Track whether the form has been seeded from server data
+  const [seeded, setSeeded] = useState(false);
 
-  useEffect(() => {
-    loadProfile();
-    loadUserBadges();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // ── TanStack Query: profile data + save mutation ───────────────────────────
+  const {
+    profileData,
+    profileLoading,
+    profileError,
+    refetchProfile,
+    userBadges,
+    saveProfile,
+    isSaving,
+  } = useProfile({ userId: currentUser?.uid });
 
-  const loadProfile = async () => {
-    try {
-      setLoading(true);
-      const userData = await ProfileService.getMyProfile();
-      if (userData) {
-        setName(userData.name || '');
-        setAge(userData.age?.toString() || '');
-        setBio(userData.bio || '');
-        setPhotoURL(userData.photoURL || userData.photos?.[0]?.url || '');
-      } else {
-        logger.warn('Profile data is empty');
-      }
-    } catch (error) {
-      logger.error('Error loading profile:', error);
-      Alert.alert(
-        'Error Loading Profile',
-        error.message || 'Failed to load your profile. Please try again.',
-        [
-          {
-            text: 'Retry',
-            onPress: loadProfile,
-          },
-          {
-            text: 'OK',
-            style: 'cancel',
-          },
-        ]
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Seed the form inputs once the server data arrives (only on first load)
+  if (profileData && !seeded) {
+    setName(profileData.name || '');
+    setAge(profileData.age?.toString() || '');
+    setBio(profileData.bio || '');
+    setPhotoURL(profileData.photoURL || profileData.photos?.[0]?.url || '');
+    setSeeded(true);
+  }
 
-  const loadUserBadges = async () => {
-    try {
-      const { GamificationService } = require('../../../services/GamificationService');
-      const badges = await GamificationService.getUserBadges(currentUser.uid);
-      setUserBadges(badges || []);
-    } catch (error) {
-      logger.error('Error loading user badges:', error);
-      // Silently fail for badges - not critical, but log it
-      // User can still use the profile screen without badges
-    }
-  };
+  // Combined loading flag for upload spinner (profileLoading OR isSaving)
+  const loading = profileLoading || isSaving;
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -172,31 +147,17 @@ const ProfileScreen = () => {
     return true;
   };
 
-  const saveProfile = async () => {
+  const handleSaveProfile = () => {
     if (!validateProfileData()) {
       HapticFeedback.errorNotification();
       return;
     }
-
-    try {
-      HapticFeedback.mediumImpact();
-      setLoading(true);
-      await ProfileService.updateProfile({
-        name: name.trim(),
-        age: parseInt(age),
-        bio: bio ? bio.trim() : '',
-        photoURL,
-      });
-
-      HapticFeedback.successNotification();
-      Alert.alert('Success', 'Profile updated successfully!');
-      setLoading(false);
-    } catch (error) {
-      logger.error('Error saving profile:', error);
-      HapticFeedback.errorNotification();
-      Alert.alert('Error', 'Failed to save profile');
-      setLoading(false);
-    }
+    saveProfile({
+      name: name.trim(),
+      age: parseInt(age),
+      bio: bio ? bio.trim() : '',
+      photoURL,
+    });
   };
 
   return (
@@ -320,18 +281,22 @@ const ProfileScreen = () => {
 
           <TouchableOpacity
             style={[styles.saveButton, styles.saveButtonShadow]}
-            onPress={saveProfile}
-            disabled={loading}
+            onPress={handleSaveProfile}
+            disabled={isSaving}
             activeOpacity={0.8}
           >
             <LinearGradient colors={Colors.gradient.primary} style={styles.saveButtonGradient}>
-              <Ionicons
-                name="checkmark-circle"
-                size={20}
-                color={Colors.background.white}
-                style={styles.iconSpacing}
-              />
-              <Text style={styles.saveButtonText}>{loading ? 'Saving...' : 'Save Profile'}</Text>
+              {isSaving ? (
+                <ActivityIndicator size="small" color={Colors.background.white} style={styles.iconSpacing} />
+              ) : (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={20}
+                  color={Colors.background.white}
+                  style={styles.iconSpacing}
+                />
+              )}
+              <Text style={styles.saveButtonText}>{isSaving ? 'Saving...' : 'Save Profile'}</Text>
             </LinearGradient>
           </TouchableOpacity>
 

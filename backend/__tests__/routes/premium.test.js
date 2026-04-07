@@ -23,7 +23,7 @@ jest.mock('../../src/api/middleware/auth', () => ({
     if (!req.headers.authorization) {
       return res.status(401).json({ success: false });
     }
-    req.user = { _id: 'user_1' };
+    req.user = { _id: '507f191e810c19729de860e1' };
     next();
   }),
 }));
@@ -60,7 +60,10 @@ describe('premium routes', () => {
       .post('/api/premium/subscription/trial/start')
       .set(auth)
       .send({});
-    const upgrade = await request(app).post('/api/premium/subscription/upgrade').set(auth).send({});
+    const upgrade = await request(app)
+      .post('/api/premium/subscription/upgrade')
+      .set(auth)
+      .send({ planType: 'monthly' });
     const cancel = await request(app).post('/api/premium/subscription/cancel').set(auth).send({});
 
     expect(status.status).toBe(200);
@@ -75,7 +78,12 @@ describe('premium routes', () => {
     const passportSet = await request(app)
       .post('/api/premium/passport/location')
       .set(auth)
-      .send({});
+      .send({
+        latitude: 40.7128,
+        longitude: -74.0060,
+        city: 'New York',
+        country: 'USA'
+      });
     const passportDisable = await request(app)
       .post('/api/premium/passport/disable')
       .set(auth)
@@ -93,13 +101,24 @@ describe('premium routes', () => {
   it('routes likes/analytics endpoints', async () => {
     const auth = { Authorization: 'Bearer token' };
     const likes = await request(app).get('/api/premium/likes/received').set(auth);
-    const priority = await request(app).post('/api/premium/likes/priority').set(auth).send({});
-    const adPrefs = await request(app).post('/api/premium/ads/preferences').set(auth).send({});
+    const priority = await request(app)
+      .post('/api/premium/likes/priority')
+      .set(auth)
+      .send({ targetUserId: '507f191e810c19729de860e2' });
+    const adPrefs = await request(app)
+      .post('/api/premium/ads/preferences')
+      .set(auth)
+      .send({ showAds: false, adCategories: ['dating', 'social'] });
     const analytics = await request(app).get('/api/premium/analytics/boosts').set(auth);
     const boostSession = await request(app)
       .post('/api/premium/analytics/boost-session')
       .set(auth)
-      .send({});
+      .send({
+        duration: 30,
+        viewsGained: 100,
+        likesGained: 25,
+        matches: 5
+      });
 
     expect(likes.status).toBe(200);
     expect(priority.status).toBe(200);

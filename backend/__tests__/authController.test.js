@@ -13,13 +13,13 @@ jest.mock('jsonwebtoken', () => ({
     if (token === 'invalid' || token === 'abc') {
       throw new Error('Invalid token');
     }
-    return { userId: 'u1' };
+    return { userId: '507f191e810c19729de860e1' };
   }),
 }));
 
 jest.mock('../src/core/domain/User', () => {
   const buildUser = (overrides = {}) => ({
-    _id: 'u1',
+    _id: '507f191e810c19729de860e1',
     email: 'test@example.com',
     name: 'Test',
     age: 25,
@@ -33,9 +33,40 @@ jest.mock('../src/core/domain/User', () => {
     ...overrides,
   });
 
+  const chainable = (valueFn) => {
+    const query = {
+      select: jest.fn().mockImplementation(() => query),
+      lean: jest.fn().mockImplementation(() => query),
+      then: (resolve, reject) => valueFn().then(resolve, reject),
+    };
+    return query;
+  };
+
+  let _findOneValue = null;
+  let _findByIdValue = null;
+
   const User = jest.fn((doc = {}) => buildUser(doc));
-  User.findOne = jest.fn(async () => null);
-  User.findById = jest.fn(async () => null);
+  User.findOne = jest.fn(() => chainable(() => Promise.resolve(_findOneValue)));
+  User.findById = jest.fn(() => chainable(() => Promise.resolve(_findByIdValue)));
+  User.findOne.mockResolvedValue = (val) => { _findOneValue = val; };
+  User.findOne.mockResolvedValueOnce = (val) => {
+    const orig = _findOneValue;
+    _findOneValue = val;
+    const origImpl = User.findOne.getMockImplementation();
+    User.findOne.mockImplementationOnce(() => {
+      _findOneValue = orig;
+      return chainable(() => Promise.resolve(val));
+    });
+  };
+  User.findById.mockResolvedValue = (val) => { _findByIdValue = val; };
+  User.findById.mockResolvedValueOnce = (val) => {
+    const orig = _findByIdValue;
+    _findByIdValue = val;
+    User.findById.mockImplementationOnce(() => {
+      _findByIdValue = orig;
+      return chainable(() => Promise.resolve(val));
+    });
+  };
   User.__buildUser = buildUser;
 
   return User;

@@ -18,7 +18,7 @@ jest.mock('../../src/api/middleware/auth', () => ({
     if (!req.headers.authorization) {
       return res.status(401).json({ success: false });
     }
-    req.user = { _id: 'user_1' };
+    req.user = { _id: '507f191e810c19729de860e1' };
     next();
   }),
 }));
@@ -52,11 +52,11 @@ describe('swipe routes', () => {
     const create = await request(app)
       .post('/api/swipes')
       .set('Authorization', 'Bearer token')
-      .send({ targetId: 'u2', action: 'like' });
+      .send({ targetId: '507f191e810c19729de860e2', action: 'like' });
     const undo = await request(app)
       .post('/api/swipes/undo')
       .set('Authorization', 'Bearer token')
-      .send({ swipeId: 's1' });
+      .send({ swipeId: '507f191e810c19729de860a1' });
 
     expect(create.status).toBe(201);
     expect(undo.status).toBe(200);
@@ -80,7 +80,7 @@ describe('swipe routes', () => {
       expect(res.status).toBe(200);
     }
 
-    const unmatch = await request(app).delete('/api/swipes/matches/m1').set(auth);
+    const unmatch = await request(app).delete('/api/swipes/matches/507f191e810c19729de860f1').set(auth);
     expect(unmatch.status).toBe(200);
     expect(swipeController.unmatch).toHaveBeenCalled();
   });

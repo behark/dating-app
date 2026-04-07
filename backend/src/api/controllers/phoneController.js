@@ -101,7 +101,7 @@ exports.sendPhoneVerification = async (req, res) => {
       return sendError(res, 400, { message: 'Invalid phone number format' });
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('+phoneVerificationCode +phoneVerificationCodeExpiry');
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -157,7 +157,7 @@ exports.verifyPhone = async (req, res) => {
       return sendError(res, 400, { message: 'Verification code is required' });
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('+phoneVerificationCode +phoneVerificationCodeExpiry');
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -219,7 +219,7 @@ exports.resendPhoneVerification = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('+phoneVerificationCode +phoneVerificationCodeExpiry');
     if (!user) {
       return res.status(404).json({
         success: false,

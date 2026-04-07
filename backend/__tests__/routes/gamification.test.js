@@ -40,7 +40,7 @@ jest.mock('../../src/api/middleware/auth', () => ({
     if (!req.headers.authorization) {
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
-    req.user = { _id: 'user_1' };
+    req.user = { _id: '507f191e810c19729de860e1' };
     next();
   }),
 }));
@@ -65,13 +65,15 @@ describe('gamification routes', () => {
   });
 
   it('requires authentication', async () => {
-    const res = await request(app).get('/api/gamification/stats/u1');
+    const res = await request(app).get('/api/gamification/stats/507f191e810c19729de860e1');
     expect(res.status).toBe(401);
   });
 
   it('serves streak and leaderboard endpoints', async () => {
-    const streak = await request(app).get('/api/gamification/streaks/u1').set(auth);
-    const track = await request(app).post('/api/gamification/streaks/track').set(auth).send({});
+    const streak = await request(app).get('/api/gamification/streaks/507f191e810c19729de860e1').set(auth);
+    const track = await request(app).post('/api/gamification/streaks/track').set(auth).send({
+      userId: '507f191e810c19729de860e1'
+    });
     const leaderboard = await request(app).get('/api/gamification/leaderboards/streaks').set(auth);
 
     expect(streak.status).toBe(200);
@@ -82,10 +84,10 @@ describe('gamification routes', () => {
   });
 
   it('serves badges, rewards, stats and levels endpoints', async () => {
-    const badges = await request(app).get('/api/gamification/badges/u1').set(auth);
-    const rewards = await request(app).get('/api/gamification/rewards/u1').set(auth);
-    const stats = await request(app).get('/api/gamification/stats/u1').set(auth);
-    const level = await request(app).get('/api/gamification/levels/u1').set(auth);
+    const badges = await request(app).get('/api/gamification/badges/507f191e810c19729de860e1').set(auth);
+    const rewards = await request(app).get('/api/gamification/rewards/507f191e810c19729de860e1').set(auth);
+    const stats = await request(app).get('/api/gamification/stats/507f191e810c19729de860e1').set(auth);
+    const level = await request(app).get('/api/gamification/levels/507f191e810c19729de860e1').set(auth);
 
     expect(badges.status).toBe(200);
     expect(rewards.status).toBe(200);
@@ -94,13 +96,13 @@ describe('gamification routes', () => {
   });
 
   it('serves challenge and achievement endpoints', async () => {
-    const challenges = await request(app).get('/api/gamification/challenges/daily/u1').set(auth);
+    const challenges = await request(app).get('/api/gamification/challenges/daily/507f191e810c19729de860e1').set(auth);
     const claimBonus = await request(app)
-      .post('/api/gamification/challenges/bonus/u1/claim')
+      .post('/api/gamification/challenges/bonus/507f191e810c19729de860e1/claim')
       .set(auth);
-    const achievements = await request(app).get('/api/gamification/achievements/u1').set(auth);
+    const achievements = await request(app).get('/api/gamification/achievements/507f191e810c19729de860e1').set(auth);
     const progress = await request(app)
-      .get('/api/gamification/achievements/u1/a1/progress')
+      .get('/api/gamification/achievements/507f191e810c19729de860e1/a1/progress')
       .set(auth);
 
     expect(challenges.status).toBe(200);

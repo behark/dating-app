@@ -45,7 +45,7 @@ jest.mock('../../src/api/middleware/auth', () => ({
     if (!req.headers.authorization) {
       return res.status(401).json({ success: false });
     }
-    req.user = { _id: 'user_1', role: req.headers['x-role'] || 'user' };
+    req.user = { _id: '507f191e810c19729de860e1', role: req.headers['x-role'] || 'user' };
     next();
   }),
   isAdmin: jest.fn((req, res, next) => {
@@ -93,14 +93,26 @@ describe('safety routes', () => {
   it('routes core safety endpoints', async () => {
     const auth = { Authorization: 'Bearer token' };
 
-    const report = await agent.post('/api/safety/report').set(auth).send({});
-    const block = await agent.post('/api/safety/block').set(auth).send({});
-    const unblock = await agent.delete('/api/safety/block/u2').set(auth);
+    const report = await agent.post('/api/safety/report').set(auth).send({
+      reportedUserId: '507f191e810c19729de860e2',
+      reason: 'inappropriate',
+      description: 'Test report'
+    });
+    const block = await agent.post('/api/safety/block').set(auth).send({
+      blockedUserId: '507f191e810c19729de860e2'
+    });
+    const unblock = await agent.delete('/api/safety/block/507f191e810c19729de860e2').set(auth);
     const blocked = await agent.get('/api/safety/blocked').set(auth);
-    const blockedOne = await agent.get('/api/safety/blocked/u2').set(auth);
-    const flag = await agent.post('/api/safety/flag').set(auth).send({});
+    const blockedOne = await agent.get('/api/safety/blocked/507f191e810c19729de860e2').set(auth);
+    const flag = await agent.post('/api/safety/flag').set(auth).send({
+      contentType: 'message',
+      contentId: 'msg_123',
+      reason: 'Test flag'
+    });
     const status = await agent.get('/api/safety/account-status').set(auth);
-    const appeal = await agent.post('/api/safety/appeal').set(auth).send({});
+    const appeal = await agent.post('/api/safety/appeal').set(auth).send({
+      reason: 'Test appeal reason'
+    });
 
     expect(report.status).toBe(201);
     expect(block.status).toBe(200);
@@ -121,12 +133,14 @@ describe('safety routes', () => {
     const adminHeaders = { Authorization: 'Bearer token', 'x-role': 'admin' };
     const reports = await agent.get('/api/safety/reports').set(adminHeaders);
     const review = await agent
-      .put('/api/safety/reports/r1/review')
+      .put('/api/safety/reports/507f191e810c19729de860e1/review')
       .set(adminHeaders)
-      .send({});
-    const score = await agent.get('/api/safety/safety-score/u1').set(adminHeaders);
-    const suspend = await agent.put('/api/safety/suspend/u1').set(adminHeaders).send({});
-    const unsuspend = await agent.put('/api/safety/unsuspend/u1').set(adminHeaders).send({});
+      .send({ action: 'approve' });
+    const score = await agent.get('/api/safety/safety-score/507f191e810c19729de860e1').set(adminHeaders);
+    const suspend = await agent.put('/api/safety/suspend/507f191e810c19729de860e1').set(adminHeaders).send({
+      reason: 'Test suspension'
+    });
+    const unsuspend = await agent.put('/api/safety/unsuspend/507f191e810c19729de860e1').set(adminHeaders).send({});
 
     expect(reports.status).toBe(200);
     expect(review.status).toBe(200);

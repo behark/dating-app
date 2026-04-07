@@ -1,32 +1,29 @@
-import { useState, useCallback, useMemo, useEffect, useRef, startTransition } from 'react';
-import { InteractionManager } from 'react-native';
+import { useState, useCallback, useMemo, useEffect, startTransition } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getUserRepository } from '../../../services/repositories';
 import { LocationService } from '../../../services/LocationService';
 import { PreferencesService } from '../../../services/PreferencesService';
 import { PremiumService } from '../../../services/PremiumService';
-import { GamificationService } from '../../../services/GamificationService';
 import AnalyticsService from '../../../services/AnalyticsService';
 import logger from '../../../utils/logger';
 import Toast from '../../../utils/toast';
-import { GUEST_DEMO_PROFILES, GUEST_FREE_VIEWS } from '../data/demoProfiles';
+import { GUEST_DEMO_PROFILES } from '../data/demoProfiles';
 
 export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
   const userRepository = useMemo(() => getUserRepository(authToken), [authToken]);
+  const queryClient = useQueryClient();
 
-  const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [discoveryRadius, setDiscoveryRadius] = useState(50);
   const [locationUpdating, setLocationUpdating] = useState(false);
   const [swipesUsedToday, setSwipesUsedToday] = useState(0);
   const [swipesRemaining, setSwipesRemaining] = useState(50);
   const [superLikesUsed, setSuperLikesUsed] = useState(0);
-  const [premiumFeatures, setPremiumFeatures] = useState({});
 
   const initializeLocation = useCallback(async () => {
     try {
+      setLocationUpdating(true);
       const hasPermission = await LocationService.requestLocationPermission();
       if (!hasPermission) {
         logger.info('Location permission denied, using default');
@@ -39,70 +36,80 @@ export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
       }
     } catch (error) {
       logger.error('Location error:', error);
+    } finally {
+      setLocationUpdating(false);
     }
     return null;
   }, []);
 
-  const loadCards = useCallback(
-    async (location = null, guestMode = false) => {
-      setLoading(true);
-      try {
-        if (guestMode) {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          setCards(GUEST_DEMO_PROFILES);
-          setCurrentIndex(0);
-          return;
-        }
-
-        const preferences = await PreferencesService.getUserPreferences(userId);
-        const profiles = await userRepository.getDiscoveryProfiles({
-          location: location?.coords || userLocation?.coords,
-          radius: discoveryRadius,
-          preferences,
-        });
-
-        setCards(profiles || []);
-        setCurrentIndex(0);
-        AnalyticsService.logEvent('profiles_loaded', { count: profiles?.length || 0 });
-      } catch (error) {
-        logger.error('Error loading cards:', error);
-        // Fallback to demo data when backend is unreachable
-        Toast.show({
-          type: 'info',
-          text1: 'Network issue',
-          text2: 'Cannot reach server. Tap retry.',
-          actionLabel: 'Retry',
-          onPress: () => {
-            loadCards(location || userLocation, guestMode);
-          },
-        });
-        setCards(GUEST_DEMO_PROFILES);
-        setCurrentIndex(0);
-      } finally {
-        setLoading(false);
+  // Use React Query for fetching discovery profiles
+  const {
+    data: cards = [],
+    isLoading: loading,
+    isRefetching: refreshing,
+    refetch: loadCardsQuery,
+    error,
+  } = useQuery({
+    queryKey: ['discoveryProfiles', userId, userLocation?.coords, discoveryRadius, isGuest],
+    queryFn: async () => {
+      if (isGuest) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        return GUEST_DEMO_PROFILES;
       }
-    },
-    [userRepository, userLocation, discoveryRadius]
-  );
 
-  const loadPremiumStatus = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const status = await PremiumService.checkPremiumStatus(userId);
-      setPremiumFeatures(status?.features || {});
-    } catch (error) {
-      logger.error('Error loading premium status:', error);
+      const preferences = await PreferencesService.getUserPreferences(userId);
+      const profiles = await userRepository.getDiscoveryProfiles({
+        location: userLocation?.coords,
+        radius: discoveryRadius,
+        preferences,
+      });
+
+      AnalyticsService.logEvent('profiles_loaded', { count: profiles?.length || 0 });
+      return profiles || [];
+    },
+    enabled: !!userId || isGuest, // Only run query if userId is present or isGuest
+    staleTime: 5 * 60 * 1000,     // Cache for 5 minutes
+    retry: 2,                     // Retry twice on failure
+  });
+
+  // Handle errors
+  useEffect(() => {
+    if (error) {
+      logger.error('Error loading cards:', error);
+      Toast.show({
+        type: 'info',
+        text1: 'Network issue',
+        text2: 'Cannot reach server. Will fallback to demo data.',
+        actionLabel: 'Dismiss',
+      });
+      // Fallback to demo profiles
+      queryClient.setQueryData(
+        ['discoveryProfiles', userId, userLocation?.coords, discoveryRadius, isGuest],
+        GUEST_DEMO_PROFILES
+      );
     }
-  }, [userId]);
+  }, [error, queryClient, userId, userLocation, discoveryRadius, isGuest]);
+
+  // Reset index when cards change
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [cards]);
+
+  // Use React Query for Premium Status
+  const { data: premiumFeatures = {}, refetch: loadPremiumStatus } = useQuery({
+    queryKey: ['premiumStatus', userId],
+    queryFn: async () => {
+      if (!userId) return {};
+      const status = await PremiumService.checkPremiumStatus(userId);
+      return status?.features || {};
+    },
+    enabled: !!userId && !isGuest,
+    staleTime: 10 * 60 * 1000, 
+  });
 
   const refresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await loadCards(userLocation, isGuest);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [loadCards, userLocation, isGuest]);
+    await loadCardsQuery();
+  }, [loadCardsQuery]);
 
   const advanceCard = useCallback(() => {
     startTransition(() => {
@@ -120,6 +127,13 @@ export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
   const currentCard = cards[currentIndex] || null;
   const hasMoreCards = currentIndex < cards.length;
   const isOutOfCards = !loading && cards.length > 0 && currentIndex >= cards.length;
+
+  const setCards = useCallback((newCards) => {
+     queryClient.setQueryData(
+       ['discoveryProfiles', userId, userLocation?.coords, discoveryRadius, isGuest], 
+       newCards
+     );
+  }, [queryClient, userId, userLocation, discoveryRadius, isGuest]);
 
   return {
     cards,
@@ -141,7 +155,7 @@ export const useDiscovery = ({ userId, authToken, isGuest, isPremium }) => {
     setSwipesUsedToday,
     setSuperLikesUsed,
     initializeLocation,
-    loadCards,
+    loadCards: refresh, // map old function signature
     loadPremiumStatus,
     refresh,
     advanceCard,

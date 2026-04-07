@@ -33,6 +33,20 @@ const isDevelopmentMode = () => {
   return process.env.NODE_ENV === 'development' || (typeof __DEV__ !== 'undefined' && __DEV__);
 };
 
+const isLocalUrl = (url) => {
+  return typeof url === 'string' && /localhost|127\.0\.0\.1/.test(url);
+};
+
+const getDevelopmentEnvApiUrl = () => {
+  return (
+    process.env.EXPO_PUBLIC_API_URL_DEVELOPMENT ||
+    process.env.EXPO_PUBLIC_API_URL_DEV ||
+    process.env.EXPO_PUBLIC_BACKEND_URL_DEVELOPMENT ||
+    process.env.EXPO_PUBLIC_BACKEND_URL_DEV ||
+    null
+  );
+};
+
 /**
  * Get runtime API URL from window environment (for web builds on Vercel)
  */
@@ -51,9 +65,25 @@ const getRuntimeApiUrl = () => {
  */
 const getConfigApiUrl = () => {
   const configUrl = Constants.expoConfig?.extra?.backendUrl;
-  if (configUrl && configUrl !== 'http://localhost:3000/api') {
-    return configUrl;
+  if (!configUrl) {
+    return null;
   }
+
+  if (isDevelopmentMode()) {
+    const developmentEnvUrl = getDevelopmentEnvApiUrl();
+    if (developmentEnvUrl) {
+      return normalizeApiUrl(developmentEnvUrl);
+    }
+
+    if (!isLocalUrl(configUrl)) {
+      return null;
+    }
+  }
+
+  if (configUrl !== 'http://localhost:3000/api') {
+    return normalizeApiUrl(configUrl);
+  }
+
   return null;
 };
 
@@ -61,9 +91,14 @@ const getConfigApiUrl = () => {
  * Get API URL from process.env (works at build time)
  */
 const getEnvApiUrl = () => {
-  const envUrl = process.env.EXPO_PUBLIC_API_URL || process.env.EXPO_PUBLIC_BACKEND_URL;
+  const isDev = isDevelopmentMode();
+  const envUrl = isDev
+    ? getDevelopmentEnvApiUrl() ||
+      process.env.EXPO_PUBLIC_API_URL ||
+      process.env.EXPO_PUBLIC_BACKEND_URL
+    : process.env.EXPO_PUBLIC_API_URL || process.env.EXPO_PUBLIC_BACKEND_URL;
+
   if (envUrl) {
-    const isDev = isDevelopmentMode();
     if (isDev || !envUrl.includes('localhost')) {
       let normalizedUrl = normalizeApiUrl(envUrl);
 
@@ -94,12 +129,12 @@ const getDefaultApiUrl = () => {
  * Get the backend API URL
  * Priority:
  * 1. Runtime environment variable (for web builds on Vercel)
- * 2. Expo config extra.backendUrl (set at build time)
- * 3. Process.env variables
+ * 2. Process.env variables
+ * 3. Expo config extra.backendUrl (set at build time)
  * 4. Production URL as default
  */
 const getApiUrl = () => {
-  return getRuntimeApiUrl() || getConfigApiUrl() || getEnvApiUrl() || getDefaultApiUrl();
+  return getRuntimeApiUrl() || getEnvApiUrl() || getConfigApiUrl() || getDefaultApiUrl();
 };
 
 /**

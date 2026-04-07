@@ -115,7 +115,7 @@ describe('chatController', () => {
       });
       Message.getMessagesForMatch.mockResolvedValueOnce([
         {
-          _id: 'msg1',
+          _id: '507f191e810c19729de860b1',
           content: 'Hello',
           senderId: validUserId,
           matchId: validMatchId,

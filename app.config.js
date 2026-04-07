@@ -1,4 +1,21 @@
-export default {
+const isDevelopmentBuild = process.env.NODE_ENV !== 'production';
+const developmentBackendUrl =
+  process.env.EXPO_PUBLIC_API_URL_DEVELOPMENT ||
+  process.env.EXPO_PUBLIC_API_URL_DEV ||
+  process.env.EXPO_PUBLIC_BACKEND_URL_DEVELOPMENT ||
+  process.env.EXPO_PUBLIC_BACKEND_URL_DEV;
+const productionBackendUrl =
+  process.env.EXPO_PUBLIC_API_URL ||
+  process.env.EXPO_PUBLIC_BACKEND_URL ||
+  'https://dating-app-backend-x4yq.onrender.com/api';
+const resolvedBackendUrl = isDevelopmentBuild
+  ? developmentBackendUrl || productionBackendUrl
+  : productionBackendUrl;
+
+// Import custom plugin for Android 15 edge-to-edge fix
+const withAndroid15EdgeToEdgeFix = require('./plugins/withAndroid15EdgeToEdgeFix');
+
+export default withAndroid15EdgeToEdgeFix({
   expo: {
     name: 'dating-app',
     slug: 'genlang',
@@ -41,6 +58,19 @@ export default {
             targetSdkVersion: 35,
             minSdkVersion: 26,
             buildToolsVersion: '35.0.0',
+            // Fix Android 15 edge-to-edge deprecated APIs
+            extraProguardRules: [
+              '-keep class com.facebook.react.modules.statusbar.StatusBarModule { *; }',
+              '-keep class com.swmansion.rnscreens.ScreenWindowTraits { *; }',
+              '-keep class expo.modules.imagepicker.ExpoCropImageUtils { *; }'
+            ],
+            // Enable edge-to-edge with proper Android 15 support
+            packagingOptions: {
+              pickFirsts: [
+                'androidx/window/window-extensions-1.0.0-alpha01.jar',
+                'androidx/window/window-extensions-1.1.0-beta02.jar'
+              ]
+            }
           },
         },
       ],
@@ -125,6 +155,14 @@ export default {
       permissions: [],
       allowBackup: false,
       softwareKeyboardLayoutMode: 'pan',
+      // Fix Android 15 edge-to-edge deprecated APIs
+      // Use proper window insets instead of deprecated status bar APIs
+      config: {
+        // Enable edge-to-edge with proper Android 15 compatibility
+        enableEdgeToEdge: true,
+        // Use modern window management
+        windowSoftInputMode: 'adjustResize',
+      },
       // Deep linking support
       intentFilters: [
         {
@@ -185,16 +223,9 @@ export default {
         expoGoScheme: 'exp',
       }),
       // Backend API URL - Uses Vercel env var or defaults to production Render URL
-      backendUrl:
-        process.env.EXPO_PUBLIC_API_URL ||
-        process.env.EXPO_PUBLIC_BACKEND_URL ||
-        'https://dating-app-backend-x4yq.onrender.com/api',
+      backendUrl: resolvedBackendUrl,
       // Also expose the raw URL for socket connections
-      apiUrl: (
-        process.env.EXPO_PUBLIC_API_URL ||
-        process.env.EXPO_PUBLIC_BACKEND_URL ||
-        'https://dating-app-backend-x4yq.onrender.com/api'
-      ).replace('/api', ''),
+      apiUrl: resolvedBackendUrl.replace('/api', ''),
       // Sentry DSN for error tracking
       sentryDsn:
         process.env.EXPO_PUBLIC_SENTRY_DSN ||
@@ -214,4 +245,4 @@ export default {
       },
     },
   },
-};
+});

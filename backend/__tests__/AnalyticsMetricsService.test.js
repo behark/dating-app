@@ -62,7 +62,7 @@ describe('AnalyticsMetricsService', () => {
   });
 
   it('returns DAU and reports gauge', async () => {
-    UserActivity.distinct.mockResolvedValue(['u1', 'u2', 'u3']);
+    UserActivity.distinct.mockResolvedValue(['507f191e810c19729de860e1', '507f191e810c19729de860e2', '507f191e810c19729de860e3']);
 
     const result = await service.getDailyActiveUsers(new Date('2026-01-03T12:00:00.000Z'));
 
@@ -74,7 +74,7 @@ describe('AnalyticsMetricsService', () => {
   });
 
   it('uses cache for repeated DAU call with same date', async () => {
-    UserActivity.distinct.mockResolvedValue(['u1', 'u2']);
+    UserActivity.distinct.mockResolvedValue(['507f191e810c19729de860e1', '507f191e810c19729de860e2']);
     const d = new Date('2026-01-03T12:00:00.000Z');
 
     const first = await service.getDailyActiveUsers(d);
@@ -113,7 +113,7 @@ describe('AnalyticsMetricsService', () => {
 
   it('calculates message response rate', async () => {
     Message.aggregate.mockResolvedValue([
-      { _id: 'm1', hasResponse: true },
+      { _id: '507f191e810c19729de860f1', hasResponse: true },
       { _id: 'm2', hasResponse: false },
       { _id: 'm3', hasResponse: true },
     ]);
@@ -144,12 +144,12 @@ describe('AnalyticsMetricsService', () => {
 
   it('computes retention metrics per day bucket', async () => {
     User.find.mockReturnValue({
-      select: jest.fn().mockResolvedValue([{ _id: 'u1' }, { _id: 'u2' }, { _id: 'u3' }]),
+      select: jest.fn().mockResolvedValue([{ _id: '507f191e810c19729de860e1' }, { _id: '507f191e810c19729de860e2' }, { _id: '507f191e810c19729de860e3' }]),
     });
     UserActivity.distinct
-      .mockResolvedValueOnce(['u1', 'u2'])
-      .mockResolvedValueOnce(['u2'])
-      .mockResolvedValueOnce(['u1']);
+      .mockResolvedValueOnce(['507f191e810c19729de860e1', '507f191e810c19729de860e2'])
+      .mockResolvedValueOnce(['507f191e810c19729de860e2'])
+      .mockResolvedValueOnce(['507f191e810c19729de860e1']);
 
     const result = await service.getRetentionRate(new Date('2025-12-01T12:00:00.000Z'));
 

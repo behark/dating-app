@@ -9,16 +9,17 @@ import SingleSlider from '../../../components/Slider/SingleSlider';
 import { useAuth } from '../../../context/AuthContext';
 import { useTheme } from '../../../context/ThemeContext';
 import { showStandardError, showSuccess } from '../../../utils/errorHandler';
-import logger from '../../../utils/logger';
 import { PreferencesService } from '../../../services/PreferencesService';
-import { LocationService } from '../../../services/LocationService';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const PreferencesScreen = ({ navigation }) => {
   const { currentUser } = useAuth();
   const { theme, isDark, toggleTheme } = useTheme();
+  const queryClient = useQueryClient();
+
+  // Local controlled-input state — seeded from server once on load
   const [preferences, setPreferences] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [seeded, setSeeded] = useState(false);
 
   // Dynamic styles that depend on theme
   const themeStyles = {
@@ -36,46 +37,51 @@ const PreferencesScreen = ({ navigation }) => {
     },
   };
 
+  // ── Fetch: user preferences ─────────────────────────────────────────────────────────
+  const { data: serverPrefs, isLoading: loading, isError } = useQuery({
+    queryKey: ['preferences', currentUser?.uid],
+    queryFn: () => PreferencesService.getUserPreferences(currentUser.uid),
+    enabled: !!currentUser?.uid,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // v5: seed form state via useEffect (onSuccess removed in v5)
   useEffect(() => {
-    loadPreferences();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loadPreferences = async () => {
-    try {
-      const prefs = await PreferencesService.getUserPreferences(currentUser.uid);
-      setPreferences(prefs);
-    } catch (error) {
-      logger.error('Error loading preferences:', error);
-      showStandardError(error, 'load', 'Unable to Load');
-    } finally {
-      setLoading(false);
+    if (serverPrefs && !seeded) {
+      setPreferences(serverPrefs);
+      setSeeded(true);
     }
-  };
+  }, [serverPrefs, seeded]);
 
-  const savePreferences = async () => {
+  // v5: show error via useEffect (onError removed in v5)
+  useEffect(() => {
+    if (isError) {
+      showStandardError(new Error('Failed to load preferences'), 'load', 'Unable to Load');
+    }
+  }, [isError]);
+
+  // ── Mutation: save preferences ────────────────────────────────────────────────────
+  const { mutate: doSave, isPending: saving } = useMutation({
+    mutationFn: (prefs) => PreferencesService.updateUserPreferences(currentUser.uid, prefs),
+    onSuccess: (success) => {
+      if (success) {
+        showSuccess('Preferences saved successfully!');
+        queryClient.invalidateQueries({ queryKey: ['preferences', currentUser?.uid] });
+      } else {
+        showStandardError('Unable to save preferences', 'save', 'Save Failed');
+      }
+    },
+    onError: (error) => showStandardError(error, 'save', 'Save Failed'),
+  });
+
+  const savePreferences = () => {
     if (!preferences) return;
-
     const validation = PreferencesService.validatePreferences(preferences);
     if (!validation.isValid) {
       showStandardError(validation.errors.join('\n'), 'validation', 'Invalid Preferences');
       return;
     }
-
-    setSaving(true);
-    try {
-      const success = await PreferencesService.updateUserPreferences(currentUser.uid, preferences);
-      if (success) {
-        showSuccess('Preferences saved successfully!');
-      } else {
-        showStandardError('Unable to save preferences', 'save', 'Save Failed');
-      }
-    } catch (error) {
-      logger.error('Error saving preferences:', error);
-      showStandardError(error, 'save', 'Save Failed');
-    } finally {
-      setSaving(false);
-    }
+    doSave(preferences);
   };
 
   const updatePreference = (key, value) => {

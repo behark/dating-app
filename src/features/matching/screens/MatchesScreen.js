@@ -2,7 +2,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -17,137 +17,61 @@ import EmptyState from '../../../components/common/EmptyState';
 import ModernCard from '../../../components/ModernCard';
 import { Colors } from '../../../constants/colors';
 import DESIGN_TOKENS from '../../../constants/designTokens';
-import Toast from '../../../utils/toast';
 import { useAuth } from '../../../context/AuthContext';
 import { useChat } from '../../../context/ChatContext';
-import { PremiumService } from '../../../services/PremiumService';
-import { SwipeController } from '../../../services/SwipeController';
-import { getUserFriendlyMessage } from '../../../utils/errorMessages';
-import logger from '../../../utils/logger';
 import { DEMO_MATCHES, DEMO_LIKES_RECEIVED } from '../data/demoMatches';
+import { useMatches } from '../hooks/useMatches';
 
 const PLACEHOLDER_THUMB = require('../../../../assets/icon.png');
 
 const MatchesScreen = () => {
   const navigation = useNavigation();
   const { currentUser, authToken } = useAuth();
-  const { conversations, loadConversations, unreadCount } = useChat();
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
-  const [receivedLikes, setReceivedLikes] = useState([]);
+  const { conversations, loadConversations } = useChat();
+
+  // UI-only state — data is managed by TanStack Query via useMatches
   const [showLikes, setShowLikes] = useState(false);
-  const [backendError, setBackendError] = useState(false);
+  const [convsLoading, setConvsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Track current request to prevent race conditions
-  const requestIdRef = useRef(0);
+  const {
+    isPremium,
+    receivedLikes,
+    isLoading: matchesLoading,
+    likesError,
+    unmatch,
+    refresh: refreshMatches,
+  } = useMatches({ userId: currentUser?.uid, authToken, conversations });
 
+  const loading = convsLoading || matchesLoading;
+
+  // Load conversations from ChatContext when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      // Increment request ID on each focus
-      const currentRequestId = ++requestIdRef.current;
-      loadConversationsList(currentRequestId);
-
-      // Cleanup: invalidate the request if screen loses focus
-      return () => {
-        requestIdRef.current++;
+      let active = true;
+      const fetchConvs = async () => {
+        setConvsLoading(true);
+        try {
+          await loadConversations();
+        } finally {
+          if (active) setConvsLoading(false);
+        }
       };
+      fetchConvs();
+      return () => { active = false; };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
   );
 
-  const loadConversationsList = async (requestId) => {
-    try {
-      setLoading(true);
-      await loadConversations();
-
-      // Check if this request is still valid (not stale)
-      if (requestId !== requestIdRef.current) {
-        logger.info('Stale request ignored in MatchesScreen');
-        return;
-      }
-
-      // Load premium status
-      let userIsPremium = false;
-      try {
-        const premiumStatus = await PremiumService.checkPremiumStatus(currentUser.uid, authToken);
-        // Check again after async operation
-        if (requestId !== requestIdRef.current) return;
-        userIsPremium = premiumStatus.isPremium;
-        setIsPremium(userIsPremium);
-      } catch (error) {
-        // Silently fail for premium status, don't break the app
-        logger.error('Error loading premium status:', error);
-      }
-
-      // Load received likes (people who liked you) - show for all users
-      try {
-        const receivedSwipes = await SwipeController.getReceivedSwipes(currentUser.uid);
-        if (requestId !== requestIdRef.current) return;
-
-        // Get list of matched user IDs to filter them out from likes
-        const matchedUserIds = new Set(
-          conversations.map((conv) => conv.otherUser?._id || conv.otherUser?.id)
-        );
-
-        // Transform swipes to user-friendly format for display
-        // Filter out people who have already matched (they show in Matches tab)
-        const formattedLikes = receivedSwipes
-          .filter((swipe) => {
-            const userId = swipe.swiper || swipe.userId;
-            return !matchedUserIds.has(userId);
-          })
-          .map((swipe) => ({
-            _id: swipe.id || swipe._id,
-            user: {
-              id: swipe.swiper || swipe.userId,
-              name: swipe.swiperInfo?.name || 'Unknown',
-              photoURL: swipe.swiperInfo?.photoURL || swipe.swiperInfo?.photos?.[0]?.url,
-              age: swipe.swiperInfo?.age,
-            },
-            timestamp: swipe.createdAt,
-            type: swipe.type || 'like',
-          }));
-        setReceivedLikes(formattedLikes);
-      } catch (error) {
-        logger.error('Error loading sent likes:', error);
-        // Don't fail the whole load, just log the error
-      }
-
-      // Note: Redundant premium getReceivedSwipes call removed.
-      // Received likes are already loaded above for all users and stored in receivedLikes state.
-
-      // Final check before updating state
-      if (requestId !== requestIdRef.current) return;
-      setLoading(false);
-      setRefreshing(false);
-      setBackendError(false);
-    } catch (error) {
-      // Check if request is still valid before showing error
-      if (requestId !== requestIdRef.current) return;
-
-      logger.error('Error loading conversations:', error);
-      Toast.show({
-        type: 'info',
-        text1: 'Network issue',
-        text2: 'Cannot reach server. Tap retry.',
-        actionLabel: 'Retry',
-        onPress: () => {
-          const newRequestId = ++requestIdRef.current;
-          loadConversationsList(newRequestId);
-        },
-      });
-      setLoading(false);
-      setRefreshing(false);
-      setBackendError(true);
-    }
-  };
-
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    const currentRequestId = ++requestIdRef.current;
-    await loadConversationsList(currentRequestId);
-  };
+    try {
+      await loadConversations();
+      refreshMatches();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadConversations, refreshMatches]);
 
   const renderConversation = ({ item }) => (
     <View style={styles.cardWrapper}>
@@ -243,7 +167,7 @@ const MatchesScreen = () => {
     </View>
   );
 
-  const handleUnmatch = (userId, userName) => {
+  const handleUnmatch = (targetUserId, userName) => {
     Alert.alert(
       'Unmatch Confirmation',
       `Are you sure you want to unmatch with ${userName}? This action cannot be undone.`,
@@ -252,19 +176,17 @@ const MatchesScreen = () => {
         {
           text: 'Unmatch',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              const result = await SwipeController.unmatch(currentUser.uid, userId);
-              if (result.success) {
-                Alert.alert('Success', 'You have unmatched');
-                onRefresh();
-              } else {
-                Alert.alert('Error', result.error || 'Failed to unmatch');
+          onPress: () =>
+            unmatch(
+              { currentUserId: currentUser.uid, targetUserId },
+              {
+                onSuccess: () => {
+                  Alert.alert('Success', 'You have unmatched');
+                  onRefresh();
+                },
+                onError: () => Alert.alert('Error', 'Failed to unmatch'),
               }
-            } catch (error) {
-              Alert.alert('Error', 'Failed to unmatch');
-            }
-          },
+            ),
         },
       ]
     );
@@ -323,11 +245,11 @@ const MatchesScreen = () => {
           </View>
         )}
       </View>
-      {backendError && (
+      {likesError && (
         <View style={styles.backendWarning}>
           <Ionicons name="cloud-offline" size={16} color={Colors.background.white} />
           <Text style={styles.backendWarningText}>Network issue — using demo data</Text>
-          <TouchableOpacity onPress={() => onRefresh()} style={styles.backendRetry}>
+          <TouchableOpacity onPress={onRefresh} style={styles.backendRetry}>
             <Text style={styles.backendRetryText}>Retry</Text>
           </TouchableOpacity>
         </View>

@@ -23,7 +23,7 @@ jest.mock('../../src/api/middleware/auth', () => ({
     if (!req.headers.authorization) {
       return res.status(401).json({ success: false, message: 'Authentication required' });
     }
-    req.user = { _id: 'user_1' };
+    req.user = { _id: '507f191e810c19729de860e1' };
     next();
   }),
   authorizeMatchedUsers: jest.fn((req, res, next) => next()),
@@ -71,8 +71,8 @@ describe('activity routes', () => {
   });
 
   it('serves status and profile activity endpoints', async () => {
-    const online = await request(app).get('/api/activity/online-status/u2').set(auth);
-    const view = await request(app).post('/api/activity/view-profile/u2').set(auth).send({});
+    const online = await request(app).get('/api/activity/online-status/507f191e810c19729de860e2').set(auth);
+    const view = await request(app).post('/api/activity/view-profile/507f191e810c19729de860e2').set(auth).send({});
     const views = await request(app).get('/api/activity/profile-views').set(auth);
     const heartbeat = await request(app).post('/api/activity/heartbeat').set(auth).send({});
 
@@ -86,11 +86,11 @@ describe('activity routes', () => {
     const invalid = await request(app)
       .post('/api/activity/status')
       .set(auth)
-      .send({ userIds: 'u2' });
+      .send({ userIds: '507f191e810c19729de860e2' });
     const valid = await request(app)
       .post('/api/activity/status')
       .set(auth)
-      .send({ userIds: ['u2', 'u3'] });
+      .send({ userIds: ['507f191e810c19729de860e2', '507f191e810c19729de860e3'] });
 
     expect(invalid.status).toBe(400);
     expect(valid.status).toBe(200);
