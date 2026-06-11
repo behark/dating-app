@@ -76,3 +76,13 @@ test-*-connection.js
 backend/.env.production
 .env.local
 ./. (4).env
+docs/.env.playstore
+
+# secrets (auto-added)
+.env
+.env.*
+!.env.example
+!.env.sample
+*.key
+*.pem
+!**/site-packages/**
